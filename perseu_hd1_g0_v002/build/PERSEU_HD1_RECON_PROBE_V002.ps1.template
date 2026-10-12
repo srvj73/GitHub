@@ -1,0 +1,616 @@
+#requires -Version 5.1
+<#
+PERSEU_HD1_RECON_PROBE_V002.ps1 -- SOURCE_ONLY wrapper; Windows target G0 pending.
+Project: Perseu MT5 (Astra) | Thread: PERSEU_C2_DISK_SPACE_RECONCILIATION
+Subfront: PERSEU_HD1_ARCHIVE_RECONCILIATION
+
+Read-only. No protected effect. Evidence writes go ONLY to the fixed absolute run root
+  C:\Users\silvi\OneDrive\Downloads\PERSEU_HD1_RECON_V002_RUNS\<MODE>_<RUN_ID>\
+independent of the current directory. A new run directory is created per run.
+
+Launch from PS C:\Users\silvi> (no cd), Windows PowerShell 5.1 Desktop:
+  powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\PERSEU_HD1_RECON_PROBE_V002.ps1" -Mode SelfTest
+Modes: SelfTest | Inventory | Probe
+Exit codes: 0=PASS  2=BLOCKED_NO_PROTECTED_EFFECTS
+#>
+[CmdletBinding()]
+param(
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('SelfTest', 'Inventory', 'Probe')]
+    [string]$Mode
+)
+Set-StrictMode -Version 2.0
+$ErrorActionPreference = 'Stop'
+
+$ProjectName = 'Perseu MT5 (Astra)'
+$ThreadName = 'PERSEU_C2_DISK_SPACE_RECONCILIATION'
+$SubfrontName = 'PERSEU_HD1_ARCHIVE_RECONCILIATION'
+$Revision = 'PERSEU_HD1_RECON_PROBE_V002'
+$PolicyMasterSha256 = '5B135DA0CA7C3BFE992F364720605522FB939977772C6D5A6FD3811A8288B302'
+$ResultContext = 'RESULT_CONTEXT=ChatGPT | PROJECT=' + $ProjectName + ' | THREAD=' + $ThreadName
+$ResultFooter = 'RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ProjectName + ' | THREAD=' + $ThreadName
+$PinnedPython = 'C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'
+$PythonSeries = '3.14.'
+$DownloadsRoot = 'C:\Users\silvi\OneDrive\Downloads'
+$EvidenceRoot = 'C:\Users\silvi\OneDrive\Downloads\PERSEU_HD1_RECON_V002_RUNS'
+$PayloadName = 'PERSEU_HD1_RECON_PROBE_V002.py'
+$PayloadSha256 = '@@PAYLOAD_SHA256@@'
+$PayloadByteCount = [int64]@@PAYLOAD_BYTES@@
+$PayloadB64 = @'
+@@PAYLOAD_B64@@
+'@
+
+$Invariant = [System.Globalization.CultureInfo]::InvariantCulture
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+$Utf8Strict = New-Object System.Text.UTF8Encoding($false, $true)
+$PassResults = @('PASS_SELFTEST_ONLY', 'PASS_INVENTORY_ONLY', 'PASS_PROBE_ONLY', 'FIXTURE_PASS')
+$AllResults = @('PASS_SELFTEST_ONLY', 'PASS_INVENTORY_ONLY', 'PASS_PROBE_ONLY', 'FIXTURE_PASS', 'BLOCKED', 'FIXTURE_BLOCKED')
+
+$script:Phase = 'INIT'
+$script:RunDir = $null
+$script:LogPath = $null
+$script:PayloadPath = $null
+$script:Stages = New-Object System.Collections.Generic.List[object]
+$script:Fixtures = New-Object System.Collections.Generic.List[object]
+$script:EvidenceFiles = New-Object System.Collections.Generic.List[string]
+$script:Pending = New-Object System.Collections.Generic.List[object]
+
+function Get-PhrTimestamp {
+    return (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffzzz', $Invariant)
+}
+
+function Write-PhrLog {
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Line)
+    Write-Host $Line
+    if ($null -ne $script:LogPath) {
+        [System.IO.File]::AppendAllText($script:LogPath, ((Get-PhrTimestamp) + ' ' + $Line + "`r`n"), $Utf8NoBom)
+    }
+}
+
+function Stop-PhrBlocked {
+    param([Parameter(Mandatory = $true)][string]$Reason)
+    throw (New-Object System.InvalidOperationException('BLOCKED:' + $Reason))
+}
+
+function Get-PhrBytesSha256 {
+    param([Parameter(Mandatory = $true)][AllowEmptyCollection()][byte[]]$Bytes)
+    $sha = [System.Security.Cryptography.SHA256]::Create()
+    try {
+        $digest = $sha.ComputeHash($Bytes)
+    } finally {
+        $sha.Dispose()
+    }
+    return ([System.BitConverter]::ToString($digest) -replace '-', '')
+}
+
+function Get-PhrFileSha256 {
+    param([Parameter(Mandatory = $true)][string]$LiteralPath)
+    return (Get-FileHash -LiteralPath $LiteralPath -Algorithm SHA256).Hash.ToUpperInvariant()
+}
+
+function Write-PhrNewBytes {
+    param(
+        [Parameter(Mandatory = $true)][string]$LiteralPath,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][byte[]]$Bytes
+    )
+    if ([System.IO.File]::Exists($LiteralPath)) {
+        Stop-PhrBlocked -Reason ('EVIDENCE_FILE_PREEXISTS:' + $LiteralPath)
+    }
+    $fs = New-Object System.IO.FileStream($LiteralPath, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+    try {
+        $fs.Write($Bytes, 0, $Bytes.Length)
+        $fs.Flush($true)
+    } finally {
+        $fs.Dispose()
+    }
+    $script:EvidenceFiles.Add($LiteralPath)
+}
+
+function Write-PhrNewText {
+    param(
+        [Parameter(Mandatory = $true)][string]$LiteralPath,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string]$Text
+    )
+    Write-PhrNewBytes -LiteralPath $LiteralPath -Bytes $Utf8NoBom.GetBytes($Text)
+}
+
+function ConvertTo-PhrArgumentString {
+    # Single documented serialization layer: logical argv -> Windows command line
+    # (CommandLineToArgvW / MSVCRT rules). Inputs are raw values, never pre-quoted.
+    param([Parameter(Mandatory = $true)][AllowEmptyString()][string[]]$LaunchArgs)
+    $backslash = [char]92
+    $quote = [char]34
+    $parts = New-Object System.Collections.Generic.List[string]
+    foreach ($item in $LaunchArgs) {
+        if ($item.Length -gt 0 -and $item -notmatch '[\s"]') {
+            $parts.Add($item)
+            continue
+        }
+        $sb = New-Object System.Text.StringBuilder
+        [void]$sb.Append($quote)
+        $pendingSlashes = 0
+        foreach ($ch in $item.ToCharArray()) {
+            if ($ch -eq $backslash) {
+                $pendingSlashes = $pendingSlashes + 1
+                continue
+            }
+            if ($ch -eq $quote) {
+                [void]$sb.Append($backslash, [int](2 * $pendingSlashes + 1))
+                [void]$sb.Append($quote)
+                $pendingSlashes = 0
+                continue
+            }
+            if ($pendingSlashes -gt 0) {
+                [void]$sb.Append($backslash, [int]$pendingSlashes)
+                $pendingSlashes = 0
+            }
+            [void]$sb.Append($ch)
+        }
+        if ($pendingSlashes -gt 0) {
+            [void]$sb.Append($backslash, [int](2 * $pendingSlashes))
+        }
+        [void]$sb.Append($quote)
+        $parts.Add($sb.ToString())
+    }
+    return ($parts.ToArray() -join ' ')
+}
+
+function Invoke-PhrChild {
+    param(
+        [Parameter(Mandatory = $true)][string]$ExePath,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string[]]$LaunchArgs,
+        [Parameter(Mandatory = $true)][int]$WatchdogSeconds,
+        [Parameter(Mandatory = $true)][string]$Label
+    )
+    $argLine = ConvertTo-PhrArgumentString -LaunchArgs $LaunchArgs
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $ExePath
+    $psi.Arguments = $argLine
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $false
+    $psi.RedirectStandardInput = $false
+    $psi.RedirectStandardOutput = $false
+    $psi.RedirectStandardError = $false
+    $psi.WorkingDirectory = $script:RunDir
+    Write-PhrLog ('CHILD_START LABEL=' + $Label + ' EXE=' + $ExePath + ' ARGS=' + $argLine)
+    $proc = [System.Diagnostics.Process]::Start($psi)
+    if ($null -eq $proc) {
+        Stop-PhrBlocked -Reason ('CHILD_START_NULL:' + $Label)
+    }
+    $childPid = $proc.Id
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    $nextBeat = 30
+    $expired = $false
+    while (-not $proc.WaitForExit(1000)) {
+        $elapsed = [int][System.Math]::Floor($sw.Elapsed.TotalSeconds)
+        if ($elapsed -ge $WatchdogSeconds) {
+            $expired = $true
+            break
+        }
+        if ($elapsed -ge $nextBeat) {
+            Write-PhrLog ('HEARTBEAT PHASE=' + $Label + ' CHILD_PID=' + $childPid + ' ELAPSED_S=' + $elapsed + ' WATCHDOG_S=' + $WatchdogSeconds + ' SAFE_STOP=YES_READ_ONLY')
+            $nextBeat = $nextBeat + 30
+        }
+    }
+    if ($expired) {
+        Write-PhrLog ('WATCHDOG_EXPIRED NO_KILL LABEL=' + $Label + ' CHILD_PID=' + $childPid)
+        return [pscustomobject]@{ Label = $Label; Watchdog = $true; ExitCode = $null; ChildPid = $childPid; Process = $proc; ArgLine = $argLine }
+    }
+    $proc.WaitForExit()
+    $rawCode = $proc.ExitCode
+    if ($null -eq $rawCode) {
+        Stop-PhrBlocked -Reason ('CHILD_EXITCODE_NULL:' + $Label)
+    }
+    $code = [int]$rawCode
+    $proc.Dispose()
+    Write-PhrLog ('CHILD_END LABEL=' + $Label + ' CHILD_PID=' + $childPid + ' EXIT_CODE=' + $code)
+    return [pscustomobject]@{ Label = $Label; Watchdog = $false; ExitCode = $code; ChildPid = $childPid; Process = $null; ArgLine = $argLine }
+}
+
+function Read-PhrResult {
+    param(
+        [Parameter(Mandatory = $true)][string]$JsonPath,
+        [AllowNull()][object]$ExitCode,
+        [Parameter(Mandatory = $true)][bool]$Watchdog
+    )
+    $r = [ordered]@{ Status = 'BLOCKED'; Reason = $null; Result = $null; Sha256 = $null; Object = $null }
+    if ($Watchdog) { $r.Reason = 'WATCHDOG_EXPIRED_NO_KILL'; return [pscustomobject]$r }
+    if ($null -eq $ExitCode) { $r.Reason = 'EXIT_CODE_NULL'; return [pscustomobject]$r }
+    if (-not [System.IO.File]::Exists($JsonPath)) { $r.Reason = 'OUT_JSON_MISSING'; return [pscustomobject]$r }
+    $bytes = [System.IO.File]::ReadAllBytes($JsonPath)
+    $r.Sha256 = Get-PhrBytesSha256 -Bytes $bytes
+    if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+        $r.Reason = 'OUT_JSON_BOM_FORBIDDEN'
+        return [pscustomobject]$r
+    }
+    try {
+        $text = $Utf8Strict.GetString($bytes)
+    } catch {
+        $r.Reason = 'OUT_JSON_NOT_UTF8'
+        return [pscustomobject]$r
+    }
+    try {
+        $obj = ConvertFrom-Json -InputObject $text
+    } catch {
+        $r.Reason = 'OUT_JSON_MALFORMED'
+        return [pscustomobject]$r
+    }
+    if ($null -eq $obj -or $obj.GetType().FullName -ne 'System.Management.Automation.PSCustomObject') {
+        $r.Reason = 'OUT_JSON_NOT_OBJECT'
+        return [pscustomobject]$r
+    }
+    $resProp = $obj.PSObject.Properties['RESULT']
+    $codeProp = $obj.PSObject.Properties['EXIT_CODE']
+    if ($null -eq $resProp -or -not ($resProp.Value -is [string])) { $r.Reason = 'RESULT_MISSING'; return [pscustomobject]$r }
+    if ($null -eq $codeProp) { $r.Reason = 'EXIT_CODE_FIELD_MISSING'; return [pscustomobject]$r }
+    $res = [string]$resProp.Value
+    $r.Result = $res
+    $r.Object = $obj
+    if ($AllResults -notcontains $res) { $r.Reason = 'RESULT_NOT_ALLOWLISTED'; return [pscustomobject]$r }
+    if ([string]$codeProp.Value -ne [string]$ExitCode) { $r.Reason = 'EXIT_CODE_FIELD_MISMATCH'; return [pscustomobject]$r }
+    $isPass = $PassResults -contains $res
+    if ((([int]$ExitCode) -eq 0) -ne $isPass) { $r.Reason = 'EXIT_RESULT_CONTRADICTION'; return [pscustomobject]$r }
+    if ($isPass) { $r.Status = 'PASS' }
+    $r.Reason = 'CONSISTENT'
+    return [pscustomobject]$r
+}
+
+function Assert-PhrPayloadIdentity {
+    $physical = Get-PhrFileSha256 -LiteralPath $script:PayloadPath
+    if ($physical -ne $PayloadSha256) {
+        Stop-PhrBlocked -Reason ('PAYLOAD_PHYSICAL_SHA_MISMATCH:' + $physical)
+    }
+}
+
+function Invoke-PhrStage {
+    param(
+        [Parameter(Mandatory = $true)][string]$Label,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string[]]$StageArgs,
+        [Parameter(Mandatory = $true)][int]$WatchdogSeconds,
+        [Parameter(Mandatory = $true)][bool]$IsFixture
+    )
+    $script:Phase = 'STAGE_' + $Label
+    $outPath = [System.IO.Path]::Combine($script:RunDir, ('OUT_' + $Label + '.json'))
+    $launch = New-Object System.Collections.Generic.List[string]
+    foreach ($x in @('-I', '-B', '-X', 'utf8', $script:PayloadPath)) { $launch.Add($x) }
+    foreach ($x in $StageArgs) { $launch.Add($x) }
+    $launch.Add('--out-json')
+    $launch.Add($outPath)
+    if ($launch[0] -ne '-I' -or $launch[1] -ne '-B' -or $launch[4] -ne $script:PayloadPath) {
+        Stop-PhrBlocked -Reason ('INTERPRETER_ARGV_ORDER_INVALID:' + $Label)
+    }
+    Assert-PhrPayloadIdentity
+    $child = Invoke-PhrChild -ExePath $PinnedPython -LaunchArgs $launch.ToArray() -WatchdogSeconds $WatchdogSeconds -Label $Label
+    if ($child.Watchdog) { $script:Pending.Add($child) }
+    $read = Read-PhrResult -JsonPath $outPath -ExitCode $child.ExitCode -Watchdog $child.Watchdog
+    if ([System.IO.File]::Exists($outPath)) { $script:EvidenceFiles.Add($outPath) }
+    $versionOk = $null
+    if (-not $IsFixture -and $null -ne $read.Object) {
+        $verProp = $read.Object.PSObject.Properties['python_version']
+        $versionOk = ($null -ne $verProp -and ([string]$verProp.Value).StartsWith($PythonSeries, [System.StringComparison]::Ordinal))
+        if (-not $versionOk -and $read.Status -eq 'PASS') {
+            $read.Status = 'BLOCKED'
+            $read.Reason = 'PYTHON_VERSION_NOT_PINNED_SERIES'
+        }
+    }
+    $childReason = $null
+    if ($null -ne $read.Object) {
+        $reasonProp = $read.Object.PSObject.Properties['reason']
+        if ($null -ne $reasonProp) { $childReason = [string]$reasonProp.Value }
+    }
+    $summary = [pscustomobject][ordered]@{
+        label = $Label; exit_code = $child.ExitCode; watchdog = $child.Watchdog; child_pid = $child.ChildPid
+        status = $read.Status; reason = $read.Reason; result = $read.Result; child_reason = $childReason
+        out_json = $outPath; out_json_sha256 = $read.Sha256; python_series_ok = $versionOk
+    }
+    if (-not $IsFixture) { $script:Stages.Add($summary) }
+    Write-PhrLog ('STAGE LABEL=' + $Label + ' STATUS=' + $read.Status + ' REASON=' + $read.Reason + ' RESULT=' + $read.Result + ' CHILD_REASON=' + $childReason + ' EXIT_CODE=' + $child.ExitCode)
+    return [pscustomobject]@{ Summary = $summary; Read = $read; Child = $child }
+}
+
+function Wait-PhrPending {
+    param([Parameter(Mandatory = $true)][int]$GraceSeconds)
+    $out = New-Object System.Collections.Generic.List[object]
+    foreach ($item in $script:Pending.ToArray()) {
+        $ended = $item.Process.WaitForExit($GraceSeconds * 1000)
+        $natural = $null
+        if ($ended) {
+            $item.Process.WaitForExit()
+            $natural = [int]$item.Process.ExitCode
+        }
+        $out.Add([pscustomobject][ordered]@{ label = $item.Label; child_pid = $item.ChildPid; ended_naturally = $ended; natural_exit_code = $natural; killed = $false })
+        Write-PhrLog ('RECONCILE LABEL=' + $item.Label + ' CHILD_PID=' + $item.ChildPid + ' ENDED_NATURALLY=' + $ended + ' NATURAL_EXIT=' + $natural + ' KILLED=NO')
+    }
+    $script:Pending.Clear()
+    return $out.ToArray()
+}
+
+function Write-PhrDiskSnapshot {
+    param([Parameter(Mandatory = $true)][string]$Label)
+    $script:Phase = 'SNAPSHOT_' + $Label
+    $disks = @(Get-Disk | Select-Object -Property Number, FriendlyName, SerialNumber, Size, OperationalStatus, IsOffline, IsReadOnly, PartitionStyle, BusType)
+    $parts = @(Get-Partition | Select-Object -Property DiskNumber, PartitionNumber, DriveLetter, Size, Type)
+    $vols = @(Get-Volume | Select-Object -Property DriveLetter, FileSystemLabel, FileSystem, Size, SizeRemaining)
+    $payload = [ordered]@{ captured_at = (Get-PhrTimestamp); disks = $disks; partitions = $parts; volumes = $vols }
+    $json = ConvertTo-Json -InputObject $payload -Depth 6 -Compress
+    $path = [System.IO.Path]::Combine($script:RunDir, ('SNAPSHOT_' + $Label + '.json'))
+    Write-PhrNewText -LiteralPath $path -Text $json
+    Write-PhrLog ('SNAPSHOT LABEL=' + $Label + ' DISKS=' + $disks.Count + ' PARTITIONS=' + $parts.Count + ' VOLUMES=' + $vols.Count)
+    return $path
+}
+
+function Test-PhrInt64Vector {
+    $a = [int64]3000000000
+    $b = [int64][int32]::MaxValue + [int64]1
+    $sum = [int64]0
+    foreach ($v in @($a, $b, [int64]414020605824)) { $sum = $sum + [int64]$v }
+    $ok = ($sum -is [int64]) -and ($b -is [int64]) -and ($sum -eq [int64]419168089472)
+    return [pscustomobject][ordered]@{ sum = $sum; expected = [int64]419168089472; type = $sum.GetType().FullName; pass = $ok }
+}
+
+function Test-PhrArgvProbe {
+    $expected = @(
+        'C:\Users\silvi\path with spaces\',
+        'quote"inside',
+        ('two' + [char]92 + [char]92 + [char]34 + 'slashes'),
+        '',
+        'plain',
+        ('tab' + [char]9 + 'sep'),
+        ('a' + [char]0x00E7 + [char]0x00E3 + 'o')
+    )
+    $stageArgs = New-Object System.Collections.Generic.List[string]
+    $stageArgs.Add('--fixture-child')
+    $stageArgs.Add('argv-echo')
+    foreach ($e in $expected) {
+        $stageArgs.Add('--echo')
+        $stageArgs.Add($e)
+    }
+    $run = Invoke-PhrStage -Label 'FIXTURE_ARGV_ECHO' -StageArgs $stageArgs.ToArray() -WatchdogSeconds 120 -IsFixture $true
+    $got = New-Object System.Collections.Generic.List[string]
+    $ok = $false
+    if ($run.Read.Status -eq 'PASS' -and $null -ne $run.Read.Object) {
+        $argvProp = $run.Read.Object.PSObject.Properties['argv']
+        if ($null -ne $argvProp) {
+            foreach ($g in @($argvProp.Value)) { $got.Add([string]$g) }
+        }
+        $ok = ($got.Count -eq $expected.Count)
+        if ($ok) {
+            for ($i = 0; $i -lt $expected.Count; $i++) {
+                if (-not [string]::Equals($got[$i], $expected[$i], [System.StringComparison]::Ordinal)) { $ok = $false }
+            }
+        }
+    }
+    return [pscustomobject][ordered]@{ expected_count = $expected.Count; received_count = $got.Count; arg_line = $run.Child.ArgLine; pass = $ok }
+}
+
+function Test-PhrFixtureMatrix {
+    $matrix = @(
+        @('pass', 'PASS', 'CONSISTENT', 120),
+        @('blocked', 'BLOCKED', 'CONSISTENT', 120),
+        @('contradict', 'BLOCKED', 'EXIT_RESULT_CONTRADICTION', 120),
+        @('malformed', 'BLOCKED', 'OUT_JSON_MALFORMED', 120),
+        @('nofile', 'BLOCKED', 'OUT_JSON_MISSING', 120),
+        @('bom', 'BLOCKED', 'OUT_JSON_BOM_FORBIDDEN', 120),
+        @('sleep', 'BLOCKED', 'WATCHDOG_EXPIRED_NO_KILL', 3)
+    )
+    $allOk = $true
+    foreach ($row in $matrix) {
+        $run = Invoke-PhrStage -Label ('FIXTURE_' + $row[0].ToUpperInvariant()) -StageArgs @('--fixture-child', $row[0]) -WatchdogSeconds ([int]$row[3]) -IsFixture $true
+        $ok = ($run.Read.Status -eq $row[1]) -and ($run.Read.Reason -eq $row[2])
+        if (-not $ok) { $allOk = $false }
+        $script:Fixtures.Add([pscustomobject][ordered]@{ scenario = $row[0]; expected_status = $row[1]; expected_reason = $row[2]; status = $run.Read.Status; reason = $run.Read.Reason; exit_code = $run.Child.ExitCode; pass = $ok })
+    }
+    $reconciled = @(Wait-PhrPending -GraceSeconds 60)
+    foreach ($rec in $reconciled) {
+        if (-not $rec.ended_naturally -or $rec.natural_exit_code -ne 0) { $allOk = $false }
+    }
+    return [pscustomobject][ordered]@{ pass = $allOk; reconciled = $reconciled }
+}
+
+# ------------------------------------------------------------------ main
+$exitCode = 2
+$finalResult = 'BLOCKED'
+$finalReason = $null
+$startedAt = Get-PhrTimestamp
+$wrapperPath = $null
+$wrapperSha = $null
+$pythonSha = $null
+$runId = $null
+$int64Vector = $null
+$argvProbe = $null
+$fixtureMatrix = $null
+$bindingStability = $null
+$receiptPath = $null
+$receiptSha = $null
+$clrText = 'NOT_REPORTED'
+$edition = 'UNKNOWN'
+$psVer = $null
+
+try {
+    Write-Host $ResultContext
+    $script:Phase = 'ENVIRONMENT_GATES'
+    if ($env:OS -ne 'Windows_NT') { Stop-PhrBlocked -Reason 'WINDOWS_TARGET_REQUIRED' }
+    $edition = 'Desktop'
+    $editionProp = $PSVersionTable.PSObject.Properties['PSEdition']
+    if ($null -ne $editionProp) { $edition = [string]$editionProp.Value }
+    $psVer = $PSVersionTable.PSVersion
+    $clrProp = $PSVersionTable.PSObject.Properties['CLRVersion']
+    if ($null -ne $clrProp -and $null -ne $clrProp.Value) { $clrText = [string]$clrProp.Value }
+    if ($edition -ne 'Desktop' -or $psVer.Major -ne 5 -or $psVer.Minor -ne 1) {
+        Stop-PhrBlocked -Reason ('WINDOWS_POWERSHELL_51_DESKTOP_REQUIRED:' + $edition + ':' + $psVer.ToString())
+    }
+    if ([string]::IsNullOrEmpty($PSCommandPath)) { Stop-PhrBlocked -Reason 'LAUNCH_WITH_DASH_FILE_REQUIRED' }
+    $wrapperPath = $PSCommandPath
+    $wrapperSha = Get-PhrFileSha256 -LiteralPath $wrapperPath
+    if (-not [System.IO.Directory]::Exists($DownloadsRoot)) { Stop-PhrBlocked -Reason ('CANONICAL_DOWNLOADS_MISSING:' + $DownloadsRoot) }
+
+    $script:Phase = 'RUN_DIR'
+    $runId = (Get-Date).ToString('yyyyMMdd_HHmmss_fff', $Invariant) + '_' + $PID
+    if (-not [System.IO.Directory]::Exists($EvidenceRoot)) { [void][System.IO.Directory]::CreateDirectory($EvidenceRoot) }
+    $runDirCandidate = [System.IO.Path]::Combine($EvidenceRoot, ($Mode.ToUpperInvariant() + '_' + $runId))
+    if ([System.IO.Directory]::Exists($runDirCandidate) -or [System.IO.File]::Exists($runDirCandidate)) { Stop-PhrBlocked -Reason 'RUN_DIR_PREEXISTS' }
+    [void][System.IO.Directory]::CreateDirectory($runDirCandidate)
+    $script:RunDir = $runDirCandidate
+    $script:LogPath = [System.IO.Path]::Combine($script:RunDir, 'RUN_LOG.txt')
+    Write-PhrLog ('REVISION=' + $Revision + ' MODE=' + $Mode + ' RUN_ID=' + $runId)
+    Write-PhrLog ('WRAPPER=' + $wrapperPath + ' WRAPPER_SHA256=' + $wrapperSha)
+    Write-PhrLog ('RUN_DIR=' + $script:RunDir + ' LOG=' + $script:LogPath)
+    Write-PhrLog ('POWERSHELL=' + $edition + ' ' + $psVer.ToString() + ' CLR=' + $clrText + ' OS=' + [System.Environment]::OSVersion.VersionString)
+    Write-PhrLog 'PROTECTED_EFFECTS=NONE SOURCE_DELETE=NO TARGET_DISK_MUTATION=NO C2_FULL_STARTED=NO'
+
+    $script:Phase = 'PYTHON_GATE'
+    if (-not (Test-Path -LiteralPath $PinnedPython -PathType Leaf)) { Stop-PhrBlocked -Reason ('PINNED_PYTHON_NOT_FOUND:' + $PinnedPython) }
+    $pythonSha = Get-PhrFileSha256 -LiteralPath $PinnedPython
+    Write-PhrLog ('PYTHON=' + $PinnedPython + ' PYTHON_EXE_SHA256=' + $pythonSha)
+
+    $script:Phase = 'PAYLOAD_MATERIALIZE'
+    $payloadBytes = [System.Convert]::FromBase64String(($PayloadB64 -replace '\s', ''))
+    if ([int64]$payloadBytes.Length -ne $PayloadByteCount) { Stop-PhrBlocked -Reason ('PAYLOAD_LENGTH_MISMATCH:' + $payloadBytes.Length) }
+    $embeddedSha = Get-PhrBytesSha256 -Bytes $payloadBytes
+    if ($embeddedSha -ne $PayloadSha256) { Stop-PhrBlocked -Reason ('PAYLOAD_EMBEDDED_SHA_MISMATCH:' + $embeddedSha) }
+    $script:PayloadPath = [System.IO.Path]::Combine($script:RunDir, $PayloadName)
+    Write-PhrNewBytes -LiteralPath $script:PayloadPath -Bytes $payloadBytes
+    Assert-PhrPayloadIdentity
+    Write-PhrLog ('PAYLOAD=' + $script:PayloadPath + ' PAYLOAD_SHA256=' + $PayloadSha256 + ' BYTES=' + $PayloadByteCount)
+
+    $ok = $true
+    if ($Mode -eq 'SelfTest') {
+        $script:Phase = 'INT64_VECTOR'
+        $int64Vector = Test-PhrInt64Vector
+        Write-PhrLog ('INT64_VECTOR PASS=' + $int64Vector.pass + ' SUM=' + $int64Vector.sum)
+        if (-not $int64Vector.pass) { $ok = $false }
+        $script:Phase = 'ARGV_PROBE'
+        $argvProbe = Test-PhrArgvProbe
+        Write-PhrLog ('ARGV_PROBE PASS=' + $argvProbe.pass + ' RECEIVED=' + $argvProbe.received_count + '/' + $argvProbe.expected_count)
+        if (-not $argvProbe.pass) { $ok = $false }
+        $script:Phase = 'FIXTURE_MATRIX'
+        $fixtureMatrix = Test-PhrFixtureMatrix
+        Write-PhrLog ('FIXTURE_MATRIX PASS=' + $fixtureMatrix.pass)
+        if (-not $fixtureMatrix.pass) { $ok = $false }
+        $workDir = [System.IO.Path]::Combine($script:RunDir, 'SELFTEST_WORK')
+        [void][System.IO.Directory]::CreateDirectory($workDir)
+        $st = Invoke-PhrStage -Label 'PAYLOAD_SELFTEST' -StageArgs @('--selftest', '--work-dir', $workDir) -WatchdogSeconds 600 -IsFixture $false
+        if ($st.Read.Status -ne 'PASS') { $ok = $false }
+        $leftovers = @([System.IO.Directory]::GetFileSystemEntries($workDir))
+        if ($leftovers.Count -eq 0) {
+            [System.IO.Directory]::Delete($workDir)
+            Write-PhrLog 'CLEANUP SELFTEST_WORK=DELETED_EMPTY_RUN_OWNED BYTES_FREED=0'
+        } else {
+            Write-PhrLog ('CLEANUP SELFTEST_WORK=PRESERVED_NONEMPTY ENTRIES=' + $leftovers.Count)
+            $ok = $false
+        }
+    }
+    if ($Mode -eq 'SelfTest' -or $Mode -eq 'Inventory') {
+        $snap = Write-PhrDiskSnapshot -Label 'INVENTORY'
+        $inv = Invoke-PhrStage -Label 'INVENTORY_CHECK' -StageArgs @('--inventory-check', '--snapshot', $snap) -WatchdogSeconds 300 -IsFixture $false
+        if ($inv.Read.Status -ne 'PASS') { $ok = $false }
+    }
+    if ($Mode -eq 'Probe') {
+        $snapPre = Write-PhrDiskSnapshot -Label 'PRE'
+        $probe = Invoke-PhrStage -Label 'PROBE' -StageArgs @('--probe', '--snapshot', $snapPre) -WatchdogSeconds 1800 -IsFixture $false
+        if ($probe.Read.Status -ne 'PASS') { $ok = $false }
+        if (-not $probe.Child.Watchdog) {
+            $snapPost = Write-PhrDiskSnapshot -Label 'POST'
+            $post = Invoke-PhrStage -Label 'POST_INVENTORY_CHECK' -StageArgs @('--inventory-check', '--snapshot', $snapPost) -WatchdogSeconds 300 -IsFixture $false
+            $preLetter = $null; $preNumber = $null; $postLetter = $null; $postNumber = $null
+            if ($null -ne $probe.Read.Object -and $null -ne $probe.Read.Object.PSObject.Properties['binding']) {
+                $preLetter = [string]$probe.Read.Object.binding.drive_letter
+                $preNumber = [string]$probe.Read.Object.binding.disk_number
+            }
+            if ($null -ne $post.Read.Object -and $null -ne $post.Read.Object.PSObject.Properties['inventory']) {
+                $hb = $post.Read.Object.inventory.hd1_binding
+                if ($null -ne $hb) {
+                    $postLetter = [string]$hb.drive_letter
+                    $postNumber = [string]$hb.disk_number
+                }
+            }
+            $stable = ($null -ne $preLetter) -and ($preLetter -eq $postLetter) -and ($preNumber -eq $postNumber)
+            $bindingStability = [pscustomobject][ordered]@{ pre_letter = $preLetter; post_letter = $postLetter; pre_disk = $preNumber; post_disk = $postNumber; stable = $stable }
+            Write-PhrLog ('BINDING_STABILITY STABLE=' + $stable + ' PRE=' + $preNumber + ':' + $preLetter + ' POST=' + $postNumber + ':' + $postLetter)
+            if ($post.Read.Status -ne 'PASS' -or -not $stable) { $ok = $false }
+        }
+    }
+    if ($script:Pending.Count -gt 0) {
+        [void](Wait-PhrPending -GraceSeconds 60)
+        $ok = $false
+    }
+    if ($ok) {
+        $finalResult = 'PASS'
+        $finalReason = 'ALL_STAGES_PASS'
+        $exitCode = 0
+    } else {
+        $finalReason = 'STAGE_NOT_PASS_SEE_RECEIPT'
+    }
+} catch {
+    $msg = [string]$_.Exception.Message
+    $finalResult = 'BLOCKED'
+    if ($msg.StartsWith('BLOCKED:', [System.StringComparison]::Ordinal)) {
+        $finalReason = $msg.Substring(8)
+    } else {
+        $finalReason = 'UNEXPECTED_' + $_.Exception.GetType().FullName + ':' + $msg
+    }
+    $exitCode = 2
+    try { Write-PhrLog ('ERROR PHASE=' + $script:Phase + ' REASON=' + $finalReason) } catch { Write-Host ('ERROR PHASE=' + $script:Phase + ' REASON=' + $finalReason) }
+} finally {
+    if ($null -ne $script:RunDir) {
+        try {
+            $script:Phase = 'RECEIPT'
+            $evidence = New-Object System.Collections.Generic.List[object]
+            foreach ($f in $script:EvidenceFiles.ToArray()) {
+                $evidence.Add([pscustomobject][ordered]@{ path = $f; bytes = [int64](New-Object System.IO.FileInfo($f)).Length; sha256 = (Get-PhrFileSha256 -LiteralPath $f) })
+            }
+            $g0Target = 'NOT_PROVEN'
+            if ($Mode -eq 'SelfTest' -and $finalResult -eq 'PASS') { $g0Target = 'PASS_WINDOWS_SELFTEST_AND_INVENTORY_SCOPE' }
+            if ($Mode -eq 'Inventory' -and $finalResult -eq 'PASS') { $g0Target = 'PASS_WINDOWS_INVENTORY_SCOPE' }
+            if ($Mode -eq 'Probe' -and $finalResult -eq 'PASS') { $g0Target = 'PASS_WINDOWS_PROBE_SCOPE_METADATA_ONLY' }
+            $receipt = [ordered]@{
+                schema = 'PERSEU_HD1_RECON_V002_WRAPPER_RECEIPT'
+                PROJECT = $ProjectName; THREAD = $ThreadName; SUBFRONT = $SubfrontName; REVISION = $Revision
+                POLICY_MASTER_SHA256_AT_BUILD = $PolicyMasterSha256
+                MODE = $Mode; RUN_ID = $runId; started_at = $startedAt; finished_at = (Get-PhrTimestamp)
+                RESULT = $finalResult; REASON = $finalReason; EXIT_CODE = $exitCode; LAST_PHASE = $script:Phase
+                powershell = ($edition + ' ' + [string]$psVer); clr = $clrText
+                os = [System.Environment]::OSVersion.VersionString
+                wrapper_path = $wrapperPath; wrapper_sha256 = $wrapperSha
+                python_path = $PinnedPython; python_exe_sha256 = $pythonSha
+                payload_path = $script:PayloadPath; payload_sha256 = $PayloadSha256; payload_bytes = $PayloadByteCount
+                stages = $script:Stages.ToArray(); fixture_matrix = $script:Fixtures.ToArray()
+                fixture_reconcile = $(if ($null -ne $fixtureMatrix) { $fixtureMatrix.reconciled } else { $null })
+                int64_vector = $int64Vector; argv_probe = $argvProbe; binding_stability = $bindingStability
+                evidence_files = $evidence.ToArray(); log_path = $script:LogPath; log_sha256 = 'NOT_BOUND_LOG_APPENDED_AFTER_RECEIPT'
+                G0_TARGET_RUNTIME = $g0Target
+                PROTECTED_EFFECTS = 'NONE'; EVIDENCE_WRITES_ROOT = $script:RunDir
+                SOURCE_DELETE = 'NO'; TARGET_DISK_MUTATION = 'NO'; C2_FULL_STARTED = 'NO'
+                RESULT_RETURN_TO = $ResultFooter
+            }
+            $receiptPath = [System.IO.Path]::Combine($script:RunDir, 'RECEIPT_' + $Mode.ToUpperInvariant() + '.json')
+            Write-PhrNewText -LiteralPath $receiptPath -Text (ConvertTo-Json -InputObject $receipt -Depth 8)
+            $receiptSha = Get-PhrFileSha256 -LiteralPath $receiptPath
+        } catch {
+            $exitCode = 2
+            $finalResult = 'BLOCKED'
+            $finalReason = 'RECEIPT_WRITE_FAILED:' + [string]$_.Exception.Message + ' PRIMARY=' + $finalReason
+            try { Write-PhrLog ('RECEIPT_WRITE_FAILED ' + [string]$_.Exception.Message) } catch { Write-Host ('RECEIPT_WRITE_FAILED ' + [string]$_.Exception.Message) }
+        }
+    }
+    try {
+        Write-PhrLog '=== SUMMARY ==='
+        Write-PhrLog ('RESULT=' + $finalResult)
+        Write-PhrLog ('REASON=' + $finalReason)
+        Write-PhrLog ('EXIT_CODE=' + $exitCode)
+        Write-PhrLog ('MODE=' + $Mode)
+        Write-PhrLog ('RUN_DIR=' + $script:RunDir)
+        Write-PhrLog ('RECEIPT=' + $receiptPath)
+        Write-PhrLog ('RECEIPT_SHA256=' + $receiptSha)
+        Write-PhrLog ('WRAPPER_SHA256=' + $wrapperSha)
+        Write-PhrLog ('PAYLOAD_SHA256=' + $PayloadSha256)
+        foreach ($s in $script:Stages.ToArray()) {
+            Write-PhrLog ('STAGE_RESULT ' + $s.label + '=' + $s.status + ' REASON=' + $s.reason + ' CHILD_REASON=' + $s.child_reason)
+        }
+        Write-PhrLog 'PROTECTED_EFFECTS=NONE'
+        Write-PhrLog $ResultFooter
+    } catch {
+        Write-Host $ResultFooter
+    }
+}
+exit $exitCode

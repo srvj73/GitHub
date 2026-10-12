@@ -1,0 +1,16 @@
+{
+ "scope": "PASS_SANDBOX_LINUX_SPARSE_FIXTURE_NOT_WINDOWS_NTFS",
+ "python": "3.14.6",
+ "cases": {
+  "positive": true,
+  "one_byte_short": true,
+  "extra_file_in_set": true,
+  "symlink_inside": true,
+  "manifest_not_proven": true,
+  "missing_set": true,
+  "restored_positive": true,
+  "payload_absent": true
+ },
+ "scratch_cleanup": "VOLUME_FIXTURE_REMOVED",
+ "verdict": "PASS_SANDBOX_SCOPE"
+}

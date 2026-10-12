@@ -1,0 +1,142 @@
+{
+ "scope": "PASS_SANDBOX_PWSH_LINUX_ONLY_NOT_PS51",
+ "cases": {
+  "A_delivered_bytes_non_windows_blocked": {
+   "exit": 2,
+   "pass": true,
+   "cwd_untouched": true
+  },
+  "B_patched_SelfTest": {
+   "exit": 0,
+   "expected_exit": 0,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "receipt_result": "PASS",
+   "receipt_reason": "ALL_STAGES_PASS",
+   "stages": [
+    [
+     "PAYLOAD_SELFTEST",
+     "PASS",
+     "CONSISTENT"
+    ],
+    [
+     "INVENTORY_CHECK",
+     "PASS",
+     "CONSISTENT"
+    ]
+   ],
+   "argv_probe": {
+    "expected_count": 7,
+    "received_count": 7,
+    "arg_line": "-I -B -X utf8 /tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/PERSEU_HD1_RECON_PROBE_V002.py --fixture-child argv-echo --echo \"C:\\Users\\silvi\\path with spaces\\\\\" --echo \"quote\\\"inside\" --echo \"two\\\\\\\\\\\"slashes\" --echo \"\" --echo plain --echo \"tab\tsep\" --echo a\u00e7\u00e3o --out-json /tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_FIXTURE_ARGV_ECHO.json",
+    "pass": true
+   },
+   "int64": {
+    "sum": 419168089472,
+    "expected": 419168089472,
+    "type": "System.Int64",
+    "pass": true
+   },
+   "fixtures": [
+    [
+     "pass",
+     "PASS",
+     "CONSISTENT",
+     true
+    ],
+    [
+     "blocked",
+     "BLOCKED",
+     "CONSISTENT",
+     true
+    ],
+    [
+     "contradict",
+     "BLOCKED",
+     "EXIT_RESULT_CONTRADICTION",
+     true
+    ],
+    [
+     "malformed",
+     "BLOCKED",
+     "OUT_JSON_MALFORMED",
+     true
+    ],
+    [
+     "nofile",
+     "BLOCKED",
+     "OUT_JSON_MISSING",
+     true
+    ],
+    [
+     "bom",
+     "BLOCKED",
+     "OUT_JSON_BOM_FORBIDDEN",
+     true
+    ],
+    [
+     "sleep",
+     "BLOCKED",
+     "WATCHDOG_EXPIRED_NO_KILL",
+     true
+    ]
+   ],
+   "reconcile": {
+    "label": "FIXTURE_SLEEP",
+    "child_pid": 1359,
+    "ended_naturally": true,
+    "natural_exit_code": 0,
+    "killed": false
+   },
+   "bom_free_receipt": true,
+   "selftest_work_removed": true,
+   "pass": true
+  },
+  "B_patched_Inventory": {
+   "exit": 0,
+   "expected_exit": 0,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "receipt_result": "PASS",
+   "receipt_reason": "ALL_STAGES_PASS",
+   "stages": [
+    [
+     "INVENTORY_CHECK",
+     "PASS",
+     "CONSISTENT"
+    ]
+   ],
+   "pass": true
+  },
+  "B_patched_Probe": {
+   "exit": 2,
+   "expected_exit": 2,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "receipt_result": "BLOCKED",
+   "receipt_reason": "STAGE_NOT_PASS_SEE_RECEIPT",
+   "stages": [
+    [
+     "PROBE",
+     "BLOCKED",
+     "CONSISTENT"
+    ],
+    [
+     "POST_INVENTORY_CHECK",
+     "PASS",
+     "CONSISTENT"
+    ]
+   ],
+   "binding_stability": {
+    "pre_letter": null,
+    "post_letter": null,
+    "pre_disk": null,
+    "post_disk": null,
+    "stable": false
+   },
+   "pass": true,
+   "probe_child_reason": "WINDOWS_TARGET_REQUIRED"
+  }
+ },
+ "verdict": "PASS_SANDBOX_SCOPE"
+}

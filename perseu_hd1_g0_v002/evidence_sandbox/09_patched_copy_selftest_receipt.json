@@ -1,0 +1,200 @@
+{
+  "schema": "PERSEU_HD1_RECON_V002_WRAPPER_RECEIPT",
+  "PROJECT": "Perseu MT5 (Astra)",
+  "THREAD": "PERSEU_C2_DISK_SPACE_RECONCILIATION",
+  "SUBFRONT": "PERSEU_HD1_ARCHIVE_RECONCILIATION",
+  "REVISION": "PERSEU_HD1_RECON_PROBE_V002",
+  "POLICY_MASTER_SHA256_AT_BUILD": "5B135DA0CA7C3BFE992F364720605522FB939977772C6D5A6FD3811A8288B302",
+  "MODE": "SelfTest",
+  "RUN_ID": "20261012_211029_582_1332",
+  "started_at": "2026-10-12T21:10:29.543+00:00",
+  "finished_at": "2026-10-12T21:10:49.221+00:00",
+  "RESULT": "PASS",
+  "REASON": "ALL_STAGES_PASS",
+  "EXIT_CODE": 0,
+  "LAST_PHASE": "RECEIPT",
+  "powershell": "Desktop 7.4.6",
+  "clr": "NOT_REPORTED",
+  "os": "Unix 6.18.44.114",
+  "wrapper_path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/PATCHED_COPY_NOT_DELIVERED.ps1",
+  "wrapper_sha256": "08C0244C3C0E2A624804FA6862ABE5C2FDED7C324E60E53E9A18652FCAF662F5",
+  "python_path": "/root/.local/share/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14",
+  "python_exe_sha256": "F14781FC2D1DC0906FDE82448C806981A6D978AA71591ED70FCA0880225B174C",
+  "payload_path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/PERSEU_HD1_RECON_PROBE_V002.py",
+  "payload_sha256": "2FE0174AFB117209C02A77278BCE2FA1549A1933ECD2259D0D823B6FB84CD675",
+  "payload_bytes": 38171,
+  "stages": [
+    {
+      "label": "PAYLOAD_SELFTEST",
+      "exit_code": 0,
+      "watchdog": false,
+      "child_pid": 1361,
+      "status": "PASS",
+      "reason": "CONSISTENT",
+      "result": "PASS_SELFTEST_ONLY",
+      "child_reason": null,
+      "out_json": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_PAYLOAD_SELFTEST.json",
+      "out_json_sha256": "13715CF61E7853D5E63412DA4F1954C3C8D6D671980AF5F1FBD418E66AEFF4BC",
+      "python_series_ok": true
+    },
+    {
+      "label": "INVENTORY_CHECK",
+      "exit_code": 0,
+      "watchdog": false,
+      "child_pid": 1368,
+      "status": "PASS",
+      "reason": "CONSISTENT",
+      "result": "PASS_INVENTORY_ONLY",
+      "child_reason": null,
+      "out_json": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_INVENTORY_CHECK.json",
+      "out_json_sha256": "88884665DE6E89F6BD2E7018864876BF02A9C6E601238FF2E899218A655958D2",
+      "python_series_ok": true
+    }
+  ],
+  "fixture_matrix": [
+    {
+      "scenario": "pass",
+      "expected_status": "PASS",
+      "expected_reason": "CONSISTENT",
+      "status": "PASS",
+      "reason": "CONSISTENT",
+      "exit_code": 0,
+      "pass": true
+    },
+    {
+      "scenario": "blocked",
+      "expected_status": "BLOCKED",
+      "expected_reason": "CONSISTENT",
+      "status": "BLOCKED",
+      "reason": "CONSISTENT",
+      "exit_code": 2,
+      "pass": true
+    },
+    {
+      "scenario": "contradict",
+      "expected_status": "BLOCKED",
+      "expected_reason": "EXIT_RESULT_CONTRADICTION",
+      "status": "BLOCKED",
+      "reason": "EXIT_RESULT_CONTRADICTION",
+      "exit_code": 0,
+      "pass": true
+    },
+    {
+      "scenario": "malformed",
+      "expected_status": "BLOCKED",
+      "expected_reason": "OUT_JSON_MALFORMED",
+      "status": "BLOCKED",
+      "reason": "OUT_JSON_MALFORMED",
+      "exit_code": 0,
+      "pass": true
+    },
+    {
+      "scenario": "nofile",
+      "expected_status": "BLOCKED",
+      "expected_reason": "OUT_JSON_MISSING",
+      "status": "BLOCKED",
+      "reason": "OUT_JSON_MISSING",
+      "exit_code": 0,
+      "pass": true
+    },
+    {
+      "scenario": "bom",
+      "expected_status": "BLOCKED",
+      "expected_reason": "OUT_JSON_BOM_FORBIDDEN",
+      "status": "BLOCKED",
+      "reason": "OUT_JSON_BOM_FORBIDDEN",
+      "exit_code": 0,
+      "pass": true
+    },
+    {
+      "scenario": "sleep",
+      "expected_status": "BLOCKED",
+      "expected_reason": "WATCHDOG_EXPIRED_NO_KILL",
+      "status": "BLOCKED",
+      "reason": "WATCHDOG_EXPIRED_NO_KILL",
+      "exit_code": null,
+      "pass": true
+    }
+  ],
+  "fixture_reconcile": {
+    "label": "FIXTURE_SLEEP",
+    "child_pid": 1359,
+    "ended_naturally": true,
+    "natural_exit_code": 0,
+    "killed": false
+  },
+  "int64_vector": {
+    "sum": 419168089472,
+    "expected": 419168089472,
+    "type": "System.Int64",
+    "pass": true
+  },
+  "argv_probe": {
+    "expected_count": 7,
+    "received_count": 7,
+    "arg_line": "-I -B -X utf8 /tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/PERSEU_HD1_RECON_PROBE_V002.py --fixture-child argv-echo --echo \"C:\\Users\\silvi\\path with spaces\\\\\" --echo \"quote\\\"inside\" --echo \"two\\\\\\\\\\\"slashes\" --echo \"\" --echo plain --echo \"tab\tsep\" --echo ação --out-json /tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_FIXTURE_ARGV_ECHO.json",
+    "pass": true
+  },
+  "binding_stability": null,
+  "evidence_files": [
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/PERSEU_HD1_RECON_PROBE_V002.py",
+      "bytes": 38171,
+      "sha256": "2FE0174AFB117209C02A77278BCE2FA1549A1933ECD2259D0D823B6FB84CD675"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_FIXTURE_ARGV_ECHO.json",
+      "bytes": 936,
+      "sha256": "B7250A64801940D7C6946B20B5702F4D2C0DB7957F879DD926461EA137EB5EF3"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_FIXTURE_PASS.json",
+      "bytes": 809,
+      "sha256": "A5D4508B076A517D047C1F54538AFB6C733B496A4F3DBEF174A6F72F75F2A136"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_FIXTURE_BLOCKED.json",
+      "bytes": 815,
+      "sha256": "3D6B0DC037AEFEF49FB26E0B1EB017BC95A5C04CB5911B0E3E242E57B130A09D"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_FIXTURE_CONTRADICT.json",
+      "bytes": 818,
+      "sha256": "E1C2C19E121D0D47BE1BC2F59B72DC864376D39A2A58C991D533642DDA2C439F"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_FIXTURE_MALFORMED.json",
+      "bytes": 9,
+      "sha256": "60498EBAFA3F473A2A72C1242E8C3202BF50A6D81DFC721958BE1550F46FAF33"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_FIXTURE_BOM.json",
+      "bytes": 46,
+      "sha256": "AC0A38B9EB46C03AAB0649638C4EE498F503006FB05784BA164F8727AEA36CC7"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_PAYLOAD_SELFTEST.json",
+      "bytes": 1273,
+      "sha256": "13715CF61E7853D5E63412DA4F1954C3C8D6D671980AF5F1FBD418E66AEFF4BC"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/SNAPSHOT_INVENTORY.json",
+      "bytes": 911,
+      "sha256": "89ABB8CDDB7918EA782FCD0E88172845E92FCAB8401BE05CBC312AB8CBD342EB"
+    },
+    {
+      "path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/OUT_INVENTORY_CHECK.json",
+      "bytes": 1251,
+      "sha256": "88884665DE6E89F6BD2E7018864876BF02A9C6E601238FF2E899218A655958D2"
+    }
+  ],
+  "log_path": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332/RUN_LOG.txt",
+  "log_sha256": "NOT_BOUND_LOG_APPENDED_AFTER_RECEIPT",
+  "G0_TARGET_RUNTIME": "SANDBOX_PATCHED_COPY_NOT_WINDOWS_SELFTEST_AND_INVENTORY_SCOPE",
+  "PROTECTED_EFFECTS": "NONE",
+  "EVIDENCE_WRITES_ROOT": "/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/h2/downloads/RUNS/SELFTEST_20261012_211029_582_1332",
+  "SOURCE_DELETE": "NO",
+  "TARGET_DISK_MUTATION": "NO",
+  "C2_FULL_STARTED": "NO",
+  "RESULT_RETURN_TO": "RESULT_RETURN_TO=ChatGPT | PROJECT=Perseu MT5 (Astra) | THREAD=PERSEU_C2_DISK_SPACE_RECONCILIATION"
+}

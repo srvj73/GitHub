@@ -1,0 +1,503 @@
+{
+ "files": {
+  "AUDIT_PERSEU_R4R9_HOTFIX_IDENTITY_MIGRATION_PREFLIGHT_V001.py": {
+   "bom": false,
+   "bytes": 10584,
+   "compile": "PASS",
+   "crlf": false,
+   "imports": [
+    "__future__",
+    "hashlib",
+    "json",
+    "pathlib",
+    "re",
+    "sqlite3",
+    "subprocess",
+    "sys"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 1,
+    "POWERSHELL_INLINE_COMMAND": 1,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 0,
+    "SQLITE_READ_ONLY_URI": 1,
+    "UNCONDITIONAL_WRITE_TEXT": 1
+   },
+   "sha256": "D3717C4A09255C9C1003325454BDB4912DD53CA3C5B95AEEAD637F9EB1F7711B",
+   "sha_constants": {
+    "EXPECTED_ACCEL": "042FA9CB7DB2DE26BD64F82B41B2A1977B05C65509E2038239BDC972E766F2E5",
+    "EXPECTED_C1_WRAPPER": "78830B5AF55FE3D88D382B294FFEDBB33ADAD597D8BF091B11D5B70F3EF33328",
+    "EXPECTED_RUNNER": "28DF85A4BF87B859230C931042C493CD6B4E57FE8698135C3D771C56E466E68C"
+   }
+  },
+  "AUDIT_PERSEU_R4R9_TELEMETRY_GAPS_V001.py": {
+   "bom": false,
+   "bytes": 10312,
+   "compile": "PASS",
+   "crlf": false,
+   "imports": [
+    "__future__",
+    "hashlib",
+    "json",
+    "os",
+    "pathlib",
+    "re",
+    "subprocess"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 3,
+    "HARDCODED_D_PERSEURUNS": 0,
+    "POWERSHELL_INLINE_COMMAND": 1,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 0,
+    "SQLITE_READ_ONLY_URI": 0,
+    "UNCONDITIONAL_WRITE_TEXT": 2
+   },
+   "sha256": "A7FF4FCC4E2B6AC9FCC99F73B78F8BBAD516BC62B831888F4E7F4C4BBC753133",
+   "sha_constants": {
+    "EXPECTED_C2_WRAPPER_SHA256": "53C8A1FBAA0C836DCB616789BD0C1D7264CCA6E97C8780E364FA05204E088ADD",
+    "EXPECTED_RUNNER_SHA256": "28DF85A4BF87B859230C931042C493CD6B4E57FE8698135C3D771C56E466E68C"
+   }
+  },
+  "AUDIT_PERSEU_R4R9_TELEMETRY_SEMANTICS_V002.py": {
+   "bom": false,
+   "bytes": 11147,
+   "compile": "PASS",
+   "crlf": false,
+   "imports": [
+    "__future__",
+    "ast",
+    "hashlib",
+    "json",
+    "pathlib",
+    "re"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 4,
+    "HARDCODED_D_PERSEURUNS": 0,
+    "POWERSHELL_INLINE_COMMAND": 0,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 0,
+    "SQLITE_READ_ONLY_URI": 0,
+    "UNCONDITIONAL_WRITE_TEXT": 2
+   },
+   "sha256": "DCD331A213280349CBD41FF11A3A36D3C8FC101F0467C92C5E47084A37822A09",
+   "sha_constants": {
+    "EXPECTED_RUNNER_SHA256": "28DF85A4BF87B859230C931042C493CD6B4E57FE8698135C3D771C56E466E68C"
+   }
+  },
+  "PERSEU_R4R9_FIXTURE_FIX_AND_CONFIRMATORY_PREP_V002.py": {
+   "bom": false,
+   "bytes": 14074,
+   "compile": "PASS",
+   "crlf": false,
+   "imports": [
+    "__future__",
+    "difflib",
+    "hashlib",
+    "json",
+    "os",
+    "pathlib",
+    "re",
+    "shutil",
+    "subprocess",
+    "sys",
+    "tempfile",
+    "time"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 3,
+    "POWERSHELL_INLINE_COMMAND": 1,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 0,
+    "SQLITE_READ_ONLY_URI": 0,
+    "UNCONDITIONAL_WRITE_TEXT": 4
+   },
+   "sha256": "F05CFE3DBFED304DAF59839C638DA2378B56E9CB4CB39A5D8BA4BD90742B4DC8",
+   "sha_constants": {}
+  },
+  "PREP_PERSEU_R4R9_C2_TELEMETRY_V004_REENVIO.py": {
+   "bom": false,
+   "bytes": 50284,
+   "compile": "PASS",
+   "crlf": false,
+   "embedded_SHIM_TEXT": {
+    "chars": 37146,
+    "compile": "PASS",
+    "has_cr": false,
+    "imports_local": [
+     "perseu_exploratorio",
+     "perseu_parallel_auto"
+    ],
+    "loads": [
+     "perseu_exploratorio.py",
+     "perseu_parallel_auto.py",
+     "perseu_r4r9_accel.py"
+    ],
+    "sha256_utf8_crlf": "8BF0BFBB6D142B0088E4FED5E0F7A74F1786AD2D427AE8338C45F7F29B624710",
+    "sha256_utf8_lf": "882C90AF4561B8DA8E68DCBD4D60D2EF9E2F4AD030B6553F980A7A6B2A4CB7FD"
+   },
+   "imports": [
+    "__future__",
+    "hashlib",
+    "json",
+    "pathlib",
+    "py_compile",
+    "re",
+    "shutil",
+    "subprocess",
+    "sys"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 17,
+    "HARDCODED_D_PERSEURUNS": 1,
+    "POWERSHELL_INLINE_COMMAND": 2,
+    "PYTHON_DASH_C": 1,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 0,
+    "SQLITE_READ_ONLY_URI": 1,
+    "UNCONDITIONAL_WRITE_TEXT": 3
+   },
+   "sha256": "46E4E52FC84DF1FDC043573D7F54361A173A6937A21C7011D69A3B1EF2E37D07",
+   "sha_constants": {}
+  },
+  "PREP_PERSEU_R4R9_CONFIRMATORY_C1_C2_V001.py": {
+   "bom": false,
+   "bytes": 11346,
+   "compile": "PASS",
+   "crlf": false,
+   "imports": [
+    "__future__",
+    "difflib",
+    "hashlib",
+    "json",
+    "pathlib",
+    "re",
+    "shutil",
+    "subprocess",
+    "sys",
+    "time",
+    "zipfile"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 3,
+    "POWERSHELL_INLINE_COMMAND": 1,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 1,
+    "SHUTIL_RMTREE": 2,
+    "SQLITE_READ_ONLY_URI": 0,
+    "UNCONDITIONAL_WRITE_TEXT": 2
+   },
+   "sha256": "C664F36314E5C6901C9E5010BFB9618AD385399099E5FB663BF1F37837D0F880",
+   "sha_constants": {
+    "ZIP_SHA256": "70D6E13125EDCA3FC0AC5049ADBE0FD605AA5111598030EBFDE8A35030C0F69F"
+   }
+  },
+  "PREP_PERSEU_R4R9_INMEMORY_RESUME_HOTFIX_R1_V001.py": {
+   "bom": false,
+   "bytes": 18124,
+   "compile": "PASS",
+   "crlf": false,
+   "embedded_HOTFIX_SOURCE": {
+    "chars": 8089,
+    "compile": "PASS",
+    "has_cr": false,
+    "imports_local": [
+     "perseu_parallel_auto"
+    ],
+    "loads": [
+     "perseu_parallel_auto.py",
+     "perseu_r4r9_accel.py"
+    ],
+    "sha256_utf8_crlf": "008151082EA6A9C80647C468ECA6013FC31DB8BF2F0CB40EE498ACDE42F3B51B",
+    "sha256_utf8_lf": "23AAE25717C36CCE99E37697215DE2B0C5AB6ADC85B582BEE14078DAE1BFD62B"
+   },
+   "imports": [
+    "__future__",
+    "hashlib",
+    "json",
+    "pathlib",
+    "re",
+    "sqlite3",
+    "subprocess",
+    "sys"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 2,
+    "POWERSHELL_INLINE_COMMAND": 2,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 1,
+    "SQLITE_READ_ONLY_URI": 2,
+    "UNCONDITIONAL_WRITE_TEXT": 1
+   },
+   "sha256": "7DBA5E7DCBD07483A8943D18E8B785389FD01CE258EA0E9C362BF794CC16ADB7",
+   "sha_constants": {
+    "EXPECTED_ACCEL": "042FA9CB7DB2DE26BD64F82B41B2A1977B05C65509E2038239BDC972E766F2E5",
+    "EXPECTED_RUNNER": "28DF85A4BF87B859230C931042C493CD6B4E57FE8698135C3D771C56E466E68C",
+    "EXPECTED_WRAPPER": "78830B5AF55FE3D88D382B294FFEDBB33ADAD597D8BF091B11D5B70F3EF33328"
+   }
+  },
+  "PREP_PERSEU_R4R9_INMEMORY_RESUME_HOTFIX_R2_V002.py": {
+   "bom": false,
+   "bytes": 22003,
+   "compile": "PASS",
+   "crlf": false,
+   "embedded_HOTFIX_SOURCE": {
+    "chars": 10153,
+    "compile": "PASS",
+    "has_cr": false,
+    "imports_local": [],
+    "loads": [
+     "perseu_parallel_auto.py",
+     "perseu_r4r9_accel.py"
+    ],
+    "sha256_utf8_crlf": "1BC46AC6EC68BE3FD3706205575BBAF8BD43C35BBF8DF0705BE3EC8C6685B1DF",
+    "sha256_utf8_lf": "07562BD138422CE5E7033C7042D23CC1AB9963B28ABAFD869727CBD8BAB28CDF"
+   },
+   "imports": [
+    "__future__",
+    "hashlib",
+    "json",
+    "pathlib",
+    "re",
+    "sqlite3",
+    "subprocess",
+    "sys"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 2,
+    "POWERSHELL_INLINE_COMMAND": 2,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 1,
+    "SQLITE_READ_ONLY_URI": 2,
+    "UNCONDITIONAL_WRITE_TEXT": 1
+   },
+   "sha256": "B92867AA31707AE8BBA4FBC88431A5BDE5F98AEE7333400948403A2BE74145F1",
+   "sha_constants": {
+    "EXPECTED_ACCEL": "042FA9CB7DB2DE26BD64F82B41B2A1977B05C65509E2038239BDC972E766F2E5",
+    "EXPECTED_R1_HOTFIX": "23AAE25717C36CCE99E37697215DE2B0C5AB6ADC85B582BEE14078DAE1BFD62B",
+    "EXPECTED_R1_WRAPPER": "6D6A75477BD28CFE1E40E155A23BA739F2D62E6DE08BE01B7A57D6FCDCFF1034",
+    "EXPECTED_RUNNER": "28DF85A4BF87B859230C931042C493CD6B4E57FE8698135C3D771C56E466E68C",
+    "EXPECTED_WRAPPER": "78830B5AF55FE3D88D382B294FFEDBB33ADAD597D8BF091B11D5B70F3EF33328"
+   }
+  },
+  "PREP_PERSEU_R4R9_INMEMORY_RESUME_HOTFIX_R3_V003.py": {
+   "bom": false,
+   "bytes": 22055,
+   "compile": "PASS",
+   "crlf": false,
+   "embedded_HOTFIX_SOURCE": {
+    "chars": 11593,
+    "compile": "PASS",
+    "has_cr": false,
+    "imports_local": [],
+    "loads": [
+     "perseu_parallel_auto.py",
+     "perseu_r4r9_accel.py"
+    ],
+    "sha256_utf8_crlf": "1F52F143CAF26E9D93DD03187FE24F8B75E1C9B57AC505AF8B5D87E0A63416F6",
+    "sha256_utf8_lf": "6F77DFA4AB70BE0A3804B406CEF8DF2D8567A02470BE1993E51AA5F5CB5BBB13"
+   },
+   "imports": [
+    "__future__",
+    "hashlib",
+    "json",
+    "pathlib",
+    "re",
+    "sqlite3",
+    "subprocess",
+    "sys"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 2,
+    "POWERSHELL_INLINE_COMMAND": 2,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 1,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 1,
+    "SQLITE_READ_ONLY_URI": 2,
+    "UNCONDITIONAL_WRITE_TEXT": 1
+   },
+   "sha256": "CFAFC741C4B859FBB4D30BD0926EA9CB2B1AAE368D40963CFA8E0B84DFB5C94A",
+   "sha_constants": {
+    "EXPECTED_ACCEL": "042FA9CB7DB2DE26BD64F82B41B2A1977B05C65509E2038239BDC972E766F2E5",
+    "EXPECTED_R2_HOTFIX": "07562BD138422CE5E7033C7042D23CC1AB9963B28ABAFD869727CBD8BAB28CDF",
+    "EXPECTED_R2_WRAPPER": "DE7506A9C1B056B9155F9D2E6EB0FD83B583D8878877B7773FCDAD954672BE57",
+    "EXPECTED_RUNNER": "28DF85A4BF87B859230C931042C493CD6B4E57FE8698135C3D771C56E466E68C",
+    "EXPECTED_WRAPPER": "78830B5AF55FE3D88D382B294FFEDBB33ADAD597D8BF091B11D5B70F3EF33328"
+   }
+  },
+  "RUN_PERSEU_H1_H3_CONFIRMATORY_V001.py": {
+   "bom": false,
+   "bytes": 31947,
+   "compile": "PASS",
+   "crlf": false,
+   "imports": [
+    "__future__",
+    "argparse",
+    "collections",
+    "csv",
+    "dataclasses",
+    "fractions",
+    "hashlib",
+    "json",
+    "pathlib",
+    "sqlite3",
+    "subprocess",
+    "sys",
+    "time",
+    "zipfile"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 1,
+    "POWERSHELL_INLINE_COMMAND": 1,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 0,
+    "SQLITE_READ_ONLY_URI": 1,
+    "UNCONDITIONAL_WRITE_TEXT": 3
+   },
+   "sha256": "C30159CE82BDDD40A1A6EE1D6548A30E69DF8743462F37F5612B9A73938AB6C8",
+   "sha_constants": {
+    "CONTAMINATION_AUDIT_SHA256": "E5971B40869F408FF199814825ACB66346D088A7C2B3F153EC691843DFC68DEB",
+    "PREREG_SHA256": "76833706F5E87F386071F35328D362FA0C5ABB124AC52CA1AA0840A603D7C408"
+   }
+  },
+  "RUN_PERSEU_R4R9_CONFIRMATORY_C1_C2_V001.py": {
+   "bom": false,
+   "bytes": 9051,
+   "compile": "PASS",
+   "crlf": false,
+   "imports": [
+    "__future__",
+    "ctypes",
+    "hashlib",
+    "json",
+    "os",
+    "pathlib",
+    "subprocess",
+    "sys",
+    "time"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 3,
+    "POWERSHELL_INLINE_COMMAND": 1,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 0,
+    "SQLITE_READ_ONLY_URI": 0,
+    "UNCONDITIONAL_WRITE_TEXT": 1
+   },
+   "sha256": "E5CAFB8E89865E8796B13438AB582609E5E3C0D6B7D59D7B173A110EB4497598",
+   "sha_constants": {}
+  },
+  "TEST_PERSEU_H1_H3_CONFIRMATORY_V001.py": {
+   "bom": false,
+   "bytes": 2527,
+   "compile": "PASS",
+   "crlf": false,
+   "imports": [
+    "__future__",
+    "fractions",
+    "importlib",
+    "json",
+    "pathlib",
+    "sqlite3",
+    "sys",
+    "tempfile"
+   ],
+   "patterns": {
+    "EXIT_CODE_10_OR_30": 0,
+    "HARDCODED_D_PERSEURUNS": 0,
+    "POWERSHELL_INLINE_COMMAND": 0,
+    "PYTHON_DASH_C": 0,
+    "PY_LAUNCHER_PY_EXE": 0,
+    "SHUTIL_MOVE": 0,
+    "SHUTIL_RMTREE": 0,
+    "SQLITE_READ_ONLY_URI": 0,
+    "UNCONDITIONAL_WRITE_TEXT": 0
+   },
+   "sha256": "222B1261174381EC33466171486534FEA316996725AB63C3C0415F98D7B9EC88",
+   "sha_constants": {}
+  }
+ },
+ "hotfix_chain": {
+  "R1_derived": "23AAE25717C36CCE99E37697215DE2B0C5AB6ADC85B582BEE14078DAE1BFD62B",
+  "R1_expected_by_R2": "23AAE25717C36CCE99E37697215DE2B0C5AB6ADC85B582BEE14078DAE1BFD62B",
+  "R2_derived": "07562BD138422CE5E7033C7042D23CC1AB9963B28ABAFD869727CBD8BAB28CDF",
+  "R2_expected_by_R3": "07562BD138422CE5E7033C7042D23CC1AB9963B28ABAFD869727CBD8BAB28CDF",
+  "R3_derived": "6F77DFA4AB70BE0A3804B406CEF8DF2D8567A02470BE1993E51AA5F5CB5BBB13",
+  "cross_validation": "PASS_2_OF_2",
+  "derivation_method": "HOTFIX_SOURCE.encode(utf-8) written by write_bytes (exact bytes)"
+ },
+ "python": "3.14.6",
+ "r4r8_zip": {
+  "directory_entries": 2,
+  "file_members": 87,
+  "infolist_entries": 89,
+  "sha256": "799B4914E7BA2C856CF3BBFA9004504E6CA4C35DBDAE342E145DC14C2D281A3F"
+ },
+ "r4r9_members_recoverable_from_r4r8_by_sha_equality": {
+  "BASELINE_R4R8/perseu_parallel_auto.py": {
+   "r4r8_members_with_equal_bytes": [
+    "perseu_parallel_auto.py"
+   ],
+   "sha256": "8EE1A1B17771ECEB536A233E8319CB574F61F86472F07C2C5229ADC93E0641FB"
+  },
+  "perseu_exploratorio.py": {
+   "r4r8_members_with_equal_bytes": [
+    "BASELINE_R4R7/perseu_exploratorio.py",
+    "perseu_exploratorio.py"
+   ],
+   "sha256": "A331F308182766C299B067BE2035EB071E01019C28A6C20DD6DF09B1AB92607F"
+  },
+  "perseu_parallel_auto.py": {
+   "r4r8_members_with_equal_bytes": [],
+   "sha256": "28DF85A4BF87B859230C931042C493CD6B4E57FE8698135C3D771C56E466E68C"
+  },
+  "perseu_r4r9_accel.py": {
+   "r4r8_members_with_equal_bytes": [],
+   "sha256": "042FA9CB7DB2DE26BD64F82B41B2A1977B05C65509E2038239BDC972E766F2E5"
+  },
+  "test_parallel_auto.py": {
+   "r4r8_members_with_equal_bytes": [],
+   "sha256": "5D3DB8FD5EB532D23DB7F9FF9FCA7A4041447EBE6E66AC674D29CBDB7C74AB7E"
+  },
+  "test_perseu_exploratorio.py": {
+   "r4r8_members_with_equal_bytes": [
+    "test_perseu_exploratorio.py",
+    "BASELINE_R4R7/test_perseu_exploratorio.py"
+   ],
+   "sha256": "7CC5A79C81B481847AEBA52D4441293305079F766D52CE2D04DCAEACE9C34A80"
+  },
+  "test_r4r9_gate.py": {
+   "r4r8_members_with_equal_bytes": [],
+   "sha256": "B8E1417ED0806AA03B3C3C89FACD3A0CDDC856971E76B1152DCD9312F553E8B8"
+  }
+ },
+ "scope": "STATIC_ONLY_NO_EXECUTION_OF_RECOVERED_CODE"
+}

@@ -1,0 +1,1056 @@
+--- a/SOURCES_LEGACY/PERSEU_HD1_READONLY_GATE_ZERO_PROBE_V001.py
++++ b/src/PERSEU_HD1_RECON_PROBE_V002.py
+@@ -1,60 +1,169 @@
+ #!/usr/bin/env python3
+ # coding: utf-8
+-"""SOURCE_ONLY / REVIEW_ONLY. Identifies HD1 and inventories TOP4 without disk mutations.
++"""PERSEU_HD1_RECON_PROBE_V002 -- SOURCE_ONLY until Windows target G0 qualification.
++
++Successor of PERSEU_HD1_READONLY_GATE_ZERO_PROBE_V001 (new identity, new G0).
++Read-only analyzer launched by PERSEU_HD1_RECON_PROBE_V002.ps1. It never
++creates, modifies, moves or deletes anything outside the run-owned evidence
++paths passed by the wrapper (--out-json, --work-dir).
+ 
+ Modes:
+-  --selftest: deterministic isolated subprocess and negative-contract tests.
+-  --probe: read-only Windows disk binding and first-level archive metadata.
++  --selftest        deterministic negative/integration tests, no disk access
++  --inventory-check validate the wrapper disk snapshot shape (HD1 may be absent)
++  --probe           bind HD1 by serial+model+bytes and census TOP4 metadata
++  --fixture-child   internal subprocess fixtures for wrapper/selftest harness
+ 
+-No file is created, modified, moved or deleted by this script. This SOURCE_ONLY
+-probe is NOT an operational READY runner before target Windows G0 qualification.
++Disk inventory is collected by the wrapper (Get-Disk/Get-Partition/Get-Volume)
++and passed as a UTF-8 JSON file; this payload does not launch PowerShell.
+ """
+ from __future__ import annotations
+ 
+ import argparse
+-import base64
++import codecs
+ import hashlib
+ import json
+ import os
+ from pathlib import Path
+ import re
++import stat
+ import subprocess
+ import sys
++import tempfile
++import time
+ 
+ PROJECT = 'Perseu MT5 (Astra)'
+-THREAD = 'PERSEU_HD1_ARCHIVE_RECONCILIATION'
+-REVISION = 'PERSEU_HD1_READONLY_GATE_ZERO_PROBE_V001'
+-POLICY_SHA256_AT_BUILD = 'B114CFA494667F88F076A68CBE84365F3ACC5BA955DC1100A5E8DB7AA88B777F'
+-EXPECTED_MODEL = 'ST3500418AS'
+-EXPECTED_SERIAL = '6VMCLT3M'
+-EXPECTED_BYTES = 500107862016
+-EXPECTED_MANIFEST_SHA256 = '416A385CCAEBCCC95A7806A4EF37F7092A58CF2375162B6FDF09735F716AD90C'
+-TARGET_ROOT_DIRS = ('ARQUIVO_FRIO', 'TOP4_V001', 'PAYLOAD')
+-TARGET_EXPLORER_BASES = (
+-    'PERSEU_EXPLORATORIO_V001R3_AUTOCPU_R2_PILOTO_202501',
+-    'PERSEU_EXPLORATORIO_V001R3_AUTOCPU_R4R9_CONFIRM_C1_202502',
+-    'PERSEU_EXPLORATORIO_V001R3_AUTOCPU_R4R8_SEP2026',
+-)
+-PS_CODE = r'''$ErrorActionPreference='Stop'
+-$disks=@(Get-Disk | Select-Object Number,FriendlyName,SerialNumber,Size,OperationalStatus,PartitionStyle)
+-$parts=@(Get-Partition | Select-Object DiskNumber,PartitionNumber,DriveLetter)
+-$payload=[ordered]@{disks=$disks;partitions=$parts}
+-ConvertTo-Json -InputObject $payload -Compress -Depth 6
+-'''
+-
+-
+-def produce(outcome: str, **fields) -> int:
+-    x = {
+-        'PROJECT': PROJECT, 'THREAD': THREAD, 'REVISION': REVISION,
++THREAD = 'PERSEU_C2_DISK_SPACE_RECONCILIATION'
++SUBFRONT = 'PERSEU_HD1_ARCHIVE_RECONCILIATION'
++REVISION = 'PERSEU_HD1_RECON_PROBE_V002'
++PARENT_REVISION = 'PERSEU_HD1_READONLY_GATE_ZERO_PROBE_V001'
++PARENT_SHA256 = 'C53BBA63C4A5613CE0D50EA8B8716ED1D4B1EFF864B79B49937042F0E8BA4CE6'
++POLICY_MASTER_SHA256_AT_BUILD = '5B135DA0CA7C3BFE992F364720605522FB939977772C6D5A6FD3811A8288B302'
++POLICY_HEAD_SHA256_AT_BUILD = '2DA2939C88530B089D3E6D33418439B38A243EE776DAC151559199C2703B5BA9'
++POLICY_HEAD_REVISION_AT_BUILD = '20261012T070600-0300-5B135DA0CA7C3BFE'
++
++HD1_MODEL = 'ST3500418AS'
++HD1_SERIAL = '6VMCLT3M'
++HD1_BYTES = 500107862016
++HD2_SERIAL = 'WD-WCAYUS916314'
++
++MANIFEST_PATH = r'C:\Users\silvi\Downloads\HD500_FINAL_MANIFEST_HASH_TOP4_CONTROL_V001\ARCHIVE_SOURCE_MANIFEST_SHA256.csv'
++MANIFEST_SHA256 = '416A385CCAEBCCC95A7806A4EF37F7092A58CF2375162B6FDF09735F716AD90C'
++MANIFEST_EXPECTED_DATA_ROWS = 1530
++PAYLOAD_SEGMENTS = ('ARQUIVO_FRIO', 'TOP4_V001', 'PAYLOAD')
++
++# TOP4 set name -> (files, bytes), from 01_ESTADO_E_FRONTEIRAS.md (origin manifest of 03/10).
++EXPECTED_SETS = {
++    'PERSEU_EXPLORATORIO_V001R3_AUTOCPU_R2_PILOTO_202501': (45, 167103249108),
++    'PERSEU_EXPLORATORIO_V001R3_AUTOCPU_R4R9_CONFIRM_C1_202502': (45, 140265426698),
++    'PERSEU_EXPLORATORIO_V001R3_AUTOCPU_R4R8_SEP2026': (44, 62918933298),
++    'MINOTAURO_R1R11_FULL_CORRECT_C1_V001_20260928': (1396, 43732996720),
++}
++EXPECTED_TOTAL_FILES = 1530
++EXPECTED_TOTAL_BYTES = 414020605824
++
++LITERAL_CODECS = ('utf-8', 'utf-8-sig', 'ascii')
++PASS_RESULTS = frozenset({'PASS_SELFTEST_ONLY', 'PASS_INVENTORY_ONLY', 'PASS_PROBE_ONLY', 'FIXTURE_PASS'})
++ALL_RESULTS = PASS_RESULTS | {'BLOCKED', 'FIXTURE_BLOCKED'}
++FILE_ATTRIBUTE_REPARSE_POINT = 0x400
++
++CENSUS_MAX_FILES = 20000
++CENSUS_MAX_DIRS = 20000
++CENSUS_TIME_BUDGET_S = 900.0
++LISTING_MAX_ENTRIES = 256
++SMALL_HASH_MAX_FILE = 16 * 1024 * 1024
++SMALL_HASH_MAX_COUNT = 64
++SMALL_HASH_MAX_TOTAL = 256 * 1024 * 1024
++HEARTBEAT_S = 30.0
++
++
++class Blocked(Exception):
++    """Fail-closed condition with a stable reason code."""
++
++
++def heartbeat(phase: str, **fields) -> None:
++    parts = ' '.join(f'{k}={v}' for k, v in fields.items())
++    sys.stderr.write(f'HEARTBEAT REVISION={REVISION} PHASE={phase} {parts}\n')
++    sys.stderr.flush()
++
++
++def atomic_write_new(path: Path, data: bytes) -> None:
++    if path.exists():
++        raise Blocked('OUT_PATH_PREEXISTS')
++    tmp = path.with_name(path.name + '.partial')
++    with open(tmp, 'xb') as dst:
++        dst.write(data)
++        dst.flush()
++        os.fsync(dst.fileno())
++    os.replace(tmp, path)
++
++
++def validate_out_path(raw: str | None) -> Path | None:
++    if raw is None:
++        return None
++    p = Path(raw)
++    if not p.is_absolute():
++        raise Blocked('OUT_JSON_NOT_ABSOLUTE')
++    if p.exists() or p.with_name(p.name + '.partial').exists():
++        raise Blocked('OUT_JSON_PREEXISTS')
++    if not p.parent.is_dir():
++        raise Blocked('OUT_JSON_PARENT_MISSING')
++    return p
++
++
++def emit(outcome: str, out_json: Path | None, exit_code: int | None = None, **fields) -> int:
++    if outcome not in ALL_RESULTS:
++        outcome, fields = 'BLOCKED', {'reason': 'RESULT_NOT_IN_ALLOWLIST'}
++    code = exit_code if exit_code is not None else (0 if outcome in PASS_RESULTS else 2)
++    record = {
++        'PROJECT': PROJECT, 'THREAD': THREAD, 'SUBFRONT': SUBFRONT, 'REVISION': REVISION,
++        'PARENT_REVISION': PARENT_REVISION, 'PARENT_SHA256': PARENT_SHA256,
++        'POLICY_MASTER_SHA256_AT_BUILD': POLICY_MASTER_SHA256_AT_BUILD,
++        'POLICY_HEAD_REVISION_AT_BUILD': POLICY_HEAD_REVISION_AT_BUILD,
+         'MODE': 'READ_ONLY', 'SOURCE_DELETE': 'NO', 'TARGET_DISK_MUTATION': 'NO',
+-        'POLICY_SHA256_AT_BUILD': POLICY_SHA256_AT_BUILD,
+-        'RESULT': outcome, **fields,
++        'PROTECTED_EFFECTS': 'NONE', 'FULL_HASH_READBACK': 'NOT_RUN', 'C2_FULL_STARTED': 'NO',
++        'python_version': sys.version.split()[0], 'python_executable': sys.executable,
++        'RESULT': outcome, 'EXIT_CODE': code, **fields,
+     }
+-    print(json.dumps(x, sort_keys=True, ensure_ascii=True, separators=(',', ':')))
+-    return 0 if outcome in ('PASS_SELFTEST_ONLY', 'PASS_PROBE_ONLY') else 2
++    text = json.dumps(record, sort_keys=True, ensure_ascii=True, separators=(',', ':'))
++    if out_json is not None:
++        try:
++            atomic_write_new(out_json, (text + '\n').encode('utf-8'))
++        except (OSError, Blocked) as exc:
++            failed = {'RESULT': 'BLOCKED', 'EXIT_CODE': 2, 'REVISION': REVISION,
++                      'reason': f'OUT_JSON_WRITE_FAILED:{type(exc).__name__}:{exc}'}
++            sys.stdout.write(json.dumps(failed, sort_keys=True, ensure_ascii=True) + '\n')
++            sys.stdout.flush()
++            return 2
++    sys.stdout.write(text + '\n')
++    sys.stdout.flush()
++    return code
++
++
++# ---------------------------------------------------------------- codecs
++
++def codec_check() -> dict:
++    sample = 'Perseu-a\u00e7\u00e3o'
++    resolved = {}
++    for name in LITERAL_CODECS:
++        resolved[name] = codecs.lookup(name).name
++    if sample.encode('utf-8').decode('utf-8') != sample:
++        raise Blocked('CODEC_UTF8_ROUNDTRIP')
++    if (b'\xef\xbb\xbf' + sample.encode('utf-8')).decode('utf-8-sig') != sample:
++        raise Blocked('CODEC_UTF8SIG_ROUNDTRIP')
++    if 'ASCII'.encode('ascii').decode('ascii') != 'ASCII':
++        raise Blocked('CODEC_ASCII_ROUNDTRIP')
++    try:
++        b'\xff\xfe'.decode('utf-8', errors='strict')
++    except UnicodeDecodeError:
++        pass
++    else:
++        raise Blocked('CODEC_UTF8_STRICT_NOT_ENFORCED')
++    return resolved
++
+ 
++# ---------------------------------------------------------------- snapshot / binding
+ 
+-def normalized_seq(v: object) -> list:
++def seq(v: object) -> list:
+     if v is None:
+         return []
+     if isinstance(v, list):
+@@ -62,236 +171,639 @@
+     return [v]
+ 
+ 
+-def parse_hd1_binding(snapshot: object) -> dict:
+-    if not isinstance(snapshot, dict):
+-        raise ValueError('SNAPSHOT_NOT_OBJECT')
+-    disks = normalized_seq(snapshot.get('disks'))
+-    parts = normalized_seq(snapshot.get('partitions'))
+-    if any(not isinstance(d, dict) for d in disks) or any(not isinstance(p, dict) for p in parts):
+-        raise ValueError('DISK_OR_PARTITION_NOT_OBJECT')
+-    candidates = [d for d in disks if str(d.get('SerialNumber') or '').strip().upper() == EXPECTED_SERIAL]
+-    if len(candidates) != 1:
+-        raise ValueError(f'HD1_SERIAL_CARDINALITY_{len(candidates)}')
+-    disk = candidates[0]
+-    if str(disk.get('FriendlyName') or '').strip() != EXPECTED_MODEL:
+-        raise ValueError('HD1_MODEL_MISMATCH')
+-    if type(disk.get('Size')) is not int or disk.get('Size') != EXPECTED_BYTES:
+-        raise ValueError('HD1_SIZE_MISMATCH')
+-    try:
+-        disk_number = int(disk['Number'])
+-    except (KeyError, TypeError, ValueError) as exc:
+-        raise ValueError('HD1_DISK_NUMBER_INVALID') from exc
+-    letters = []
+-    for part in parts:
+-        try:
+-            n = int(part.get('DiskNumber'))
+-        except (TypeError, ValueError):
+-            continue
+-        if n == disk_number:
+-            letter = str(part.get('DriveLetter') or '').strip().upper()
+-            if re.fullmatch('[A-Z]', letter):
+-                letters.append(letter)
+-    if len(letters) != 1:
+-        raise ValueError(f'HD1_DRIVE_LETTER_CARDINALITY_{len(letters)}')
+-    return {'disk_number': disk_number, 'drive_letter': letters[0],
+-            'model': EXPECTED_MODEL, 'serial': EXPECTED_SERIAL,
+-            'size_bytes': EXPECTED_BYTES}
++def strict_int(v: object) -> int | None:
++    return v if type(v) is int else None
+ 
+ 
+-def run_child(argv: list[str], timeout: float = 25.0) -> tuple[int | None, bytes, bytes, str | None]:
+-    child = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
+-    try:
+-        stdout, stderr = child.communicate(timeout=timeout)
+-    except subprocess.TimeoutExpired:
+-        # Do not auto-kill the process. Preserve PID for reconciliation.
+-        return None, b'', b'', f'SUBPROCESS_WATCHDOG_EXPIRED_PID_{child.pid}'
+-    return child.returncode, stdout, stderr, None
++def norm_text(v: object) -> str:
++    return v.strip() if isinstance(v, str) else ''
+ 
+ 
+-def fixture_child(scenario: str) -> int:
+-    if scenario == 'pass':
+-        print(json.dumps({'fixture_status': 'PASS', 'value': 1}))
+-        return 0
+-    if scenario == 'error':
+-        print(json.dumps({'fixture_status': 'BLOCKED', 'value': 0}))
+-        return 2
+-    if scenario == 'malformed':
+-        print('not-json')
+-        return 0
+-    return 2
++def letter_of(v: object) -> str | None:
++    if not isinstance(v, str):
++        return None
++    s = v.strip().upper()
++    return s if re.fullmatch('[A-Z]', s) else None
+ 
+ 
+-def do_selftest() -> int:
+-    try:
+-        ok_disk = {'Number': 2, 'FriendlyName': EXPECTED_MODEL,
+-                   'SerialNumber': f' {EXPECTED_SERIAL} ', 'Size': EXPECTED_BYTES}
+-        ok = {'disks': [ok_disk], 'partitions': [{'DiskNumber': 2, 'DriveLetter': 'F'}]}
+-        assert parse_hd1_binding(ok)['drive_letter'] == 'F'
+-        cases = [
+-            ({'disks': [], 'partitions': []}, 'HD1_SERIAL_CARDINALITY_0'),
+-            ({'disks': [ok_disk, ok_disk], 'partitions': ok['partitions']}, 'HD1_SERIAL_CARDINALITY_2'),
+-            ({'disks': [{**ok_disk, 'FriendlyName': 'UNKNOWN'}], 'partitions': ok['partitions']}, 'HD1_MODEL_MISMATCH'),
+-            ({'disks': [{**ok_disk, 'Size': EXPECTED_BYTES - 1}], 'partitions': ok['partitions']}, 'HD1_SIZE_MISMATCH'),
+-            ({'disks': [ok_disk], 'partitions': []}, 'HD1_DRIVE_LETTER_CARDINALITY_0'),
+-            ({'disks': [ok_disk], 'partitions': [
+-                {'DiskNumber': 2, 'DriveLetter': 'F'}, {'DiskNumber': 2, 'DriveLetter': 'G'}]},
+-                'HD1_DRIVE_LETTER_CARDINALITY_2'),
+-            ({'disks': [ok_disk], 'partitions': [
+-                {'DiskNumber': 3, 'DriveLetter': 'F'}]}, 'HD1_DRIVE_LETTER_CARDINALITY_0'),
+-        ]
+-        for payload, error in cases:
+-            try:
+-                parse_hd1_binding(payload)
+-            except ValueError as exc:
+-                assert str(exc) == error, (str(exc), error)
+-            else:
+-                raise AssertionError('NEGATIVE_CONTROL_ACCEPTED_' + error)
+-        script = str(Path(__file__).resolve(strict=True))
+-        for scenario, expected_exit in (('pass', 0), ('error', 2), ('malformed', 0)):
+-            rc, stdout, stderr, watchdog = run_child([sys.executable, script, '--fixture-child', scenario])
+-            assert watchdog is None and rc == expected_exit and not stderr
+-            decoded = stdout.decode('utf-8', errors='strict')
+-            if scenario == 'malformed':
+-                try:
+-                    json.loads(decoded)
+-                except json.JSONDecodeError:
+-                    pass
+-                else:
+-                    raise AssertionError('MALFORMED_JSON_ACCEPTED')
+-            else:
+-                payload = json.loads(decoded)
+-                assert payload['fixture_status'] == ('PASS' if scenario == 'pass' else 'BLOCKED')
+-        return produce('PASS_SELFTEST_ONLY', G0_SELFTEST='PASS', G0_STATIC='PASS_PYTHON_COMPILE_REQUIRED_SEPARATELY',
+-                       G0_NEGATIVE='PASS_7_BINDING_CASES_1_BAD_JSON',
+-                       G0_INTEGRATION='PASS_3_SUBPROCESS_PATHS',
+-                       G0_TARGET_RUNTIME='NOT_PROVEN_BY_THIS_SANDBOX',
+-                       G0_RELEASE_DECISION='BLOCKED_TARGET_RUNTIME',
+-                       tested_python=sys.version.split()[0])
+-    except (AssertionError, ValueError, OSError, subprocess.SubprocessError, UnicodeError) as exc:
+-        return produce('BLOCKED', G0_SELFTEST='FAIL', reason=f'{type(exc).__name__}:{exc}')
+-
+-
+-def safe_children(path: Path) -> list[dict]:
+-    if path.is_symlink():
+-        raise ValueError('REPARSE_LINK_REJECTED')
+-    if not path.is_dir():
+-        return []
+-    items = []
+-    with os.scandir(path) as scan:
+-        for entry in scan:
+-            if len(items) >= 256:
+-                raise ValueError('FIRST_LEVEL_LISTING_EXCEEDS_256')
+-            if entry.is_symlink():
+-                raise ValueError('FIRST_LEVEL_REPARSE_LINK')
+-            items.append({'name': entry.name, 'directory': entry.is_dir(follow_symlinks=False)})
+-    return sorted(items, key=lambda x: x['name'].casefold())
+-
+-
+-def census_payload(root: Path) -> dict:
+-    total_files = 0
+-    total_bytes = 0
+-    total_dirs = 0
+-    discovered = set()
+-    stack = [root]
++def parse_snapshot(snapshot: object) -> tuple[list, list, list]:
++    if not isinstance(snapshot, dict):
++        raise Blocked('SNAPSHOT_NOT_OBJECT')
++    disks, parts, vols = seq(snapshot.get('disks')), seq(snapshot.get('partitions')), seq(snapshot.get('volumes'))
++    for item in disks + parts + vols:
++        if not isinstance(item, dict):
++            raise Blocked('SNAPSHOT_ITEM_NOT_OBJECT')
++    for d in disks:
++        if strict_int(d.get('Number')) is None:
++            raise Blocked('DISK_NUMBER_NOT_INT')
++        if strict_int(d.get('Size')) is None or d['Size'] < 0:
++            raise Blocked('DISK_SIZE_NOT_INT64')
++        for key in ('SerialNumber', 'FriendlyName'):
++            if d.get(key) is not None and not isinstance(d.get(key), str):
++                raise Blocked('DISK_' + key.upper() + '_NOT_STRING')
++    numbers = [d['Number'] for d in disks]
++    if len(numbers) != len(set(numbers)):
++        raise Blocked('DISK_NUMBER_DUPLICATED')
++    for p in parts:
++        if strict_int(p.get('DiskNumber')) is None:
++            raise Blocked('PARTITION_DISKNUMBER_NOT_INT')
++    return disks, parts, vols
++
++
++def letters_for_disk(parts: list, number: int) -> list[str]:
++    out = []
++    for p in parts:
++        if p['DiskNumber'] == number:
++            letter = letter_of(p.get('DriveLetter'))
++            if letter is not None:
++                out.append(letter)
++    return out
++
++
++def letter_owner_count(parts: list, letter: str) -> int:
++    return sum(1 for p in parts if letter_of(p.get('DriveLetter')) == letter)
++
++
++def bind_hd1(snapshot: object) -> dict:
++    disks, parts, vols = parse_snapshot(snapshot)
++    hd1 = [d for d in disks if norm_text(d.get('SerialNumber')).upper() == HD1_SERIAL]
++    if len(hd1) != 1:
++        raise Blocked(f'HD1_SERIAL_CARDINALITY_{len(hd1)}')
++    disk = hd1[0]
++    if norm_text(disk.get('FriendlyName')) != HD1_MODEL:
++        raise Blocked('HD1_MODEL_MISMATCH')
++    if disk['Size'] != HD1_BYTES:
++        raise Blocked('HD1_SIZE_MISMATCH')
++    if disk.get('OperationalStatus') != 'Online':
++        raise Blocked('HD1_NOT_ONLINE_NO_MUTATION_ATTEMPTED')
++    if 'IsOffline' in disk and disk.get('IsOffline') is not False:
++        raise Blocked('HD1_ISOFFLINE_NOT_FALSE')
++    number = disk['Number']
++    hd2 = [d for d in disks if norm_text(d.get('SerialNumber')).upper() == HD2_SERIAL]
++    if any(d['Number'] == number for d in hd2):
++        raise Blocked('HD1_HD2_DISK_NUMBER_COLLISION')
++    letters = letters_for_disk(parts, number)
++    if len(letters) != 1:
++        raise Blocked(f'HD1_DRIVE_LETTER_CARDINALITY_{len(letters)}')
++    letter = letters[0]
++    if letter_owner_count(parts, letter) != 1:
++        raise Blocked('HD1_DRIVE_LETTER_OWNED_BY_MULTIPLE_PARTITIONS')
++    hd2_letters = sorted({x for d in hd2 for x in letters_for_disk(parts, d['Number'])})
++    if letter in hd2_letters:
++        raise Blocked('HD1_LETTER_IS_HD2_LETTER')
++    volume = [v for v in vols if letter_of(v.get('DriveLetter')) == letter]
++    return {'disk_number': number, 'drive_letter': letter, 'model': HD1_MODEL, 'serial': HD1_SERIAL,
++            'size_bytes': HD1_BYTES, 'operational_status': disk.get('OperationalStatus'),
++            'is_read_only': disk.get('IsReadOnly'), 'partition_style': disk.get('PartitionStyle'),
++            'hd2_present_count': len(hd2), 'hd2_letters': hd2_letters,
++            'volume': volume[0] if len(volume) == 1 else None, 'volume_cardinality': len(volume)}
++
++
++def inventory_check(snapshot: object, system_letter: str) -> dict:
++    disks, parts, vols = parse_snapshot(snapshot)
++    status_types = sorted({type(d.get('OperationalStatus')).__name__ for d in disks})
++    if status_types != ['str']:
++        raise Blocked('OPERATIONALSTATUS_SHAPE_NOT_STRING:' + ','.join(status_types))
++    sys_letter = letter_of(system_letter[:1]) if isinstance(system_letter, str) else None
++    if sys_letter is None or letter_owner_count(parts, sys_letter) != 1:
++        raise Blocked('SYSTEM_DRIVE_LETTER_NOT_RESOLVED_FROM_SNAPSHOT')
++    hd1 = [d for d in disks if norm_text(d.get('SerialNumber')).upper() == HD1_SERIAL]
++    hd2 = [d for d in disks if norm_text(d.get('SerialNumber')).upper() == HD2_SERIAL]
++    if len(hd1) > 1 or len(hd2) > 1:
++        raise Blocked(f'SERIAL_CARDINALITY_N_HD1_{len(hd1)}_HD2_{len(hd2)}')
++    hd1_binding = bind_hd1(snapshot) if len(hd1) == 1 else None
++    summary = [{'number': d['Number'], 'model': norm_text(d.get('FriendlyName')),
++                'serial': norm_text(d.get('SerialNumber')), 'size_bytes': d['Size'],
++                'status': d.get('OperationalStatus'),
++                'letters': letters_for_disk(parts, d['Number'])} for d in disks]
++    return {'disk_count': len(disks), 'partition_count': len(parts), 'volume_count': len(vols),
++            'system_letter': sys_letter, 'hd1_count': len(hd1), 'hd2_count': len(hd2),
++            'hd2_letters': sorted({x for d in hd2 for x in letters_for_disk(parts, d['Number'])}),
++            'hd1_binding': hd1_binding, 'disks': sorted(summary, key=lambda x: x['number'])}
++
++
++# ---------------------------------------------------------------- filesystem metadata
++
++def is_reparse(st: os.stat_result) -> bool:
++    return bool(getattr(st, 'st_file_attributes', 0) & FILE_ATTRIBUTE_REPARSE_POINT) or stat.S_ISLNK(st.st_mode)
++
++
++def walk_payload(root: Path, max_files: int = CENSUS_MAX_FILES, max_dirs: int = CENSUS_MAX_DIRS,
++                 budget_s: float = CENSUS_TIME_BUDGET_S) -> tuple[list, list]:
++    st = os.stat(root, follow_symlinks=False)
++    if is_reparse(st):
++        raise Blocked('PAYLOAD_ROOT_REPARSE_REFUSED')
++    if not stat.S_ISDIR(st.st_mode):
++        raise Blocked('PAYLOAD_ROOT_NOT_DIRECTORY')
++    files, dirs = [], [()]
++    stack = [(root, ())]
++    t0 = last = time.monotonic()
+     while stack:
+-        current = stack.pop()
+-        if current.is_symlink() or (hasattr(current, 'is_junction') and current.is_junction()):
+-            raise ValueError('PAYLOAD_REPARSE_OR_JUNCTION_REFUSED')
+-        total_dirs += 1
+-        if total_dirs > 3000:
+-            raise ValueError('PAYLOAD_DIRECTORY_COUNT_LIMIT')
++        current, rel = stack.pop()
+         with os.scandir(current) as listing:
+             for entry in listing:
+-                child = Path(entry.path)
+-                if entry.is_symlink() or (hasattr(child, 'is_junction') and child.is_junction()):
+-                    raise ValueError('PAYLOAD_ENTRY_REPARSE_OR_JUNCTION_REFUSED')
+-                if entry.is_dir(follow_symlinks=False):
+-                    if entry.name in TARGET_EXPLORER_BASES:
+-                        discovered.add(entry.name)
+-                    stack.append(child)
+-                elif entry.is_file(follow_symlinks=False):
+-                    total_files += 1
+-                    if total_files > 2500:
+-                        raise ValueError('PAYLOAD_FILE_COUNT_LIMIT')
+-                    total_bytes += int(entry.stat(follow_symlinks=False).st_size)
++                child_rel = rel + (entry.name,)
++                est = entry.stat(follow_symlinks=False)
++                if is_reparse(est):
++                    raise Blocked('PAYLOAD_REPARSE_REFUSED:' + '/'.join(child_rel))
++                if stat.S_ISDIR(est.st_mode):
++                    dirs.append(child_rel)
++                    if len(dirs) > max_dirs:
++                        raise Blocked('PAYLOAD_DIRECTORY_COUNT_LIMIT')
++                    stack.append((Path(entry.path), child_rel))
++                elif stat.S_ISREG(est.st_mode):
++                    files.append((child_rel, int(est.st_size)))
++                    if len(files) > max_files:
++                        raise Blocked('PAYLOAD_FILE_COUNT_LIMIT')
+                 else:
+-                    raise ValueError('PAYLOAD_UNSUPPORTED_ENTRY_TYPE')
+-    return {'files': total_files, 'bytes': total_bytes, 'directories': total_dirs,
+-            'expected_files': 1530, 'expected_bytes': 414020605824,
+-            'metadata_totals_match': total_files == 1530 and total_bytes == 414020605824,
+-            'perseu_directory_matches': sorted(discovered)}
++                    raise Blocked('PAYLOAD_UNSUPPORTED_ENTRY_TYPE:' + '/'.join(child_rel))
++        now = time.monotonic()
++        if now - t0 > budget_s:
++            raise Blocked('CENSUS_TIME_BUDGET_EXCEEDED')
++        if now - last >= HEARTBEAT_S:
++            last = now
++            heartbeat('CENSUS', FILES=len(files), DIRS=len(dirs), ELAPSED_S=int(now - t0),
++                      TOTAL='UNKNOWN', ETA='UNKNOWN', SAFE_STOP='YES_READ_ONLY')
++    return files, dirs
++
++
++def summarize_census(files: list, dirs: list) -> dict:
++    wanted = {name.casefold(): name for name in EXPECTED_SETS}
++    hits: dict[str, list] = {name: [] for name in EXPECTED_SETS}
++    for rel in dirs:
++        if rel and rel[-1].casefold() in wanted:
++            hits[wanted[rel[-1].casefold()]].append(rel)
++    roots = [(name, rel) for name, rels in hits.items() for rel in rels]
++    for name_a, rel_a in roots:
++        for name_b, rel_b in roots:
++            if rel_a != rel_b and rel_b[:len(rel_a)] == rel_a:
++                raise Blocked('NESTED_SET_DIRECTORY')
++    totals = {name: [0, 0] for name in EXPECTED_SETS}
++    outside_files, outside_bytes, outside_sample = 0, 0, []
++    for rel, size in files:
++        owner = None
++        for name, root_rel in roots:
++            if rel[:len(root_rel)] == root_rel:
++                owner = name
++                break
++        if owner is None:
++            outside_files += 1
++            outside_bytes += size
++            if len(outside_sample) < 32:
++                outside_sample.append({'path': '/'.join(rel), 'bytes': size})
++        else:
++            totals[owner][0] += 1
++            totals[owner][1] += size
++    sets = {}
++    for name, (exp_files, exp_bytes) in EXPECTED_SETS.items():
++        got_files, got_bytes = totals[name]
++        occurrences = len(hits[name])
++        sets[name] = {'occurrences': occurrences, 'paths': ['/'.join(r) for r in hits[name]],
++                      'files': got_files, 'bytes': got_bytes,
++                      'expected_files': exp_files, 'expected_bytes': exp_bytes,
++                      'match': occurrences == 1 and got_files == exp_files and got_bytes == exp_bytes}
++    total_files = sum(t[0] for t in totals.values())
++    total_bytes = sum(t[1] for t in totals.values())
++    return {'sets': sets, 'set_files_total': total_files, 'set_bytes_total': total_bytes,
++            'expected_files_total': EXPECTED_TOTAL_FILES, 'expected_bytes_total': EXPECTED_TOTAL_BYTES,
++            'outside_set_files': outside_files, 'outside_set_bytes': outside_bytes,
++            'outside_set_sample': outside_sample, 'directories': len(dirs),
++            'ALL_SETS_METADATA_MATCH': all(s['match'] for s in sets.values())
++            and total_files == EXPECTED_TOTAL_FILES and total_bytes == EXPECTED_TOTAL_BYTES}
+ 
+ 
+-def manifest_check():
+-    path = Path(r'C:\Users\silvi\Downloads\HD500_FINAL_MANIFEST_HASH_TOP4_CONTROL_V001\ARCHIVE_SOURCE_MANIFEST_SHA256.csv')
+-    if not path.is_file():
+-        return {'present': False, 'sha256': None, 'identity': 'NOT_PROVEN'}
++def sha256_file(path: Path) -> str:
+     h = hashlib.sha256()
+-    with path.open('rb') as src:
++    with open(path, 'rb') as src:
+         while True:
+             chunk = src.read(8 * 1024 * 1024)
+             if not chunk:
+                 break
+             h.update(chunk)
+-    digest = h.hexdigest().upper()
+-    return {'present': True, 'sha256': digest,
+-            'identity': 'PASS' if digest == EXPECTED_MANIFEST_SHA256 else 'FAIL'}
++    return h.hexdigest().upper()
++
++
++def first_level(path: Path, budget: dict) -> dict:
++    try:
++        st = os.stat(path, follow_symlinks=False)
++    except FileNotFoundError:
++        return {'path': str(path), 'exists': False}
++    if is_reparse(st):
++        return {'path': str(path), 'exists': True, 'reparse': True, 'entries': None}
++    if not stat.S_ISDIR(st.st_mode):
++        return {'path': str(path), 'exists': True, 'directory': False}
++    entries, truncated = [], False
++    with os.scandir(path) as listing:
++        for entry in listing:
++            if len(entries) >= LISTING_MAX_ENTRIES:
++                truncated = True
++                break
++            est = entry.stat(follow_symlinks=False)
++            item = {'name': entry.name, 'directory': stat.S_ISDIR(est.st_mode), 'reparse': is_reparse(est)}
++            if stat.S_ISREG(est.st_mode) and not item['reparse']:
++                item['bytes'] = int(est.st_size)
++                if (est.st_size <= SMALL_HASH_MAX_FILE and budget['count'] < SMALL_HASH_MAX_COUNT
++                        and budget['bytes'] + est.st_size <= SMALL_HASH_MAX_TOTAL):
++                    try:
++                        item['sha256'] = sha256_file(Path(entry.path))
++                        budget['count'] += 1
++                        budget['bytes'] += int(est.st_size)
++                    except OSError as exc:
++                        item['sha256_error'] = f'{type(exc).__name__}:{exc}'
++            entries.append(item)
++    entries.sort(key=lambda x: x['name'].casefold())
++    return {'path': str(path), 'exists': True, 'directory': True, 'entries': entries, 'truncated': truncated}
++
++
++def manifest_check(path: str = MANIFEST_PATH, expected: str = MANIFEST_SHA256) -> dict:
++    p = Path(path)
++    try:
++        st = os.stat(p, follow_symlinks=False)
++    except FileNotFoundError:
++        return {'path': path, 'present': False, 'identity': 'NOT_PROVEN'}
++    if is_reparse(st) or not stat.S_ISREG(st.st_mode):
++        return {'path': path, 'present': True, 'identity': 'NOT_PROVEN', 'reason': 'REPARSE_OR_NOT_REGULAR'}
++    digest = sha256_file(p)
++    out = {'path': path, 'present': True, 'bytes': int(st.st_size), 'sha256': digest,
++           'identity': 'PASS' if digest == expected else 'FAIL'}
++    if out['identity'] != 'PASS':
++        return out
++    with open(p, 'rb') as src:
++        raw = src.read()
++    lines = raw.split(b'\n')
++    if lines and lines[-1] in (b'', b'\r'):
++        lines = lines[:-1]
++    try:
++        header = lines[0].rstrip(b'\r').decode('utf-8-sig', errors='strict') if lines else ''
++        out['header_columns'] = header.split(',')
++    except UnicodeDecodeError:
++        out['header_columns'] = None
++        out['header_decode'] = 'FAILED_UTF8'
++    out['data_row_count'] = max(len(lines) - 1, 0)
++    out['expected_data_rows'] = MANIFEST_EXPECTED_DATA_ROWS
++    out['row_count_match'] = out['data_row_count'] == MANIFEST_EXPECTED_DATA_ROWS
++    out['row_semantics'] = 'PHYSICAL_LINES_MINUS_HEADER_SCHEMA_NOT_PINNED'
++    return out
+ 
+ 
+-def run_probe() -> int:
++# ---------------------------------------------------------------- subprocess harness
++
++def run_child(argv: list[str], timeout_s: float, slice_s: float = 5.0) -> dict:
++    child = subprocess.Popen(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
++    t0 = time.monotonic()
++    while True:
++        remaining = timeout_s - (time.monotonic() - t0)
++        if remaining <= 0:
++            # No auto-kill (policy 10.0A). Caller must reconcile the PID.
++            return {'rc': None, 'stdout': b'', 'stderr': b'', 'watchdog': True, 'pid': child.pid, 'proc': child}
++        try:
++            stdout, stderr = child.communicate(timeout=min(slice_s, remaining))
++            break
++        except subprocess.TimeoutExpired:
++            heartbeat('CHILD_WAIT', PID=child.pid, ELAPSED_S=int(time.monotonic() - t0), WATCHDOG_S=int(timeout_s))
++    rc = child.returncode
++    return {'rc': rc, 'stdout': stdout, 'stderr': stderr, 'watchdog': False, 'pid': child.pid, 'proc': None}
++
++
++def classify_child(rc: int | None, stdout: bytes) -> tuple[str, str]:
++    if rc is None:
++        return 'BLOCKED', 'EXIT_CODE_NULL'
++    try:
++        text = stdout.decode('utf-8', errors='strict')
++    except UnicodeDecodeError:
++        return 'BLOCKED', 'STDOUT_NOT_UTF8'
++    lines = [ln for ln in text.splitlines() if ln.strip()]
++    if len(lines) != 1:
++        return 'BLOCKED', f'STDOUT_JSON_LINE_CARDINALITY_{len(lines)}'
++    try:
++        obj = json.loads(lines[0])
++    except json.JSONDecodeError:
++        return 'BLOCKED', 'STDOUT_JSON_MALFORMED'
++    if not isinstance(obj, dict) or obj.get('RESULT') not in ALL_RESULTS:
++        return 'BLOCKED', 'RESULT_MISSING_OR_NOT_ALLOWLISTED'
++    if (rc == 0) != (obj['RESULT'] in PASS_RESULTS):
++        return 'BLOCKED', 'EXIT_RESULT_CONTRADICTION'
++    return ('PASS' if rc == 0 else 'BLOCKED'), 'CONSISTENT'
++
++
++def fixture_child(scenario: str, out_json: Path | None, echo: list[str]) -> int:
++    if scenario == 'pass':
++        return emit('FIXTURE_PASS', out_json, fixture=scenario)
++    if scenario == 'blocked':
++        return emit('FIXTURE_BLOCKED', out_json, fixture=scenario)
++    if scenario == 'contradict':
++        return emit('FIXTURE_BLOCKED', out_json, exit_code=0, fixture=scenario)
++    if scenario == 'nofile':
++        return emit('FIXTURE_PASS', None, fixture=scenario)
++    if scenario == 'argv-echo':
++        return emit('FIXTURE_PASS', out_json, fixture=scenario, argv=list(echo))
++    if scenario == 'sleep':
++        time.sleep(6.0)
++        return emit('FIXTURE_PASS', out_json, fixture=scenario)
++    if scenario in ('malformed', 'bom'):
++        body = b'not-json\n' if scenario == 'malformed' else (
++            b'\xef\xbb\xbf' + json.dumps({'RESULT': 'FIXTURE_PASS', 'EXIT_CODE': 0}).encode('utf-8') + b'\n')
++        if out_json is not None:
++            atomic_write_new(out_json, body)
++        sys.stdout.write(body.decode('utf-8', errors='replace'))
++        sys.stdout.flush()
++        return 0
++    return 2
++
++
++# ---------------------------------------------------------------- selftest
++
++def expect_blocked(fn, payload, reason: str) -> None:
++    try:
++        fn(payload)
++    except Blocked as exc:
++        if str(exc) != reason:
++            raise AssertionError(f'NEGATIVE_REASON_{exc}_EXPECTED_{reason}')
++    else:
++        raise AssertionError('NEGATIVE_CONTROL_ACCEPTED_' + reason)
++
++
++def selftest_binding() -> int:
++    ok_disk = {'Number': 4, 'FriendlyName': HD1_MODEL, 'SerialNumber': f'  {HD1_SERIAL} ', 'Size': HD1_BYTES,
++               'OperationalStatus': 'Online', 'IsOffline': False, 'IsReadOnly': False, 'PartitionStyle': 'MBR'}
++    hd2_disk = {'Number': 2, 'FriendlyName': 'WDC WD5000AAKX-003CA0', 'SerialNumber': HD2_SERIAL,
++                'Size': 500107862016, 'OperationalStatus': 'Online', 'IsOffline': False}
++    parts = [{'DiskNumber': 4, 'DriveLetter': 'G'}, {'DiskNumber': 4, 'DriveLetter': '\u0000'},
++             {'DiskNumber': 2, 'DriveLetter': 'F'}]
++    good = {'disks': [hd2_disk, ok_disk], 'partitions': parts,
++            'volumes': [{'DriveLetter': 'G', 'FileSystemLabel': 'X', 'Size': 1}]}
++    b = bind_hd1(good)
++    assert b['drive_letter'] == 'G' and b['hd2_letters'] == ['F'] and b['volume_cardinality'] == 1
++    assert bind_hd1({'disks': ok_disk, 'partitions': {'DiskNumber': 4, 'DriveLetter': 'G'}})['drive_letter'] == 'G'
++    cases = [
++        ([], 'SNAPSHOT_NOT_OBJECT'),
++        ({'disks': [1], 'partitions': []}, 'SNAPSHOT_ITEM_NOT_OBJECT'),
++        ({'disks': [], 'partitions': []}, 'HD1_SERIAL_CARDINALITY_0'),
++        ({'disks': [ok_disk, {**ok_disk, 'Number': 5}], 'partitions': parts}, 'HD1_SERIAL_CARDINALITY_2'),
++        ({'disks': [hd2_disk], 'partitions': parts}, 'HD1_SERIAL_CARDINALITY_0'),
++        ({'disks': [{**ok_disk, 'FriendlyName': 'WDC WD5000AAKX-003CA0'}], 'partitions': parts}, 'HD1_MODEL_MISMATCH'),
++        ({'disks': [{**ok_disk, 'Size': HD1_BYTES - 1}], 'partitions': parts}, 'HD1_SIZE_MISMATCH'),
++        ({'disks': [{**ok_disk, 'Size': float(HD1_BYTES)}], 'partitions': parts}, 'DISK_SIZE_NOT_INT64'),
++        ({'disks': [{**ok_disk, 'Size': str(HD1_BYTES)}], 'partitions': parts}, 'DISK_SIZE_NOT_INT64'),
++        ({'disks': [{**ok_disk, 'Number': True}], 'partitions': parts}, 'DISK_NUMBER_NOT_INT'),
++        ({'disks': [ok_disk, {**hd2_disk, 'Number': 4}], 'partitions': parts}, 'DISK_NUMBER_DUPLICATED'),
++        ({'disks': [{**ok_disk, 'OperationalStatus': 'Offline'}], 'partitions': parts},
++         'HD1_NOT_ONLINE_NO_MUTATION_ATTEMPTED'),
++        ({'disks': [{**ok_disk, 'IsOffline': None}], 'partitions': parts}, 'HD1_ISOFFLINE_NOT_FALSE'),
++        ({'disks': [ok_disk], 'partitions': []}, 'HD1_DRIVE_LETTER_CARDINALITY_0'),
++        ({'disks': [ok_disk], 'partitions': [{'DiskNumber': 4, 'DriveLetter': 'G'},
++                                              {'DiskNumber': 4, 'DriveLetter': 'H'}]}, 'HD1_DRIVE_LETTER_CARDINALITY_2'),
++        ({'disks': [ok_disk], 'partitions': [{'DiskNumber': 3, 'DriveLetter': 'G'}]}, 'HD1_DRIVE_LETTER_CARDINALITY_0'),
++        ({'disks': [ok_disk], 'partitions': [{'DiskNumber': '4', 'DriveLetter': 'G'}]}, 'PARTITION_DISKNUMBER_NOT_INT'),
++        ({'disks': [ok_disk], 'partitions': [{'DiskNumber': 4, 'DriveLetter': 71}]}, 'HD1_DRIVE_LETTER_CARDINALITY_0'),
++        ({'disks': [ok_disk, hd2_disk], 'partitions': [{'DiskNumber': 4, 'DriveLetter': 'F'},
++                                                        {'DiskNumber': 2, 'DriveLetter': 'F'}]},
++         'HD1_DRIVE_LETTER_OWNED_BY_MULTIPLE_PARTITIONS'),
++    ]
++    for payload, reason in cases:
++        expect_blocked(bind_hd1, payload, reason)
++    inv = inventory_check({'disks': [hd2_disk], 'partitions': parts + [{'DiskNumber': 2, 'DriveLetter': 'C'}]}, 'C:')
++    assert inv['hd1_count'] == 0 and inv['hd2_count'] == 1
++    expect_blocked(lambda s: inventory_check(s, 'C:'), {'disks': [hd2_disk], 'partitions': parts},
++                   'SYSTEM_DRIVE_LETTER_NOT_RESOLVED_FROM_SNAPSHOT')
++    expect_blocked(lambda s: inventory_check(s, 'F:'),
++                   {'disks': [{**hd2_disk, 'OperationalStatus': [2]}], 'partitions': parts},
++                   'OPERATIONALSTATUS_SHAPE_NOT_STRING:list')
++    return len(cases) + 2
++
++
++def selftest_census(work: Path) -> int:
++    big = 3 * 1024 ** 3
++    files, dirs = [], [()]
++    for name, (n, total) in EXPECTED_SETS.items():
++        root = ('PerseuRuns', name)
++        dirs.append(root)
++        sizes = [total // n] * n
++        sizes[-1] += total - sum(sizes)
++        files.extend((root + (f'f{i}.bin',), s) for i, s in enumerate(sizes))
++    files.append((('RECEIPT.json',), 10))
++    ok = summarize_census(files, dirs)
++    assert ok['ALL_SETS_METADATA_MATCH'] and ok['outside_set_files'] == 1
++    assert ok['set_bytes_total'] == EXPECTED_TOTAL_BYTES and EXPECTED_TOTAL_BYTES > 2 ** 32
++    first = next(iter(EXPECTED_SETS))
++    off = [(r, s + 1 if len(r) > 1 and r[1] == first and r[-1] == 'f0.bin' else s) for r, s in files]
++    assert not summarize_census(off, dirs)['sets'][first]['match']
++    assert not summarize_census(files, dirs + [('dup', first)])['sets'][first]['match']
++    assert not summarize_census(files, [d for d in dirs if d[-1:] != (first,)])['ALL_SETS_METADATA_MATCH']
++    try:
++        summarize_census(files, dirs + [('PerseuRuns', first, 'x', first.lower())])
++    except Blocked as exc:
++        assert str(exc) == 'NESTED_SET_DIRECTORY'
++    else:
++        raise AssertionError('NESTED_SET_ACCEPTED')
++    assert summarize_census([((first, 'a'), big), ((first, 'b'), big)], [(), (first,)])['sets'][first]['bytes'] == 2 * big
++    tree = work / 'census_tree'
++    (tree / 'A' / 'B').mkdir(parents=True)
++    (tree / 'A' / 'one.bin').write_bytes(b'1')
++    (tree / 'A' / 'B' / 'two.bin').write_bytes(b'22')
++    got_files, got_dirs = walk_payload(tree)
++    assert sorted(got_files) == [(('A', 'B', 'two.bin'), 2), (('A', 'one.bin'), 1)] and len(got_dirs) == 3
++    try:
++        walk_payload(tree, max_files=1)
++    except Blocked as exc:
++        assert str(exc) == 'PAYLOAD_FILE_COUNT_LIMIT'
++    else:
++        raise AssertionError('FILE_LIMIT_NOT_ENFORCED')
++    link_status = 'NOT_CREATABLE'
++    link = tree / 'A' / 'LINK'
++    try:
++        if os.name == 'nt':
++            import _winapi
++            _winapi.CreateJunction(str(tree / 'A' / 'B'), str(link))
++            link_status = 'JUNCTION'
++        else:
++            os.symlink(tree / 'A' / 'B', link, target_is_directory=True)
++            link_status = 'SYMLINK'
++    except (OSError, ImportError, AttributeError):
++        link_status = 'NOT_CREATABLE'
++    if link_status != 'NOT_CREATABLE':
++        try:
++            walk_payload(tree)
++        except Blocked as exc:
++            assert str(exc) == 'PAYLOAD_REPARSE_REFUSED:A/LINK', str(exc)
++        else:
++            raise AssertionError('REPARSE_ACCEPTED')
++        try:
++            walk_payload(link)
++        except Blocked as exc:
++            assert str(exc) == 'PAYLOAD_ROOT_REPARSE_REFUSED', str(exc)
++        else:
++            raise AssertionError('ROOT_REPARSE_ACCEPTED')
++        linked = [e for e in first_level(tree / 'A', {'count': 0, 'bytes': 0})['entries'] if e['name'] == 'LINK']
++        assert len(linked) == 1 and linked[0]['reparse'] is True
++        if os.name == 'nt':
++            os.rmdir(link)
++        else:
++            os.unlink(link)
++    listing = first_level(tree / 'A', {'count': 0, 'bytes': 0})
++    names = [(e['name'], e.get('sha256')) for e in listing['entries']]
++    assert names == [('B', None), ('one.bin', hashlib.sha256(b'1').hexdigest().upper())]
++    assert first_level(tree / 'missing', {'count': 0, 'bytes': 0}) == {'path': str(tree / 'missing'), 'exists': False}
++    mf = work / 'manifest.csv'
++    mf.write_bytes(b'\xef\xbb\xbfpath,size,sha256\r\na,1,X\r\nb,2,Y\r\n')
++    digest = hashlib.sha256(mf.read_bytes()).hexdigest().upper()
++    m = manifest_check(str(mf), digest)
++    assert m['identity'] == 'PASS' and m['header_columns'] == ['path', 'size', 'sha256'] and m['data_row_count'] == 2
++    assert manifest_check(str(mf), '0' * 64)['identity'] == 'FAIL'
++    assert manifest_check(str(work / 'absent.csv'), digest)['present'] is False
++    out = work / 'atomic.json'
++    atomic_write_new(out, b'{}')
++    try:
++        atomic_write_new(out, b'{}')
++    except Blocked as exc:
++        assert str(exc) == 'OUT_PATH_PREEXISTS'
++    else:
++        raise AssertionError('ATOMIC_OVERWRITE_ACCEPTED')
++    return 14 if link_status != 'NOT_CREATABLE' else 11, link_status
++
++
++def selftest_subprocess() -> dict:
++    script = str(Path(__file__).resolve(strict=True))
++    base = [sys.executable, '-I', '-B', script, '--fixture-child']
++    checked = {}
++    for scenario, want_rc, want in (('pass', 0, ('PASS', 'CONSISTENT')),
++                                    ('blocked', 2, ('BLOCKED', 'CONSISTENT')),
++                                    ('contradict', 0, ('BLOCKED', 'EXIT_RESULT_CONTRADICTION')),
++                                    ('malformed', 0, ('BLOCKED', 'STDOUT_JSON_MALFORMED'))):
++        r = run_child(base + [scenario], timeout_s=60.0)
++        assert not r['watchdog'] and r['rc'] == want_rc, (scenario, r['rc'])
++        got = classify_child(r['rc'], r['stdout'])
++        assert got == want, (scenario, got)
++        checked[scenario] = got[1]
++    assert classify_child(None, b'{}') == ('BLOCKED', 'EXIT_CODE_NULL')
++    assert classify_child(0, b'\xff\xfe') == ('BLOCKED', 'STDOUT_NOT_UTF8')
++    assert classify_child(0, b'') == ('BLOCKED', 'STDOUT_JSON_LINE_CARDINALITY_0')
++    r = run_child(base + ['sleep'], timeout_s=1.0, slice_s=0.5)
++    assert r['watchdog'] and r['rc'] is None
++    assert classify_child(r['rc'], r['stdout'])[0] == 'BLOCKED'
++    proc = r['proc']
++    proc.communicate(timeout=60.0)  # reconcile: wait for natural exit, never kill
++    checked['sleep'] = f'WATCHDOG_NO_KILL_PID_{r["pid"]}_NATURAL_EXIT_{proc.returncode}'
++    assert proc.returncode == 0
++    return checked
++
++
++def do_selftest(out_json: Path, work_dir: str | None) -> int:
++    if work_dir is None:
++        raise Blocked('WORK_DIR_REQUIRED')
++    wd = Path(work_dir)
++    if not wd.is_absolute() or not wd.is_dir():
++        raise Blocked('WORK_DIR_NOT_ABSOLUTE_EXISTING_DIR')
++    codecs_resolved = codec_check()
++    binding_cases = selftest_binding()
++    with tempfile.TemporaryDirectory(prefix='phr_selftest_', dir=str(wd)) as tmp:
++        census_cases, link_status = selftest_census(Path(tmp))
++    sub = selftest_subprocess()
++    return emit('PASS_SELFTEST_ONLY', out_json, G0_SELFTEST='PASS', codecs_resolved=codecs_resolved,
++                binding_negative_cases=binding_cases, census_cases=census_cases, reparse_test=link_status,
++                subprocess_cases=sub, platform=sys.platform, os_name=os.name,
++                selftest_transient_cleanup='TEMPORARY_DIRECTORY_REMOVED_BY_CONTEXT_MANAGER')
++
++
++# ---------------------------------------------------------------- probe
++
++def load_snapshot(path: str | None) -> object:
++    if path is None:
++        raise Blocked('SNAPSHOT_REQUIRED')
++    raw = Path(path).read_bytes()
++    if raw.startswith(b'\xef\xbb\xbf'):
++        raise Blocked('SNAPSHOT_BOM_FORBIDDEN')
++    return json.loads(raw.decode('utf-8', errors='strict'))
++
++
++def do_inventory(out_json: Path, snapshot_path: str | None) -> int:
++    codec_check()
++    system_letter = os.environ.get('SystemDrive', '') if os.name == 'nt' else 'C:'
++    inv = inventory_check(load_snapshot(snapshot_path), system_letter)
++    return emit('PASS_INVENTORY_ONLY', out_json, inventory=inv,
++                HD1_STATE='CONNECTED_BOUND' if inv['hd1_count'] == 1 else 'NOT_CONNECTED')
++
++
++def probe_root(root: Path, manifest: dict) -> tuple[list, dict]:
++    """Read-only metadata reconciliation below an already bound volume root."""
++    dev_before = os.stat(root).st_dev
++    blockers = []
++    if manifest['identity'] != 'PASS':
++        blockers.append('SOURCE_MANIFEST_IDENTITY_' + manifest['identity'])
++    elif not manifest.get('row_count_match'):
++        blockers.append('SOURCE_MANIFEST_ROW_COUNT_MISMATCH')
++    budget = {'count': 0, 'bytes': 0}
++    levels = [root]
++    for seg in PAYLOAD_SEGMENTS[:-1]:
++        levels.append(levels[-1] / seg)
++    listings = [first_level(p, budget) for p in levels]
++    payload = levels[-1] / PAYLOAD_SEGMENTS[-1]
++    census = None
++    try:
++        files, dirs = walk_payload(payload)
++        census = summarize_census(files, dirs)
++        if not census['ALL_SETS_METADATA_MATCH']:
++            blockers.append('TOP4_METADATA_MISMATCH')
++    except FileNotFoundError:
++        blockers.append('TOP4_PAYLOAD_NOT_FOUND_AT_DOCUMENTED_PATH')
++    except Blocked as exc:
++        blockers.append('CENSUS_' + str(exc))
++    except OSError as exc:
++        blockers.append(f'CENSUS_OSERROR_{type(exc).__name__}:{exc}')
++    if os.stat(root).st_dev != dev_before:
++        blockers.append('VOLUME_IDENTITY_CHANGED_DURING_PROBE')
++    fields = dict(volume_serial_st_dev=dev_before, manifest=manifest, first_level_listings=listings,
++                  small_file_hash_budget_used=budget, metadata_census=census, blockers=blockers,
++                  CUSTODY_FINAL='NOT_PROVEN_FROM_METADATA_ALONE',
++                  OS_MANAGED_METADATA_EFFECTS='NOT_CONTROLLED_BY_PROBE_SEE_README')
++    return blockers, fields
++
++
++def do_probe(out_json: Path, snapshot_path: str | None) -> int:
+     if os.name != 'nt':
+-        return produce('BLOCKED', reason='WINDOWS_TARGET_REQUIRED', G0_TARGET_RUNTIME='PENDING')
+-    powershell = str(Path(os.environ.get('WINDIR', r'C:\Windows')) / 'System32' / 'WindowsPowerShell' / 'v1.0' / 'powershell.exe')
+-    cmd = [powershell, '-NoLogo', '-NoProfile', '-NonInteractive', '-EncodedCommand',
+-           base64.b64encode(PS_CODE.encode('utf-16le')).decode('ascii')]
+-    try:
+-        rc, stdout, stderr, watchdog = run_child(cmd)
+-        if watchdog:
+-            return produce('BLOCKED', reason=watchdog)
+-        if rc != 0:
+-            return produce('BLOCKED', reason='DISK_INVENTORY_SUBPROCESS_EXIT_NONZERO',
+-                           native_exit=rc, stderr_sample=stderr[:1000].decode('ascii', 'replace'))
+-        snapshot = json.loads(stdout.decode('utf-8-sig', errors='strict'))
+-        binding = parse_hd1_binding(snapshot)
+-        root = Path(binding['drive_letter'] + ':\\')
+-        for segment in TARGET_ROOT_DIRS:
+-            root = root / segment
+-        parent = root.parent
+-        manifest = manifest_check()
+-        if manifest['identity'] == 'FAIL':
+-            return produce('BLOCKED', reason='SOURCE_MANIFEST_SHA_DIVERGED', binding=binding, manifest=manifest)
+-        if not root.is_dir():
+-            return produce('BLOCKED', reason='TOP4_PAYLOAD_NOT_FOUND_AT_DOCUMENTED_PATH', binding=binding, manifest=manifest)
+-        listing = safe_children(root)
+-        parent_listing = safe_children(parent)
+-        census = census_payload(root)
+-        base_names = {e['name'].casefold() for e in listing if e['directory']}
+-        matches = [name for name in TARGET_EXPLORER_BASES if name.casefold() in base_names]
+-        return produce('PASS_PROBE_ONLY', HD1_IDENTITY='PASS', binding=binding,
+-                       PAYLOAD_DIRECTORY_EXISTS=root.is_dir(),
+-                       payload_first_level_count=len(listing),
+-                       payload_first_level=listing[:32], top4_first_level=parent_listing[:32],
+-                       metadata_census=census,
+-                       PERSEU_DIRECT_CHILD_MATCHES=matches,
+-                       manifest=manifest, FULL_HASH_READBACK='NOT_RUN',
+-                       CUSTODY_FINAL='NOT_PROVEN_FROM_METADATA_ALONE',
+-                       G0_TARGET_RUNTIME='PROBE_EXECUTED_NOT_FULL_G0_RELEASE')
+-    except (OSError, ValueError, UnicodeError, json.JSONDecodeError,
+-            subprocess.SubprocessError) as exc:
+-        return produce('BLOCKED', reason=f'{type(exc).__name__}:{exc}',
+-                       G0_TARGET_RUNTIME='NOT_PASS')
+-
+-
+-def main() -> int:
+-    ap = argparse.ArgumentParser(description='Source-only read-only HD1 and TOP4 inventory / G0')
+-    choice = ap.add_mutually_exclusive_group(required=True)
+-    choice.add_argument('--selftest', action='store_true')
+-    choice.add_argument('--probe', action='store_true')
+-    choice.add_argument('--fixture-child', choices=('pass', 'error', 'malformed'), help=argparse.SUPPRESS)
+-    args = ap.parse_args()
+-    if args.fixture_child is not None:
+-        return fixture_child(args.fixture_child)
+-    return do_selftest() if args.selftest else run_probe()
++        return emit('BLOCKED', out_json, reason='WINDOWS_TARGET_REQUIRED', G0_TARGET_RUNTIME='PENDING')
++    codecs_resolved = codec_check()
++    binding = bind_hd1(load_snapshot(snapshot_path))
++    blockers, fields = probe_root(Path(binding['drive_letter'] + ':\\'), manifest_check())
++    fields.update(HD1_IDENTITY='PASS', binding=binding, codecs_resolved=codecs_resolved)
++    if blockers:
++        return emit('BLOCKED', out_json, reason=blockers[0], **fields)
++    return emit('PASS_PROBE_ONLY', out_json, **fields)
++
++
++def main(argv: list[str] | None = None) -> int:
++    ap = argparse.ArgumentParser(description='PERSEU HD1 read-only reconciliation probe V002 (SOURCE_ONLY)')
++    mode = ap.add_mutually_exclusive_group(required=True)
++    mode.add_argument('--selftest', action='store_true')
++    mode.add_argument('--inventory-check', action='store_true')
++    mode.add_argument('--probe', action='store_true')
++    mode.add_argument('--fixture-child', choices=('pass', 'blocked', 'contradict', 'nofile', 'argv-echo',
++                                                  'sleep', 'malformed', 'bom'), help=argparse.SUPPRESS)
++    ap.add_argument('--out-json')
++    ap.add_argument('--snapshot')
++    ap.add_argument('--work-dir')
++    ap.add_argument('--echo', action='append', default=[], help=argparse.SUPPRESS)
++    args = ap.parse_args(argv)
++    out_json = None
++    try:
++        out_json = validate_out_path(args.out_json)
++        if args.fixture_child is not None:
++            return fixture_child(args.fixture_child, out_json, args.echo)
++        if out_json is None:
++            raise Blocked('OUT_JSON_REQUIRED')
++        if args.selftest:
++            return do_selftest(out_json, args.work_dir)
++        if args.inventory_check:
++            return do_inventory(out_json, args.snapshot)
++        return do_probe(out_json, args.snapshot)
++    except KeyboardInterrupt:
++        return emit('BLOCKED', out_json, exit_code=130, reason='SAFE_STOP_KEYBOARD_INTERRUPT_READ_ONLY')
++    except Blocked as exc:
++        return emit('BLOCKED', out_json, reason=str(exc))
++    except (AssertionError, OSError, ValueError, UnicodeError, subprocess.SubprocessError) as exc:
++        return emit('BLOCKED', out_json, reason=f'{type(exc).__name__}:{exc}')
++    except Exception as exc:  # fail-closed: unexpected defect is recorded, never PASS
++        return emit('BLOCKED', out_json, reason=f'UNEXPECTED_{type(exc).__name__}:{exc}')
+ 
+ 
+ if __name__ == '__main__':

@@ -1,0 +1,12 @@
+{
+  "parser": "pwsh 7.4.6 (external; NOT Windows PowerShell 5.1)",
+  "target": "/home/user/GitHub/perseu_hd1_g0_v002/dist/PERSEU_C2_SOURCE_LOCATOR_V001.ps1",
+  "bytes": 38640,
+  "parse_errors": 0,
+  "tokens": 5398,
+  "functions": 14,
+  "parameters": 24,
+  "assignments": 172,
+  "findings": [],
+  "verdict": "PASS_SANDBOX_PARSER_SCOPE"
+}

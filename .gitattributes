@@ -1,0 +1,2 @@
+# Preserve exact hash-bound bytes (CRLF .ps1, LF .py/.md/.json): no EOL conversion.
+perseu_hd1_g0_v002/** -text

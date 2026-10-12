@@ -1,0 +1,137 @@
+{
+ "scope": "PASS_SANDBOX_PWSH_LINUX_ONLY_NOT_PS51",
+ "cases": {
+  "A_delivered_non_windows_blocked": {
+   "exit": 2,
+   "pass": true
+  },
+  "B_patched_SelfTest": {
+   "exit": 0,
+   "expected_exit": 0,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "bom_free": true,
+   "result": "PASS_SELFTEST_ONLY",
+   "gate": "BLOCKED",
+   "blockers": [
+    "R4R9_ORIGINAL_ZIP_NOT_FOUND_WITH_MATCHING_SHA",
+    "INSTALL_RUNNER_NOT_FOUND",
+    "INSTALL_ACCEL_NOT_FOUND",
+    "INSTALL_CORE_FOUND_MISMATCH",
+    "INSTALL_TEST_PARALLEL_NOT_FOUND",
+    "INSTALL_TEST_R4R9_GATE_NOT_FOUND",
+    "INSTALL_TEST_CORE_NOT_FOUND",
+    "INSTALL_C2_WRAPPER_NOT_FOUND",
+    "HOTFIX_R3_MODULE_NOT_FOUND",
+    "HOTFIX_TARGET_APPLICATION_RECEIPT_NOT_PROVEN_BY_LOCATOR",
+    "TELEMETRY_V4_SHIM_NOT_FOUND",
+    "PREREG_V004_CANDIDATES_FOUND_ORIGIN_MUST_PIN_IDENTITY",
+    "D1_IDENTITY_93092E9A_CARDINALITY_0"
+   ],
+   "checks": [
+    [
+     "ZIP_WRONG_BYTES_IS_MISMATCH",
+     true,
+     "FOUND_MISMATCH"
+    ],
+    [
+     "ZIP_SECONDARY_ABSENT_IS_NOT_FOUND",
+     true,
+     "NOT_FOUND"
+    ],
+    [
+     "CORE_WRONG_BYTES_IS_MISMATCH",
+     true,
+     "FOUND_MISMATCH"
+    ],
+    [
+     "RUNNER_ABSENT_IS_NOT_FOUND",
+     true,
+     "NOT_FOUND"
+    ],
+    [
+     "MANIFEST_IS_UNPINNED",
+     true,
+     "FOUND_UNPINNED"
+    ],
+    [
+     "PREREG_V004_PATTERN_ONE_CANDIDATE",
+     true,
+     "1"
+    ],
+    [
+     "TELEMETRY_PATTERN_SECONDARY_ROOT",
+     true,
+     "1"
+    ],
+    [
+     "R4R9_FAMILY_ZIP_AND_DIR",
+     true,
+     "2"
+    ],
+    [
+     "OFFLINE_PLACEHOLDER_NOT_HASHED",
+     true,
+     "SKIPPED_ATTRIBUTE_NOT_SUPPORTED_ON_PLATFORM"
+    ],
+    [
+     "RUN_FOLDER_EXISTS_EMPTY",
+     true,
+     "0"
+    ],
+    [
+     "RUN_FOLDER_ABSENT",
+     true,
+     "False"
+    ],
+    [
+     "TREE_LINK_NOT_FOLLOWED",
+     true,
+     "1 SymbolicLink"
+    ],
+    [
+     "TREE_FILE_COUNT",
+     true,
+     "2"
+    ],
+    [
+     "GATE_FAIL_CLOSED_ON_SYNTHETIC",
+     true,
+     "13"
+    ],
+    [
+     "INT64_ACCUMULATOR",
+     true,
+     "5147483648"
+    ]
+   ],
+   "pass": true
+  },
+  "B_patched_Locate": {
+   "exit": 0,
+   "expected_exit": 0,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "bom_free": true,
+   "result": "PASS_INVENTORY_ONLY",
+   "gate": "BLOCKED",
+   "blockers": [
+    "R4R9_ORIGINAL_ZIP_NOT_FOUND_WITH_MATCHING_SHA",
+    "INSTALL_RUNNER_NOT_FOUND",
+    "INSTALL_ACCEL_NOT_FOUND",
+    "INSTALL_CORE_NOT_FOUND",
+    "INSTALL_TEST_PARALLEL_NOT_FOUND",
+    "INSTALL_TEST_R4R9_GATE_NOT_FOUND",
+    "INSTALL_TEST_CORE_NOT_FOUND",
+    "INSTALL_C2_WRAPPER_NOT_FOUND",
+    "HOTFIX_R3_MODULE_NOT_FOUND",
+    "HOTFIX_TARGET_APPLICATION_RECEIPT_NOT_PROVEN_BY_LOCATOR",
+    "TELEMETRY_V4_SHIM_NOT_FOUND",
+    "PREREG_V004_NOT_FOUND",
+    "D1_IDENTITY_93092E9A_CARDINALITY_0"
+   ],
+   "pass": true
+  }
+ },
+ "verdict": "PASS_SANDBOX_SCOPE"
+}

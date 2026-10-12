@@ -1,0 +1,178 @@
+{
+ "schema": "PERSEU_HD1_G0_V002_CANDIDATE_MANIFEST",
+ "project": "Perseu MT5 (Astra)",
+ "thread": "PERSEU_C2_DISK_SPACE_RECONCILIATION",
+ "manifest_hash_excludes_self": true,
+ "member_count_excluding_manifest": 33,
+ "parents": {
+  "handoff_zip_sha256": "435FA919DD72D7CCA4970B4B49541D7AF3F9726AC907AAFE6FAA38C7364BBA72",
+  "delta_zip_sha256": "DF5192F6935F23A54AE91A7FC1E8C5EFD133AA2167C0C148509A0F16CF7BA907"
+ },
+ "members": [
+  {
+   "path": "build/PERSEU_C2_SOURCE_LOCATOR_V001.ps1.template",
+   "bytes": 38074,
+   "sha256": "2ACAB18F011291D1FC42801B39344268CFACC49A54E1E643184C6B847A485801"
+  },
+  {
+   "path": "build/PERSEU_HD1_RECON_PROBE_V002.ps1.template",
+   "bytes": 30630,
+   "sha256": "F540D48FD13C742BB76AF15D4799FADEACA99504C89660AFA844FD58E30C8B72"
+  },
+  {
+   "path": "build/build_locator.py",
+   "bytes": 904,
+   "sha256": "60AC3DAEF92B1FAF7A65E51654F9C4B7B17CBE5144D6065F5625523A3F32839F"
+  },
+  {
+   "path": "build/build_v002.py",
+   "bytes": 2322,
+   "sha256": "86975239C02FE60579BBF56012DD05D1931BE334E22DD693063B309770C9FA70"
+  },
+  {
+   "path": "delta/IMPLEMENTED_DELTA.patch",
+   "bytes": 52320,
+   "sha256": "EE0DCF687146EE1D06B0564006CA8241F6E148894E3F9FB252DEE4164C0F3212"
+  },
+  {
+   "path": "dist/PERSEU_C2_SOURCE_LOCATOR_V001.ps1",
+   "bytes": 38640,
+   "sha256": "07F665511BEF201BF363F418846174840ECA6E3EEEE385FD71BC4B19E82D935D"
+  },
+  {
+   "path": "dist/PERSEU_HD1_RECON_PROBE_V002.ps1",
+   "bytes": 83499,
+   "sha256": "3F78E1A2704DD82C52947061F842AAF72DC9D3F2004BE225FA306DA04FA6E8D5"
+  },
+  {
+   "path": "docs/C2_SOURCES_REQUIRED.md",
+   "bytes": 6123,
+   "sha256": "4E5E5865F1902DBFCB707269C05D765DC3E27A22D320E964E6FD65EF35482B15"
+  },
+  {
+   "path": "docs/C2_STATIC_ENGINEERING_DELTA.md",
+   "bytes": 8191,
+   "sha256": "97A5584F011F054E51A488FCBFA09B91CC1AEA4FBB037B29CDD08F26029033F9"
+  },
+  {
+   "path": "docs/ENGINEERING_RESULT.md",
+   "bytes": 15486,
+   "sha256": "605710DB9F183DDD354D8BA4CD2E19771F0B3BF6ADCD0F3E32E7ADCF2B8A69F3"
+  },
+  {
+   "path": "docs/README_WINDOWS_TARGET.md",
+   "bytes": 8689,
+   "sha256": "749CFEE8D10AC1068EE7AE23B67F73B523CA0E2C4091D5CEF3452E77FA84E0EF"
+  },
+  {
+   "path": "evidence_sandbox/01_build.txt",
+   "bytes": 282,
+   "sha256": "C638659F0B321AFB9BEA9EC87FBAE9664C4235D81B48A223B3D43D76A4DB402B"
+  },
+  {
+   "path": "evidence_sandbox/02_py_compile.txt",
+   "bytes": 325,
+   "sha256": "3C78C40F3E6BCC6048CC4E7C22CA561CDBD5FD35CF8C999DA51C00B06DC6D9F3"
+  },
+  {
+   "path": "evidence_sandbox/03_payload_selftest_stderr.txt",
+   "bytes": 196,
+   "sha256": "6D2F250772669573F412BFA7E747D38DCCDCE1E1DBE3E73D0BB6C1ADA6E03B00"
+  },
+  {
+   "path": "evidence_sandbox/03_payload_selftest_stdout.json",
+   "bytes": 1273,
+   "sha256": "88B63E9E13138CC2BC621C8B74523CC699A2DB8A47907B04670F44F615CBB433"
+  },
+  {
+   "path": "evidence_sandbox/04_probe_non_windows.json",
+   "bytes": 852,
+   "sha256": "C77306EB76FEC054DC82E7C2498086E7F0E51A6B8B4B2AAC4841CDADBA5C1EEC"
+  },
+  {
+   "path": "evidence_sandbox/05_static_audit_pwsh.json",
+   "bytes": 335,
+   "sha256": "216D9999CF9420D6D5391D80B11C60D1EEFBCF6C1F1EB4B56E863C46879ACF63"
+  },
+  {
+   "path": "evidence_sandbox/06_probe_root_sparse.json",
+   "bytes": 393,
+   "sha256": "7C45FD4F65B8426C22E6F8F9C5D8A451D75C778708956B472EF47697C03B8DDD"
+  },
+  {
+   "path": "evidence_sandbox/07_wrapper_harness.json",
+   "bytes": 3013,
+   "sha256": "8BA968C8CDFA65AC0B8A09F08504E5530F19C745EFA45BAC353C4838EE361CFA"
+  },
+  {
+   "path": "evidence_sandbox/08_tested_packaged_identity.txt",
+   "bytes": 1108,
+   "sha256": "9700225568686B0F5127990F85D22A24D5CCCB1AFFED2B26C61FD185A7EAE8F3"
+  },
+  {
+   "path": "evidence_sandbox/09_patched_copy_selftest_log.txt",
+   "bytes": 11068,
+   "sha256": "39D427BB1C5046A2F6177B32D561FFF8D085352EA3116CBAB93199A4EE5144F6"
+  },
+  {
+   "path": "evidence_sandbox/09_patched_copy_selftest_receipt.json",
+   "bytes": 8729,
+   "sha256": "F431CAA653B97E8A495EEBBD555BA3D3DDF40E676CD21A10C79F5DF697981420"
+  },
+  {
+   "path": "evidence_sandbox/10_c2_recovered_static_review_py314.json",
+   "bytes": 14042,
+   "sha256": "2983E9B2736DB9B400382885E7CEB1C1F64630BDB45967D7344D84C7EAB4C9CD"
+  },
+  {
+   "path": "evidence_sandbox/11_locator_static_audit_pwsh.json",
+   "bytes": 337,
+   "sha256": "71874187E67FDC434AE7837420A641295DE5BCCEB395C261984CF77D66649FDD"
+  },
+  {
+   "path": "evidence_sandbox/12_locator_harness.json",
+   "bytes": 2828,
+   "sha256": "9763081713641B1794EA8BA219FBE361A51B2D4E7B4DB32B9275370F357C32EA"
+  },
+  {
+   "path": "receipts/CANDIDATE_COMPLETENESS_RECEIPT.json",
+   "bytes": 1462,
+   "sha256": "15A030D062021CCAAED4A7146D7AA5CBFCB2B125DC824029C57524EE371593C1"
+  },
+  {
+   "path": "receipts/G0_QUALIFICATION_RECEIPT.json",
+   "bytes": 6663,
+   "sha256": "DBCB64457CADC1CF55D2508F7DDD67FA9C17042783A69C200022C1F83CD31881"
+  },
+  {
+   "path": "src/PERSEU_HD1_RECON_PROBE_V002.py",
+   "bytes": 38171,
+   "sha256": "2FE0174AFB117209C02A77278BCE2FA1549A1933ECD2259D0D823B6FB84CD675"
+  },
+  {
+   "path": "tests/c2_recovered_static_review.py",
+   "bytes": 6168,
+   "sha256": "765A6730C02CE7CE553D0E1BB329D3EA7D64AD9F3D724692257A5236C896AABC"
+  },
+  {
+   "path": "tests/sandbox_locator_harness.py",
+   "bytes": 4536,
+   "sha256": "8C8C2CB952EA967B325D49D06F61C907BFDEB7E7CB9215F9F0B23FBFC1EEF794"
+  },
+  {
+   "path": "tests/sandbox_probe_root_test.py",
+   "bytes": 4781,
+   "sha256": "7A1E7FA651A9FDCD922A1493C500EB4A9721B282640221CA7AD29F436E1453B5"
+  },
+  {
+   "path": "tests/sandbox_wrapper_harness.py",
+   "bytes": 7272,
+   "sha256": "E3F75FBC790601B9B45AAC43EFE4460759785685AD231297CB44CCA1C59F1FCB"
+  },
+  {
+   "path": "tests/static_audit_ps1.ps1",
+   "bytes": 4652,
+   "sha256": "BEB4FD57F4A0BF79393F264AC3A693908F9AFFD4A2B55382E45A4C1660FB3A07"
+  }
+ ]
+}

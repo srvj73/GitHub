@@ -1,0 +1,180 @@
+{
+ "schema": "PERSEU_G0_QUALIFICATION_RECEIPT_V002",
+ "PROJECT": "Perseu MT5 (Astra)",
+ "THREAD": "PERSEU_C2_DISK_SPACE_RECONCILIATION",
+ "ROLE": "IMPLEMENTER/G0_ENGINEER_NOT_INDEPENDENT_AUDITOR",
+ "SURFACE": "Claude Code remote session (Linux container); configured model Claude Opus 5.5",
+ "DATE": "2026-10-12",
+ "POLICY_MASTER_SHA256": "5B135DA0CA7C3BFE992F364720605522FB939977772C6D5A6FD3811A8288B302",
+ "POLICY_HEAD_SHA256": "2DA2939C88530B089D3E6D33418439B38A243EE776DAC151559199C2703B5BA9",
+ "POLICY_HEAD_REVISION": "20261012T070600-0300-5B135DA0CA7C3BFE",
+ "POLICY_VERIFICATION": "PASS_DELEGATED_OFFLINE_NO_LIVE_LIBRARY_LOOKUP",
+ "PROTECTED_EFFECTS": "NONE",
+ "SOURCE_DELETE": "NO",
+ "C2_FULL_STARTED": "NO",
+ "FORMAL_AUDIT_DISPATCH": "NOT_DISPATCHED_INCOMPLETE_CANDIDATE",
+ "RESOURCE_USAGE": "INCLUDED_SESSION_USAGE_EXACT_AMOUNT_UNKNOWN; NO_PAID_CREDIT",
+ "RESULT_RETURN_TO": "ChatGPT | PROJECT=Perseu MT5 (Astra) | THREAD=PERSEU_C2_DISK_SPACE_RECONCILIATION",
+ "handoff_acceptance": {
+  "parent_zip_sha256": "435FA919DD72D7CCA4970B4B49541D7AF3F9726AC907AAFE6FAA38C7364BBA72",
+  "parent_zip_vs_witness": "PASS",
+  "parent_members": "14/14_PASS",
+  "parent_witness_sha256": "6926B552C5DE492F71E69B5266795F855AEE3B56D8AA7137C940C62F2532A9C0",
+  "delta_zip_sha256": "DF5192F6935F23A54AE91A7FC1E8C5EFD133AA2167C0C148509A0F16CF7BA907",
+  "delta_zip_vs_witness": "PASS",
+  "delta_members": "21/21_PASS_EXACT_SET",
+  "delta_manifest_sha256": "77089CF78E05D873B4E27C9AA393FC88C917F27AAA76DF7B49B3C4E3B8CABE0D",
+  "delta_parent_binding": "PASS"
+ },
+ "artifacts": {
+  "PERSEU_HD1_RECON_PROBE_V002": {
+   "components": [
+    {
+     "path": "dist/PERSEU_HD1_RECON_PROBE_V002.ps1",
+     "bytes": 83499,
+     "sha256": "3F78E1A2704DD82C52947061F842AAF72DC9D3F2004BE225FA306DA04FA6E8D5"
+    },
+    {
+     "path": "src/PERSEU_HD1_RECON_PROBE_V002.py",
+     "bytes": 38171,
+     "sha256": "2FE0174AFB117209C02A77278BCE2FA1549A1933ECD2259D0D823B6FB84CD675"
+    }
+   ],
+   "parent_revision": "PERSEU_HD1_READONLY_GATE_ZERO_PROBE_V001",
+   "parent_sha256_unchanged": "C53BBA63C4A5613CE0D50EA8B8716ED1D4B1EFF864B79B49937042F0E8BA4CE6",
+   "G0_STATIC": "PASS_SANDBOX",
+   "G0_NEGATIVE": "PASS_SANDBOX",
+   "G0_INTEGRATION": "PASS_SANDBOX_PWSH_LINUX_PATCHED_COPY_LABELED",
+   "G0_TARGET_RUNTIME": "TARGET_RUNTIME_PENDING",
+   "G0_TESTED_PACKAGED_DELIVERED": "TESTED_EQ_PACKAGED_PASS_SANDBOX; DELIVERED_NOT_MEASURED",
+   "G0_RELEASE_DECISION": "BLOCKED",
+   "artifact_status": "SOURCE_ONLY",
+   "blockers": [
+    "G0_TARGET_RUNTIME_PENDING",
+    "DELIVERED_SHA_NOT_MEASURED",
+    "HD1_OFFLINE_PHYSICAL_CONNECTION_REQUIRES_OWNER_DECISIONS_D1_D3"
+   ],
+   "not_rerun_after_delta": true
+  },
+  "PERSEU_C2_SOURCE_LOCATOR_V001": {
+   "components": [
+    {
+     "path": "dist/PERSEU_C2_SOURCE_LOCATOR_V001.ps1",
+     "bytes": 38640,
+     "sha256": "07F665511BEF201BF363F418846174840ECA6E3EEEE385FD71BC4B19E82D935D"
+    }
+   ],
+   "G0_STATIC": "PASS_SANDBOX",
+   "G0_NEGATIVE": "PASS_SANDBOX_15_CHECKS_OFFLINE_ATTRIBUTE_SKIPPED_ON_LINUX",
+   "G0_INTEGRATION": "PASS_SANDBOX_PWSH_LINUX_PATCHED_COPY_LABELED",
+   "G0_TARGET_RUNTIME": "TARGET_RUNTIME_PENDING",
+   "G0_TESTED_PACKAGED_DELIVERED": "TESTED_EQ_PACKAGED_PASS_SANDBOX; DELIVERED_NOT_MEASURED",
+   "G0_RELEASE_DECISION": "BLOCKED",
+   "artifact_status": "SOURCE_ONLY",
+   "blockers": [
+    "G0_TARGET_RUNTIME_PENDING",
+    "DELIVERED_SHA_NOT_MEASURED"
+   ]
+  }
+ },
+ "c2_front": {
+  "status": "STATIC_ENGINEERING_ONLY",
+  "recovered_code_executed": false,
+  "hotfix_chain_cross_validation": "PASS_2_OF_2",
+  "hotfix_r3_module_sha256_derived": "6F77DFA4AB70BE0A3804B406CEF8DF2D8567A02470BE1993E51AA5F5CB5BBB13",
+  "telemetry_v4_reenvio_shim_sha256_derived_crlf": "8BF0BFBB6D142B0088E4FED5E0F7A74F1786AD2D427AE8338C45F7F29B624710",
+  "r4r9_members_bytes_recovered_by_sha_equality": [
+   "perseu_exploratorio.py",
+   "test_perseu_exploratorio.py",
+   "BASELINE_R4R8/perseu_parallel_auto.py"
+  ],
+  "blocked_checks": [
+   "R4R9_RUNNER_ACCEL_TESTS_G0",
+   "TELEMETRY_V4_SHIM_SELFTEST",
+   "HOTFIX_R3_SELFTEST",
+   "C2_WRAPPER_BOM_ENCODING",
+   "TELEMETRY_V004_ORIGINAL_IDENTITY",
+   "PREREG_V004_D1_CODE_BINDING",
+   "HOTFIX_TARGET_APPLICATION"
+  ]
+ },
+ "sandbox_runtimes": {
+  "python": [
+   "3.14.6",
+   "3.13.16"
+  ],
+  "powershell_parser": "pwsh 7.4.6 (NOT Windows PowerShell 5.1)"
+ },
+ "evidence": [
+  {
+   "path": "evidence_sandbox/01_build.txt",
+   "bytes": 282,
+   "sha256": "C638659F0B321AFB9BEA9EC87FBAE9664C4235D81B48A223B3D43D76A4DB402B"
+  },
+  {
+   "path": "evidence_sandbox/02_py_compile.txt",
+   "bytes": 325,
+   "sha256": "3C78C40F3E6BCC6048CC4E7C22CA561CDBD5FD35CF8C999DA51C00B06DC6D9F3"
+  },
+  {
+   "path": "evidence_sandbox/03_payload_selftest_stderr.txt",
+   "bytes": 196,
+   "sha256": "6D2F250772669573F412BFA7E747D38DCCDCE1E1DBE3E73D0BB6C1ADA6E03B00"
+  },
+  {
+   "path": "evidence_sandbox/03_payload_selftest_stdout.json",
+   "bytes": 1273,
+   "sha256": "88B63E9E13138CC2BC621C8B74523CC699A2DB8A47907B04670F44F615CBB433"
+  },
+  {
+   "path": "evidence_sandbox/04_probe_non_windows.json",
+   "bytes": 852,
+   "sha256": "C77306EB76FEC054DC82E7C2498086E7F0E51A6B8B4B2AAC4841CDADBA5C1EEC"
+  },
+  {
+   "path": "evidence_sandbox/05_static_audit_pwsh.json",
+   "bytes": 335,
+   "sha256": "216D9999CF9420D6D5391D80B11C60D1EEFBCF6C1F1EB4B56E863C46879ACF63"
+  },
+  {
+   "path": "evidence_sandbox/06_probe_root_sparse.json",
+   "bytes": 393,
+   "sha256": "7C45FD4F65B8426C22E6F8F9C5D8A451D75C778708956B472EF47697C03B8DDD"
+  },
+  {
+   "path": "evidence_sandbox/07_wrapper_harness.json",
+   "bytes": 3013,
+   "sha256": "8BA968C8CDFA65AC0B8A09F08504E5530F19C745EFA45BAC353C4838EE361CFA"
+  },
+  {
+   "path": "evidence_sandbox/08_tested_packaged_identity.txt",
+   "bytes": 1108,
+   "sha256": "9700225568686B0F5127990F85D22A24D5CCCB1AFFED2B26C61FD185A7EAE8F3"
+  },
+  {
+   "path": "evidence_sandbox/09_patched_copy_selftest_log.txt",
+   "bytes": 11068,
+   "sha256": "39D427BB1C5046A2F6177B32D561FFF8D085352EA3116CBAB93199A4EE5144F6"
+  },
+  {
+   "path": "evidence_sandbox/09_patched_copy_selftest_receipt.json",
+   "bytes": 8729,
+   "sha256": "F431CAA653B97E8A495EEBBD555BA3D3DDF40E676CD21A10C79F5DF697981420"
+  },
+  {
+   "path": "evidence_sandbox/10_c2_recovered_static_review_py314.json",
+   "bytes": 14042,
+   "sha256": "2983E9B2736DB9B400382885E7CEB1C1F64630BDB45967D7344D84C7EAB4C9CD"
+  },
+  {
+   "path": "evidence_sandbox/11_locator_static_audit_pwsh.json",
+   "bytes": 337,
+   "sha256": "71874187E67FDC434AE7837420A641295DE5BCCEB395C261984CF77D66649FDD"
+  },
+  {
+   "path": "evidence_sandbox/12_locator_harness.json",
+   "bytes": 2828,
+   "sha256": "9763081713641B1794EA8BA219FBE361A51B2D4E7B4DB32B9275370F357C32EA"
+  }
+ ]
+}
