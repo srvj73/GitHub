@@ -1,3 +1,789 @@
+diff --git a/tickstore_cdt15_r41/source/R41_BLOCKER_LEDGER.json b/tickstore_cdt15_r41/source/R41_BLOCKER_LEDGER.json
+new file mode 100644
+index 0000000..59c03a6
+--- /dev/null
++++ b/tickstore_cdt15_r41/source/R41_BLOCKER_LEDGER.json
+@@ -0,0 +1,65 @@
++{
++  "schema": "TICKSTORE_CDT15_R41_BLOCKER_LEDGER_V001",
++  "role": "ENGINEER_ONLY",
++  "status": {
++    "CANDIDATE_COMPLETENESS": "NOT_PROVEN",
++    "G4": "INCOMPLETE",
++    "G5": "NOT_PROVEN",
++    "B06": "NOT_STARTED",
++    "B07": "NOT_STARTED",
++    "D4_D5_CANARY_FULL": "NOT_RELEASED",
++    "FULL_STARTED": false,
++    "PRODUCTION_MODIFIED": false
++  },
++  "closed_in_r41_source_pending_windows": [
++    "OFFICIAL_WRITER_NOT_IMPLEMENTED",
++    "INSTALLER_ACTIVATION_NOT_INTEGRATED_WITH_WRITER",
++    "SAFE_STOP_STAGE_NOT_ELEVATED_CANNOT_OPEN_HIGH_INTEGRITY_GLOBAL_EVENT",
++    "ELEVATED_FULL_WINDOW_HIDDEN_PROGRESS_ETA_CTRL_C_INACCESSIBLE",
++    "NO_FIXED_FOLDER_RUN_LOG_FOR_FULL_LAUNCHER",
++    "NO_READ_ONLY_MONITOR_FOR_HEARTBEAT_ETA_WATCHDOG",
++    "AUTOCPU_USED_SYSTEM_CPU_COUNT_NOT_PROCESS_AVAILABLE",
++    "STALE_TEST_full/test_full_multiwork.py_1_ERROR",
++    "STALE_STATIC_full/static_multiwork_preaudit.py_6_OBSOLETE_CHECKS"
++  ],
++  "open_blockers": [
++    {
++      "id": "R41-B1",
++      "title": "QUALIFICATION_CONTRACT.json exige 125 IDs de testes de modulos ausentes da base",
++      "evidence": "candidate/control/QUALIFICATION_CONTRACT.json required_tests referencia tests_stage_closure, tests_full_lifecycle, tests_resume_delta, test_first_admission_transaction, test_bootstrap_contract, tests_delta, tests_native_delta; nenhum desses modulos existe no pacote 26F783A0 (grep confirmado).",
++      "effect": "FULL_QUALIFICATION_CONTRACT.validate exige exatamente esses IDs nativos sobre os bytes finais; G5 nao pode ser satisfeito com a base entregue.",
++      "needed_from_origin": "Fornecer o arquivo historico da linha de base (archive_sha256 DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8) ou autorizar re-derivacao do contrato de qualificacao para a arvore atual."
++    },
++    {
++      "id": "R41-B2",
++      "title": "Nao existe produtor tecnico de recibos G5 e B07",
++      "evidence": "FULL_INSTANCE_PREPARE.py declara 'cannot issue G5/B06/B07 receipts'; nenhum outro modulo publica STAGE_G5/STAGE_B07; a cadeia (FULL_RELEASE_CHAIN.STAGES) exige ambos antes de D4.",
++      "effect": "Mesmo com B06 independente aprovado, D4 e o FULL permanecem inalcancaveis.",
++      "needed_from_origin": "Definicao de custodia: quem emite G5 (congelamento de bytes) e qual runner nativo produz B07 (checks native_windows, physical_policy_capture, state_continuity, vss_identity, negative_controls, process_tree_cleanup)."
++    },
++    {
++      "id": "R41-B3",
++      "title": "Fechamento D4/1399, Stage B E9/F1/F2 e FULL/H1-H6 so sao provaveis nos gates D4..FULL",
++      "evidence": "Executam no orquestrador congelado com STATE/journal reais; dependem de B07.",
++      "effect": "Prova fim a fim permanece pendente; regressões portateis da base (186) seguem PASS."
++    },
++    {
++      "id": "R41-B4",
++      "title": "Durabilidade a queda de energia nao comprovavel por software",
++      "evidence": "Qualificacao cobre morte abrupta de processo em todos os pontos do protocolo; FlushFileBuffers/MOVEFILE_WRITE_THROUGH aplicados.",
++      "effect": "Declarar apenas PROCESS_DEATH_RECOVERY; CHECKPOINT_POWERLOSS_RECOVERY continua NAO PROVADO."
++    },
++    {
++      "id": "R41-B5",
++      "title": "Smoke nativo do motor multiwork sobre os novos bytes do wrapper",
++      "evidence": "windows_multiwork_smoke_22/rc4 sao historicos; o wrapper mudou (watchdog, AUTOCPU).",
++      "effect": "Proxima prova dirigida (R42) com fixtures sinteticas no formato PTS2G, ou cobertura no CANARY."
++    },
++    {
++      "id": "R41-B6",
++      "title": "Controles negativos conhecidos de B06 nao reverificados no R41",
++      "evidence": "STATE recreation, TOCTOU de configuracao, sobrescrita concorrente de recibos, falha pos-checkpoint: a base contem testes portateis relacionados (186 PASS), mas o R41 nao auditou sua suficiencia.",
++      "effect": "Permanece pendente para a fase de completude antes do B06."
++    }
++  ]
++}
+diff --git a/tickstore_cdt15_r41/source/README_R41_ENGINEERING.md b/tickstore_cdt15_r41/source/README_R41_ENGINEERING.md
+new file mode 100644
+index 0000000..8225f28
+--- /dev/null
++++ b/tickstore_cdt15_r41/source/README_R41_ENGINEERING.md
+@@ -0,0 +1,46 @@
++# TICKSTORE CDT15 — R41 (engenharia, SOURCE_ONLY + qualificação Windows em sandbox)
++
++`ROLE=ENGINEER_ONLY` · `B06=NOT_STARTED` · `G4=INCOMPLETE` · `G5=NOT_PROVEN` · `FULL_STARTED=NO` · `PRODUCTION_MODIFIED=NO`
++
++Base exata: `TICKSTORE_G4_CURRENT_CORRECTED_SOURCE_ONLY.zip` (SHA-256 `26F783A0…B757`), manifesto aninhado 168/168 conferido.
++Política: captura não autoritativa `20261013T070500-0300-695DCD6495E549B1` (MASTER `695DCD64…7DF5`, HEAD `B3B41959…F7EA`); reconciliação de vigência permanece com a origem ChatGPT.
++
++## O que o R41 entrega
++
++1. **Gravador oficial efetivo** — `candidate/control/MENU_OFFICIAL_WRITER.py`
++   - Um único lock do SO (`MENU_WRITER.lock`, handle sem compartilhamento, liberado pelo SO se o processo morrer) mantido da readmissão até `COMMITTED`/`ROLLED_BACK`.
++   - MENU, pendente e backup no volume do MENU (D:); ACTIVE, journal e evidências em `%LOCALAPPDATA%\TICKSTORE` (C:). Protocolo entre volumes, **não** transação atômica global.
++   - `ReplaceFileW` com backup explícito; após a troca, prova-se que o backup contém exatamente os bytes admitidos (detecção de troca hostil na janela TOCTOU).
++   - ACTIVE por `MoveFileExW` sem substituição (colisão ⇒ bloqueio).
++   - `PREPARED` torna-se visível por um único rename de diretório (staging → `MENU_TRANSACTION`).
++   - `PLAN.json`/`JOURNAL.json` compatíveis byte a byte com o consumidor do MENU; registros de fase imutáveis; `EVIDENCE.json`.
++   - Recuperação por **novo processo** em todo ponto de queda, inclusive durante a própria recuperação e falha parcial de `ReplaceFileW` (erro 1177). `COMMITTED` nunca é inferido por hash; journal forjado é rejeitado. Nada é apagado.
++   - Modo OFICIAL exige Windows + cadeia técnica até **B07** (dígito B06 independente fornecido à parte) + admissão read-only ao vivo. Modo QUALIFICAÇÃO só opera em sandboxes com sentinela.
++2. **Instalador integrado** — `-ActivateMenu` passou a ser apenas despacho para o gravador instalado, exigindo cadeia até B07 antes de qualquer leitura de testemunha ou escrita.
++3. **Runner FULL** — `RUN_TICKSTORE_FULL.ps1`/`FULL_RUNNER.py`/`tickstore_full_multiwork.py`:
++   - correção: `Stop` agora eleva (o evento `Global\` criado pelo runner elevado é de integridade alta);
++   - correção: janela elevada **visível** (barra, ETA e Ctrl+C acessíveis);
++   - log por execução em pasta absoluta fixa `C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\<ETAPA>_<yyyyMMdd_HHmmss_fff>_<PID>\RUN_LOG.txt`;
++   - estágio `Monitor` (somente leitura) com barra, ETA `d.hh.mm.ss`, idade do heartbeat e do laço principal, veredicto `WATCHDOG`;
++   - AUTOCPU passa a sondar as CPUs efetivamente disponíveis ao processo (afinidade/grupos);
++   - watchdog do laço de eventos: estagnação > 600 s solicita SAFE_STOP cooperativo (nunca mata processos).
++4. **Testes defasados realinhados** — `test_full_multiwork.py` (24/24) e `static_multiwork_preaudit.py` (PASS) agora refletem os bytes atuais (gates administrativos revogados verificados como revogados).
++
++## Execução no seu Windows (único passo desta rodada)
++
++Coloque em `C:\Users\silvi\OneDrive\Downloads`:
++`TICKSTORE_CDT15_R41_QUAL_20261013.zip`, `RUN_TICKSTORE_CDT15_R41_QUAL.ps1` e `WITNESS_TICKSTORE_CDT15_R41_QUAL_20261013.json`.
++
++```
++powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R41_QUAL.ps1"
++```
++
++Não requer elevação nem `cd`. Duração esperada: poucos minutos. Disco: < 200 MB em C: e D:.
++Pastas criadas (todas próprias da execução): `...\Downloads\TICKSTORE_RUNS\R41_QUAL_*`, `%LOCALAPPDATA%\TICKSTORE_QUAL_R41\R41_QUAL_*`, `D:\TICKSTORE_QUALIFICATION_SANDBOX\R41_QUAL_*`.
++Nunca escreve em `D:\Base CSV`, `%LOCALAPPDATA%\TICKSTORE`, MENU, BAT, ACTIVE_DEPLOYMENT ou STATE; o driver comprova isso comparando instantâneos somente leitura antes/depois.
++
++Devolva o `RETURN_ZIP` impresso ao final (e as linhas `RESULT_CONTEXT` … `CLASSIFICATION`).
++
++## O que um PASS significa — e o que não significa
++
++PASS = evidência nativa (PS 5.1 + Python 3.14.7 fixado) **do delta R41 em sandbox**: gravador, instalador→gravador, contenção de processos, SAFE_STOP por evento, observabilidade. Não é G4, G5, B06, B07, admissão de produção, nem prova de durabilidade a queda de energia (apenas morte de processo).
+diff --git a/tickstore_cdt15_r41/source/RUNTIME_CODE_MANIFEST.json b/tickstore_cdt15_r41/source/RUNTIME_CODE_MANIFEST.json
+new file mode 100644
+index 0000000..d8c1769
+--- /dev/null
++++ b/tickstore_cdt15_r41/source/RUNTIME_CODE_MANIFEST.json
+@@ -0,0 +1,657 @@
++{
++ "files": [
++  {
++   "bytes": 18402,
++   "path": "adapter/INLINE_ROOT_LOADER_V004_R1R1_ADAPTER.ps1",
++   "sha256": "10104BE1731E1FA27C51E9730C9F9334D1782C3673EFABDC225A6B7166B59855"
++  },
++  {
++   "bytes": 2218,
++   "path": "adapter/Launch-TickstoreBundle-Adapter.ps1",
++   "sha256": "2732AFB300EBCFF7FA72DD3F18F80481E920E61697DCAE7B5679EE2AA94E808D"
++  },
++  {
++   "bytes": 1461,
++   "path": "adapter/RUNTIME_LOCATOR_ADAPTER_BINDING.json",
++   "sha256": "85152D8BEB800A011E7CB52B8DB25A202E093F19D01F2A7B015083BFB71C8402"
++  },
++  {
++   "bytes": 18786,
++   "path": "adapter/adapter_tests.py",
++   "sha256": "280212DCBF9AB4C6E069A68783D09ADAB6D5F1766BE3A53770D3531D9DFB3809"
++  },
++  {
++   "bytes": 25325,
++   "path": "adapter/runtime_locator_adapter.py",
++   "sha256": "D50AB3CE03EA54F767508765CB6326CB77C4297E6C4633534CD3D305FB826BA2"
++  },
++  {
++   "bytes": 4594,
++   "path": "adapter/runtime_locator_inline_entry.py",
++   "sha256": "9DEE7D6CFD075E042CA09B51B6FB05944488CE416690F4371764F732E6EDD9ED"
++  },
++  {
++   "bytes": 35629,
++   "path": "adapter/runtime_locator_orchestrator_entry.py",
++   "sha256": "1CCF420F5E61C3CAA02EFC5C5F84FE4B9B37611256C07539BC2A2FCFDB847AA9"
++  },
++  {
++   "bytes": 53738,
++   "path": "control/60_EFFECTFUL_WRAPPER_RELEASE.ps1",
++   "sha256": "95365E85CCF80C92B79B6104041CAE05CF61D1D6D63D029628577337978A7EED"
++  },
++  {
++   "bytes": 19141,
++   "path": "control/D4_FIRST_ADMISSION_BOOTSTRAP.py",
++   "sha256": "F36C9D1D9C8C960FDC82E74C5D006C087748EFCF585BAE65CD44E36F7AFAF72B"
++  },
++  {
++   "bytes": 20362,
++   "path": "control/D4_FIRST_ADMISSION_PREP.py",
++   "sha256": "08EFF0B1414E5572CB9569CDEBEBEF109A5066C94A089C7DAE1C1E1C2E6F3095"
++  },
++  {
++   "bytes": 16194,
++   "path": "control/D4_FIRST_ADMISSION_TRANSACTION.py",
++   "sha256": "3E67BDFD8D52B08C927937A4B4CCEDCAABC64021692C766CBF572E9932C4D02F"
++  },
++  {
++   "bytes": 7233,
++   "path": "control/D4_IDENTITY_DIAGNOSTIC.py",
++   "sha256": "37213A091AFBB6392CF019F9ED0A913EAE90232EC9E49C790DB0A4ABFD6E374F"
++  },
++  {
++   "bytes": 5622,
++   "path": "control/D4_PREDECESSOR_RECONCILIATION.py",
++   "sha256": "2F96470E336CBDFB88A92C7BF4494DA99C9BCEFF5EA3635805F460515A11FD97"
++  },
++  {
++   "bytes": 15020,
++   "path": "control/D4_ROOTS_EVIDENCE.py",
++   "sha256": "8789E0EFC6646FEF75CD9B828DF055F22EE45BE589253191BDE11DFA70395F35"
++  },
++  {
++   "bytes": 869,
++   "path": "control/FIRST_ADMISSION_BINDING.json",
++   "sha256": "C3774F6F67FBBE7FABB8E431C91FAE6B6C6E746B63445CD21AACF51C7D629748"
++  },
++  {
++   "bytes": 12179,
++   "path": "control/FULL_D4_CLOSURE.py",
++   "sha256": "7413DA09DDB899EEF04AA1C55E764A0A0524968002964C7931128B4DC3EDCA49"
++  },
++  {
++   "bytes": 7799,
++   "path": "control/FULL_INSTANCE_PREPARE.py",
++   "sha256": "D0C7051B37148FA42F7674D6CDA18F1175768E9AD93836B7839CD57CC28FC881"
++  },
++  {
++   "bytes": 10325,
++   "path": "control/FULL_LIFECYCLE.py",
++   "sha256": "16E4662462AC5D595128F1B7CB47ED1BB63E8DC29BA2AA2A87C833E58BF7126A"
++  },
++  {
++   "bytes": 3739,
++   "path": "control/FULL_QUALIFICATION_CONTRACT.py",
++   "sha256": "F5DDF057A6EF2E636D74FBE2457743270A14DE5A0E634776473146B64E29197C"
++  },
++  {
++   "bytes": 9520,
++   "path": "control/FULL_RELEASE_CHAIN.py",
++   "sha256": "FBF415240928D7D1A8E9070B3D9A7F50D0ADC6C2746B10251658FE5B412044DF"
++  },
++  {
++   "bytes": 9745,
++   "path": "control/FULL_RUNNER.py",
++   "sha256": "3604DA6CFD5DA2E73CD8888ED5DB0F6F44DC705D550CEAAA133C444CF602DBA2"
++  },
++  {
++   "bytes": 24061,
++   "path": "control/FULL_STAGE_CONTINUATION.py",
++   "sha256": "BD394063825CD362533EB166548C6C20B208D363D81643A66875764C304E09F4"
++  },
++  {
++   "bytes": 4246,
++   "path": "control/FULL_STAGE_EVIDENCE.py",
++   "sha256": "390953F50BD5A201E28935EF707AED61E1F6BD3A054F44EC12912C2E02476ED3"
++  },
++  {
++   "bytes": 12162,
++   "path": "control/INSTALL_TICKSTORE_FULL.ps1",
++   "sha256": "56B285324FCF0D97BD6D5F4E6D46A5C7A48E51859E6F38CD0111981FAD6127CB"
++  },
++  {
++   "bytes": 6832,
++   "path": "control/MENU_INSTALL_INTENT_VERIFY.py",
++   "sha256": "5A2A34250E4B29F299D8BED637D91C96381F6D1CD2D5F028DCB5AD32C0DE8577"
++  },
++  {
++   "bytes": 4378,
++   "path": "control/MENU_INTENT_TO_TX_SANDBOX.py",
++   "sha256": "4D4710871301F12896328A3CC6D8B4D33893C1209CB389F3977602D7CC2E0567"
++  },
++  {
++   "bytes": 10446,
++   "path": "control/MENU_OFFICIAL_ADMISSION_READONLY.py",
++   "sha256": "1EAF188026276EB90547390857F3B3350A7C04393496F3D02333DF34067196A9"
++  },
++  {
++   "bytes": 38573,
++   "path": "control/MENU_OFFICIAL_WRITER.py",
++   "sha256": "C5F7F21FEBFFD55668A6E5A4F890120614106A76997AF3374BE51BFF300CDBE3"
++  },
++  {
++   "bytes": 9279,
++   "path": "control/MENU_OFFICIAL_WRITER_CONTRACT_SOURCE_ONLY.py",
++   "sha256": "4D6607658578F8D2AFD258954E7847DF233A83CB040E9C4FA224C7676A4825F3"
++  },
++  {
++   "bytes": 3066,
++   "path": "control/MENU_TX_FUSED_SANDBOX.py",
++   "sha256": "5F2088E28B9B14D46D8A550E9DDA6DF71A8F69D49B4A51B2EDDC845F34C64DD3"
++  },
++  {
++   "bytes": 4700,
++   "path": "control/MENU_TX_INTERPROCESS_SANDBOX.py",
++   "sha256": "36AE51AE1D425B0FA1DD98B95F5BCBE3AF66A056BDE959AA12AC2D32427D9CD8"
++  },
++  {
++   "bytes": 11770,
++   "path": "control/QUALIFICATION_CONTRACT.json",
++   "sha256": "9AF1C840C1AE519BBD1A36C9C9CA7C2A91E0879D4AE6CEC049A11E2FB1FEF944"
++  },
++  {
++   "bytes": 6654,
++   "path": "control/RUN_TICKSTORE_FULL.ps1",
++   "sha256": "4E1F1C9B626815451AB7BAB3D9EE43FC0F9F6429F1C1107440DE130192C108E4"
++  },
++  {
++   "bytes": 15466,
++   "path": "control/STATE_CAS_RECOVERY.py",
++   "sha256": "89E82887EA7FEA9559757B777F63E9C38E5C9335E26C33D54FFF5E95000CA341"
++  },
++  {
++   "bytes": 11437,
++   "path": "control/TX_SANDBOX_MODEL.py",
++   "sha256": "0892CC555B148DF0459F3D000F91C405F783D0969720665011EE3D4D616E6887"
++  },
++  {
++   "bytes": 333,
++   "path": "full/CANONICAL_STATE_R8_GATE_B.txt",
++   "sha256": "44C1071A70ACCAD5FC2D35BCC37D99C4351A631F70DD61A60D8D7915626C4C14"
++  },
++  {
++   "bytes": 1494,
++   "path": "full/CHANGELOG_PREP_V001R8_NAMING.md",
++   "sha256": "75A174EEFEEC3AD7406D89C87FE489EB624AE930DD62DD0B5C9508305713F7FE"
++  },
++  {
++   "bytes": 7744,
++   "path": "full/CHANGELOG_R9_FULL_SERIAL.md",
++   "sha256": "F4A23B033591C19FB291D4FECF33578E117242C031396CF696AB16178CB08F79"
++  },
++  {
++   "bytes": 429,
++   "path": "full/FULL_MULTIWORK_OWNER_GATE_TEMPLATE_DO_NOT_USE.json",
++   "sha256": "75A64DE256C7B711DBBADD912590BB5E390566EB7A6D26863DB53E0E0DD952A2"
++  },
++  {
++   "bytes": 3971,
++   "path": "full/FULL_OBSERVABILITY.py",
++   "sha256": "C486F87244EED977231AE963B3B1430205EEFD6A77AC8AF65391DD24E666768F"
++  },
++  {
++   "bytes": 809,
++   "path": "full/FULL_OWNER_GATE_R9_TEMPLATE_DO_NOT_USE.json",
++   "sha256": "4E6202E02E37140C1EB7BF7C35F1E04164044223C5820908A4186175266A16A2"
++  },
++  {
++   "bytes": 633,
++   "path": "full/FULL_OWNER_GATE_TEMPLATE_DO_NOT_USE.json",
++   "sha256": "E00F904D9E8332FAE39F47B13E8F008ABAF6965712A98C5EB9B5A2C13659BCD2"
++  },
++  {
++   "bytes": 9088,
++   "path": "full/FULL_PROCESS_CONTROL.py",
++   "sha256": "B1B453ADBAB6DC9D99D971D295C8B4EEA21111C64F0B6AC1421F5B1CE7453841"
++  },
++  {
++   "bytes": 4824,
++   "path": "full/GATE_B_PILOT_MATRIX_V001.md",
++   "sha256": "C7F463C194D090331604D50833F71DCB68EAFF34491E1B950BF8B2F591192BE5"
++  },
++  {
++   "bytes": 1974,
++   "path": "full/GATE_B_WINDOWS_PILOT_PROTOCOL_V005.md",
++   "sha256": "0A9406F66902116CEBDB11FC5A7A48C0A0D2BF1438CF6F568556184F8FB273EC"
++  },
++  {
++   "bytes": 1727,
++   "path": "full/MULTIWORK_PREAUDIT_SUMMARY.json",
++   "sha256": "D9015F02AF8F1818CF2428E3919AC11F07EC30FF403A2493C7063C4BEFB5E528"
++  },
++  {
++   "bytes": 476335,
++   "path": "full/OUT_P4A_R3_FULL_HISTORY_COMPAT.zip",
++   "sha256": "27FF5A0FE47F3DDC5FD63F6371CCF0EDA8124E0E5D504A8F0756A4DF0DB9C3CA"
++  },
++  {
++   "bytes": 2983,
++   "path": "full/README_FIRST.md",
++   "sha256": "C68981282217D844A68752B9FE7311E6FAF3D06805FF7EADFED2B101914348CE"
++  },
++  {
++   "bytes": 1829,
++   "path": "full/README_MULTIWORK_RC2R2.md",
++   "sha256": "0A200FD3E6860BC51CCF7B89C2DB3A2F6734FAD449C3544B73A2F0756FBD9E33"
++  },
++  {
++   "bytes": 2452,
++   "path": "full/README_MULTIWORK_RC2R3.md",
++   "sha256": "5577C9C766A89533B51001EB2188BF6355B40FEEC1FBCB620498775A29A45C05"
++  },
++  {
++   "bytes": 2552,
++   "path": "full/README_MULTIWORK_RC3.md",
++   "sha256": "9D44DF225AA792B4D2789BDBCB09AC700079842997E9836394F29F43D7111B45"
++  },
++  {
++   "bytes": 1402,
++   "path": "full/README_MULTIWORK_RC4.md",
++   "sha256": "01AEAD999CB78DB2DD6C18B9680C37660C6D2357F1DA4DE636D4F7DD3F3A1FE1"
++  },
++  {
++   "bytes": 895,
++   "path": "full/README_MULTIWORK_RC4R2.md",
++   "sha256": "8CBEB7DC202B21E64BE799F2E56FF2CEAEAADE590770EB34388341F269F0E7DD"
++  },
++  {
++   "bytes": 13217,
++   "path": "full/README_R9.md",
++   "sha256": "D6D8B29B3BAA7E2534C0A96C79119EE7E0B3C47780D780C3D9A2C0F53EE8FC93"
++  },
++  {
++   "bytes": 3115,
++   "path": "full/RUN_WINDOWS_GATE_B.ps1",
++   "sha256": "AA6CF5A8462E97DB3333FB05D169C4CAF3B1214DF58B29D9247D6F707E0E26DD"
++  },
++  {
++   "bytes": 6028,
++   "path": "full/RUN_WINDOWS_MULTIWORK_PREFLIGHT.ps1",
++   "sha256": "D365EDE959DEBE9B3B9E612C772DCD2C3E7E7A00955A7D27F30A893F890E8A06"
++  },
++  {
++   "bytes": 3988,
++   "path": "full/SPEC_FULL_MULTIWORK_RC2R2.md",
++   "sha256": "088E64C0B26CEE4F710CCC2D4E7D62F2CD6B388FADC7A7FA075708E1AA773228"
++  },
++  {
++   "bytes": 4450,
++   "path": "full/SPEC_FULL_MULTIWORK_RC2R3.md",
++   "sha256": "CD8A499174ECCFD549E4F09A0324C05B1AA60956FD4C07E76CDEC845D5C14D7B"
++  },
++  {
++   "bytes": 3590,
++   "path": "full/SPEC_FULL_MULTIWORK_RC3.md",
++   "sha256": "F1AA249D1F97E1C533FDFA3B7328D8AE1493522B96E3B794F431BB984AE7ACEA"
++  },
++  {
++   "bytes": 1256,
++   "path": "full/SPEC_FULL_MULTIWORK_RC4.md",
++   "sha256": "FD53D6BD5CC22020F95733DAC128096538DE2D47FE30CC1FBE13C395D29BC121"
++  },
++  {
++   "bytes": 1355,
++   "path": "full/SPEC_FULL_MULTIWORK_RC4R2.md",
++   "sha256": "1DE68A857E7E7A20432BE555CFA72BC54E482AA3CFD64EC305C4B9393783C2DE"
++  },
++  {
++   "bytes": 12135,
++   "path": "full/SPEC_FULL_RUNNER_V001.md",
++   "sha256": "1609248D358CF65529475D6753181E4C9BBB19369E8852DD8DED1EEFE44FFCAD"
++  },
++  {
++   "bytes": 12154,
++   "path": "full/SPEC_FULL_SERIAL_R9.md",
++   "sha256": "7CDAD2C9756AA168611C675FBEEBBAA86DF8073DB73BD3D6FAAE613EA67BE9F9"
++  },
++  {
++   "bytes": 761,
++   "path": "full/TICKSTORE_FULL_PLAN_CONTRACT_V001.json",
++   "sha256": "D07217CDB7BB50DC6EECCC1DF7746F412BD71B1E5968CFB133B5A6E06AA3A4D5"
++  },
++  {
++   "bytes": 2441,
++   "path": "full/TICKSTORE_GATE_B_R8_FINAL_CERTIFICATE_20260924.json",
++   "sha256": "7D142D73D740986FA62219DE6CA0C9BD0AF347A9186D58AC1C8DFB35EFB5DFF7"
++  },
++  {
++   "bytes": 11831,
++   "path": "full/WINDOWS_GATE_B_PREFLIGHT_V005.py",
++   "sha256": "CDC49F5E6AC1A1A43954D36F900CC8BE82EC8FCD7EF4A903515CC92A462EAE0F"
++  },
++  {
++   "bytes": 46397,
++   "path": "full/pts2g_reference.py",
++   "sha256": "74EE141B014DE7A9F9C401C2B3C5AF6BF72E5D7D80F49E67F9D9032338480165"
++  },
++  {
++   "bytes": 2117,
++   "path": "full/run_tickstore_full_multiwork_r9.ps1",
++   "sha256": "42C576E2BE3DAA2E34F03E474DDA891A6F07582512F17D7EC641ECCCCC234356"
++  },
++  {
++   "bytes": 853,
++   "path": "full/run_tickstore_full_serial_r9.ps1",
++   "sha256": "89B4E18CC3EBD1DF1A53FEFEC7A6D46338D086EA2FA53282C0DCC98654FB1C6D"
++  },
++  {
++   "bytes": 709,
++   "path": "full/run_tickstore_serial.ps1",
++   "sha256": "964E1E727ABBFF00C74578B524A085974EC2E706866E7CFF97A68937EB95A5C4"
++  },
++  {
++   "bytes": 5680,
++   "path": "full/static_multiwork_preaudit.py",
++   "sha256": "B2177EE92A6D864643F88ACB32F45553042C85CFC5F88040C27750B38F416440"
++  },
++  {
++   "bytes": 2712,
++   "path": "full/static_runner_preaudit_r3.py",
++   "sha256": "05D7554B76387E416AF83ED3EB14042EE51F7FDFB3BF03621CBE73BB0849EC9D"
++  },
++  {
++   "bytes": 3078,
++   "path": "full/static_runner_preaudit_r8.py",
++   "sha256": "6448441486C2FAB65088885371EC8551DB06D79EEA1C91255A2DBC10EA94BD4E"
++  },
++  {
++   "bytes": 10615,
++   "path": "full/static_runner_preaudit_r9.py",
++   "sha256": "1B428B633FF6981C91267A3D4A6AEFD65F0264C182E3A2BE16BEA15C1B07529E"
++  },
++  {
++   "bytes": 7321,
++   "path": "full/test_enospc_matrix_r4.py",
++   "sha256": "D9E2B19E8D65ED7B7EC24F8723788E3246E4D8D8EB813ADB553D76F96B92D54E"
++  },
++  {
++   "bytes": 8915,
++   "path": "full/test_filesystem_alias_r3.py",
++   "sha256": "9C26B10EF2DDCA7FCB904D7641C2EAF7D986B40DC84283E458605FE40BA25F77"
++  },
++  {
++   "bytes": 14311,
++   "path": "full/test_full_multiwork.py",
++   "sha256": "1322791E351BAF472149AE78DE60CFA811C66345157176771C6A79529111115A"
++  },
++  {
++   "bytes": 48245,
++   "path": "full/test_full_serial_r9.py",
++   "sha256": "3CC3756F136186CB82E920EE8118E81CF4538B493C340C70BEB315E9C029232A"
++  },
++  {
++   "bytes": 5212,
++   "path": "full/test_gate_b_r8.py",
++   "sha256": "C3273FA44C71CC0D3F8C8096629D1D1BB6EDA8382F85CC28BBFB044CA9201A96"
++  },
++  {
++   "bytes": 3626,
++   "path": "full/test_r3_additional_regressions.py",
++   "sha256": "1EACE0F673DBA12C510CF32C5FD163682110EB227B74927414CD35E298981B0A"
++  },
++  {
++   "bytes": 16921,
++   "path": "full/test_runner_adversarial_r3.py",
++   "sha256": "AE839794D13EDE6877AA9CC9155919631CDF9993C70105EDD4226478D73B4FA6"
++  },
++  {
++   "bytes": 1800,
++   "path": "full/test_runner_logic.py",
++   "sha256": "486E3AB0B14371A490A571A77C1127E20CDFA6A4477051139C5B4ACADDEAA69A"
++  },
++  {
++   "bytes": 588,
++   "path": "full/test_windows_create_new_mapping_r7.py",
++   "sha256": "061BE4A6C561306E7D763B92CC3FE0A04CDCCA2F4434A6D31205E2AD7151374E"
++  },
++  {
++   "bytes": 89548,
++   "path": "full/tickstore_full_multiwork.py",
++   "sha256": "0AF47935332E256A7757EF0323158499685D4B2A990D9EC17BA6CF7A1E6B7F79"
++  },
++  {
++   "bytes": 115854,
++   "path": "full/tickstore_serial_runner.py",
++   "sha256": "D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0"
++  },
++  {
++   "bytes": 3271,
++   "path": "full/windows_multiwork_smoke.py",
++   "sha256": "3E785027BD98177EBF7E4CF3AAD5CDE58C6BD32502438CD46116CADEF0DF889D"
++  },
++  {
++   "bytes": 4949,
++   "path": "full/windows_multiwork_smoke_22.py",
++   "sha256": "02328152DCC81242C391FEF5C9666CE45F606B842553016D880E512A10828CE3"
++  },
++  {
++   "bytes": 3388,
++   "path": "full/windows_rc1_recovery_bridge_smoke.py",
++   "sha256": "45BCBC7A2824129A82783034D4AF894879967A10F974920E32AB4003F7DB08CC"
++  },
++  {
++   "bytes": 5443,
++   "path": "full/windows_rc4_publisher_smoke.py",
++   "sha256": "F67C4F1DC0759C5AB95380A531D1AC33C262ABD068A225378E5ED7ECAFDF80E0"
++  },
++  {
++   "bytes": 2600,
++   "path": "full/windows_rc4r2_shutdown_smoke.py",
++   "sha256": "FC650A72C73A34F48937E63B0EBBE353EE82B0D3CCA4E66E23FE4B45A71674B5"
++  },
++  {
++   "bytes": 13859,
++   "path": "menu/MENU.py",
++   "sha256": "57599774352CEC13F2616D560D9B4486FBAACE9CEC6F6B916A9ECFDEC747C106"
++  },
++  {
++   "bytes": 11794,
++   "path": "recovery/99_MANIFEST_SHA256.json",
++   "sha256": "5199C7B03A442F0D33C1250E3E2A68A5A213377E012A902336502453CAAA18D6"
++  },
++  {
++   "bytes": 5250,
++   "path": "recovery/CODE_MANIFEST.json",
++   "sha256": "60FE88C92BDBD95884DF3258C739855AF870F4A4D58B40301BF8E5E1786C579D"
++  },
++  {
++   "bytes": 1454,
++   "path": "recovery/TICKSTORE_V004R1_MASTER_ORCHESTRATOR.ps1",
++   "sha256": "18900BCC198347A5912AA4CEC23F4D9E7A2513FC41EBE393BFD8151F9EEF259A"
++  },
++  {
++   "bytes": 10929,
++   "path": "recovery/config/STAGE_A_SEALED_VALUES_V001.json",
++   "sha256": "B67527C0E78E896BF4F4128BF02CC3968CA1AE00F2A8449DB7DBD1E583785515"
++  },
++  {
++   "bytes": 1228,
++   "path": "recovery/docs/D4_S0_CERT_PATH_ASSOCIATION_PROMOTION_CANDIDATE_20260930.md",
++   "sha256": "1FB738356D3B6E0034B941113D4AE9978D04A113EEC17D4E6D205E8A82AB3D85"
++  },
++  {
++   "bytes": 1322,
++   "path": "recovery/docs/V001R9_B6X_R8_PROVENANCE_SUPERSESSION.md",
++   "sha256": "08D9B40399F5F1207B0266BA02708AEB96016426F5964EBF9E60256A5BED3C0D"
++  },
++  {
++   "bytes": 354716,
++   "path": "recovery/engine/tickstore_publisher_recovery_v004_candidate.py",
++   "sha256": "E998032478EA1FAB8BD69FF000D9622749B679058F457A927D5854963208E310"
++  },
++  {
++   "bytes": 354715,
++   "path": "recovery/engine/tickstore_publisher_recovery_v004_release.py",
++   "sha256": "BFC44DA9A375ED565D8DA2DA7E34EC376C25DEAFE15ED2F3C063CE635CEBCD4C"
++  },
++  {
++   "bytes": 17526,
++   "path": "recovery/loader/INLINE_ROOT_LOADER_V004_R1R1.ps1",
++   "sha256": "74FE55D8FC43A5C1CEDE22887C60624DC454D3E52E26E1C3AA108072451F1597"
++  },
++  {
++   "bytes": 989,
++   "path": "recovery/modules/Launch-TickstoreBundle.ps1",
++   "sha256": "56B7F4FDF1978AB96B23A143907F697C7E89FD6DBCB272CFF9E0C9F4E7D6AB02"
++  },
++  {
++   "bytes": 1970,
++   "path": "recovery/modules/b6_vss_microprobe.py",
++   "sha256": "7A4F4A6C085EA03E0C8E241A4BAACF0FF7B069F7FF5FD426EB6C2C2FE40C50B5"
++  },
++  {
++   "bytes": 7486,
++   "path": "recovery/modules/b6x_shadow_read_probe.py",
++   "sha256": "5BBC5B03CC7950DE98A1778C3BF0F7A9D4A526048EB0866A1C992BF269AAB36A"
++  },
++  {
++   "bytes": 572,
++   "path": "recovery/modules/event_probe.py",
++   "sha256": "9BE3F7449F49356CE3D8A24F36DB1C183DCC3AC56E1402358CC689FB6E98B0CA"
++  },
++  {
++   "bytes": 77761,
++   "path": "recovery/modules/orchestrator.py",
++   "sha256": "9EB509A2A82C0BE6D4C7AEF315AAF6B41348CECE64AB502061116DFC74419DDA"
++  },
++  {
++   "bytes": 7252,
++   "path": "recovery/modules/postfull_verifier.py",
++   "sha256": "B5E753C3A0727B01B8DE65B44374F432D6F5B8AE1C52C02449CA50BFC558B7F0"
++  },
++  {
++   "bytes": 1444,
++   "path": "recovery/modules/shadow_inventory.ps1",
++   "sha256": "8A34377377105EA5C9B6933D6E13F07E6EF89A41330B659272EC0DADA6BE1334"
++  },
++  {
++   "bytes": 1369,
++   "path": "recovery/modules/unittest_path_runner.py",
++   "sha256": "EE80ED1ACCBFB6BF0D82DBF8B952B7B9EAAD8E281468F8EF19EF6423822A2ACF"
++  },
++  {
++   "bytes": 124757,
++   "path": "recovery/policy/POLITICA_CANONICA_ARQUIVOS_RUNNERS_ZIPS_SHELL_CODIGO_LOCAL_V005R14_20260927.md",
++   "sha256": "C24812B3D836632BBFDC2ED29006FC29EFC4AA0F52D08D38BBC30575CC0229CB"
++  },
++  {
++   "bytes": 3423,
++   "path": "recovery/review/00_PROMPT_OPUS55_B6_CODE_DELTA_REVIEW_V005R1.md",
++   "sha256": "7A3DEB0B4E4D5B50CBA7CF8ADCC00E1E98349946F707AEED85EF289045F0D005"
++  },
++  {
++   "bytes": 16362,
++   "path": "recovery/review/B6_CODE_DELTA_REVIEW_V004.txt",
++   "sha256": "7BC8578888F0E3507C5688386C1FBC6036CC2F8F6B925B21095EAC595C8F7E2A"
++  },
++  {
++   "bytes": 6242,
++   "path": "recovery/review/B6_V005_CORE_ADAPTER_ENGINE_DIFF.patch",
++   "sha256": "5C336962E60572CF728CA777C2CC9AD05BA2C7F9FDC0922D9C64D0F235120877"
++  },
++  {
++   "bytes": 15753,
++   "path": "recovery/review/CP2_SAFE_STOP_DELTA_REVIEW_V001.txt",
++   "sha256": "931FB74F59E47CA16490490D2FF7FFA5CEA4560D79EB3F2E84084B890594AA1F"
++  },
++  {
++   "bytes": 918,
++   "path": "recovery/review/D4_S0_CERT_PATH_ASSOCIATION_ENGINE_DIFF.patch",
++   "sha256": "C8EE0EE05CAC582B9DA82EB29428646AD162CE72F971DF6F179EF2A3BDB40C8E"
++  },
++  {
++   "bytes": 7584,
++   "path": "recovery/review/D4_S0_CERT_PATH_ASSOCIATION_EXTERNAL_REVIEW_V001.md",
++   "sha256": "A549D624A6F6E9E4CFF0A08FCA84033D2A77145AAFA8856C378B7C7F70A73442"
++  },
++  {
++   "bytes": 2174,
++   "path": "recovery/review/V005_TO_V005R1_ORACLE_PROVENANCE_DIFF.patch",
++   "sha256": "30F99E24F6C6084AD00BCFEF347212CB5007D6CBE7506EF6C888143C2F798172"
++  },
++  {
++   "bytes": 317140,
++   "path": "recovery/review/base_b6_v004_candidate.py",
++   "sha256": "9C50EFF63E94CC963EC5E72BD6F56EDB268FC6C912E576BF0F46CAAD235B6A0F"
++  },
++  {
++   "bytes": 317139,
++   "path": "recovery/review/base_b6_v004_release.py",
++   "sha256": "D4BE49D670D29C7B7B24F4E15EB676959C6EF2B7D683CCD74F3E1C8AAACF5702"
++  },
++  {
++   "bytes": 321251,
++   "path": "recovery/review/base_v005_candidate.py",
++   "sha256": "61D27E0699CAADEE844A76BC508C1DD21AB339AB9AB451503A209D02DF3F6ADC"
++  },
++  {
++   "bytes": 321250,
++   "path": "recovery/review/base_v005_release.py",
++   "sha256": "5426F6CE68CCA46C2B65A28B1B8B764AA97C885BC17F80E420158AFFE89C3B9C"
++  },
++  {
++   "bytes": 4105,
++   "path": "recovery/tests/test_c3_job_topology_microfix.py",
++   "sha256": "923EFC6A06432275FE8A5613E5CDDD37A003EE6A5FD1ED5D7C0B3894DFD68A30"
++  },
++  {
++   "bytes": 23522,
++   "path": "recovery/tests/test_native_rename_v004r2r1.py",
++   "sha256": "228BB2449EF3F1AACDDE93EA620905BBCC331163E546A310D9DA1457D41EE424"
++  },
++  {
++   "bytes": 31652,
++   "path": "recovery/tests/test_precanary_completeness_v005.py",
++   "sha256": "07BE6C4C1896FF461DA3BD8E8EAB4F9D58E2C2CD9BD0D917742AE70F6A37CE73"
++  },
++  {
++   "bytes": 19377,
++   "path": "recovery/tests/test_publisher_recovery_v004.py",
++   "sha256": "9DC8DD6D59FF5BA271B49CF761E38DE774F34FC05616B9F1F1BBDDA9213EC25A"
++  },
++  {
++   "bytes": 3030,
++   "path": "recovery/tests/test_s0_cert_path_association_microfix.py",
++   "sha256": "443D8A05EBC188FB973C6BE144697D814819BC1E8800E505ECF546F5AD1102B2"
++  },
++  {
++   "bytes": 4105,
++   "path": "recovery/tests_release/test_c3_job_topology_microfix.py",
++   "sha256": "923EFC6A06432275FE8A5613E5CDDD37A003EE6A5FD1ED5D7C0B3894DFD68A30"
++  },
++  {
++   "bytes": 23522,
++   "path": "recovery/tests_release/test_native_rename_v004r2r1.py",
++   "sha256": "228BB2449EF3F1AACDDE93EA620905BBCC331163E546A310D9DA1457D41EE424"
++  },
++  {
++   "bytes": 31647,
++   "path": "recovery/tests_release/test_precanary_completeness_v005.py",
++   "sha256": "3B2DE494214DEB39E1B187FA45C5188A595F320B323B9819DC83F95BD5F2B644"
++  },
++  {
++   "bytes": 19523,
++   "path": "recovery/tests_release/test_publisher_recovery_v004.py",
++   "sha256": "26B334901A1C13F73F737508EDFE9CEB5A0F9228D751849DC9A70CEC373F60D8"
++  },
++  {
++   "bytes": 3030,
++   "path": "recovery/tests_release/test_s0_cert_path_association_microfix.py",
++   "sha256": "443D8A05EBC188FB973C6BE144697D814819BC1E8800E505ECF546F5AD1102B2"
++  }
++ ],
++ "revision": "CDT15_R41",
++ "root": "implementation_v001/candidate",
++ "schema": "TICKSTORE_FINAL_RUNTIME_CODE_MANIFEST_V001"
++}
 diff --git a/tickstore_cdt15_r41/source/SOURCE_MANIFEST.json b/tickstore_cdt15_r41/source/SOURCE_MANIFEST.json
 index ecd6bdd..0a4179d 100644
 --- a/tickstore_cdt15_r41/source/SOURCE_MANIFEST.json
@@ -3171,6 +3957,561 @@ index 8235633..f117f0d 100644
          primary_error = _finalize_coordinator_resources(
              active, sealed_pins, publisher_proc, lock, lease, primary_error)
          if native_stop is not None:
+diff --git a/tickstore_cdt15_r41/source/qual/QUAL_DRIVER.py b/tickstore_cdt15_r41/source/qual/QUAL_DRIVER.py
+new file mode 100644
+index 0000000..dffa8c8
+--- /dev/null
++++ b/tickstore_cdt15_r41/source/qual/QUAL_DRIVER.py
+@@ -0,0 +1,549 @@
++"""TICKSTORE CDT15 R41 Windows qualification driver (sandbox only; no production effect).
++
++Launched by RUN_TICKSTORE_CDT15_R41_QUAL.ps1 after the outer ZIP was located,
++privately copied, hash-verified and extracted.  This driver:
++
++1. pins identity (Python, OS, volumes, resources) and snapshots the REAL targets
++   read-only (MENU, BAT, ACTIVE, MENU_TRANSACTION, writer lock);
++2. verifies the inner FINAL package (witness, ZIP SHA, CRC, manifest, closed set)
++   and extracts it; every test runs from those exact packaged bytes;
++3. runs the affected/new suites in isolated child interpreters with exact
++   cardinality and zero failure/error/skip;
++4. runs the native PS 5.1 installer -> installed writer E2E in disposable D:/C:
++   sandboxes, including abrupt crash and recovery by a new process;
++5. re-snapshots the real targets (PRODUCTION_MODIFIED must be False), writes an
++   immutable receipt and a small RETURN ZIP.  It never launches a successor.
++"""
++from __future__ import annotations
++
++import argparse
++import ctypes
++import hashlib
++import importlib.util
++import io
++import json
++import os
++import platform
++import shutil
++import subprocess
++import sys
++import time
++import traceback
++import types
++import unittest
++import uuid
++import zipfile
++from pathlib import Path
++
++DRIVER_SCHEMA = 'TICKSTORE_CDT15_R41_WINDOWS_QUALIFICATION_RECEIPT_V001'
++RESULT_CONTEXT = 'ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compress\u00e3o De Ticks 15'
++REAL_MENU = r'D:\Base CSV\Scripts\Biblioteca\MENU.py'
++REAL_BAT = 'D:\\Base CSV\\Manuten\u00e7\u00e3o Base de Dados.bat'
++SANDBOX_PREFIX = 'CDT15_R41_WRITER_QUAL_'
++SENTINEL = b'CDT15_R41_OFFICIAL_WRITER_QUALIFICATION_SANDBOX_ONLY_V001\n'
++FIXTURE_MENU = b'# R41 sandbox fixture: historical MENU stand-in\nprint("old menu")\n'
++FIXTURE_BAT = b'@echo off\r\nrem R41 sandbox fixture\r\n'
++PS = r'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe'
++WRITER_REL = 'implementation_v001/candidate/control/MENU_OFFICIAL_WRITER.py'
++INSTALLER_REL = 'implementation_v001/candidate/control/INSTALL_TICKSTORE_FULL.ps1'
++MENU_REL = 'implementation_v001/candidate/menu/MENU.py'
++
++
++class Blocked(RuntimeError):
++    pass
++
++
++def require(cond, why):
++    if not cond:
++        raise Blocked(why)
++
++
++def sha_bytes(raw):
++    return hashlib.sha256(raw).hexdigest().upper()
++
++
++def sha_file(path):
++    h = hashlib.sha256()
++    with open(path, 'rb') as f:
++        for block in iter(lambda: f.read(1 << 20), b''):
++            h.update(block)
++    return h.hexdigest().upper()
++
++
++def canonical(obj):
++    return (json.dumps(obj, sort_keys=True, ensure_ascii=False, separators=(',', ':')) + '\n').encode('utf-8')
++
++
++def dhms(seconds):
++    t = max(0, int(-(-float(seconds) // 1)))
++    d, r = divmod(t, 86400); h, r = divmod(r, 3600); m, s = divmod(r, 60)
++    return '%d.%02d.%02d.%02d' % (d, h, m, s)
++
++
++class Tee:
++    def __init__(self, stream, path):
++        self.stream = stream
++        self.log = open(path, 'a', encoding='utf-8', newline='')
++
++    def write(self, text):
++        self.stream.write(text); self.log.write(text); self.log.flush()
++        return len(text)
++
++    def flush(self):
++        self.stream.flush(); self.log.flush()
++
++    def __getattr__(self, name):
++        return getattr(self.stream, name)
++
++
++class Progress:
++    """Weighted step progress with transparent elapsed/ETA in d.hh.mm.ss."""
++    def __init__(self, steps):
++        self.steps = steps; self.total = sum(w for _, w in steps); self.done = 0
++        self.started = time.monotonic(); self.index = 0
++
++    def begin(self, name):
++        self.index += 1
++        elapsed = time.monotonic() - self.started
++        pct = 100.0 * self.done / self.total
++        eta = 'UNKNOWN' if self.done == 0 else dhms(elapsed * (self.total - self.done) / self.done)
++        filled = min(29, int(30 * pct / 100))
++        print('QUAL_PROGRESS [%s%s] %6.2f%% STEP=%d/%d %s ELAPSED=%s ETA=%s' % (
++            '#' * filled, '-' * (30 - filled), pct, self.index, len(self.steps), name, dhms(elapsed), eta), flush=True)
++
++    def end(self, name):
++        self.done += dict(self.steps)[name]
++
++
++# ----------------------------------------------------------------------------- identity
++
++def volume_info(root):
++    if os.name != 'nt':
++        return {'root': root, 'filesystem': 'POSIX_OFFLINE'}
++    k = ctypes.WinDLL('kernel32', use_last_error=True)
++    name = ctypes.create_unicode_buffer(261); fs = ctypes.create_unicode_buffer(261)
++    serial = ctypes.c_uint32(); maxlen = ctypes.c_uint32(); flags = ctypes.c_uint32()
++    ok = k.GetVolumeInformationW(ctypes.c_wchar_p(root), name, 261, ctypes.byref(serial), ctypes.byref(maxlen),
++                                 ctypes.byref(flags), fs, 261)
++    require(ok, 'VOLUME_INFORMATION:' + root + ':' + str(ctypes.get_last_error()))
++    usage = shutil.disk_usage(root)
++    return {'root': root, 'filesystem': fs.value, 'serial': '%08X' % serial.value,
++            'free_bytes': usage.free, 'total_bytes': usage.total}
++
++
++def snapshot_real_targets(local_appdata):
++    """Read-only observation of the real targets; opens nothing for write."""
++    out = {}
++    tick = os.path.join(local_appdata, 'TICKSTORE') if local_appdata else None
++    items = {'menu': REAL_MENU, 'bat': REAL_BAT}
++    if tick:
++        items.update(active=os.path.join(tick, 'ACTIVE_DEPLOYMENT.json'),
++                     transaction=os.path.join(tick, 'MENU_TRANSACTION'),
++                     writer_lock=os.path.join(tick, 'MENU_WRITER.lock'),
++                     candidates=os.path.join(tick, 'Candidates'))
++    for key, path in items.items():
++        if os.path.isfile(path):
++            out[key] = {'path': path, 'status': 'PRESENT', 'sha256': sha_file(path)}
++        elif os.path.isdir(path):
++            names = sorted(os.listdir(path))
++            out[key] = {'path': path, 'status': 'PRESENT_DIR', 'entries': names}
++        else:
++            out[key] = {'path': path, 'status': 'ABSENT'}
++    return out
++
++
++# ----------------------------------------------------------------------------- package
++
++def verify_closed_manifest(root, manifest_name, schema):
++    root = Path(root)
++    raw = (root / manifest_name).read_bytes()
++    man = json.loads(raw)
++    require(man.get('schema') == schema, 'MANIFEST_SCHEMA:' + manifest_name)
++    listed = {}
++    for f in man['files']:
++        require(set(f) == {'path', 'bytes', 'sha256'} and f['path'] not in listed, 'MANIFEST_RECORD')
++        listed[f['path']] = f
++        p = root / f['path']
++        require(p.is_file() and p.stat().st_size == f['bytes'] and sha_file(p) == f['sha256'],
++                'MANIFEST_MEMBER:' + f['path'])
++    physical = {p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()} - {manifest_name}
++    require(physical == set(listed), 'MANIFEST_CLOSED_SET:' + manifest_name)
++    return man, sha_bytes(raw)
++
++
++def verify_and_extract_final(bundle, work):
++    plan = json.loads((Path(bundle) / 'qual/QUAL_PLAN.json').read_bytes())
++    wpath = Path(bundle) / 'FINAL' / plan['final_witness_name']
++    witness_raw = wpath.read_bytes(); w = json.loads(witness_raw)
++    require(w.get('schema') == 'TICKSTORE_FINAL_PACKAGE_WITNESS_V001', 'FINAL_WITNESS_SCHEMA')
++    zpath = Path(bundle) / 'FINAL' / w['package_name']
++    require(sha_file(zpath) == w['package_sha256'] == plan['final_package_sha256'], 'FINAL_PACKAGE_SHA256')
++    with zipfile.ZipFile(zpath) as z:
++        require(z.testzip() is None, 'FINAL_PACKAGE_CRC')
++        names = z.namelist()
++        require(len(names) == len(set(n.casefold() for n in names)), 'FINAL_PACKAGE_DUPLICATE')
++        for n in names:
++            require(not n.startswith('/') and '\\' not in n and ':' not in n and '..' not in n.split('/'),
++                    'FINAL_PACKAGE_MEMBER_PATH')
++        mraw = z.read('PACKAGE_MANIFEST.json')
++        require(sha_bytes(mraw) == w['manifest_sha256'], 'FINAL_PACKAGE_MANIFEST_SHA256')
++        dest = Path(work) / 'FINAL_EXTRACT'
++        require(not dest.exists(), 'FINAL_EXTRACT_EXISTS')
++        z.extractall(dest)
++    man, msha = verify_closed_manifest(dest, 'PACKAGE_MANIFEST.json', 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001')
++    require(len(man['files']) == len(names) - 1, 'FINAL_PACKAGE_CARDINALITY')
++    return dict(plan=plan, witness=w, witness_path=str(wpath), witness_sha256=sha_bytes(witness_raw),
++                package_path=str(zpath), extract=str(dest), manifest_sha256=msha, members=len(man['files']))
++
++
++# ----------------------------------------------------------------------------- suites
++
++class Recorder(unittest.TextTestResult):
++    def __init__(self, *a, **k):
++        super().__init__(*a, **k); self.records = []
++
++    def addSuccess(self, test):
++        super().addSuccess(test); self.records.append({'id': test.id(), 'status': 'PASS'})
++
++    def addFailure(self, test, err):
++        super().addFailure(test, err); self.records.append({'id': test.id(), 'status': 'FAIL'})
++
++    def addError(self, test, err):
++        super().addError(test, err); self.records.append({'id': test.id(), 'status': 'ERROR'})
++
++    def addSkip(self, test, reason):
++        super().addSkip(test, reason); self.records.append({'id': test.id(), 'status': 'SKIP', 'reason': reason})
++
++    def addSubTest(self, test, subtest, outcome):
++        super().addSubTest(test, subtest, outcome)
++        if outcome is not None:
++            self.records.append({'id': subtest.id(), 'status': 'FAIL_SUBTEST'})
++
++
++def run_suite_child(impl, spec_json, out):
++    """Executed in an isolated child interpreter: load by file, record per test."""
++    spec = json.loads(spec_json)
++    impl = Path(impl)
++    for extra in spec.get('sys_path', []):
++        sys.path.insert(0, str(impl / extra))
++    loader = unittest.TestLoader(); suite = unittest.TestSuite()
++    for i, item in enumerate(spec['files']):
++        path = impl / item['file']
++        mod_name = 'r41q_%d_%s' % (i, path.stem)
++        mspec = importlib.util.spec_from_file_location(mod_name, path)
++        mod = importlib.util.module_from_spec(mspec); sys.modules[mod_name] = mod
++        mspec.loader.exec_module(mod)
++        loaded = loader.loadTestsFromModule(mod)
++        if item.get('only'):
++            wanted = set(item['only'])
++            flat = []
++            def walk(s):
++                for t in s:
++                    walk(t) if isinstance(t, unittest.TestSuite) else flat.append(t)
++            walk(loaded)
++            loaded = unittest.TestSuite([t for t in flat if t.id().split('.')[-2:] and
++                                         '.'.join(t.id().split('.')[-2:]) in wanted])
++        suite.addTests(loaded)
++    stream = io.StringIO()
++    result = unittest.TextTestRunner(stream=stream, verbosity=2, resultclass=Recorder).run(suite)
++    Path(out).write_bytes(canonical({'run': result.testsRun, 'failures': len(result.failures),
++                                     'errors': len(result.errors), 'skips': len(result.skipped),
++                                     'records': result.records, 'log': stream.getvalue()}))
++    return 0
++
++
++def run_suite(name, spec, impl, env, evidence, python):
++    out = Path(evidence) / ('SUITE_' + name + '.json')
++    t0 = time.monotonic()
++    r = subprocess.run([python, '-I', '-X', 'utf8', '-B', str(Path(__file__).resolve()), '--run-suite-child',
++                        '--impl', str(impl), '--spec', json.dumps(spec), '--out', str(out)],
++                       env=env, capture_output=True, text=True, timeout=spec.get('timeout', 3600))
++    (Path(evidence) / ('SUITE_' + name + '_STDIO.txt')).write_text(r.stdout + '\n---STDERR---\n' + r.stderr,
++                                                                 encoding='utf-8')
++    require(out.is_file(), 'SUITE_NO_RESULT:' + name + ':exit=' + str(r.returncode))
++    res = json.loads(out.read_bytes())
++    ok = (r.returncode == 0 and res['run'] == spec['expected'] and res['failures'] == 0 and res['errors'] == 0
++          and res['skips'] == 0 and not any(x['status'] != 'PASS' for x in res['records']))
++    summary = {'suite': name, 'status': 'PASS' if ok else 'FAIL', 'expected': spec['expected'], 'run': res['run'],
++               'failures': res['failures'], 'errors': res['errors'], 'skips': res['skips'],
++               'seconds': round(time.monotonic() - t0, 3), 'result_sha256': sha_file(out),
++               'non_pass': [x for x in res['records'] if x['status'] != 'PASS']}
++    print('QUAL_SUITE %s=%s RUN=%d/%d FAIL=%d ERROR=%d SKIP=%d' % (
++        name, summary['status'], res['run'], spec['expected'], res['failures'], res['errors'], res['skips']), flush=True)
++    if not ok:
++        print(res['log'][-6000:], flush=True)
++    return summary
++
++
++def run_script(name, script, impl, env, evidence, python, expect_token):
++    r = subprocess.run([python, '-I', '-X', 'utf8', '-B', str(Path(impl) / script)], env=env,
++                       capture_output=True, text=True, timeout=600)
++    (Path(evidence) / ('SCRIPT_' + name + '.txt')).write_text(r.stdout + '\n---STDERR---\n' + r.stderr, encoding='utf-8')
++    ok = r.returncode == 0 and expect_token in r.stdout
++    print('QUAL_SCRIPT %s=%s EXIT=%d' % (name, 'PASS' if ok else 'FAIL', r.returncode), flush=True)
++    return {'suite': name, 'status': 'PASS' if ok else 'FAIL', 'exit': r.returncode}
++
++
++# ----------------------------------------------------------------------------- E2E
++
++def make_sandbox_pair(d_parent, c_parent, tag):
++    d = Path(d_parent) / (SANDBOX_PREFIX + 'D_' + tag)
++    c = Path(c_parent) / (SANDBOX_PREFIX + 'C_' + tag)
++    for root in (d, c):
++        root.mkdir(parents=True)
++        (root / 'SANDBOX_ONLY.txt').write_bytes(SENTINEL)
++    m = d / 'Base CSV/Scripts/Biblioteca/MENU.py'; m.parent.mkdir(parents=True); m.write_bytes(FIXTURE_MENU)
++    (d / 'Base CSV' / 'Manuten\u00e7\u00e3o Base de Dados.bat').write_bytes(FIXTURE_BAT)
++    (c / 'TICKSTORE/Candidates').mkdir(parents=True)
++    return d, c
++
++
++def powershell(args, evidence, label, env):
++    r = subprocess.run([PS, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File'] + args,
++                       capture_output=True, text=True, timeout=900, env=env)
++    (Path(evidence) / ('E2E_' + label + '.txt')).write_text(r.stdout + '\n---STDERR---\n' + r.stderr, encoding='utf-8')
++    return r
++
++
++def writer(python, installed, final, d, c, mode, env, *extra):
++    args = [python, '-I', '-X', 'utf8', '-B', str(Path(installed) / WRITER_REL), '--mode', mode,
++            '--d-root', str(d), '--c-root', str(c),
++            '--menu-before-sha256', sha_bytes(FIXTURE_MENU), '--bat-sha256', sha_bytes(FIXTURE_BAT)]
++    if mode == 'qualification-publish':
++        args += ['--installed-root', str(installed), '--package-sha256', final['witness']['package_sha256'],
++                 '--witness-sha256', final['witness_sha256']]
++    return subprocess.run(args + list(extra), capture_output=True, text=True, timeout=300, env=env)
++
++
++def menu_consumer(installed):
++    paths = types.ModuleType('paths')
++    paths.PATHS = types.SimpleNamespace(BIBLIOTECA_ROOT=Path(installed), BASE_ROOT=Path(installed))
++    orq = types.ModuleType('GERAR_BASE_COMPLETA'); orq.ETAPAS = []
++    sys.modules['paths'] = paths; sys.modules['GERAR_BASE_COMPLETA'] = orq
++    spec = importlib.util.spec_from_file_location('installed_menu_r41', Path(installed) / MENU_REL)
++    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
++    return mod
++
++
++def e2e(final, python, work, d_parent, evidence, env, native):
++    checks = {}
++    installer = str(Path(final['extract']) / INSTALLER_REL)
++    tag = uuid.uuid4().hex[:10].upper()
++    d, c = make_sandbox_pair(Path(d_parent) / 'E2E', Path(work) / 'E2E_C', tag)
++    root = c / 'TICKSTORE/Candidates'
++    pkg = final['witness']['package_sha256']
++    installed = root / pkg
++    if not native:
++        return {'status': 'NOT_NATIVE_SKIPPED_OFFLINE', 'checks': {}}
++    # E1/E2: argument gates fail before any witness read or write.
++    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root), '-ActivateMenu'],
++                   evidence, 'E1_ACTIVATE_WITHOUT_CHAIN', env)
++    checks['E1_ACTIVATE_WITHOUT_CHAIN_BLOCKS'] = (r.returncode == 2 and
++        'MENU_ACTIVATION_REQUIRES_RELEASE_CHAIN_THROUGH_B07' in r.stdout and not installed.exists())
++    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root),
++                    '-ChainFile', 'X', '-ChainSha256', 'A' * 64, '-B06Sha256', 'B' * 64],
++                   evidence, 'E2_CHAIN_WITHOUT_ACTIVATE', env)
++    checks['E2_CHAIN_WITHOUT_ACTIVATE_BLOCKS'] = (r.returncode == 2 and
++        'CHAIN_ARGUMENTS_ONLY_WITH_ACTIVATE_MENU' in r.stdout and not installed.exists())
++    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root), '-ActivateMenu',
++                    '-ChainFile', 'X', '-ChainSha256', 'A' * 64, '-B06Sha256', 'B' * 64],
++                   evidence, 'E2B_ACTIVATE_SANDBOX_ROOT', env)
++    checks['E2B_ACTIVATE_REQUIRES_OFFICIAL_ROOT'] = (r.returncode == 2 and
++        'MENU_ACTIVATION_REQUIRES_OFFICIAL_INSTALL_ROOT' in r.stdout and not installed.exists())
++    # E3: native PS 5.1 inactive install into the sandbox Candidates root.
++    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root)],
++                   evidence, 'E3_INACTIVE_INSTALL', env)
++    man = json.loads((Path(final['extract']) / 'PACKAGE_MANIFEST.json').read_bytes())
++    readback = installed.is_dir() and all(
++        (installed / f['path']).is_file() and sha_file(installed / f['path']) == f['sha256'] for f in man['files'])
++    checks['E3_PS51_INACTIVE_INSTALL_READBACK'] = (r.returncode == 0 and 'INSTALLATION=PASS_READBACK' in r.stdout
++        and 'MENU_ACTIVATION=NOT_REQUESTED_INACTIVE_INSTALL_ONLY' in r.stdout and readback)
++    before = {p.relative_to(installed).as_posix(): sha_file(p) for p in installed.rglob('*') if p.is_file()}
++    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root)],
++                   evidence, 'E4_REINSTALL', env)
++    after = {p.relative_to(installed).as_posix(): sha_file(p) for p in installed.rglob('*') if p.is_file()}
++    checks['E4_REINSTALL_REFUSED_UNCHANGED'] = (r.returncode == 2 and
++        'INSTALLATION_ALREADY_EXISTS_VERIFY_EXISTING' in r.stdout and before == after)
++    # E5: installed writer bytes publish in the cross-volume sandbox; installed MENU consumes.
++    r = writer(python, installed, final, d, c, 'qualification-publish', env)
++    (Path(evidence) / 'E2E_E5_WRITER_PUBLISH.txt').write_text(r.stdout + r.stderr, encoding='utf-8')
++    menu = d / 'Base CSV/Scripts/Biblioteca/MENU.py'; active = c / 'TICKSTORE/ACTIVE_DEPLOYMENT.json'
++    consumer_ok = False
++    if r.returncode == 0:
++        try:
++            dep = menu_consumer(installed)._tickstore_committed_deployment(active, menu)
++            consumer_ok = dep.get('package_sha256') == pkg and dep.get('installation_root') == str(installed)
++        except Exception as exc:  # recorded, not hidden
++            (Path(evidence) / 'E2E_E5_CONSUMER_ERROR.txt').write_text(repr(exc), encoding='utf-8')
++    checks['E5_INSTALLED_WRITER_COMMITS_CROSS_VOLUME'] = (r.returncode == 0 and
++        'MENU_WRITER_STATUS=COMMITTED' in r.stdout and menu.read_bytes() == (installed / MENU_REL).read_bytes())
++    checks['E5_INSTALLED_MENU_CONSUMER_ACCEPTS_COMMITTED'] = consumer_ok
++    checks['E5_CROSS_VOLUME'] = (os.path.splitdrive(str(d))[0].upper() != os.path.splitdrive(str(c))[0].upper())
++    # E6: abrupt death of the installed writer, recovery by a new process, archive, retry.
++    tag2 = uuid.uuid4().hex[:10].upper()
++    d2, c2 = make_sandbox_pair(Path(d_parent) / 'E2E', Path(work) / 'E2E_C', tag2)
++    root2 = c2 / 'TICKSTORE/Candidates'; installed2 = root2 / pkg
++    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root2)],
++                   evidence, 'E6_INSTALL', env)
++    steps = [r.returncode == 0]
++    r = writer(python, installed2, final, d2, c2, 'qualification-publish', env, '--inject', 'AFTER_ACTIVE_MOVE_BEFORE_JOURNAL')
++    steps.append(r.returncode == 77)
++    r = writer(python, installed2, final, d2, c2, 'qualification-recover', env)
++    steps.append(r.returncode == 0 and 'MENU_WRITER_STATUS=ROLLED_BACK' in r.stdout)
++    menu2 = d2 / 'Base CSV/Scripts/Biblioteca/MENU.py'
++    steps.append(menu2.read_bytes() == FIXTURE_MENU and not (c2 / 'TICKSTORE/ACTIVE_DEPLOYMENT.json').exists())
++    r = writer(python, installed2, final, d2, c2, 'qualification-archive', env)
++    steps.append(r.returncode == 0)
++    r = writer(python, installed2, final, d2, c2, 'qualification-publish', env)
++    steps.append(r.returncode == 0 and 'MENU_WRITER_STATUS=COMMITTED' in r.stdout)
++    (Path(evidence) / 'E2E_E6_STEPS.json').write_text(json.dumps(steps), encoding='utf-8')
++    checks['E6_CRASH_NEW_PROCESS_RECOVERY_ARCHIVE_RETRY'] = all(steps) and len(steps) == 6
++    status = 'PASS' if all(checks.values()) else 'FAIL'
++    print('QUAL_E2E=%s %s' % (status, ' '.join('%s=%s' % (k, 'PASS' if v else 'FAIL') for k, v in checks.items())),
++          flush=True)
++    return {'status': status, 'checks': {k: bool(v) for k, v in checks.items()},
++            'sandboxes': [str(d), str(c), str(d2), str(c2)]}
++
++
++# ----------------------------------------------------------------------------- main
++
++def main(a):
++    run_dir = Path(a.run_dir); work = Path(a.work_root); bundle = Path(a.bundle_dir)
++    evidence = run_dir / 'EVIDENCE'; evidence.mkdir(parents=False, exist_ok=False)
++    sys.stdout = Tee(sys.stdout, run_dir / 'RUN_LOG.txt'); sys.stderr = Tee(sys.stderr, run_dir / 'RUN_LOG.txt')
++    native = os.name == 'nt' and not a.offline_preflight
++    receipt = dict(schema=DRIVER_SCHEMA, RESULT_CONTEXT=RESULT_CONTEXT, mode='NATIVE_WINDOWS' if native else 'OFFLINE_PREFLIGHT',
++                   PRODUCTION_MODIFIED=None, FULL_STARTED=False, B06='NOT_STARTED', G4='INCOMPLETE',
++                   G5='NOT_PROVEN', BLOCKER=None, started_unix_ns=time.time_ns())
++    steps = [('IDENTITY', 2), ('FINAL_PACKAGE', 3), ('SUITES', 70), ('E2E', 20), ('POSTCHECK', 2), ('RETURN', 3)]
++    prog = Progress(steps)
++    code = 2
++    try:
++        prog.begin('IDENTITY')
++        app = os.environ.get('LOCALAPPDATA', '') if native else ''
++        if native:
++            require(sys.version_info[:3] == (3, 14, 7) and sys.maxsize > 2**32, 'PYTHON_3147_64BIT_REQUIRED')
++            import re
++            require(re.fullmatch(r'[A-Za-z]:\\[^%]+', app) is not None and not app.endswith('\\'), 'LOCALAPPDATA_INVALID')
++            require(Path('D:\\').is_dir(), 'D_VOLUME_ABSENT')
++        vols = {k: volume_info(v) for k, v in (('C', 'C:\\'), ('D', 'D:\\'))} if native else {}
++        if native:
++            for k, v in vols.items():
++                require(v['filesystem'] == 'NTFS', 'VOLUME_NOT_NTFS:' + k)
++                require(v['free_bytes'] >= 1024**3, 'VOLUME_FREE_SPACE_BELOW_1GIB:' + k)
++        cpu_avail = getattr(os, 'process_cpu_count', os.cpu_count)()
++        receipt['PRECHECK'] = dict(python=sys.version, python_sha256=sha_file(sys.executable),
++                                   platform=platform.platform(), cpu_logical=os.cpu_count(), cpu_available=cpu_avail,
++                                   volumes=vols, powershell=a.ps_version, local_appdata=app)
++        before = snapshot_real_targets(app) if native else {}
++        (evidence / 'REAL_TARGETS_BEFORE.json').write_bytes(canonical(before))
++        qman, qsha = verify_closed_manifest(bundle, 'QUAL_MANIFEST.json', 'TICKSTORE_CDT15_R41_QUAL_BUNDLE_MANIFEST_V001')
++        receipt['QUAL_MANIFEST_SHA256'] = qsha
++        print('QUAL_IDENTITY=PASS PYTHON=%s CPU=%s/%s' % (sys.version.split()[0], cpu_avail, os.cpu_count()), flush=True)
++        prog.end('IDENTITY')
++
++        prog.begin('FINAL_PACKAGE')
++        final = verify_and_extract_final(bundle, work)
++        receipt['SOURCE_SHA256'] = final['witness']['package_sha256']
++        receipt['MANIFEST'] = final['manifest_sha256']
++        receipt['RUNTIME_CODE_MANIFEST_SHA256'] = final['plan']['runtime_code_manifest_sha256']
++        receipt['TESTED_CODE_EQUALS_PACKAGED_CODE'] = 'PASS_TESTS_EXECUTED_FROM_EXTRACTED_FINAL_PACKAGE'
++        print('QUAL_FINAL_PACKAGE=PASS SHA256=%s MEMBERS=%d' % (receipt['SOURCE_SHA256'], final['members']), flush=True)
++        prog.end('FINAL_PACKAGE')
++
++        prog.begin('SUITES')
++        impl = Path(final['extract']) / 'implementation_v001'
++        tmp = work / 'TMP'; tmp.mkdir(parents=True, exist_ok=False)
++        env = dict(os.environ, TMP=str(tmp), TEMP=str(tmp), PYTHONDONTWRITEBYTECODE='1', PYTHONUTF8='1')
++        env.pop('PYTHONPATH', None)
++        d_parent = Path(a.d_parent) / run_dir.name if native else work / 'D_PARENT'
++        suites = []
++        for name, spec in final['plan']['suites'].items():
++            senv = dict(env)
++            if spec.get('writer_sandboxes'):
++                senv['TICKSTORE_QUAL_D_PARENT'] = str(d_parent / name)
++                senv['TICKSTORE_QUAL_C_PARENT'] = str(work / ('C_' + name))
++                if not native:
++                    senv.pop('TICKSTORE_QUAL_D_PARENT'); senv.pop('TICKSTORE_QUAL_C_PARENT')
++            if spec.get('native_only') and not native:
++                suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
++            suites.append(run_suite(name, spec, impl, senv, evidence, sys.executable))
++        for name, spec in final['plan']['scripts'].items():
++            suites.append(run_script(name, spec['script'], impl, env, evidence, sys.executable, spec['expect']))
++        receipt['TESTS'] = suites
++        prog.end('SUITES')
++
++        prog.begin('E2E')
++        receipt['E2E'] = e2e(final, sys.executable, work, d_parent, evidence, env, native)
++        prog.end('E2E')
++
++        prog.begin('POSTCHECK')
++        after = snapshot_real_targets(app) if native else {}
++        (evidence / 'REAL_TARGETS_AFTER.json').write_bytes(canonical(after))
++        receipt['PRODUCTION_MODIFIED'] = (before != after) if native else False
++        receipt['REAL_TARGETS_BEFORE_SHA256'] = sha_bytes(canonical(before))
++        failed = [s['suite'] for s in suites if s['status'] not in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE')]
++        e2e_ok = receipt['E2E']['status'] in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE')
++        if receipt['PRODUCTION_MODIFIED']:
++            receipt['BLOCKER'] = 'REAL_TARGET_CHANGED_DURING_QUALIFICATION'
++        elif failed or not e2e_ok:
++            receipt['BLOCKER'] = 'QUALIFICATION_FAIL:' + ','.join(failed + ([] if e2e_ok else ['E2E']))
++        passed = receipt['BLOCKER'] is None
++        receipt['CLASSIFICATION'] = (('R41_WINDOWS_SANDBOX_QUALIFICATION_PASS' if native else 'OFFLINE_PREFLIGHT_ONLY')
++                                     if passed else 'R41_WINDOWS_SANDBOX_QUALIFICATION_FAIL')
++        receipt['SCOPE'] = ('Native PS5.1/Python 3.14.7 sandbox evidence for the R41 delta only. Not G4/G5/B06/B07, '
++                            'not production admission, not power-loss durability (process death only).')
++        code = 0 if passed else 2
++        prog.end('POSTCHECK')
++    except KeyboardInterrupt:
++        receipt['BLOCKER'] = 'INTERRUPTED_BY_OPERATOR'; receipt['CLASSIFICATION'] = 'INTERRUPTED'; code = 130
++    except BaseException as exc:
++        receipt['BLOCKER'] = type(exc).__name__ + ':' + str(exc)
++        receipt['CLASSIFICATION'] = 'BLOCKED'
++        (evidence / 'DRIVER_TRACEBACK.txt').write_text(traceback.format_exc(), encoding='utf-8')
++        print('QUAL_BLOCKED=' + receipt['BLOCKER'], flush=True)
++        code = 2
++    prog.begin('RETURN')
++    receipt['EXIT_CODE'] = code
++    receipt['finished_unix_ns'] = time.time_ns()
++    rpath = run_dir / 'R41_QUAL_RECEIPT.json'
++    rpath.write_bytes(canonical(receipt))
++    ret = run_dir / ('R41_QUAL_RETURN_' + run_dir.name + '.zip')
++    with zipfile.ZipFile(ret, 'x', zipfile.ZIP_DEFLATED) as z:
++        z.write(rpath, rpath.name)
++        for p in sorted(evidence.iterdir()):
++            z.write(p, 'EVIDENCE/' + p.name)
++        sys.stdout.flush()
++        z.write(run_dir / 'RUN_LOG.txt', 'RUN_LOG.txt')
++    rsha = sha_file(ret)
++    prog.end('RETURN')
++    print('')
++    print('RESULT_CONTEXT=' + RESULT_CONTEXT)
++    print('SOURCE_SHA256=' + str(receipt.get('SOURCE_SHA256')))
++    print('MANIFEST=' + str(receipt.get('MANIFEST')))
++    print('TESTS=' + ' '.join('%s:%s' % (s['suite'], s['status']) for s in receipt.get('TESTS', [])))
++    print('E2E=' + str(receipt.get('E2E', {}).get('status')))
++    print('PRECHECK=' + ('PASS' if 'PRECHECK' in receipt else 'NOT_REACHED'))
++    print('EXIT_CODE=' + str(code))
++    print('RETURN_ZIP=' + str(ret))
++    print('RETURN_SHA256=' + rsha)
++    print('PRODUCTION_MODIFIED=' + str(receipt['PRODUCTION_MODIFIED']).upper())
++    print('FULL_STARTED=NO')
++    print('BLOCKER=' + str(receipt['BLOCKER']))
++    print('CLASSIFICATION=' + str(receipt.get('CLASSIFICATION')))
++    print('RESULT_RETURN_TO=' + RESULT_CONTEXT)
++    return code
++
++
++if __name__ == '__main__':
++    ap = argparse.ArgumentParser(allow_abbrev=False)
++    ap.add_argument('--run-suite-child', action='store_true')
++    ap.add_argument('--impl'); ap.add_argument('--spec'); ap.add_argument('--out')
++    ap.add_argument('--run-dir'); ap.add_argument('--work-root'); ap.add_argument('--bundle-dir')
++    ap.add_argument('--d-parent', default='D:\\TICKSTORE_QUALIFICATION_SANDBOX')
++    ap.add_argument('--ps-version', default='UNKNOWN')
++    ap.add_argument('--offline-preflight', action='store_true')
++    args = ap.parse_args()
++    if args.run_suite_child:
++        raise SystemExit(run_suite_child(args.impl, args.spec, args.out))
++    raise SystemExit(main(args))
 diff --git a/tickstore_cdt15_r41/source/tests/test_full_runner_observability_r41.py b/tickstore_cdt15_r41/source/tests/test_full_runner_observability_r41.py
 new file mode 100644
 index 0000000..e942371
@@ -3468,6 +4809,93 @@ index 3943a71..85ace31 100644
 +    def test11_negative_control_reinsertion_detected(self):
 +        mutated = self.text.replace(GATE, "'X'")
 +        self.assertNotIn(GATE, mutated)
++
++
++if __name__ == '__main__':
++    unittest.main(verbosity=2)
+diff --git a/tickstore_cdt15_r41/source/tests/test_native_process_control_r41.py b/tickstore_cdt15_r41/source/tests/test_native_process_control_r41.py
+new file mode 100644
+index 0000000..6dff80b
+--- /dev/null
++++ b/tickstore_cdt15_r41/source/tests/test_native_process_control_r41.py
+@@ -0,0 +1,81 @@
++"""R41 native Windows process control: SAFE_STOP event, Job containment, RAM census, lease.
++
++These tests are Windows-only by nature.  The R41 qualification driver runs them
++natively and refuses any skip there; on POSIX they are reported as skipped.
++"""
++import multiprocessing as mp
++import os
++import subprocess
++import sys
++import time
++import unittest
++import uuid
++from pathlib import Path
++
++R = Path(__file__).resolve().parents[1]
++FULL = R / 'candidate/full'
++sys.path.insert(0, str(FULL))
++
++NATIVE = os.name == 'nt'
++
++
++@unittest.skipUnless(NATIVE, 'native Windows process-control proof')
++class NativeProcessControl(unittest.TestCase):
++    def test_01_safe_stop_event_crosses_processes(self):
++        from FULL_PROCESS_CONTROL import StopEvent
++        run_id = 'R41Q' + uuid.uuid4().hex[:16].upper()
++        ev = StopEvent(run_id)
++        try:
++            self.assertFalse(ev.requested())
++            with self.assertRaisesRegex(RuntimeError, 'FULL_STOP_EVENT_PREEXISTS'):
++                StopEvent(run_id)
++            code = ('import sys;sys.path.insert(0,sys.argv[1]);from FULL_PROCESS_CONTROL import StopEvent;'
++                    'e=StopEvent(sys.argv[2],request=True);e.close();print("REQUESTED")')
++            r = subprocess.run([sys.executable, '-I', '-B', '-c', code, str(FULL), run_id],
++                               capture_output=True, text=True, timeout=60)
++            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
++            self.assertTrue(ev.requested())
++        finally:
++            ev.close()
++
++    def test_02_job_close_kills_admitted_child_tree(self):
++        from FULL_PROCESS_CONTROL import ProcessJob
++        ctx = mp.get_context('spawn')
++        job = ProcessJob()
++        proc = job.start(ctx, time.sleep, args=(120,), name='R41-JOB-CHILD')
++        try:
++            time.sleep(1.0)
++            self.assertTrue(proc.is_alive())
++            snap = job.memory_snapshot()
++            self.assertIn(proc.pid, [p['pid'] for p in snap['processes']])
++            self.assertGreater(snap['working_set_bytes'], 0)
++        finally:
++            job.close()
++        proc.join(20)
++        self.assertFalse(proc.is_alive())
++        self.assertNotEqual(proc.exitcode, 0)
++
++    def test_03_full_lease_is_exclusive_and_released(self):
++        from tickstore_full_multiwork import FullProcessLease, MultiworkBlocked
++        dest = Path(os.environ.get('TEMP', 'C:\\')) / ('R41_LEASE_' + uuid.uuid4().hex)
++        a = FullProcessLease(dest)
++        try:
++            with self.assertRaisesRegex(MultiworkBlocked, 'FULL_LEASE_LIVE_SUPERVISOR'):
++                FullProcessLease(dest)
++        finally:
++            a.close()
++        FullProcessLease(dest).close()
++
++    def test_04_autocpu_probe_matches_affinity(self):
++        from tickstore_full_multiwork import available_logical_cpus, windows_memory_status
++        n = available_logical_cpus()
++        self.assertGreaterEqual(n, 1)
++        self.assertLessEqual(n, os.cpu_count())
++        mem = windows_memory_status()
++        self.assertGreater(mem['total'], mem['available'] // 2)
++        print('R41_NATIVE_CPU_AVAILABLE=%d CPU_LOGICAL=%d RAM_TOTAL_GIB=%.2f RAM_AVAILABLE_GIB=%.2f' % (
++            n, os.cpu_count(), mem['total'] / 1024**3, mem['available'] / 1024**3), flush=True)
 +
 +
 +if __name__ == '__main__':
