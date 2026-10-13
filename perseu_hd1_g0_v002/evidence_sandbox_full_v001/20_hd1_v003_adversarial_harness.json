@@ -1,0 +1,124 @@
+{
+ "scope": "PASS_SANDBOX_PWSH_LINUX_PATCHED_COPIES_NOT_PS51",
+ "cases": {
+  "A_delivered_non_windows": {
+   "exit": 2,
+   "pass": true
+  },
+  "B_normal": {
+   "exit": 0,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": "PASS",
+   "reason": "ALL_STAGES_PASS",
+   "cleanup": "RETAINED_EMPTY_BY_DESIGN",
+   "exact_set": "PASS",
+   "stages": {
+    "PAYLOAD_SELFTEST": "PASS",
+    "INVENTORY_CHECK": "PASS"
+   },
+   "pass": true
+  },
+  "B_inspection_denied": {
+   "exit": 2,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": "BLOCKED",
+   "reason": "STAGE_NOT_PASS_SEE_RECEIPT",
+   "cleanup": "INSPECTION_FAILED_PRESERVED",
+   "exact_set": "PASS",
+   "stages": {
+    "PAYLOAD_SELFTEST": "PASS",
+    "INVENTORY_CHECK": "PASS"
+   },
+   "pass": true
+  },
+  "B_workspace_nonempty": {
+   "exit": 2,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": "BLOCKED",
+   "reason": "STAGE_NOT_PASS_SEE_RECEIPT",
+   "cleanup": "FAILED_PRESERVED_NONEMPTY",
+   "exact_set": "FAIL_CARDINALITY",
+   "stages": {
+    "PAYLOAD_SELFTEST": "PASS",
+    "INVENTORY_CHECK": "PASS"
+   },
+   "pass": true
+  },
+  "B_unknown_byproduct": {
+   "exit": 2,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": "BLOCKED",
+   "reason": "STAGE_NOT_PASS_SEE_RECEIPT",
+   "cleanup": "RETAINED_EMPTY_BY_DESIGN",
+   "exact_set": "FAIL_CARDINALITY",
+   "stages": {
+    "PAYLOAD_SELFTEST": "PASS",
+    "INVENTORY_CHECK": "PASS"
+   },
+   "pass": true
+  },
+  "B_receipt_write_fails": {
+   "exit": 2,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": null,
+   "reason": null,
+   "cleanup": null,
+   "exact_set": null,
+   "stages": {},
+   "pass": true
+  },
+  "B_run_dir_preexists": {
+   "exit": 2,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": null,
+   "reason": null,
+   "cleanup": null,
+   "exact_set": null,
+   "stages": {},
+   "pass": true
+  },
+  "B_python_missing_primary": {
+   "exit": 2,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": "BLOCKED",
+   "reason": "PINNED_PYTHON_NOT_FOUND:/tmp/claude-0/-home-user-GitHub/96f9d265-eb2a-5945-a13a-7cc36b723069/scratchpad/v3h/dl_python_missing_primary/no_python_here",
+   "cleanup": "NOT_APPLICABLE",
+   "exact_set": null,
+   "stages": {},
+   "pass": true
+  },
+  "B_unicode_space_root": {
+   "exit": 0,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": "PASS",
+   "reason": "ALL_STAGES_PASS",
+   "cleanup": "RETAINED_EMPTY_BY_DESIGN",
+   "exact_set": "PASS",
+   "stages": {
+    "PAYLOAD_SELFTEST": "PASS",
+    "INVENTORY_CHECK": "PASS"
+   },
+   "pass": true
+  },
+  "B_sigint_during_child": {
+   "exit": 130,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "result": "SAFE_STOP",
+   "reason": "WRAPPER_INTERRUPTED_CTRL_C_READ_ONLY",
+   "cleanup": "NOT_APPLICABLE",
+   "exact_set": null,
+   "stages": {},
+   "pass": true
+  }
+ },
+ "verdict": "PASS_SANDBOX_SCOPE"
+}

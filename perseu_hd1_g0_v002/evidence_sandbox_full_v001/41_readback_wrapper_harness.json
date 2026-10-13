@@ -1,0 +1,122 @@
+{
+ "scope": "PASS_SANDBOX_PWSH_LINUX_PATCHED_COPIES_NOT_PS51",
+ "cases": {
+  "A_delivered_non_windows": {
+   "exit": 2,
+   "pass": true
+  },
+  "B_selftest": {
+   "exit": 0,
+   "expected_exit": 0,
+   "result": "PASS",
+   "reason": "ALL_STAGES_PASS",
+   "readback_status": "NOT_RUN",
+   "exact_set": "PASS",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "fixtures": [
+    [
+     "pass",
+     true
+    ],
+    [
+     "fail",
+     true
+    ],
+    [
+     "safe-stop",
+     true
+    ],
+    [
+     "blocked",
+     true
+    ],
+    [
+     "contradict",
+     true
+    ],
+    [
+     "malformed",
+     true
+    ],
+    [
+     "nofile",
+     true
+    ],
+    [
+     "bom",
+     true
+    ],
+    [
+     "sleep",
+     true
+    ]
+   ],
+   "pass": true
+  },
+  "B_no_decisions": {
+   "exit": 2,
+   "expected_exit": 2,
+   "result": "BLOCKED",
+   "reason": "OWNER_DECISIONS_D1_D2_REQUIRED_NO_EFFECT",
+   "readback_status": "NOT_RUN",
+   "exact_set": null,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_nonwindows_payload": {
+   "exit": 2,
+   "expected_exit": 2,
+   "result": "BLOCKED",
+   "reason": "STAGE_NOT_PASS_SEE_RECEIPT",
+   "readback_status": "BLOCKED",
+   "exact_set": "PASS",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_outcome_fail": {
+   "exit": 1,
+   "expected_exit": 1,
+   "result": "FAIL",
+   "reason": "READBACK_SHA_MISMATCH_SEE_REPORT",
+   "readback_status": "FAIL",
+   "exact_set": "PASS",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_outcome_safe_stop": {
+   "exit": 130,
+   "expected_exit": 130,
+   "result": "SAFE_STOP",
+   "reason": "SAFE_STOP_RESUMABLE_RERUN_SAME_COMMAND",
+   "readback_status": "SAFE_STOP",
+   "exact_set": "PASS",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_sigint_during_child": {
+   "exit": 130,
+   "expected_exit": 130,
+   "result": "SAFE_STOP",
+   "reason": "WRAPPER_INTERRUPTED_CTRL_C_CHILD_RECONCILED",
+   "readback_status": "NOT_RUN",
+   "exact_set": null,
+   "footer_last": true,
+   "cwd_untouched": true,
+   "child_after_interrupt": {
+    "child_pid": null,
+    "exited": true,
+    "exit_code": null,
+    "killed": false,
+    "source": "CHILD_ALREADY_EXITED_BEFORE_STOP"
+   },
+   "started_before_signal": true,
+   "pass": true
+  }
+ },
+ "verdict": "PASS_SANDBOX_SCOPE"
+}

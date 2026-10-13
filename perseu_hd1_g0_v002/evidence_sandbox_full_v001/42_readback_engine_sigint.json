@@ -1,0 +1,19 @@
+{
+ "scope": "PASS_SANDBOX_LINUX_SIGINT",
+ "first_run": {
+  "exit": 130,
+  "stdout": "{\"status\": \"SAFE_STOP\"}",
+  "commits": 7,
+  "lock_released": true,
+  "journal_complete_lines": true,
+  "heartbeats": 7
+ },
+ "second_run": {
+  "status": "DONE",
+  "resumed": 7,
+  "hashed": 73,
+  "matched": 80,
+  "total": 80
+ },
+ "verdict": "PASS_SANDBOX_SCOPE"
+}

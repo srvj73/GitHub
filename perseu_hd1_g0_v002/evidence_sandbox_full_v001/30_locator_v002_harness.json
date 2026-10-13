@@ -1,0 +1,70 @@
+{
+ "scope": "PASS_SANDBOX_PWSH_LINUX_PATCHED_COPY_NOT_PS51",
+ "cases": {
+  "A_delivered_non_windows": {
+   "exit": 2,
+   "pass": true
+  },
+  "B_hd2_SelfTest": {
+   "exit": 0,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "bom_free": true,
+   "result": "PASS_SELFTEST_ONLY",
+   "gate": "BLOCKED",
+   "failed_checks": [],
+   "check_count": 32,
+   "pass": true
+  },
+  "B_hd2_Locate": {
+   "exit": 0,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "bom_free": true,
+   "result": "PASS_INVENTORY_ONLY",
+   "gate": "BLOCKED",
+   "pass": true
+  },
+  "B_hd2_HD2Index": {
+   "exit": 0,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "bom_free": true,
+   "result": "PASS_INVENTORY_ONLY",
+   "gate": "BLOCKED",
+   "index_hits": [
+    [
+     "TELEMETRY_V004_REENVIO_PREP_PY_NOT_ORIGINAL",
+     1
+    ]
+   ],
+   "pass": true
+  },
+  "B_hd2_HD2Deep": {
+   "exit": 0,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "bom_free": true,
+   "result": "PASS_INVENTORY_ONLY",
+   "gate": "BLOCKED",
+   "known_hits": [
+    "PREREG_H1H3_V003_ZIP_NOT_V004",
+    "R4R8_PREDECESSOR_ZIP_NOT_R4R9",
+    "RECOVERED_PREP_HOTFIX_R3_V003",
+    "TELEMETRY_V004_REENVIO_PREP_PY_NOT_ORIGINAL"
+   ],
+   "recovered_ok": 4,
+   "pass": true
+  },
+  "B_only_hd1_HD2Index": {
+   "exit": 2,
+   "cwd_untouched": true,
+   "footer_last": true,
+   "bom_free": true,
+   "result": "BLOCKED",
+   "gate": "NOT_EVALUATED",
+   "pass": true
+  }
+ },
+ "verdict": "PASS_SANDBOX_SCOPE"
+}

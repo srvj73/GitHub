@@ -1,0 +1,12 @@
+{
+  "parser": "pwsh 7.4.6 (external; NOT Windows PowerShell 5.1)",
+  "target": "/home/user/GitHub/perseu_hd1_g0_v002/dist/PERSEU_HD1_RECON_PROBE_V003.ps1",
+  "bytes": 88857,
+  "parse_errors": 0,
+  "tokens": 6175,
+  "functions": 18,
+  "parameters": 23,
+  "assignments": 270,
+  "findings": [],
+  "verdict": "PASS_SANDBOX_PARSER_SCOPE"
+}

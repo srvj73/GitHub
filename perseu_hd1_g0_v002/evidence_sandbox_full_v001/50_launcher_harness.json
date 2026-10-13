@@ -1,0 +1,178 @@
+{
+ "scope": "PASS_SANDBOX_PWSH_LINUX_PATCHED_COPIES_NOT_PS51",
+ "cases": {
+  "A_delivered_non_windows": {
+   "exit": 2,
+   "pass": true
+  },
+  "B_selftest": {
+   "exit": 0,
+   "expected_exit": 0,
+   "result": "PASS_SELFTEST_ONLY",
+   "reason": "ALL_SYNTHETIC_CHECKS_PASS",
+   "full_started": "NO",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "checks": [
+    [
+     "LOCK_VALID_FIXTURE_PASS",
+     true
+    ],
+    [
+     "LOCK_SHA_PARAMETER_MISMATCH",
+     true
+    ],
+    [
+     "FIXTURE_REJECTED_BY_PRODUCTION_INVARIANTS",
+     true
+    ],
+    [
+     "INSTALL_SHA_MISMATCH_DETECTED",
+     true
+    ],
+    [
+     "D1_SHA_MISMATCH_DETECTED",
+     true
+    ],
+    [
+     "PREREG_V003_FORBIDDEN",
+     true
+    ],
+    [
+     "OUT_NOT_FRESH_BLOCKED",
+     true
+    ],
+    [
+     "WRAPPER_RANGE_CONTRACT",
+     true
+    ],
+    [
+     "FREE_SPACE_MEASURED",
+     true
+    ],
+    [
+     "CHILD_PASS_EXIT_0_OUT_WRITTEN",
+     true
+    ],
+    [
+     "CHILD_EXIT_CODE_PROPAGATED_7",
+     true
+    ],
+    [
+     "WATCHDOG_NO_KILL_NATURAL_EXIT",
+     true
+    ],
+    [
+     "INSTALL_EXACT_SET_VERIFIED_THEN_PREFLIGHT_OK",
+     true
+    ],
+    [
+     "INSTALL_NO_OVERWRITE",
+     true
+    ],
+    [
+     "INSTALL_SOURCE_MISMATCH_NOTHING_COPIED",
+     true
+    ],
+    [
+     "POST_RUN_MUTATION_DETECTED",
+     true
+    ]
+   ],
+   "pass": true
+  },
+  "B_preflight_no_lock": {
+   "exit": 2,
+   "expected_exit": 2,
+   "result": "BLOCKED",
+   "reason": "SOURCE_LOCK_PATH_AND_SHA_REQUIRED",
+   "full_started": "NO",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_preflight_prod_invariants": {
+   "exit": 2,
+   "expected_exit": 2,
+   "result": "BLOCKED",
+   "reason": "PREFLIGHT_BLOCKED_NO_EFFECTS",
+   "full_started": "NO",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "blockers": [
+    "LOCK_OUT_NOT_INVARIANT",
+    "LOCK_D1_NOT_INVARIANT",
+    "D1_SHA_MISMATCH",
+    "OUT_DRIVE_FREE_SPACE_UNAVAILABLE:MethodInvocationException"
+   ],
+   "pass": true
+  },
+  "B_run_prod_invariants_blocked": {
+   "exit": 2,
+   "expected_exit": 2,
+   "result": "BLOCKED",
+   "reason": "PREFLIGHT_BLOCKED_NO_EFFECTS",
+   "full_started": "NO",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "blockers": [
+    "LOCK_OUT_NOT_INVARIANT",
+    "LOCK_D1_NOT_INVARIANT",
+    "D1_SHA_MISMATCH",
+    "OUT_DRIVE_FREE_SPACE_UNAVAILABLE:MethodInvocationException"
+   ],
+   "pass": true
+  },
+  "B_preflight_fixture_ready": {
+   "exit": 0,
+   "expected_exit": 0,
+   "result": "PASS_PREFLIGHT_DRY_RUN",
+   "reason": "READY_FOR_RUN_NO_EFFECTS",
+   "full_started": "NO",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_run_fixture_pass": {
+   "exit": 0,
+   "expected_exit": 0,
+   "result": "PASS_C2_FULL_RUN_EXIT_0",
+   "reason": "RUNNER_EXIT_0_RUN_STATUS_PASS_SCIENTIFIC_VALIDATION_PENDING",
+   "full_started": "YES",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_run_fixture_runner_fail": {
+   "exit": 3,
+   "expected_exit": 3,
+   "result": "FAIL",
+   "reason": "RUNNER_EXIT_7_STATUS__UNCHANGED_True",
+   "full_started": "YES",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_install_fixture_cli": {
+   "exit": 0,
+   "expected_exit": 0,
+   "result": "PASS_INSTALL_VERIFIED",
+   "reason": "NEXT_PREFLIGHT",
+   "full_started": "NO",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  },
+  "B_run_fixture_sigint": {
+   "exit": 130,
+   "expected_exit": 130,
+   "result": "SAFE_STOP",
+   "reason": "LAUNCHER_INTERRUPTED_CTRL_C_RUNNER_RECONCILED_NOT_KILLED",
+   "full_started": "YES",
+   "footer_last": true,
+   "cwd_untouched": true,
+   "pass": true
+  }
+ },
+ "verdict": "PASS_SANDBOX_SCOPE"
+}

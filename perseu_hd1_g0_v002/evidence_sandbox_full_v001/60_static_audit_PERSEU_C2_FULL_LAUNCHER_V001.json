@@ -1,0 +1,12 @@
+{
+  "parser": "pwsh 7.4.6 (external; NOT Windows PowerShell 5.1)",
+  "target": "/home/user/GitHub/perseu_hd1_g0_v002/dist/PERSEU_C2_FULL_LAUNCHER_V001.ps1",
+  "bytes": 42217,
+  "parse_errors": 0,
+  "tokens": 7540,
+  "functions": 14,
+  "parameters": 35,
+  "assignments": 281,
+  "findings": [],
+  "verdict": "PASS_SANDBOX_PARSER_SCOPE"
+}
