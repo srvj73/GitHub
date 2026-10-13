@@ -1,0 +1,41 @@
+{
+  "architecture": {
+    "bounded_process_tree_shutdown": true,
+    "new_scratch_namespace": "FULL_MULTIWORK_RC4R2",
+    "publication_overlaps_worker_build": true,
+    "publisher": "DEDICATED_SINGLE_WRITER_PROCESS",
+    "scratch_resume": [
+      "RC4R2",
+      "RC4",
+      "RC3",
+      "RC2R3"
+    ],
+    "source_hash": "INLINE_WITH_SCAN_AND_BUILD",
+    "source_pass": "ONE_PHYSICAL_PASS_PER_MONTH",
+    "worker_day_ack_barrier": false,
+    "worker_start": "PREQUEUED_AFTER_PARENT_PIN"
+  },
+  "core_rc1_frozen_sha256": "D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0",
+  "csv_deletion_authorized": false,
+  "full_execution_authorized": false,
+  "local_tests": {
+    "enospc_matrix_r4": "PASS",
+    "filesystem_alias_r3": "PASS",
+    "functional_new_scratch_namespace": "PASS",
+    "multiwork_unittests": "PASS_21_OF_21",
+    "r3_additional_regressions": "PASS",
+    "r3_adversarial_observations": 29,
+    "rc1_nonwindows_regression": "PASS_39_WITH_1_EXPECTED_WINDOWS_SKIP",
+    "runner_logic": "PASS",
+    "static_multiwork_preaudit": "PASS"
+  },
+  "real_source_canary_required": true,
+  "schema": "TICKSTORE_R9_FULL_MULTIWORK_RC4R2_PREAUDIT_SUMMARY_V001",
+  "status": "PREAUDIT_PASS_LOCAL_NONWINDOWS",
+  "windows_preflight_required": true,
+  "windows_preflight_sha256": "D365EDE959DEBE9B3B9E612C772DCD2C3E7E7A00955A7D27F30A893F890E8A06",
+  "windows_rc4_publisher_smoke_sha256": "F67C4F1DC0759C5AB95380A531D1AC33C262ABD068A225378E5ED7ECAFDF80E0",
+  "windows_rc4r2_shutdown_smoke_sha256": "FC650A72C73A34F48937E63B0EBBE353EE82B0D3CCA4E66E23FE4B45A71674B5",
+  "wrapper_schema": "TICKSTORE_R9_FULL_MULTIWORK_RC4R2_V001",
+  "wrapper_sha256": "AA45F3416B3037C6BED2D84A7AC66F650867A1CC1247C534CCC15B3FF35F62A3"
+}

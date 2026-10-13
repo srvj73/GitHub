@@ -1,0 +1,27 @@
+{
+  "backup_volume_contract": "MENU_BACKUP_SAME_D__ACTIVE_JOURNAL_SAME_C",
+  "effectful_writer_authorized": false,
+  "full_started": false,
+  "gate_b06": "BLOCKED_INCOMPLETE_CANDIDATE",
+  "gate_g4": "INCOMPLETE",
+  "gate_g5": "NOT_PROVEN",
+  "new_files": [
+    "candidate/control/MENU_OFFICIAL_WRITER_CONTRACT_SOURCE_ONLY.py",
+    "tests/test_official_writer_contract.py"
+  ],
+  "new_test_count": 32,
+  "new_test_status": "PASS_PORTABLE_ONLY",
+  "official_native_qualified": false,
+  "official_writer_implemented": false,
+  "parent_zip_sha256": "CF68F345298CA8FB81ACBEC5B2A556F66962993358969EE683502BAB1FAD7F97",
+  "policy_cardinality": "1+1",
+  "policy_frozen": true,
+  "policy_head_sha256": "B3B419592DC29651487B1545E1CD7AE66604AB78582202883684E69BCB1FF7EA",
+  "policy_master_sha256": "695DCD6495E549B13B13A73E063EA147CF97354C53940A70647EDFD0A0BC7DF5",
+  "policy_revision": "20261013T070500-0300-695DCD6495E549B1",
+  "production_modified": false,
+  "project": "Base de Dados CSV / Tickstore",
+  "schema": "CDT15_G4_OFFICIAL_WRITER_CONTRACT_RECEIPT_V001",
+  "thread": "Compressão De Ticks 15",
+  "windows_official_readonly_result_zip_sha256": "7384868341F53D10602BBEAF5F348A92BD5434E0EAF9E73FD02A2B0286EC9E4D"
+}

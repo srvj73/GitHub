@@ -1,0 +1,16 @@
+{
+  "authorized": false,
+  "core_owner_gate_sha256": null,
+  "core_runner_sha256": null,
+  "dest_root": null,
+  "dest_volume": null,
+  "ram_target_percent_max": 60,
+  "schema": "TICKSTORE_FULL_MULTIWORK_OWNER_GATE_V001",
+  "scratch_root": null,
+  "scratch_volume": null,
+  "source_root": null,
+  "source_volume": null,
+  "workers_max": 22,
+  "wrapper_schema": "TICKSTORE_R9_FULL_MULTIWORK_RC4R2_V001",
+  "wrapper_sha256": null
+}

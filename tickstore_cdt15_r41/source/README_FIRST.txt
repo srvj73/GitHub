@@ -1,0 +1,1 @@
+CDT15 G4 source-only Windows target: isolated fixtures for CANARY, Stage B FULL_PREP, FULL/H* publication and 30 validator regressions. No D4, production, menu installation, B06, G4/G5 promotion. Run only via matching Windows launcher. Result is diagnostic, not formal B07.

@@ -1,0 +1,23 @@
+--- parent/candidate/control/INSTALL_TICKSTORE_FULL.ps1
++++ candidate/candidate/control/INSTALL_TICKSTORE_FULL.ps1
+@@ -150,16 +150,10 @@
+     WriteNew $intentPath $intentRaw
+     Require ((StreamSha (OpenRead $intentPath)) -ceq (RawSha $intentRaw)) 'INSTALL_INTENT_READBACK'
+     Write-Output 'MENU_INSTALL_INTENT=PASS_SOURCE_ONLY_NOT_AUTHORIZED'
+-    if ($ActivateMenu) {
+-        $normal=Join-Path $env:LOCALAPPDATA 'TICKSTORE\Candidates'
+-        Require ([IO.Path]::GetFullPath($InstallRoot) -ieq [IO.Path]::GetFullPath($normal)) 'MENU_REQUIRES_STANDARD_INSTALL_ROOT'
+-        $active=Join-Path $env:LOCALAPPDATA 'TICKSTORE\ACTIVE_DEPLOYMENT.json'; NoReparse $active
+-        $pending=$active+'.pending.'+[Guid]::NewGuid().ToString('N'); WriteNew $pending $raw
+-        if ([IO.File]::Exists($active)) {
+-            [IO.File]::Replace($pending,$active,$active+'.previous.'+[Guid]::NewGuid().ToString('N'))
+-        } else { [IO.File]::Move($pending,$active) }
+-        Write-Output 'MENU_DEPLOYMENT_SELECTED=YES; TECHNICAL_GATES_STILL_REQUIRED'
+-    }
++    # Legacy one-file MENU activation is permanently disabled in this source-only
++    # candidate. The independent COMMITTED writer must be integrated, qualified,
++    # and explicitly admitted before any official ACTIVE/MENU publication.
++    Write-Output 'MENU_ACTIVATION=NOT_SUPPORTED_TRANSACTIONAL_WRITER_PENDING'
+     Write-Output ('INSTALLATION_ROOT='+$target)
+     Write-Output ('LAUNCHER='+$launcher)
+     Write-Output 'INSTALLATION=PASS_READBACK; FULL_STARTED=NO'

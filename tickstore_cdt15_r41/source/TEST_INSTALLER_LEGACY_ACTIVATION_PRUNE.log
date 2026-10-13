@@ -1,0 +1,17 @@
+test01_patched_installer_identity (test_installer_legacy_activation_prune.InstallerPruneContract.test01_patched_installer_identity) ... ok
+test02_activation_argument_remains_explicit (test_installer_legacy_activation_prune.InstallerPruneContract.test02_activation_argument_remains_explicit) ... ok
+test03_activation_guard_remains (test_installer_legacy_activation_prune.InstallerPruneContract.test03_activation_guard_remains) ... ok
+test04_guard_before_witness_and_writes (test_installer_legacy_activation_prune.InstallerPruneContract.test04_guard_before_witness_and_writes) ... ok
+test05_legacy_branch_removed (test_installer_legacy_activation_prune.InstallerPruneContract.test05_legacy_branch_removed) ... ok
+test06_no_direct_active_target_writer (test_installer_legacy_activation_prune.InstallerPruneContract.test06_no_direct_active_target_writer) ... ok
+test07_inert_intent_retained (test_installer_legacy_activation_prune.InstallerPruneContract.test07_inert_intent_retained) ... ok
+test08_install_readback_retained (test_installer_legacy_activation_prune.InstallerPruneContract.test08_install_readback_retained) ... ok
+test09_safe_only_status_emitted (test_installer_legacy_activation_prune.InstallerPruneContract.test09_safe_only_status_emitted) ... ok
+test10_no_official_transaction_promotion (test_installer_legacy_activation_prune.InstallerPruneContract.test10_no_official_transaction_promotion) ... ok
+test11_control_negative_reinsertion_detected (test_installer_legacy_activation_prune.InstallerPruneContract.test11_control_negative_reinsertion_detected) ... ok
+test12_parent_byte_delta_exact (test_installer_legacy_activation_prune.InstallerPruneContract.test12_parent_byte_delta_exact) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.001s
+
+OK

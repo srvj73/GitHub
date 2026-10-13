@@ -1,0 +1,142 @@
+--- base_B6_V004_release_D4BE49D6.py
++++ delta_V005_release_5426F6CE68CC.py
+@@ -221,6 +221,89 @@
+ _core = None
+ 
+ 
++def _install_core_vss_io_adapter(core):
++    """Patch exactly two authenticated-core symbols in memory for VSS shadow paths."""
++    marker="_tickstore_core_vss_io_adapter_v001"
++    if getattr(core,marker,False):
++        require(hasattr(core,"_tickstore_original_windows_final_handle_path"),"CORE_VSS_ADAPTER_ORIGINAL_FINAL_MISSING")
++        require(hasattr(core,"_tickstore_original_assert_no_link_chain"),"CORE_VSS_ADAPTER_ORIGINAL_CHAIN_MISSING")
++        return core
++
++    original_final=core._windows_final_handle_path
++    original_chain=core.assert_no_link_chain
++
++    def shadow_final_handle_path(k32,h,path):
++        floor=vss_shadow_volume_root(path)
++        if floor is None:
++            return original_final(k32,h,path)
++
++        fn=k32.GetFinalPathNameByHandleW
++        fn.argtypes=[w.HANDLE,w.LPWSTR,w.DWORD,w.DWORD]
++        fn.restype=w.DWORD
++        size=512
++        logical_floor=str(floor)
++        prefix="\\\\?\\GLOBALROOT"
++        require(logical_floor.upper().startswith(prefix.upper()),"CORE_VSS_FINAL_FLOOR_PREFIX")
++        expected_nt=logical_floor[len(prefix):]
++        expected_cf=expected_nt.casefold()
++
++        while True:
++            buf=ctypes.create_unicode_buffer(size)
++            n=fn(h,buf,size,0x2)
++            if n==0:
++                err=ctypes.get_last_error()
++                raise core.Blocked(f"WIN_FINAL_PATH_FAIL:{path}:FLAGS=0x2:WINERROR={err}")
++            if n<size:
++                value=buf.value
++                value_cf=value.casefold()
++                boundary=(value_cf==expected_cf or value_cf.startswith(expected_cf+"\\"))
++                if not boundary:
++                    raise core.Blocked(f"WIN_FINAL_PATH_SHADOW_DEVICE_MISMATCH:{path}:{value}")
++                return prefix+value
++            size=int(n)+1
++            if size>32768:
++                raise core.Blocked("WIN_FINAL_PATH_TOO_LONG:"+str(path))
++
++    def shadow_assert_no_link_chain(path,allow_missing_tail=False):
++        floor=vss_shadow_volume_root(path)
++        if floor is None:
++            return original_chain(path,allow_missing_tail)
++
++        p=PureWindowsPath(str(path));fp=PureWindowsPath(str(floor))
++        pparts=p.parts;fparts=fp.parts
++        require(len(pparts)>=len(fparts),"CORE_VSS_CHAIN_BELOW_FLOOR")
++        require(tuple(x.casefold() for x in pparts[:len(fparts)])==tuple(x.casefold() for x in fparts),
++                "CORE_VSS_CHAIN_FLOOR_MISMATCH")
++
++        floor_query=str(fp).rstrip("\\/")+"\\"
++        try:
++            rst=core.os.lstat(floor_query)
++        except OSError as exc:
++            raise core.Blocked(f"PATH_CHAIN_ROOT_QUERY_FAIL:{floor_query}:{type(exc).__name__}") from exc
++        core._reject_link_or_reparse(core.Path(floor_query),rst)
++        if not core.stat.S_ISDIR(rst.st_mode):
++            raise core.Blocked("PATH_ROOT_NOT_DIRECTORY:"+floor_query)
++
++        cur=str(fp).rstrip("\\/")
++        for part in pparts[len(fparts):]:
++            cur=cur+"\\"+part
++            try:
++                st=core.os.lstat(cur)
++            except FileNotFoundError:
++                if allow_missing_tail:return
++                raise core.Blocked("PATH_CHAIN_MISSING:"+cur)
++            except OSError as exc:
++                raise core.Blocked(f"PATH_CHAIN_QUERY_FAIL:{cur}:{type(exc).__name__}:{getattr(exc,'errno',None)}") from exc
++            core._reject_link_or_reparse(core.Path(cur),st)
++
++    core._tickstore_original_windows_final_handle_path=original_final
++    core._tickstore_original_assert_no_link_chain=original_chain
++    core._windows_final_handle_path=shadow_final_handle_path
++    core.assert_no_link_chain=shadow_assert_no_link_chain
++    setattr(core,marker,True)
++    return core
++
++
+ def frozen_core():
+     """Execute authenticated embedded bytes, never project files from sys.path."""
+     global _core
+@@ -241,7 +324,7 @@
+             module.__dict__["__builtins__"]={**vars(builtins), "__import__":embedded_import}
+             exec(compile(raw, module.__file__, "exec"), module.__dict__)
+             modules[name]=module
+-        _core=modules["tickstore_serial_runner"]
++        _core=_install_core_vss_io_adapter(modules["tickstore_serial_runner"])
+     return _core
+ 
+ 
+@@ -1719,21 +1802,32 @@
+         relative=PureWindowsPath(live_root).parts[1:]
+         return Path(generation["device_object"]+"\\").joinpath(*relative)
+ 
+-    def startup_probe(self,dest,scratch):
+-        generation=self.create("STARTUP_PROBE")
+-        for root in (dest,scratch):
+-            with self.store.open(self.shadow_root(generation,root),directory=True):
+-                pass
++    def delete_generation(self,generation,label="VSS_PROBE"):
+         count=ctypes.c_int32();nondeleted=GUID()
+         self.call(39,[GUID,ctypes.c_int32,BOOL,ctypes.POINTER(ctypes.c_int32),ctypes.POINTER(GUID)],
+                   GUID.from_text(generation["snapshot_id"]),3,False,ctypes.byref(count),ctypes.byref(nondeleted))
+-        require(count.value==1,"VSS_PROBE_CLEANUP_FAILED")
++        require(count.value==1,label+"_CLEANUP_FAILED")
+         try:
+             self.properties(generation["snapshot_id"])
+         except Blocked as exc:
+-            require("80042308" in str(exc).lower(),"VSS_PROBE_CLEANUP_UNCONFIRMED")
++            require("80042308" in str(exc).lower(),label+"_CLEANUP_UNCONFIRMED")
+         else:
+-            raise Blocked("VSS_PROBE_STILL_PRESENT")
++            raise Blocked(label+"_STILL_PRESENT")
++
++    def startup_probe(self,dest,scratch):
++        generation=self.create("STARTUP_PROBE")
++        try:
++            for root in (dest,scratch):
++                with self.store.open(self.shadow_root(generation,root),directory=True):
++                    pass
++        except BaseException as primary:
++            try:self.delete_generation(generation,"VSS_PROBE")
++            except BaseException as cleanup:
++                try:primary.add_note("VSS_PROBE_CLEANUP_ERROR:"+str(cleanup))
++                except Exception:pass
++            raise
++        else:
++            self.delete_generation(generation,"VSS_PROBE")
+ 
+     def close(self):
+         if self.ptr:

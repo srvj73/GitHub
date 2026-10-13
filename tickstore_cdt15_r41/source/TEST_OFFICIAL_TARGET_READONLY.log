@@ -1,0 +1,21 @@
+test_active_exists (test_official_target_readonly_admission.TestAdmission.test_active_exists) ... ok
+test_baseline_readonly (test_official_target_readonly_admission.TestAdmission.test_baseline_readonly) ... ok
+test_bat_drift (test_official_target_readonly_admission.TestAdmission.test_bat_drift) ... ok
+test_bat_reparse (test_official_target_readonly_admission.TestAdmission.test_bat_reparse) ... ok
+test_extra_fields (test_official_target_readonly_admission.TestAdmission.test_extra_fields) ... ok
+test_hash_invalid (test_official_target_readonly_admission.TestAdmission.test_hash_invalid) ... ok
+test_localappdata_unexpanded (test_official_target_readonly_admission.TestAdmission.test_localappdata_unexpanded) ... ok
+test_menu_drift (test_official_target_readonly_admission.TestAdmission.test_menu_drift) ... ok
+test_menu_final_alias (test_official_target_readonly_admission.TestAdmission.test_menu_final_alias) ... ok
+test_menu_hardlink (test_official_target_readonly_admission.TestAdmission.test_menu_hardlink) ... ok
+test_menu_missing (test_official_target_readonly_admission.TestAdmission.test_menu_missing) ... ok
+test_target_immutable_constants (test_official_target_readonly_admission.TestAdmission.test_target_immutable_constants) ... ok
+test_transaction_exists (test_official_target_readonly_admission.TestAdmission.test_transaction_exists) ... ok
+test_unknown_active_root_link (test_official_target_readonly_admission.TestAdmission.test_unknown_active_root_link) ... ok
+test_windows_only_effectless (test_official_target_readonly_admission.TestAdmission.test_windows_only_effectless) ... ok
+test_wrong_target_path (test_official_target_readonly_admission.TestAdmission.test_wrong_target_path) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.002s
+
+OK

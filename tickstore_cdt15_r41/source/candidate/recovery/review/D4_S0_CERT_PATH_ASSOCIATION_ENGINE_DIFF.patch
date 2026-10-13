@@ -1,0 +1,11 @@
+--- engine/tickstore_publisher_recovery_v004_candidate.py
++++ engine/tickstore_publisher_recovery_v004_candidate_microfix.py
+@@ -1990,7 +1990,7 @@
+     for key,pair in sorted(mapped.items()):
+         require(set(pair)=={"journal","partial"},"S0_CERT_ORPHAN")
+         require(pair["journal"]["namespace"]==pair["partial"]["namespace"],"S0_CERT_NAMESPACE_ASSOCIATION")
+-        require(pair["journal"]["path"]==inventory[key]["journal"] and pair["partial"]["path"]==inventory[key]["partial"],"S0_CERT_PATH_ASSOCIATION")
++        require(pair["journal"]["path"]==inventory[key]["journal"]["path"] and pair["partial"]["path"]==inventory[key]["partial"]["path"],"S0_CERT_PATH_ASSOCIATION")
+         entry={"namespace":pair["journal"]["namespace"],"contract":pair["journal"]["contract"]}
+         for kind in ("journal","partial"):
+             entry[kind]={field:pair[kind][field] for field in ("path","sha256","bytes")}

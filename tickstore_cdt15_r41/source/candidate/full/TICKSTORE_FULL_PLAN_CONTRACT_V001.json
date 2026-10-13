@@ -1,0 +1,18 @@
+{
+  "date_sequence_sha256": "D3A9B48F94A6F67572AA606C8ACD6539CDA3EC67B67EE1F1340D3CC738660FED",
+  "dates_sorted_ascending": true,
+  "days": 1550,
+  "first_date": "20200702",
+  "full_plan_sha256": "54CAAEB6D0C54E5509254C1C3CE45290A3FBBFE1E685111512531F482A05900C",
+  "last_date": "20260918",
+  "ledger_sha256": "27FF5A0FE47F3DDC5FD63F6371CCF0EDA8124E0E5D504A8F0756A4DF0DB9C3CA",
+  "month_sequence_sha256": "92426F11DBCE05505251A4DC3F021F546C6D3A8FE20B69748AF6163D84180CD7",
+  "months": 75,
+  "months_sorted_ascending": true,
+  "naive_one_month_hash_per_day_bytes": 9406201804440,
+  "range_partition_exact": true,
+  "rows": 7049522162,
+  "schema": "TICKSTORE_FULL_PLAN_CONTRACT_V001",
+  "source_bytes": 452248059942,
+  "unique_month_source_bytes": 452248059942
+}

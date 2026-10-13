@@ -1,0 +1,23 @@
+test_committed_request_is_rejected (test_installer_intent.InstallerIntentTests.test_committed_request_is_rejected) ... ok
+test_deployment_tamper (test_installer_intent.InstallerIntentTests.test_deployment_tamper) ... ok
+test_duplicate_json_key_rejected (test_installer_intent.InstallerIntentTests.test_duplicate_json_key_rejected) ... ok
+test_duplicate_manifest_member_rejected (test_installer_intent.InstallerIntentTests.test_duplicate_manifest_member_rejected) ... ok
+test_effectful_request_is_rejected (test_installer_intent.InstallerIntentTests.test_effectful_request_is_rejected) ... ok
+test_extra_field_rejected (test_installer_intent.InstallerIntentTests.test_extra_field_rejected) ... ok
+test_good_source_only (test_installer_intent.InstallerIntentTests.test_good_source_only) ... ok
+test_hardlink_intent_rejected (test_installer_intent.InstallerIntentTests.test_hardlink_intent_rejected) ... ok
+test_installer_source_pins_and_block (test_installer_intent.InstallerIntentTests.test_installer_source_pins_and_block) ... ok
+test_invalid_hash_pin (test_installer_intent.InstallerIntentTests.test_invalid_hash_pin) ... ok
+test_launcher_tamper (test_installer_intent.InstallerIntentTests.test_launcher_tamper) ... ok
+test_manifest_hash_tamper (test_installer_intent.InstallerIntentTests.test_manifest_hash_tamper) ... ok
+test_menu_tamper (test_installer_intent.InstallerIntentTests.test_menu_tamper) ... ok
+test_no_prod_writer_api_in_verifier (test_installer_intent.InstallerIntentTests.test_no_prod_writer_api_in_verifier) ... ok
+test_prod_flag_rejected (test_installer_intent.InstallerIntentTests.test_prod_flag_rejected) ... ok
+test_symlink_manifest_rejected (test_installer_intent.InstallerIntentTests.test_symlink_manifest_rejected) ... ok
+test_trusted_package_mismatch (test_installer_intent.InstallerIntentTests.test_trusted_package_mismatch) ... ok
+test_trusted_witness_mismatch (test_installer_intent.InstallerIntentTests.test_trusted_witness_mismatch) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.029s
+
+OK

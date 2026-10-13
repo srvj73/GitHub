@@ -1,0 +1,37 @@
+test_01_baseline_no_effect (test_official_writer_contract.TestOfficialWriterContract.test_01_baseline_no_effect) ... ok
+test_02_layout_cross_volume (test_official_writer_contract.TestOfficialWriterContract.test_02_layout_cross_volume) ... ok
+test_03_plan_field_identity (test_official_writer_contract.TestOfficialWriterContract.test_03_plan_field_identity) ... ok
+test_04_verified_menu_pin (test_official_writer_contract.TestOfficialWriterContract.test_04_verified_menu_pin) ... ok
+test_05_policy_drift (test_official_writer_contract.TestOfficialWriterContract.test_05_policy_drift) ... ok
+test_06_bad_policy_hash (test_official_writer_contract.TestOfficialWriterContract.test_06_bad_policy_hash) ... ok
+test_07_unexpanded_appdata (test_official_writer_contract.TestOfficialWriterContract.test_07_unexpanded_appdata) ... ok
+test_08_same_volume_layout (test_official_writer_contract.TestOfficialWriterContract.test_08_same_volume_layout) ... ok
+test_09_wrong_observation_schema (test_official_writer_contract.TestOfficialWriterContract.test_09_wrong_observation_schema) ... ok
+test_10_effectful_false_required (test_official_writer_contract.TestOfficialWriterContract.test_10_effectful_false_required) ... ok
+test_11_menu_drift (test_official_writer_contract.TestOfficialWriterContract.test_11_menu_drift) ... ok
+test_12_ambiguity_active (test_official_writer_contract.TestOfficialWriterContract.test_12_ambiguity_active) ... ok
+test_13_ambiguity_transaction (test_official_writer_contract.TestOfficialWriterContract.test_13_ambiguity_transaction) ... ok
+test_14_symlink (test_official_writer_contract.TestOfficialWriterContract.test_14_symlink) ... ok
+test_15_hardlink (test_official_writer_contract.TestOfficialWriterContract.test_15_hardlink) ... ok
+test_16_receipt_observation_mismatch (test_official_writer_contract.TestOfficialWriterContract.test_16_receipt_observation_mismatch) ... ok
+test_17_wrong_intent_menu (test_official_writer_contract.TestOfficialWriterContract.test_17_wrong_intent_menu) ... ok
+test_18_intent_authorized (test_official_writer_contract.TestOfficialWriterContract.test_18_intent_authorized) ... ok
+test_19_intent_not_started (test_official_writer_contract.TestOfficialWriterContract.test_19_intent_not_started) ... ok
+test_20_bad_package_sha (test_official_writer_contract.TestOfficialWriterContract.test_20_bad_package_sha) ... ok
+test_21_unknown_record (test_official_writer_contract.TestOfficialWriterContract.test_21_unknown_record) ... ok
+test_22_prepared_rollback_classification (test_official_writer_contract.TestOfficialWriterContract.test_22_prepared_rollback_classification) ... ok
+test_23_menu_written_before_journal_classification (test_official_writer_contract.TestOfficialWriterContract.test_23_menu_written_before_journal_classification) ... ok
+test_24_two_written_not_commit (test_official_writer_contract.TestOfficialWriterContract.test_24_two_written_not_commit) ... ok
+test_25_committed_readback (test_official_writer_contract.TestOfficialWriterContract.test_25_committed_readback) ... ok
+test_26_committed_old_blocks (test_official_writer_contract.TestOfficialWriterContract.test_26_committed_old_blocks) ... ok
+test_27_rolled_back_old (test_official_writer_contract.TestOfficialWriterContract.test_27_rolled_back_old) ... ok
+test_28_rolled_back_new_blocks (test_official_writer_contract.TestOfficialWriterContract.test_28_rolled_back_new_blocks) ... ok
+test_29_unexpected_drift (test_official_writer_contract.TestOfficialWriterContract.test_29_unexpected_drift) ... ok
+test_30_phase_invalid (test_official_writer_contract.TestOfficialWriterContract.test_30_phase_invalid) ... ok
+test_31_package_digest_determines_backup_name (test_official_writer_contract.TestOfficialWriterContract.test_31_package_digest_determines_backup_name) ... ok
+test_32_dont_have_writer_cli (test_official_writer_contract.TestOfficialWriterContract.test_32_dont_have_writer_cli) ... ok
+
+----------------------------------------------------------------------
+Ran 32 tests in 0.002s
+
+OK

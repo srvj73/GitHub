@@ -1,0 +1,253 @@
+```text
+B6_CODE_DELTA_REVIEW_V004
+VERDICT=BLOCKED
+BASE_CP2R1_RELEASE_SHA256=178A588E88C03721F8146C19C571698CC69B907BA0A31BEFF869798257321276
+INTERMEDIATE_PARENT_FLOOR_RELEASE_SHA256=70ECB194E6F191145E6D4295470AF90DBB0087632288B12B7D818F2B2B4D722A
+INTERMEDIATE_ROOTSLASH_RELEASE_SHA256=C0E0CC7C0B9B47F8649D70D193EC1B1F378F44503B7FEFE69017127A95CCAC6A
+DELTA_CANDIDATE_SHA256=9C50EFF63E94CC963EC5E72BD6F56EDB268FC6C912E576BF0F46CAAD235B6A0F
+DELTA_RELEASE_SHA256=D4BE49D670D29C7B7B24F4E15EB676959C6EF2B7D683CCD74F3E1C8AAACF5702
+CANDIDATE_TEST_COUNT=81
+RELEASE_TEST_COUNT=81
+B6_MICROPROBE=PASS
+B6_VSS_CAPABILITY=PASS
+VSS_SHADOW_PARENT_DELTA_APPROVED=YES
+VSS_ROOT_TRAILING_SLASH_DELTA_APPROVED=YES
+VSS_FINAL_PATH_NT_DELTA_APPROVED=YES
+LOGICAL_PATH_IDENTITY_PRESERVED=YES
+RELEASE_FUSE_ONLY_FROM_CANDIDATE=YES
+BLOCKERS=B-01 o nucleo congelado embutido (CORE_SHA D3A15572, inalterado) valida handles de arquivo com GetFinalPathNameByHandleW(flags=0=VOLUME_NAME_DOS) em _windows_final_handle_path (core L318-325) e percorre os pseudo-ancestrais \\?\GLOBALROOT\ e \\?\GLOBALROOT\Device com os.lstat em assert_no_link_chain (core L140) -> mesmas duas classes de defeito corrigidas pelos deltas B6 no Win32Store (B6-3 e B6-1); o engine chama esse nucleo sobre caminhos de shadow VSS em prep() L1147 (CERTIFY_SCRATCH, L1887) e validate_pair() L1168 (CERTIFY_CANONICAL L1889, audit_snapshot do SAFE_STOP e do FINAL L1421) -> CERTIFY_SCRATCH/CANONICAL falham no primeiro dia, SAFE_STOP=YES e inatingivel e FINAL nunca fecha PASS; o probe B6 fisico so abre diretorios via Win32Store e nao exercita esse caminho; B-02 cada tentativa B6-1/B6-2/B6-3 falhou entre create() e DeleteSnapshots em startup_probe (sem try/finally, L1722-1736) -> ao menos 3 snapshots persistentes contexto 25 orfaos em D: sem evidencia de reconcile no pacote
+```
+
+# B6 CODE_DELTA — Revisão V004 — VSS shadow path
+
+- Revisor: Claude Opus 5.5. Data: 27/09/2026.
+- Escopo: CP2 / CODE_DELTA_PATH restrito ao B6 VSS.
+- **C1 não deve ser executado.**
+
+**Legenda:**
+- [FATO]: verificado nos bytes, por execução local ou por aritmética;
+- [FATO-DOC]: registrado em receipt/log do pacote, não re-medido;
+- [HIPÓTESE]: depende de prova física no Windows alvo.
+
+**Semântica do veredito:**
+- Os **três deltas B6 estão corretos, são necessários e ficam aprovados** (manter byte a byte).
+- O **release não está liberado para C1**. O mesmo defeito de caminho VSS existe, sem correção, no núcleo congelado que o engine usa para ler arquivos no shadow.
+- O resultado: admissão, SAFE_STOP e FINAL falhariam no Windows.
+
+---
+
+## 1. Integridade e cadeia física
+
+| Verificação | Resultado |
+|---|---|
+| Pacote `B6_CODE_DELTA_REVIEW_PACK_V004…zip` | SHA `E51AB930…B2F2`; manifesto 44/44 [FATO] |
+| Base `01` = release CP2R1 pré-selado por mim (`178A588E…`) | idêntico [FATO] |
+| `01A` = base + somente *parent floor* | [FATO] (diff) |
+| `01B` aplicado a `01A` → `C0E0CC7C…` | reproduz exatamente [FATO] |
+| `01D` aplicado a `01C` → `D4BE49D6…` | reproduz exatamente [FATO] |
+| Candidato final `9C50EFF6…` vs candidato CP2R1 `0A414713…` | diferença = exatamente os 3 deltas B6 [FATO] |
+| Release final vs candidato final | somente L30 `IMPLEMENTATION_READY False→True` [FATO] |
+| Núcleo embutido (CORE/REFERENCE) | inalterado: `D3A15572…` / `74EE141B…` [FATO] |
+| A2 / B2 | 81/81 cada (25 native + 27 precanary + 29 domain), `OK` sem skips. B2 difere de A2 só nos 2 testes de fuse [FATO nos logs] |
+| Receipts A0–B8 | todos PASS; os 12 `result_sha256` conferem com os bytes dos `RESULT_*.json` [FATO] |
+| Microprobe corrigido `7A4F4A6C…` | PASS (release `D4BE49D6…`, Python `4942B86A…`) [FATO-DOC: receipt; stdout não incluído, só o hash] |
+| B6 (nó oficial) | `VSS_CAPABILITY=PASS`, contexto 25, provider Microsoft, volume `17470648062550843761` [FATO-DOC] |
+
+**Cadeia B6-1 → B6-2 → B6-3, coerente com a ordem de execução de `Win32Store.open`:**
+- **B6-1 (123):** o primeiro pseudo-ancestral aberto é `\\?\GLOBALROOT\`.
+- **B6-2 (87):** o *device root* sem barra abre o dispositivo de volume, não o diretório raiz.
+- **B6-3:** a consulta DOS falha porque o volume de shadow não tem nome DOS.
+- Cada delta corrige exatamente um sintoma [FATO-DOC + análise de código].
+
+---
+
+## 2. Avaliação dos três deltas (aprovados)
+
+| Delta | Correção | Efeito em caminhos comuns | Evidência |
+|---|---|---|---|
+| **Parent floor** (`vss_shadow_volume_root` + `protected_parent_is_real`) | Não fixa os pseudo-ancestrais do Object Manager (`\\?\GLOBALROOT\`, `…\Device`) e fixa o piso `…\HarddiskVolumeShadowCopyN` e os abaixo dele. O volume de shadow é imutável e a geração é vinculada por `generation_equal`/`assert_present`, então não há perda de proteção | Nenhum: `floor=None` → todos os pais continuam fixados | Testes unitários + B6 físico + minha emulação 3.14 |
+| **Root trailing slash** (`vss_directory_open_path`) | A barra final só é acrescentada em abertura de **diretório** cujo caminho normalizado é o piso. Sem a barra, `CreateFileW` devolve o dispositivo de volume | Nenhum (subdiretórios, arquivos e caminhos comuns inalterados) | idem |
+| **Final path NT** (`final_path_query_flags` + `comparable_final_path`) | Para shadow usa `VOLUME_NAME_NT=0x2` e compara com o caminho lógico sem o prefixo `\\?\GLOBALROOT`: mesmo dispositivo, mesmo caminho completo | Nenhum: flag 0 e a mesma comparação DOS de antes; só a mensagem de erro ganha `FLAGS`/`WINERROR` | idem |
+
+**Emulação independente** (Python 3.14, semântica `ntpath` de Windows, 33/33 casos) [FATO]. Confirmou:
+- piso correto, inclusive com caixa baixa e barra final;
+- `HarddiskVolume3`, `\\.\GLOBALROOT` e sufixos inválidos **não** são tratados como shadow;
+- pais efetivamente abertos: piso, `TICKSTORE`, `WIN@N`, mês;
+- comparação NT rejeita outro número de shadow, o volume vivo, outro arquivo e a forma DOS;
+- caminhos comuns inalterados.
+
+**`LOGICAL_PATH_IDENTITY_PRESERVED=YES` [FATO]:**
+- `info()["path"]` continua `norm(self.path)`, idêntico ao valor anterior para caminhos vivos;
+- certificados, inventários e `s0_inventory_gate` registram só caminhos relativos, sha e bytes, então nenhuma identidade absoluta de shadow entra em autoridade.
+
+**Observação menor (não bloqueante):**
+- a comparação NT passa por `abspath`, que prefixa o drive corrente nos dois lados;
+- é simétrica e segura porque o valor vem do kernel. Não requer mudança.
+- O teste `test_vss_final_path_uses_nt_volume_name…` só tem caso positivo; recomenda-se incluir os casos negativos acima na próxima revisão de testes.
+
+---
+
+## 3. B-01 — Bloqueador crítico: o núcleo congelado não lê arquivos no shadow
+
+### 3.1 Evidência
+
+- **Chamadas do engine ao núcleo com I/O de arquivo** [FATO], exatamente duas:
+  - `prep()` L1147 → `core.validate_validated_partial(...)`;
+  - `validate_pair()` L1168 → `core.validate_commit_without_manifest(...)`.
+- **Uso sobre shadow** [FATO]:
+  - `certify_scratch` (L1887) → `prep`;
+  - `certify_canonical` (L1889) → `validate_pair`;
+  - `audit_snapshot` (L1421), no SAFE_STOP e no FINAL → `validate_pair`.
+- **Caminho interno do núcleo** [FATO, código `D3A15572…`]:
+  - `read_json_strict` → `secure_read_all` → `secure_open_existing_fd` → `_windows_open_fd` → `_windows_validate_handle` → `_windows_final_handle_path`, que chama `GetFinalPathNameByHandleW(h,buf,size,0)` (L325), isto é, **VOLUME_NAME_DOS**;
+  - `sha256_file` e `secure_open_existing` usam o mesmo caminho;
+  - `strict_regular_file` → `assert_no_link_chain` faz `os.lstat` começando em `\\?\GLOBALROOT\`.
+- **Mecanização local** [FATO] do núcleo real embutido, com `kernel32` simulado reproduzindo o comportamento físico de B6-3:
+  - `read_json_strict` e `sha256_file` em caminho de shadow chamam `GetFinalPathNameByHandleW` com **flags=0**;
+  - o resultado é `Blocked: WIN_FINAL_PATH_FAIL:\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy5\…:winerror=3`;
+  - `strict_regular_file` tenta `lstat("\\?\GLOBALROOT\")` primeiro → `PATH_CHAIN_ROOT_QUERY_FAIL`.
+- **Evidência física análoga:** B6-3 provou que a consulta DOS falha para handles do dispositivo de shadow. Essa falha é por volume, não por tipo de handle [HIPÓTESE forte].
+
+### 3.2 Consequência (inevitável no Windows)
+
+| Nó | Efeito esperado |
+|---|---|
+| D4 / E3 `CERTIFY_SCRATCH` | falha no 1º dia (`WIN_FINAL_PATH_FAIL` no journal) |
+| D5 / E4 `CERTIFY_CANONICAL` | falha no 1º dia (commit) |
+| R1/R2 (canário) e SAFE_STOP de produção | `SAFE_STOP=NO` sempre, porque a auditoria falha |
+| FINAL | exceção → exit 2 + lock mantido; o FULL nunca fecha PASS, mesmo após publicar os 1399 dias |
+
+- Não há risco de integridade: todas as falhas ocorrem em leitura e antes de autoridade.
+- Porém o caminho até o FULL está bloqueado, e seguir para C1/D2 só consumiria cópia e snapshot para falhar em D4.
+
+### 3.3 Por que o núcleo não pode ser editado
+
+- `oracle_contract` exige `runner_sha256 == CORE_SHA` (proveniência RC1).
+- Alterar os bytes embutidos quebraria a proveniência de todos os oráculos.
+- A correção precisa ficar **no engine**, preservando `CORE_SHA`.
+
+### 3.4 Lacuna do meu parecer Stage A (registro de responsabilidade)
+
+- Defini o B6 como prova de capacidade (criar, abrir o shadow root, remover).
+- Não exigi exercitar o caminho de leitura de arquivos do núcleo sobre o shadow.
+- O **B6X** (seção 5) fecha essa lacuna e passa a integrar o DAG.
+
+---
+
+## 4. B-02 — Snapshots órfãos das tentativas B6-1/2/3
+
+- **Mecanismo:** `startup_probe` cria a geração e só a remove no fim, sem `try/finally` (L1722–1736) [FATO]. As três tentativas falharam dentro do laço de abertura, após `create()`.
+- **Resultado esperado:** ≥ 3 snapshots persistentes (contexto 25, `NO_AUTO_RELEASE`) em D: [HIPÓTESE forte por código].
+- **Evidência ausente:** o pacote não traz inventário de shadows nem reconcile desses efeitos SYS, embora os receipts de falha exigissem `reconcile_required`.
+- **Impacto:** consomem área de diferenças e vagas de snapshot. Não afetam a integridade de dados.
+
+---
+
+## 5. Caminho de correção (CODE_DELTA V005) — pré-definido para uma única revisão curta
+
+### 5.1 Alterações admitidas no engine (nada além disto)
+
+**REQ-S1 — `CORE_VSS_IO_ADAPTER`**
+- Instalado uma única vez em `frozen_core()`, logo após o `exec` do núcleo. Os bytes e o `CORE_SHA` do núcleo não mudam.
+- Substitui no namespace do núcleo **apenas** dois símbolos, guardando os objetos originais:
+  - **`_windows_final_handle_path(k32,h,path)`**
+    - se `vss_shadow_volume_root(path)` for `None` → delega ao original (idêntico);
+    - senão, consulta com `VOLUME_NAME_NT` (0x2), com o mesmo crescimento de buffer e `Blocked("WIN_FINAL_PATH_FAIL:…:FLAGS=0x2:WINERROR=n")`;
+    - exige que o resultado comece por `\Device\` + o componente de dispositivo do piso (sem distinção de caixa);
+    - devolve `"\\?\GLOBALROOT" + resultado_NT`, para que a comparação continue sendo a do próprio `_windows_validate_handle`.
+  - **`assert_no_link_chain(path, allow_missing_tail)`**
+    - se não for shadow → original;
+    - senão, inicia no piso: `lstat(piso + "\")` deve ser diretório sem link/reparse;
+    - em seguida, cada componente abaixo com a mesma semântica e as mesmas razões `Blocked` do original;
+    - os pseudo-ancestrais nunca são consultados.
+
+**REQ-S2 — limpeza do probe em falha.**
+- `startup_probe` remove a própria geração (por `snapshot_id`, `count==1`) quando qualquer passo após `create()` falhar.
+- O erro primário é propagado inalterado; uma falha de limpeza é anexada como nota.
+- O caminho de sucesso fica idêntico.
+
+**REQ-S3.** Os três deltas B6 V004 permanecem byte-idênticos. O release continua sendo o candidato com somente o fuse.
+
+### 5.2 Testes exigidos (IDs obrigatórios; fakes, independentes de plataforma)
+
+| ID | Verificação |
+|---|---|
+| T-V1 | Wrappers delegam aos objetos originais para caminhos vivos (resultado e exceções idênticos) |
+| T-V2 | Shadow: a consulta usa só flag 0x2 (nunca 0); o retorno na forma `\\?\GLOBALROOT…` é aceito por `_windows_validate_handle` |
+| T-V3 | Shadow com resultado NT de outro dispositivo/caminho → falha |
+| T-V4 | Falha da consulta NT → `WIN_FINAL_PATH_FAIL` com `FLAGS=0x2` e `WINERROR` |
+| T-V5 | Cadeia em shadow: pseudo-ancestrais nunca consultados; piso consultado com barra; reparse em qualquer componente rejeitado; `allow_missing_tail` idêntico |
+| T-V6 | `sha(CORE_B64)==CORE_SHA` e `sha(REFERENCE_B64)==REFERENCE_SHA` após a instalação; adaptador instalado exatamente uma vez |
+| T-V7 | Falha em `startup_probe` após `create` → `DeleteSnapshots` chamado 1× para aquele id; erro primário preservado |
+| T-V8 | `oracle_contract`/provenance inalterados (fixture) |
+
+### 5.3 Prova física B6X (pré-C1; efeito SYS; leitura somente sobre shadow de produção)
+
+1. Inventário de shadows de D: antes (somente leitura).
+2. Criar a geração (contexto 25).
+3. Aberturas do `startup_probe`.
+4. Ler o manifest no shadow → SHA = `D67ED204…` (= B4).
+5. `validate_pair` no shadow para ≥ 3 dias C0 (menor, mediano, maior) → sha/bytes = B4.
+6. `prep` no shadow para o maior dia S0 (`20210304`, 15.017.474 B).
+7. `scan_s0` completo no shadow → 1399/1399 (conjunto relativo = B4).
+8. `store.inventory` no DEST do shadow → 303 arquivos = B4.
+9. `finally`: remover a geração → `count==1` → `0x80042308`.
+10. Inventário de shadows depois.
+
+- **PASS** exige todos os passos.
+- O harness deve remover a própria geração em `finally`, mesmo em falha.
+- Custo estimado: poucos minutos (≈ 9,7 GB de hash a ≥ 387 MB/s + 4 decodificações).
+- *Opcional:* rodar o B6X uma vez com o release atual (`D4BE49D6…`). Resultado esperado: FAIL em `WIN_FINAL_PATH_FAIL`, como prova física negativa de B-01.
+
+### 5.4 Reconcile de B-02 (antes de D1; sem código de engine)
+
+- Enumerar os shadows de D: (somente leitura) e registrar as propriedades.
+- Classificar os órfãos pelas janelas de tempo das tentativas B6-1/2/3.
+- A remoção só ocorre com autorização explícita do owner. A retenção é aceitável se o gate de headroom VSS do D1 passar.
+
+### 5.5 Formato obrigatório da próxima revisão (curta, restrita a 5.1–5.4)
+
+```text
+B6_CODE_DELTA_REVIEW_V005
+VERDICT=<PASS|BLOCKED>
+BASE_B6_V004_RELEASE_SHA256=D4BE49D670D29C7B7B24F4E15EB676959C6EF2B7D683CCD74F3E1C8AAACF5702
+DELTA_CANDIDATE_SHA256=<64 HEX>
+DELTA_RELEASE_SHA256=<64 HEX>
+CANDIDATE_TEST_COUNT=<n>
+RELEASE_TEST_COUNT=<n>
+CORE_SHA256_UNCHANGED=<YES|NO>
+CORE_VSS_IO_ADAPTER_APPROVED=<YES|NO>
+STARTUP_PROBE_CLEANUP_APPROVED=<YES|NO>
+B6X_SHADOW_READ_PATH=<PASS|FAIL>
+ORPHAN_SNAPSHOTS_RECONCILED=<YES|NO>
+LIVE_PATH_BEHAVIOR_IDENTICAL=<YES|NO>
+RELEASE_FUSE_ONLY_FROM_CANDIDATE=<YES|NO>
+BLOCKERS=<NONE|lista>
+```
+
+**Pacote mínimo:**
+- base, candidato e release;
+- diff candidato V004 → V005;
+- testes de candidato e de release;
+- logs A2/B2;
+- receipts A0–B8;
+- resultado B6X com stdout/stderr (não só o hash);
+- inventários de shadows antes e depois.
+
+**Alternativa aceitável ao adaptador:** expor o snapshot com um caminho DOS (`ExposeSnapshot`). Exige a mesma prova B6X e o mesmo formato de revisão. Não é a recomendação, por ter mais partes móveis (letra de unidade, ciclo expor/ocultar).
+
+---
+
+## 6. Observações do pacote (não bloqueiam; registradas para os próximos gates)
+
+- **B7 PASS** [FATO aritmética]:
+  - 7.049.522.162 / 186.575,65 linhas/s = **10,50 h por passe serial** (≤ 12 h);
+  - FULL projetado em 41,98 h (≤ 72 h);
+  - o dia calibrado (15.017.474 B) é o **maior partial** do S0; todos os 1399 caem na classe B0 (máximo 15,0 MB) [FATO sobre B4].
+- **B8 = `UNSTABLE`** [FATO-DOC]: `EndOfFile` do diretório passou de 0 para 1.835.008 B.
+  - Confirma a hipótese H12 do parecer Stage A.
+  - O resume exige `DIRBIND_REANCHOR`: pré-autorizado para o canário; na produção, depende do selo `DIRBIND_REANCHOR_PRODUCTION_ALLOWED=YES` na Stage B.
+- **Espaço:** D: livre = 139,7 GB [FATO-DOC B4].
+  - Tamanhos: S0 partials = 8,85 GB; DEST = 0,89 GB.
+  - Suficiente para o canário integral retido + FULL.
+- **Scratch de produção:** 1399 journals + 1399 partials + 3 `COORDINATOR_STATE.json` fora da gramática S0, sem efeito sobre `scan_s0` [FATO sobre B4].

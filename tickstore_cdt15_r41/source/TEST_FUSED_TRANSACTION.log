@@ -1,0 +1,23 @@
+test01_one_shot_commit (test_fused_sandbox_writer.FusedSandboxWriterTests.test01_one_shot_commit) ... ok
+test02_second_call_fail_closed_no_replacement (test_fused_sandbox_writer.FusedSandboxWriterTests.test02_second_call_fail_closed_no_replacement) ... ok
+test03_lock_held_across_stage_and_begin (test_fused_sandbox_writer.FusedSandboxWriterTests.test03_lock_held_across_stage_and_begin) ... ok
+test04_staging_drift_blocks_before_transaction (test_fused_sandbox_writer.FusedSandboxWriterTests.test04_staging_drift_blocks_before_transaction) ... ok
+test05_wrong_package_pin_blocks (test_fused_sandbox_writer.FusedSandboxWriterTests.test05_wrong_package_pin_blocks) ... ok
+test06_wrong_witness_pin_blocks (test_fused_sandbox_writer.FusedSandboxWriterTests.test06_wrong_witness_pin_blocks) ... ok
+test07_wrong_sandbox_name_blocks (test_fused_sandbox_writer.FusedSandboxWriterTests.test07_wrong_sandbox_name_blocks) ... ok
+test08_existing_active_preserved_as_input_and_commits (test_fused_sandbox_writer.FusedSandboxWriterTests.test08_existing_active_preserved_as_input_and_commits) ... ok
+test09_corrupt_staged_candidate_blocks_second_run (test_fused_sandbox_writer.FusedSandboxWriterTests.test09_corrupt_staged_candidate_blocks_second_run) ... ok
+test10_intent_marked_authorized_blocks (test_fused_sandbox_writer.FusedSandboxWriterTests.test10_intent_marked_authorized_blocks) ... ok
+test11_new_menu_corruption_blocks (test_fused_sandbox_writer.FusedSandboxWriterTests.test11_new_menu_corruption_blocks) ... ok
+test12_crash_after_prepared_needs_explicit_reconcile (test_fused_sandbox_writer.FusedSandboxWriterTests.test12_crash_after_prepared_needs_explicit_reconcile) ... ok
+test13_crash_after_menu_write_recovers (test_fused_sandbox_writer.FusedSandboxWriterTests.test13_crash_after_menu_write_recovers) ... ok
+test14_crash_after_active_write_recovers (test_fused_sandbox_writer.FusedSandboxWriterTests.test14_crash_after_active_write_recovers) ... ok
+test15_crash_after_active_published_recovers (test_fused_sandbox_writer.FusedSandboxWriterTests.test15_crash_after_active_published_recovers) ... ok
+test16_lock_file_is_not_unlinked (test_fused_sandbox_writer.FusedSandboxWriterTests.test16_lock_file_is_not_unlinked) ... ok
+test17_reconcile_idempotent_after_recovery (test_fused_sandbox_writer.FusedSandboxWriterTests.test17_reconcile_idempotent_after_recovery) ... ok
+test18_no_official_entrypoint_or_arbitrary_target (test_fused_sandbox_writer.FusedSandboxWriterTests.test18_no_official_entrypoint_or_arbitrary_target) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 1.388s
+
+OK

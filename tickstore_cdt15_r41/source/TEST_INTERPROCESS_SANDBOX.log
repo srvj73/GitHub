@@ -1,0 +1,22 @@
+test01_lock_stage_then_begin (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test01_lock_stage_then_begin) ... ok
+test02_second_begin_blocks_without_overwrite (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test02_second_begin_blocks_without_overwrite) ... ok
+test03_interprocess_crash_after_prepared (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test03_interprocess_crash_after_prepared) ... ok
+test04_interprocess_crash_after_menu_write (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test04_interprocess_crash_after_menu_write) ... ok
+test05_interprocess_crash_after_active_write (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test05_interprocess_crash_after_active_write) ... ok
+test06_interprocess_crash_after_active_published (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test06_interprocess_crash_after_active_published) ... ok
+test07_interprocess_contender_blocked (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test07_interprocess_contender_blocked) ... ok
+test08_corrupted_lock_rejected_without_change (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test08_corrupted_lock_rejected_without_change) ... ok
+test09_hardlink_lock_rejected (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test09_hardlink_lock_rejected) ... ok
+test10_symlink_lock_or_os_denial (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test10_symlink_lock_or_os_denial) ... ok
+test11_wrong_sandbox_name_rejected (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test11_wrong_sandbox_name_rejected) ... ok
+test12_mutation_of_old_menu_after_staging_blocked (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test12_mutation_of_old_menu_after_staging_blocked) ... ok
+test13_reacquire_from_independent_process (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test13_reacquire_from_independent_process) ... ok
+test14_existing_active_restored_after_child_crash (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test14_existing_active_restored_after_child_crash) ... ok
+test15_repeat_reconcile_idempotent_after_exit (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test15_repeat_reconcile_idempotent_after_exit) ... ok
+test16_never_remove_lock_file (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test16_never_remove_lock_file) ... ok
+test17_no_generic_effectful_cli (test_menu_tx_interprocess.CoordinatorInterprocessDelta.test17_no_generic_effectful_cli) ... ok
+
+----------------------------------------------------------------------
+Ran 17 tests in 10.173s
+
+OK

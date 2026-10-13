@@ -1,0 +1,210 @@
+```text
+CP2_SAFE_STOP_DELTA_REVIEW_V001
+VERDICT=BLOCKED
+BASE_CANDIDATE_SHA256=C1BA773B356FFE32CDD25996DD35FE5D097127270134A1A0D92A28CC9B72A63D
+DELTA_CANDIDATE_SHA256=9D8D4B9C4649C0B7BEBE3D52D88E8444D6DAC2F14F4B13281E7262579A16FBE3
+DELTA_RELEASE_SHA256=5BBBF63E5125E0782BB141D1777EC52C9D93C8DD87F741C04468547EDF218214
+DOMAIN_TEST_SHA256=893E6FE6FFB2201C47D49DEEE45F94DA535E0903FDD494D19FEEEE5E67D9B979
+NATIVE_TEST_SHA256=228BB2449EF3F1AACDDE93EA620905BBCC331163E546A310D9DA1457D41EE424
+PRECANARY_TEST_SHA256=2E80DBD15C74469E18B8514C65BD9C31D06CF17393031113C0265202C64FF651
+PHYSICAL_TEST_COUNT=72
+NAMED_EVENT_SAFE_STOP_APPROVED=NO
+CREATE_NO_WINDOW_CONSOLE_CTRL_CONTRADICTION_ACCEPTED=YES
+BLOCKERS=B-01 regex de SAFE_STOP_EVENT_PATTERN (L41) exige DUAS barras invertidas e rejeita todo nome Win32 valido "Global\TICKSTORE_V004R1_STOP_<32HEX>" gerado pelo orquestrador -> toda admissao RECOVER falha com SAFE_STOP_EVENT_NAME_INVALID e o teste novo test_safe_stop_named_event_contract falha; B-02 fixture RECOVER do teste precanary (hash inalterado 2E80DBD1) nao inclui safe_stop_event_name -> test_authorization_dag_rejects_cycles_and_production_code_drift falha deterministicamente; B-03 nao ha evidencia fisica de execucao 72/72 (BUILD_AUDIT registra somente a contagem) e B-01/B-02 tornam 72/72 impossivel com estes bytes
+```
+
+# CP2 — Revisão delta SAFE_STOP por evento Win32 nomeado — V001
+
+- Revisor: Claude Opus 5.5. Data: 27/09/2026.
+- Escopo: exclusivamente os 7 itens do prompt CP2. Nenhum outro ponto do orquestrador foi auditado.
+- Pacote revisado: `TICKSTORE_V004R1_ORCHESTRATOR_V001_20260927.zip`
+  - SHA `295896DF922C4E7D52E4FBDEFF5D00C11CCC9FE19A2326CAF559BCFC7916560D`;
+  - manifesto interno conferido nos arquivos do escopo.
+
+**Legenda:**
+- [FATO]: verificado nos bytes, por execução ou por aritmética;
+- [FATO-DOC]: documentação do sistema operacional, não testada aqui;
+- [HIPÓTESE]: depende de prova física no Windows alvo.
+
+**Semântica do veredito:**
+- **BLOCKED vale para os bytes submetidos** (`9D8D4B9C…` / `5BBBF63E…`).
+- **O desenho por evento nomeado está correto e aprovado.** O defeito que bloqueia é de transcrição, em uma única linha.
+- Para não gerar nova parada, a seção 5 **pré-sela** a correção exata. Com os hashes calculados por mim, ela dispensa nova revisão externa se as condições mecânicas forem cumpridas.
+
+---
+
+## 1. Integridade e minimalidade do delta (itens 1 e 2)
+
+| Verificação | Resultado |
+|---|---|
+| Hashes do prompt = bytes físicos do ZIP (candidate, release, 3 testes) | PASS [FATO] |
+| Base `C1BA773B…` = candidato `17` do handoff anterior | PASS [FATO] |
+| Diff base → delta | Somente SAFE_STOP [FATO]: +1 constante (L41), +função `safe_stop_event_name` (L98–101), +classe `NamedStopEvent` (L104–146), +2 linhas em `Recovery.run` (L1403–1404), +1 linha no `finally` (L1446), +1 linha em `admit_bundle` (L1716) |
+| Diff delta candidate → delta release | Somente L30 `IMPLEMENTATION_READY False→True`; a derivação reproduz `5BBBF63E…` [FATO] |
+| Drift fora de SAFE_STOP + fuse | Nenhum [FATO] |
+| Contract ID | `INLINE_ROOT_LOADER_V004_R1` preservado (L1684 do release); zero ocorrência de `R1R1` no engine [FATO] |
+| Contagem física de testes | 26 domain + 21 precanary + 25 native = **72** [FATO] |
+| Canal `SIGINT` | Preservado e inofensivo. O STOP-HELPER (`AttachConsole`/`GenerateConsoleCtrlEvent`) sai do desenho |
+
+**Item 1 — substituição da emenda A-STOP.**
+- A troca é **metodologicamente superior**:
+  - o canal deixa de depender da semântica de console sob `CREATE_NO_WINDOW`;
+  - deixa de depender da herança do atributo "ignorar Ctrl+C";
+  - deixa de depender do comportamento de `AttachConsole`;
+  - passa a ser testável sem console.
+- A documentação da Microsoft para `CREATE_NO_WINDOW` diz que "the console handle for the application is not set" [FATO-DOC]. Isso torna a entrega por `CTRL_C_EVENT` no mínimo ambígua.
+- Aceito como fundamento suficiente para o `CODE_DELTA_PATH` preventivo, **não** como prova de que `AttachConsole` falharia. Daí `CREATE_NO_WINDOW_CONSOLE_CTRL_CONTRADICTION_ACCEPTED=YES`.
+
+---
+
+## 2. Bloqueadores
+
+### B-01 — Regex exige duas barras invertidas (CRÍTICO) [FATO, reproduzido]
+
+- A L41 é `re.compile(r"^Global\\\\TICKSTORE_V004R1_STOP_[0-9A-F]{32}$")`.
+  - Em string *raw*, `\\\\` chega ao motor de regex como dois escapes, ou seja, **duas** barras literais.
+- O nome correto de objeto Win32, que o próprio orquestrador gera (`r"Global\TICKSTORE_V004R1_STOP_"+uuid…`, `orchestrator.py` L150/L201), tem **uma** barra.
+- Reprodução:
+  - `safe_stop_event_name("Global\TICKSTORE_V004R1_STOP_"+"A"*32)` → `Blocked: SAFE_STOP_EVENT_NAME_INVALID`;
+  - a forma com duas barras é aceita.
+- Nomes de objetos do kernel não admitem `\` após o prefixo `Global\`, portanto a forma aceita é inválida no Windows [FATO-DOC].
+- **Causa-raiz:** transcrição do padrão JSON do config (`"^Global\\\\TICKSTORE…"`, que em JSON significa **uma** barra no regex e está correto) para uma string *raw* Python sem remover o escape JSON.
+- **Efeito:** toda admissão RECOVER, canário ou produção, bloqueia antes de qualquer efeito. SAFE_STOP e FULL ficam impossíveis. O teste novo `test_safe_stop_named_event_contract` falha em qualquer plataforma.
+
+### B-02 — Teste precanary não atualizado (CRÍTICO) [FATO, reproduzido]
+
+- `test_authorization_dag_rejects_cycles_and_production_code_drift` constrói um gate RECOVER sem `safe_stop_event_name`.
+- Com a nova exigência em `admit_bundle`, o teste falha em `SAFE_STOP_EVENT_NAME_INVALID` em qualquer plataforma.
+- O `PRECANARY_TEST_SHA256` declarado (`2E80DBD1…`) é o antigo. Sem alterar esse arquivo, o total de 72 não pode passar.
+
+### B-03 — Ausência de evidência física de execução (MAJOR, bloqueante por consequência) [FATO]
+
+- `BUILD_AUDIT.json` registra `"tests": 72` e `python_ast_parse: PASS`, mas nenhum resultado de execução.
+- Execução de controle em Linux (Python 3.11, apenas para testes independentes de plataforma):
+  - a base `C1BA773B` tem 25 erros, todos de plataforma ou fixture (24 native Windows + `test_all_14…` sem `baseline/`);
+  - o delta tem **27**, e os 2 adicionais são exatamente B-01 e B-02.
+- Com a correção da seção 5, o delta volta a **paridade exata com a base** (25 erros idênticos, 12 skips idênticos) [FATO].
+- A prova 72/72 continua exigindo execução no Windows alvo (3.14.7).
+
+---
+
+## 3. Avaliação dos itens 3 a 7
+
+| Item | Avaliação | Rótulo |
+|---|---|---|
+| 3a. `OpenEventW(SYNCHRONIZE=0x00100000, FALSE, name)` | Direito mínimo correto para espera; sem herança (`bInheritHandle=FALSE`) | [FATO] |
+| 3b. `WaitForSingleObject(h, 250)` em thread daemon | Correto. `WAIT_OBJECT_0` → `stop_requested=True` (mesmo efeito do handler `SIGINT`). O `PrepSupervisor` o consulta a cada 1 s e o laço de publicação entre dias | [FATO] |
+| 3c. Semântica manual-reset | **Vantagem:** um pedido feito antes de `run()` (admissão, ledger, VSS) permanece sinalizado e é honrado na partida, o que o `SIGINT` não garantia | [FATO] |
+| 3d. Lifetime (engine) | Handle aberto em `run()` antes do lock e fechado no `finally` (join ≤ 1 s → `CloseHandle`). O objeto sobrevive à morte do orquestrador, pois o engine mantém o handle, e `stop` reabre por nome (`0x00100002`) | [FATO] |
+| 3e. Lifetime (orquestrador) | Cria o evento não sinalizado antes do lançamento e mantém o handle até a saída do engine (D9, G3) | [FATO]; falta a checagem de pré-existência (R-02) |
+| 4. `safe_stop_event_name` obrigatório em RECOVER | Validado em `admit_bundle` (L1716) só no modo RECOVER. Os demais modos não o exigem, o que é correto, pois não executam `run()`. Revalidado no `NamedStopEvent` | Desenho correto; implementação bloqueada por B-01 |
+| 5. Evento ausente bloqueia antes do writer lock | `NamedStopEvent(...)` precede `self.acquire()` (L1403–1405) → `SAFE_STOP_EVENT_NOT_FOUND` sem lock. Classificação Stage A: PRE_EFFECT_FAIL. Nome inválido bloqueia ainda antes, na admissão | [FATO] |
+| 6. Compatibilidade com `CREATE_NO_WINDOW` e Job | Objetos nomeados do kernel independem de console. O Job do loader define apenas `KILL_ON_JOB_CLOSE` (classe 9, flag `0x2000`; sem UI restrictions) [FATO]. `Global\` exige `SeCreateGlobalPrivilege` do **criador**, presente em token de administrador elevado [FATO-DOC]. O engine elevado obtém `SYNCHRONIZE` sob o DACL padrão e o rótulo High IL [HIPÓTESE forte]. Workers PREP não herdam o handle (`handle_list`/`close_fds=True`) [FATO] | Aprovado; prova real = canário R1 |
+| 7. Testes novos | (a) `test_safe_stop_named_event_contract` **falha** (B-01). (b) `test_recover_gate_requires_named_safe_stop_event` é inspeção de código-fonte (tautológico) e não prova comportamento. Não há teste de: rejeição por campo ausente, bloqueio antes do lock, sinal → parada, falha de espera, fechamento | Insuficiente → R-01 |
+
+---
+
+## 4. Requisitos e residuais
+
+### Obrigatórios (condição da pré-selagem da seção 5)
+
+**R-01 — Testes comportamentais**, com fakes de `kernel32` (independentes de plataforma), adicionados aos arquivos existentes:
+
+| ID | Cenário | Resultado esperado |
+|---|---|---|
+| T-E1 | Admissão RECOVER sem o campo | `SAFE_STOP_EVENT_NAME_INVALID` |
+| T-E1 | Admissão RECOVER com nome válido | aceita |
+| T-E1 | Modos não-RECOVER sem o campo | aceitos |
+| T-E2 | `run()` com `OpenEventW` → NULL | `SAFE_STOP_EVENT_NOT_FOUND` e `acquire` **nunca** chamado (patch que falha se chamado) |
+| T-E3 | Espera retorna `WAIT_OBJECT_0` | `stop_requested=True` em ≤ 1 s |
+| T-E4 | `close()` | idempotente; `CloseHandle` exatamente uma vez; thread encerrada |
+| T-E5 | Vetores de regex | aceita exatamente `Global\` + `TICKSTORE_V004R1_STOP_` + 32 HEX maiúsculos; rejeita: duas barras, `Local\`, minúsculas, 31/33 caracteres, `\n` final, vazio, não-string |
+| T-E6 | Fixture do teste precanary | contém `safe_stop_event_name`, mais uma asserção negativa sem ele |
+
+**R-02 — Orquestrador: evento sem pré-existência.**
+- Após `CreateEventW`, se `GetLastError()==183` (`ERROR_ALREADY_EXISTS`) → BLOCKED `SAFE_STOP_EVENT_PREEXISTS`.
+- Na produção o nome é fixo entre resumes. Um objeto remanescente ou de terceiro, já sinalizado, provocaria parada imediata em laço (seguro, mas inoperante).
+
+**R-03 — Orquestrador: ingestão estrita desta revisão.**
+- Problema: `cp2()` hoje procura substrings no arquivo inteiro. Uma revisão BLOCKED que cite o texto de aprovação em qualquer ponto seria aceita.
+- Exigência: fazer o parse somente do primeiro bloco cercado, linha a linha em `CHAVE=VALOR`, com igualdade exata e hashes iguais aos locais, e aceitar apenas pelas regras da seção 5.3.
+- Enquanto R-03 não existir, esta revisão foi redigida de modo a **não** satisfazer o teste por substring atual. O orquestrador atual permanece bloqueado, que é o comportamento correto.
+
+### Residuais aceitos (não reabrem o engine)
+
+| ID | Residual | Mitigação |
+|---|---|---|
+| m-01 | Retorno inesperado de `WaitForSingleObject` (ex.: `WAIT_FAILED`) mata a thread watcher com traceback no stderr: canal de parada perdido, sem efeito de integridade | O orquestrador monitora o stderr do engine; ao detectar `Exception in thread tickstore-safe-stop-event`, emite WARN e informa que a parada cooperativa está indisponível. Tornar a falha fail-safe (tratar como pedido de parada) só se houver outra alteração de engine no futuro |
+| m-02 | O watcher é criado fora do `try`: se `acquire()` falhar, `close()` não roda | O processo termina em seguida (exit 2) e o SO fecha o handle |
+| m-03 | `SAFE_STOP_EVENT_NOT_FOUND` não inclui `GetLastError` (não encontrado vs. acesso negado) | Apenas diagnóstico; o orquestrador registra o próprio `GetLastError` ao criar |
+| m-04 | O probe B5 prova o evento com `CREATE_NO_WINDOW`, mas fora do loader/Job | Aceito: o canário R1 prova pela cadeia real, sem risco à produção |
+| m-05 | `stop` de console **não** elevado falha (objeto criado em High IL) | Operacional: `stop` sempre de PS 5.1 elevado (o README já indica) |
+
+---
+
+## 5. Correção pré-selada CP2R1 (evita nova revisão externa)
+
+### 5.1 Correção exata
+
+- Única alteração admitida no engine: substituir a L41 do candidato `9D8D4B9C…` por
+  `SAFE_STOP_EVENT_PATTERN = re.compile(r"^Global\\TICKSTORE_V004R1_STOP_[0-9A-F]{32}$")`
+- Nenhum outro byte do engine muda. O release deriva só pelo fuse da L30.
+
+### 5.2 Hashes calculados por mim a partir dos bytes do pacote [FATO]
+
+```text
+CP2R1_PRESEALED_CORRECTION_V001
+BASIS=CP2_SAFE_STOP_DELTA_REVIEW_V001(BLOCKED_ON_9D8D4B9C)
+CORRECTION=ENGINE_LINE_41_ONLY_SINGLE_BACKSLASH_REGEX
+CORRECTED_CANDIDATE_SHA256=0A4147134C64C18EF296825A9DCADCE1F54421D3CB3D7647789EE8D608FC427C
+CORRECTED_CANDIDATE_BYTES=314860
+CORRECTED_RELEASE_SHA256=178A588E88C03721F8146C19C571698CC69B907BA0A31BEFF869798257321276
+CORRECTED_RELEASE_BYTES=314859
+RELEASE_DERIVATION=CORRECTED_CANDIDATE_WITH_ONLY_LINE_30_IMPLEMENTATION_READY_FALSE_TO_TRUE
+NAMED_EVENT_DESIGN=APPROVED
+CORRECTED_ENGINE_APPROVAL=GRANTED_IFF_EXACT_HASH_EQUALITY
+ANY_OTHER_ENGINE_BYTE_CHANGE=REQUIRES_NEW_CP2_EXTERNAL_REVIEW
+TEST_FILES=NOT_PRESEALED(EVIDENCE_ONLY;REVIEWED_AT_STAGE_B)
+ACCEPTANCE_CONDITIONS=ENGINE_HASHES_EQUAL;R-01_TESTS_PRESENT_BY_ID;ALL_TESTS_PASS_ON_WINDOWS_PY_3.14.7_FROM_INSTALLED_PATHS(A2)_AND_RELEASE(B2);ZERO_UNEXPECTED_SKIPS;R-02_IMPLEMENTED;R-03_IMPLEMENTED
+NEW_EXTERNAL_REVIEW_REQUIRED_FOR_CP2R1=NO
+STAGE_A_RELEASE_SOURCE_SHA256_SUPERSEDED_BY=178A588E88C03721F8146C19C571698CC69B907BA0A31BEFF869798257321276
+STAGE_A_A_STOP_AMENDMENT_SUPERSEDED_BY=A-STOP-EVENT(NAMED_MANUAL_RESET_EVENT;STOP_HELPER_REMOVED)
+RECOVER_GATE_RULE_ADDITION=safe_stop_event_name_MANDATORY;CANARY_UNIQUE_PER_BUNDLE;PRODUCTION_FIXED_AT_E8_AND_SEALED_AT_STAGE_B
+```
+
+### 5.3 Regra de aceitação no orquestrador (R-03)
+
+O CP2 é considerado satisfeito **somente** se **todas** as condições abaixo forem verdadeiras:
+
+1. O arquivo do inbox contém este bloco principal com `VERDICT=BLOCKED` e `DELTA_CANDIDATE_SHA256=9D8D4B9C…`.
+2. O bloco `CP2R1_PRESEALED_CORRECTION_V001` está presente e a igualdade é exata:
+   - `CORRECTED_CANDIDATE_SHA256` = SHA local do candidato instalado;
+   - `CORRECTED_RELEASE_SHA256` = SHA local do release.
+3. Os receipts A2 e B2 são PASS, com os IDs T-E1…T-E6 presentes e zero skip inesperado.
+4. O orquestrador em execução implementa R-02 e R-03.
+
+Qualquer divergência → BLOCKED. Não se aceita busca por substring.
+
+### 5.4 Validação local da correção [FATO]
+
+- Com a L41 corrigida e a fixture precanary acrescida do campo:
+  - `test_safe_stop_named_event_contract` → ok;
+  - `test_recover_gate_requires_named_safe_stop_event` → ok;
+  - `test_authorization_dag_rejects_cycles_and_production_code_drift` → ok.
+- Vetores de regex: forma com uma barra aceita; forma com duas barras, `\n` final e 33 caracteres rejeitadas.
+- Paridade com a base nos testes independentes de plataforma.
+
+---
+
+## 6. Observações incidentais fora do escopo CP2 (não auditadas; não afetam este veredito)
+
+Registradas para a Stage B, porque divergem do blueprint end-to-end:
+
+- `n_d10` grava um perfil fixo (7200 s por classe) em vez da calibração da seção 8.8.
+- `n_d9` limpa o stale lock do canário sem conferir `run_id`/`pid`/creation time contra o processo morto.
+- `n_g3` classifica `SAFE_STOP=YES` como `BLOCKED` (exit 2) em vez de 130.
+- `n_g5`, `n_g6` e `n_h3` são stubs.
+- `pack()` gera ZIP não determinístico (DEFLATED com timestamps do sistema de arquivos).
+- `n_a3` verifica a presença de texto (`NamedStopEvent`) em vez de hash.
+
+A Stage B deve tratá-los como achados de implementação do orquestrador.

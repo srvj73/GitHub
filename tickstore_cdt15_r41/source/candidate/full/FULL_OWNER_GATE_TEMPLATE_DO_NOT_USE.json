@@ -1,0 +1,16 @@
+{
+  "authorized": false,
+  "dest_root": null,
+  "dest_volume": null,
+  "full_plan_sha256": "54CAAEB6D0C54E5509254C1C3CE45290A3FBBFE1E685111512531F482A05900C",
+  "full_spec_sha256": null,
+  "gate_b_certificate_sha256": "7D142D73D740986FA62219DE6CA0C9BD0AF347A9186D58AC1C8DFB35EFB5DFF7",
+  "ledger_sha256": "27FF5A0FE47F3DDC5FD63F6371CCF0EDA8124E0E5D504A8F0756A4DF0DB9C3CA",
+  "reference_sha256": "74EE141B014DE7A9F9C401C2B3C5AF6BF72E5D7D80F49E67F9D9032338480165",
+  "runner_sha256": null,
+  "schema": "TICKSTORE_FULL_OWNER_GATE_V001",
+  "scratch_root": null,
+  "scratch_volume": null,
+  "source_root": null,
+  "source_volume": null
+}

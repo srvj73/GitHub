@@ -1,0 +1,21 @@
+test01_end_to_end_new_deployment_committed (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test01_end_to_end_new_deployment_committed) ... ok
+test02_end_to_end_existing_active (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test02_end_to_end_existing_active) ... ok
+test03_prepared_not_admitted_and_recovered (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test03_prepared_not_admitted_and_recovered) ... ok
+test04_menu_written_not_admitted_and_recovered (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test04_menu_written_not_admitted_and_recovered) ... ok
+test05_active_written_not_admitted_and_recovered (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test05_active_written_not_admitted_and_recovered) ... ok
+test06_committed_menu_tamper_not_admitted (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test06_committed_menu_tamper_not_admitted) ... ok
+test07_committed_deployment_tamper_not_admitted (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test07_committed_deployment_tamper_not_admitted) ... ok
+test08_invalid_inert_effect_flag_blocks_before_staging (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test08_invalid_inert_effect_flag_blocks_before_staging) ... ok
+test09_wrong_trusted_witness_blocks (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test09_wrong_trusted_witness_blocks) ... ok
+test10_wrong_old_official_menu_pin_blocks (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test10_wrong_old_official_menu_pin_blocks) ... ok
+test11_old_active_unexpected_blocks (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test11_old_active_unexpected_blocks) ... ok
+test12_installed_menu_drift_blocks (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test12_installed_menu_drift_blocks) ... ok
+test13_duplicate_stage_fails_closed (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test13_duplicate_stage_fails_closed) ... ok
+test14_wrong_sandbox_name_fails (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test14_wrong_sandbox_name_fails) ... ok
+test15_malformed_staged_authority_fails_before_commit (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test15_malformed_staged_authority_fails_before_commit) ... ok
+test16_source_only_no_official_publisher (test_intent_to_transaction_sandbox.IntentProducerConsumerNewDelta.test16_source_only_no_official_publisher) ... ok
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.152s
+
+OK
