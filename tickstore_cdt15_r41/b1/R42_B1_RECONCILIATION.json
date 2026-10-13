@@ -1,0 +1,1334 @@
+{
+ "schema": "TICKSTORE_CDT15_R42_B1_RECONCILIATION_V001",
+ "role": "ENGINEER_ONLY",
+ "count_reconciliation": {
+  "contract_required_ids": 126,
+  "distinct": 126,
+  "previously_reported": 125,
+  "cause": "Engineering reporting error: 125 was written in R41_BLOCKER_LEDGER without computing it from the file. No ID was omitted, filtered or waived. Physical contract (SHA-256 9AF1C840...F944, identical bytes in R40 baseline) has 126 distinct IDs.",
+  "harness_selection": {
+   "portable": 106,
+   "native_only": 20,
+   "total": 126,
+   "equals_contract_set": true
+  }
+ },
+ "origin_inputs_verified": {
+  "zip_sha256": "88CB1D59D1BACAB7D28FCED157BA23932360B624D852748CF37203C5AA469662",
+  "manifest_members_ok": 13,
+  "v38_result_sha256": "DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8",
+  "r3_runtime_sha256": "2379512BD32CA751E0636EA4186F097035542F851CC51019817DDB5FFC4480E4"
+ },
+ "material_change_justifying_rerun": {
+  "R3_to_R40_changed": [
+   "control/FULL_LIFECYCLE.py",
+   "control/FULL_STAGE_CONTINUATION.py",
+   "control/INSTALL_TICKSTORE_FULL.ps1",
+   "menu/MENU.py"
+  ],
+  "R40_to_R42_changed": [
+   "control/FULL_RUNNER.py",
+   "control/INSTALL_TICKSTORE_FULL.ps1",
+   "control/RUN_TICKSTORE_FULL.ps1",
+   "full/FULL_OBSERVABILITY.py",
+   "full/static_multiwork_preaudit.py",
+   "full/test_full_multiwork.py",
+   "full/tickstore_full_multiwork.py"
+  ],
+  "R40_to_R42_added": [
+   "control/MENU_OFFICIAL_WRITER.py"
+  ],
+  "consequence": "The 126 IDs were never executed on R40 or current bytes; historical PASS is not inherited."
+ },
+ "diagnostic_runs_linux_not_evidence": {
+  "r3_bytes_portable": "106/106 PASS",
+  "r40_bytes_portable": "102 PASS, 1 FAIL, 3 ERROR",
+  "current_bytes_portable": "102 PASS, 1 FAIL, 3 ERROR (same 4 IDs as R40)",
+  "current_bytes_with_proposed_patch": "106/106 PASS",
+  "r3_bytes_with_proposed_patch": "106/106 PASS"
+ },
+ "blocker": {
+  "id": "R42-B1A",
+  "status": "STOP_AWAITING_ORIGIN_DECISION",
+  "ids": [
+   "tests_full_lifecycle.FullLifecycle.test_close_cannot_mutate_state",
+   "tests_full_lifecycle.FullLifecycle.test_full_requires_h6_and_final_receipt",
+   "tests_full_lifecycle.FullLifecycle.test_h2_counts_mismatch_blocks_h3",
+   "tests_full_lifecycle.FullLifecycle.test_post_h6_closure_retry_does_not_rerun_full"
+  ],
+  "root_cause": "R40 deliberately hardened FULL_LIFECYCLE.verify_postfull (exact certified counts days=1550, rows=7049522162, namespace=3101; independent verifier schema POSTFULL_INDEPENDENT_VERIFIER_V001; namespace_files and manifest equality). The R3 fixture in tests_full_lifecycle.py supplies days=3, rows=9 without those fields, so every H3 path now stops at FULL_POSTVERIFY_NOT_PASS. Product did not regress; the historical fixture predates the hardened contract.",
+  "introduced_by": "R3->R40 change (pre-existing in baseline 26F783A0), not by R41/R42",
+  "proposed_minimal_correction": {
+   "file": "b1/PROPOSED_R42_B1A_tests_full_lifecycle.patch",
+   "scope": "test fixture only; no product change; same 18 IDs in module",
+   "changes": [
+    "fixture rec/h2 carry the hardened certified counts and independent verifier schema",
+    "test_h2_counts_mismatch_blocks_h3 mutates reconciliation rows instead of deep rows, because deep rows are now pinned to the certified 7049522162 and would trip FULL_POSTVERIFY_EXPECTED before the mismatch check; intent (H2 vs reconciliation mismatch blocks H3) and asserted message unchanged"
+   ],
+   "r3_module_sha256": "EE30AA9325EE79A1F5FF4876DF72EC0A596AC351E9708447337841E9B43E592D"
+  },
+  "decision_needed": "Origin to accept or reject the fixture patch (new module hash) before B1 Windows execution of the 126 IDs. No R3 source was modified."
+ },
+ "ids": [
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_attestation_signature_mismatch",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_chunk_mirror_mismatch",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_complete_checkpoint_readback_without_mutation",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_incomplete_checkpoint",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_missing_immutable_receipt",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_signed_semantic_divergence",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_signed_wrong_shadow_cannot_self_attest",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_wrong_run_with_valid_signature",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.CheckpointProof.test_wrong_signature",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.JournalProof.test_current_finished_attempt_exact_bytes",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.JournalProof.test_finish_explicit_foreign_run_rejected",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.JournalProof.test_finished_without_started_blocks",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.JournalProof.test_latest_started_cannot_reuse_previous_pass",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.JournalProof.test_result_hash_drift_blocks",
+   "resolution": "inherited",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.PublicationProof.test_evidence_wrong_hash_blocks_before_any_write",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.PublicationProof.test_preexisting_chain_preserved",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.PublicationProof.test_result_and_snapshots_retained_through_chain_commit",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_stage_closure.PublicationProof.test_result_drift_blocks_chain_publication",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_close_before_h6_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_close_cannot_mutate_state",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "ERROR",
+   "diag_linux_current_bytes": "ERROR",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_cooperative_stop_keeps_g3_and_exact_instance",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_engine_zero_without_reconciliation_cannot_advance",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_failed_heartbeat_blocks_pass_commit",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_foreign_reconciliation_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_full_requires_h6_and_final_receipt",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "ERROR",
+   "diag_linux_current_bytes": "ERROR",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_g6_stale_lock_blocks_without_legacy_launch",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_g7_does_not_publish_full_complete_before_h6",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_h2_counts_mismatch_blocks_h3",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "FAIL",
+   "diag_linux_current_bytes": "FAIL",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_h2_independent_failure_blocks_h3",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_legacy_g5_engine_cannot_run",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_live_process_blocks_g6",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_post_h6_closure_retry_does_not_rerun_full",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "ERROR",
+   "diag_linux_current_bytes": "ERROR",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_readmission_router_uses_bounded_lifecycle",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_stage_router_uses_bounded_full_lifecycle",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.FullLifecycle.test_unproven_interrupt_is_not_safe_stop",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_completed_node_missing_attempt_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_foreign_finish_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_fresh_stage_accepts_closed_predecessor",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_journal_pass_state_gap_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_malformed_start_identity_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_nested_started_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_open_started_blocks_replay",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_safe_stop_current_node_accepts",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_safe_stop_status_gap_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_unknown_status_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.StageHistory.test_unpaired_finish_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.HeartbeatProof.test_flush_failure_propagates_and_thread_closes",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.HeartbeatProof.test_identity_cannot_be_overwritten",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.HeartbeatProof.test_invalid_committed_rejected",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.HeartbeatProof.test_normalization_eta_unknown",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.HeartbeatProof.test_pipeline_eta_and_cap",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.HeartbeatProof.test_shutdown_keeps_emitting_until_explicit_close",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.EntryRouting.test_compatibility_calls_full_lifecycle_not_engine",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.EntryRouting.test_limit_drift_blocks_route",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.EntryRouting.test_root_drift_blocks_route",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_count_substitution_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_duplicate_required_proof_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_duplicate_test_ids_block",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_each_bad_test_status_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_exact_bound_contract_accepts_fixture",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_linux_cannot_be_promoted",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_missing_physical_baseline_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_missing_target_proof_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_recounted_baseline_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_unhashed_target_evidence_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.QualificationContract.test_wrong_final_bytes_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.InstancePreparation.test_changed_root_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.InstancePreparation.test_manifest_drift_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.InstancePreparation.test_policy_source_drift_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.InstancePreparation.test_preparation_never_grants_authority",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_resume_delta.InstancePreparation.test_resource_booleans_rejected",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_authority_publication_collision_preserves_concurrent_winner",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_code_binding_tamper_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_each_b07_check_required_before_any_write",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_existing_run_never_becomes_a_new_successor",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_frozen_engine_gate_selector_accepts_compiled_descriptor",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_incomplete_candidate_blocks_before_any_write",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_injected_flush_failure_preserves_evidence_and_never_publishes",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_locator_wrong_descriptor_and_changed_generation_block",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_missing_independent_review_blocks_before_any_write",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_missing_windows_qualification_cannot_be_hidden_by_test_totals",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_native_locator_negative_blocks_before_creating_files",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_orphan_checkpoint_blocks_first_admission",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_positive_fixture_materializes_bound_identity_without_state_or_checkpoint",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_reparse_resume_root_rejected",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_resume_commit_binds_exact_file_set",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_resume_commit_detects_missing_or_changed_support",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_review_binding_drift_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_skipped_windows_test_blocks_completeness",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_state_drift_at_publish_preserves_support_without_authority",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_state_drift_before_first_write_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_support_swap_is_denied_or_detected_before_publication",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_first_admission_transaction.TransactionTests.test_v37_policy_cannot_release_v38_instance",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_entry_accepts_complete_commit_and_rejects_state_replacement",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_entry_rejects_post_publication_gate_evidence_drift",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_final_code_manifest_verifies_actual_runtime",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_historical_v37_cannot_be_current_policy",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_manifest_missing_core_component_rejected",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_materialized_contract_reaches_actual_frozen_runtime_boundary",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_review_pack_must_contain_exact_final_code",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_stale_review_pack_is_rejected_even_when_wrapper_is_unchanged",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "test_bootstrap_contract.BootstrapContract.test_v38_technical_policy_validates_without_issuer_or_owner_approval",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_full_lifecycle.Readmission.test_refresh_preserves_instance_predecessor_and_prior_receipt",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.ChainTests.test_path_escape_blocks",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.ChainTests.test_legacy_admission_rejected_before_any_data_access",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.ChainTests.test_missing_chain_rejected_before_any_data_access",
+   "resolution": "direct",
+   "selection": "PORTABLE",
+   "diag_linux_r3_bytes": "PASS",
+   "diag_linux_r40_bytes": "PASS",
+   "diag_linux_current_bytes": "PASS",
+   "diag_linux_current_with_proposed_patch": "PASS",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_native_delta.NativeDelta.test_coordinator_abrupt_exit_contains_native_child",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_native_delta.NativeDelta.test_dpapi_key_roundtrip_and_tamper_rejection",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_native_delta.NativeDelta.test_four_workers_real_ntfs_zstd_deterministic_replay",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_native_delta.NativeDelta.test_heartbeat_reparse_destination_cannot_modify_target",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.NativeJobTests.test_admitted_child_executes",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.NativeJobTests.test_job_close_contains_survivor",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.NativeResumeTests.test_named_stop_then_resume_with_different_worker_count",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.InstallerAndLauncherTests.test_file_hash_mismatch_preserves_partial_no_deployment",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.InstallerAndLauncherTests.test_native_ps51_extract_readback_and_collision_preserved",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.InstallerAndLauncherTests.test_readonly_launcher_missing_chain_never_dispatches_d4",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.InstallerAndLauncherTests.test_zip_hash_mismatch_prevents_extraction",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.InstallerAndLauncherTests.test_zip_path_escape_rejected_before_extraction",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.ResourceAndNamespaceTests.test_native_job_memory_contains_coordinator_and_child",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.ResourceAndNamespaceTests.test_launch_drain_stop_controls",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.ResourceAndNamespaceTests.test_namespace_reuse_and_history_preserved",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.ResourceAndNamespaceTests.test_auto_cpu_zero_one_n_and_invalid_request",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.ResourceAndNamespaceTests.test_resource_stop_uses_checkpoint_cleanup",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.StageGuardTests.test_state_constructor_does_not_rewrite",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.StageGuardTests.test_single_stage_commit_and_native_readback",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  },
+  {
+   "id": "tests_delta.StageGuardTests.test_cannot_skip_to_full",
+   "resolution": "direct",
+   "selection": "NATIVE_ONLY",
+   "diag_linux_r3_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_r40_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_bytes": "NOT_IN_PORTABLE_SELECTION",
+   "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
+   "windows_on_current_bytes": "NOT_EXECUTED"
+  }
+ ]
+}

@@ -25,17 +25,20 @@
   "open_blockers": [
     {
       "id": "R41-B1",
-      "title": "QUALIFICATION_CONTRACT.json exige 125 IDs de testes de modulos ausentes da base",
+      "title": "QUALIFICATION_CONTRACT.json exige 126 IDs (contagem 125 anterior foi erro de registro do engenheiro)",
       "evidence": "candidate/control/QUALIFICATION_CONTRACT.json required_tests referencia tests_stage_closure, tests_full_lifecycle, tests_resume_delta, test_first_admission_transaction, test_bootstrap_contract, tests_delta, tests_native_delta; nenhum desses modulos existe no pacote 26F783A0 (grep confirmado).",
       "effect": "FULL_QUALIFICATION_CONTRACT.validate exige exatamente esses IDs nativos sobre os bytes finais; G5 nao pode ser satisfeito com a base entregue.",
-      "needed_from_origin": "Fornecer o arquivo historico da linha de base (archive_sha256 DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8) ou autorizar re-derivacao do contrato de qualificacao para a arvore atual."
+      "needed_from_origin": "Fornecer o arquivo historico da linha de base (archive_sha256 DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8) ou autorizar re-derivacao do contrato de qualificacao para a arvore atual.",
+      "status": "ORIGIN_SUPPLIED_SOURCES_R42_B1A_STOP_AWAITING_DECISION",
+      "reconciliation": "b1/R42_B1_RECONCILIATION.json"
     },
     {
       "id": "R41-B2",
       "title": "Nao existe produtor tecnico de recibos G5 e B07",
       "evidence": "FULL_INSTANCE_PREPARE.py declara 'cannot issue G5/B06/B07 receipts'; nenhum outro modulo publica STAGE_G5/STAGE_B07; a cadeia (FULL_RELEASE_CHAIN.STAGES) exige ambos antes de D4.",
       "effect": "Mesmo com B06 independente aprovado, D4 e o FULL permanecem inalcancaveis.",
-      "needed_from_origin": "Definicao de custodia: quem emite G5 (congelamento de bytes) e qual runner nativo produz B07 (checks native_windows, physical_policy_capture, state_continuity, vss_identity, negative_controls, process_tree_cleanup)."
+      "needed_from_origin": "Definicao de custodia: quem emite G5 (congelamento de bytes) e qual runner nativo produz B07 (checks native_windows, physical_policy_capture, state_continuity, vss_identity, negative_controls, process_tree_cleanup).",
+      "status": "ORIGIN_DECIDED_OPUS_BUILDS_G5_B07_EVIDENCE_TOOLS_NOT_STARTED"
     },
     {
       "id": "R41-B3",
@@ -54,7 +57,7 @@
       "title": "Smoke nativo do motor multiwork sobre os novos bytes do wrapper",
       "evidence": "windows_multiwork_smoke_22/rc4 sao historicos; o wrapper mudou (watchdog, AUTOCPU).",
       "effect": "Proxima prova dirigida (R42) com fixtures sinteticas no formato PTS2G, ou cobertura no CANARY.",
-      "status": "ADDRESSED_BY_R42_PENDING_NATIVE_RUN"
+      "status": "CLOSED_BY_R42_NATIVE_PASS"
     },
     {
       "id": "R41-B6",
@@ -116,6 +119,18 @@
       "windows_rc4r2_shutdown_smoke"
     ],
     "offline_harness": "PASS (POSIX seams; not evidence)",
-    "native_windows": "PENDING_OWNER_PC"
-  }
+    "native_windows": {
+      "run": "R42_QUAL_20261013_182714_069_44076",
+      "classification": "R42_WINDOWS_SANDBOX_QUALIFICATION_PASS",
+      "final_package_sha256": "46B446A61EB4D2BF20A0686F60DE6B60189091245956F4C80C80E9C23065C861",
+      "package_manifest_sha256": "6FDBF5DD4548B5B89E42E6CED5DBA3F38B6B1094DC08D10818BEC607D7BB06EF",
+      "return_zip_sha256": "8EDDE5888B34F7488096588ED5AE38581250B6B5363E5FEC51439C949263FEEF",
+      "items": "16/16 PASS",
+      "e2e": "9/9",
+      "production_modified": false,
+      "evidence_file": "evidence/R42_QUAL_20261013_182714_069_44076_RUN_LOG.txt",
+      "return_zip_physically_received": false
+    }
+  },
+  "r41_return_zip_physically_received": false
 }

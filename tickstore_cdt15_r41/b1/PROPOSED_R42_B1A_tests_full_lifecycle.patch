@@ -1,0 +1,22 @@
+--- /tmp/claude-0/-home-user-GitHub/8d489fba-35fb-5a2f-80ae-41135484a8dd/scratchpad/origin/x/TEST_MODULES_R3/engineering/tests_full_lifecycle.py	2026-10-13 16:00:00.000000000 +0000
++++ engineering/tests_full_lifecycle.py	2026-10-13 21:29:50.435718115 +0000
+@@ -25,8 +25,8 @@
+   self.a.instance=dict(run_id='same_instance',bindings=dict(source_root=str(self.root/'source'),dest_root=str(self.root/'dest'),scratch_root=str(self.root/'scratch')),resources=dict(max_workers=4,ram_target_percent=50),ledger_path=str(self.root/'ledger'))
+   self.a.descriptor=dict(instance_sha256='A'*64,code_manifest_sha256='B'*64,receipts={})
+   self.a.receipt_hashes={'FULL_ADMISSION':'C'*64}
+-  self.rec=dict(schema='TICKSTORE_MULTIWORK_RECONCILIATION_V001',status='PASS',days=3,rows=9,manifest_sha256='D'*64,run_id='same_instance',instance_sha256='A'*64,code_manifest_sha256='B'*64)
+-  self.h2=dict(deep=dict(POST_FULL_AUDIT='PASS',days=3,rows=9,manifest_sha256='D'*64),independent=dict(status='PASS',days=3,rows=9))
++  self.rec=dict(schema='TICKSTORE_MULTIWORK_RECONCILIATION_V001',status='PASS',days=1550,rows=7049522162,manifest_sha256='D'*64,run_id='same_instance',instance_sha256='A'*64,code_manifest_sha256='B'*64)
++  self.h2=dict(deep=dict(POST_FULL_AUDIT='PASS',days=1550,rows=7049522162,namespace=3101,manifest_sha256='D'*64),independent=dict(schema='POSTFULL_INDEPENDENT_VERIFIER_V001',status='PASS',days=1550,rows=7049522162,namespace_files=3101,manifest_sha256='D'*64))
+   self.pack=self.root/'pack.zip';self.pack.write_bytes(b'fixture pack')
+   self.executed=[]
+   def runnode(n):
+@@ -63,7 +63,7 @@
+    cont.execute_nodes(self.o,self.ns,self.boundary,self.a.revalidate)
+   self.assertEqual(self.state.d['status'],'FAIL');self.assertNotIn('G3',self.state.d['completed'])
+  def test_h2_counts_mismatch_blocks_h3(self):
+-  self.h2['deep']['rows']=10
++  self.rec['rows']=7049522161
+   with self.assertRaisesRegex(RuntimeError,'POSTVERIFY_MISMATCH:rows'):self.execute()
+   self.assertEqual(self.state.d['next_node'],'H3');self.assertNotIn('H4',self.executed)
+  def test_h2_independent_failure_blocks_h3(self):
