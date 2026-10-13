@@ -38,14 +38,43 @@ function NoReparse([string]$Path) {
     while ($p) {
         if ([IO.File]::Exists($p) -or [IO.Directory]::Exists($p)) {
             if (([IO.File]::GetAttributes($p) -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
-                # OneDrive known folders are hydrated Cloud Files directories; only the
-                # fixed Downloads ancestry may carry that attribute, never the run folder.
-                if (-not ('C:\Users\silvi\OneDrive','C:\Users\silvi\OneDrive\Downloads' -contains $p)) { throw ('LOG_REPARSE:'+$p) }
+                # OneDrive turns synced folders into Cloud Files directories (tag 0x9000x01A,
+                # observed natively on TICKSTORE_RUNS in R41R1). Accept only that tag, only for
+                # directories under the OneDrive root; junctions/symlinks stay rejected.
+                $under=($p -ieq 'C:\Users\silvi\OneDrive' -or $p.StartsWith('C:\Users\silvi\OneDrive\',[StringComparison]::OrdinalIgnoreCase))
+                $tag=[TickstoreReparseTag]::Tag($p)
+                if (-not ($under -and [IO.Directory]::Exists($p) -and (($tag -band [uint32]4294905855) -eq [uint32]2415919130))) {
+                    throw ('LOG_REPARSE:'+$p+' TAG='+('0x{0:X8}' -f $tag))
+                }
             }
         }
         $parent=[IO.Directory]::GetParent($p)
         if ($null -eq $parent) { break }; $p=$parent.FullName
     }
+}
+if (-not ('TickstoreReparseTag' -as [type])) {
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class TickstoreReparseTag {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct WIN32_FIND_DATA {
+        public uint dwFileAttributes; public long ftCreationTime; public long ftLastAccessTime; public long ftLastWriteTime;
+        public uint nFileSizeHigh; public uint nFileSizeLow; public uint dwReserved0; public uint dwReserved1;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string cFileName;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)] public string cAlternateFileName;
+    }
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern IntPtr FindFirstFileW(string name, out WIN32_FIND_DATA data);
+    [DllImport("kernel32.dll")] static extern bool FindClose(IntPtr h);
+    public static uint Tag(string path) {
+        WIN32_FIND_DATA d; IntPtr h = FindFirstFileW(path, out d);
+        if (h == new IntPtr(-1)) { throw new System.ComponentModel.Win32Exception(); }
+        FindClose(h);
+        return (d.dwFileAttributes & 0x400) != 0 ? d.dwReserved0 : 0;
+    }
+}
+'@
 }
 function NewRunDir([string]$Mode) {
     [IO.Directory]::CreateDirectory($LogRoot) | Out-Null

@@ -11,10 +11,10 @@ param()
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
 $ZipPattern = 'TICKSTORE_CDT15_R41_QUAL_*.zip'
-$ExpectedZipName = 'TICKSTORE_CDT15_R41_QUAL_R1_20261013.zip'
-$ExpectedZipSha = '3654D59D5A2E7E9CA596C7B5915848CC9C418EB791AF2E16E8E17185E5FB00B5'
-$ExpectedZipBytes = 1598904
-$ExpectedQualManifestSha = '52A869F36C5B97F0101901BFAA40EB15F68969B479379C950224545A3D5BB73D'
+$ExpectedZipName = 'TICKSTORE_CDT15_R41_QUAL_R2_20261013.zip'
+$ExpectedZipSha = '8C08F0C70FFD656F47019E1AB1C686B958DEB7A41EDD10320C940204CB9CB541'
+$ExpectedZipBytes = 1599600
+$ExpectedQualManifestSha = '87849B665F469DBFDEBF1D965D7C3ED5F9E9A52CC4D77BB6E3D9D91CCA3E294F'
 $Downloads = 'C:\Users\silvi\OneDrive\Downloads'
 $LogRoot = 'C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS'
 $Python = 'C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'
@@ -34,12 +34,20 @@ function Sha([string]$Path) {
     $h = [Security.Cryptography.SHA256]::Create()
     try { return [BitConverter]::ToString($h.ComputeHash($s)).Replace('-', '') } finally { $h.Dispose(); $s.Dispose() }
 }
+function IsOneDriveCloudDir([string]$p) {
+    # OneDrive turns synced folders into Cloud Files directories (IO_REPARSE_TAG_CLOUD_*
+    # = 0x9000x01A). Accept only that tag, only on directories, only under the OneDrive root.
+    # Junctions (0xA0000003) and symlinks (0xA000000C) remain rejected everywhere.
+    if (-not [IO.Directory]::Exists($p)) { return $false }
+    if (-not ($p -ieq 'C:\Users\silvi\OneDrive' -or $p.StartsWith('C:\Users\silvi\OneDrive\', [StringComparison]::OrdinalIgnoreCase))) { return $false }
+    return (([R41Reparse]::Tag($p)) -band [uint32]4294905855) -eq [uint32]2415919130
+}
 function NoReparseBelow([string]$Path, [string[]]$Allowed) {
     $p = [IO.Path]::GetFullPath($Path)
     while ($p) {
         if ([IO.Directory]::Exists($p) -or [IO.File]::Exists($p)) {
-            if ((([IO.File]::GetAttributes($p)) -band [IO.FileAttributes]::ReparsePoint) -ne 0 -and -not ($Allowed -contains $p)) {
-                throw ('REPARSE_IN_PATH:' + $p)
+            if ((([IO.File]::GetAttributes($p)) -band [IO.FileAttributes]::ReparsePoint) -ne 0 -and -not ($Allowed -contains $p) -and -not (IsOneDriveCloudDir $p)) {
+                throw ('REPARSE_IN_PATH:' + $p + ' TAG=' + ('0x{0:X8}' -f [R41Reparse]::Tag($p)))
             }
         }
         $parent = [IO.Directory]::GetParent($p); if ($null -eq $parent) { break }; $p = $parent.FullName
@@ -80,7 +88,7 @@ public static class R41Reparse {
 '@
     $runName = 'R41_QUAL_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
     [IO.Directory]::CreateDirectory($LogRoot) | Out-Null
-    NoReparseBelow $LogRoot @('C:\Users\silvi\OneDrive', 'C:\Users\silvi\OneDrive\Downloads')
+    NoReparseBelow $LogRoot @()
     $script:RunDir = Join-Path $LogRoot $runName
     Require (-not [IO.Directory]::Exists($script:RunDir)) 'RUN_DIR_COLLISION'
     [IO.Directory]::CreateDirectory($script:RunDir) | Out-Null
@@ -165,6 +173,6 @@ public static class R41Reparse {
     Log 'PRODUCTION_MODIFIED=NO (bootstrap writes only run-owned folders); FULL_STARTED=NO'
     $exitCode = 2
 }
-Log ('RUN_LOG=' + (Join-Path $script:RunDir 'RUN_LOG.txt'))
+if ($script:RunDir -ne '') { Log ('RUN_LOG=' + (Join-Path $script:RunDir 'RUN_LOG.txt')) }
 Log 'Devolva ao engenheiro: o arquivo RETURN_ZIP indicado acima (ou RUN_LOG.txt se nao houver RETURN_ZIP).'
 exit $exitCode
