@@ -4,6 +4,22 @@ import threading
 import time
 
 
+def dhms(seconds):
+    """Transparent duration as days.hours.minutes.seconds (d.hh.mm.ss)."""
+    total = max(0, int(-(-float(seconds) // 1)))
+    d, rem = divmod(total, 86400); h, rem = divmod(rem, 3600); m, s = divmod(rem, 60)
+    return '%d.%02d.%02d.%02d' % (d, h, m, s)
+
+
+def bar(percent, width=30):
+    if percent is None:
+        return '[' + '?' * width + ']'
+    filled = max(0, min(width, int(round(width * percent / 100.0))))
+    if percent < 100.0:
+        filled = min(filled, width - 1)
+    return '[' + '#' * filled + '-' * (width - filled) + ']'
+
+
 class Heartbeat:
     def __init__(self, path, writer, identity, *, interval=5.0):
         if interval <= 0: raise ValueError('HEARTBEAT_INTERVAL')
@@ -33,7 +49,9 @@ class Heartbeat:
         result.update(sequence=self.sequence, observed_unix_ns=time.time_ns(),
                       elapsed_seconds=elapsed, committed_percent=percent,
                       eta_seconds=eta, estimated_completion_utc=(datetime.datetime.fromtimestamp(
-                          time.time() + eta, datetime.timezone.utc).isoformat() if eta is not None else None))
+                          time.time() + eta, datetime.timezone.utc).isoformat() if eta is not None else None),
+                      elapsed_dhms=dhms(elapsed), eta_dhms=dhms(eta) if eta is not None else 'UNKNOWN',
+                      progress_bar=bar(percent))
         return result
 
     def emit(self):

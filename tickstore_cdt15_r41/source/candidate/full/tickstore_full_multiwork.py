@@ -37,6 +37,8 @@ PRODUCTIVITY_STALL_SECONDS = 180.0
 SAFE_STOP_JOIN_TIMEOUT_SECONDS = 60.0
 SAFE_STOP_TERMINATE_GRACE_SECONDS = 5.0
 SAFE_STOP_KILL_GRACE_SECONDS = 5.0
+WATCHDOG_MAIN_LOOP_STALL_SECONDS = 600.0
+WATCHDOG_POLL_SECONDS = 5.0
 COORDINATOR_SCHEMA = "TICKSTORE_MULTIWORK_COORDINATOR_STATE_V002"
 
 
@@ -203,8 +205,51 @@ def windows_memory_status():
     }
 
 
+def available_logical_cpus():
+    """CPUs this process may actually use (affinity/processor groups), probed per run."""
+    probe = getattr(os, "process_cpu_count", None)
+    value = probe() if probe is not None else None
+    if not value and hasattr(os, "sched_getaffinity"):
+        value = len(os.sched_getaffinity(0))
+    return max(1, int(value or os.cpu_count() or 1))
+
+
+class MainLoopWatchdog:
+    """Detect a coordinator loop that stops ticking; request cooperative stop once.
+
+    The stall is reported on the console and in the heartbeat (loop_tick_unix_ns).
+    It never kills processes: the bounded SAFE_STOP path remains the only shutdown.
+    """
+    def __init__(self, stop_event, limit_seconds=WATCHDOG_MAIN_LOOP_STALL_SECONDS,
+                 poll_seconds=WATCHDOG_POLL_SECONDS):
+        self.stop_event = stop_event
+        self.limit = float(limit_seconds)
+        self.poll = float(poll_seconds)
+        self.last = time.monotonic()
+        self.fired = False
+        self.done = threading.Event()
+        self.thread = threading.Thread(target=self._run, name="TICKSTORE_WATCHDOG", daemon=True)
+
+    def tick(self):
+        self.last = time.monotonic()
+
+    def _run(self):
+        while not self.done.wait(self.poll):
+            age = time.monotonic() - self.last
+            if age > self.limit and not self.fired:
+                self.fired = True
+                print(f"WATCHDOG=MAIN_LOOP_STALL AGE_SECONDS={int(age)} ACTION=COOPERATIVE_STOP_REQUESTED", flush=True)
+                self.stop_event.set()
+
+    def start(self):
+        self.thread.start(); return self
+
+    def close(self):
+        self.done.set(); self.thread.join(timeout=2 * self.poll + 1)
+
+
 def choose_workers(requested: str, month_count: int, max_workers: int, ram_target_percent: int):
-    cpu = int(os.cpu_count() or 1)
+    cpu = available_logical_cpus()
     max_workers = max(1, min(int(max_workers), 32))
     ram_target_percent = max(20, min(int(ram_target_percent), 80))
     mem = windows_memory_status()
@@ -1344,6 +1389,8 @@ def _execute_admitted_multiwork(source_root, dest_root, scratch_root, ledger_zip
     print(f"WORKERS_REQUESTED={workers_requested}", flush=True)
     print(f"WORKERS_EFFECTIVE={workers}", flush=True)
     print(f"CPU_LOGICAL={os.cpu_count() or 1}", flush=True)
+    print(f"CPU_AVAILABLE_TO_PROCESS={available_logical_cpus()}", flush=True)
+    print(f"WATCHDOG_MAIN_LOOP_STALL_SECONDS={int(WATCHDOG_MAIN_LOOP_STALL_SECONDS)}", flush=True)
     print(f"RAM_TARGET_PERCENT={ram_target_percent}", flush=True)
     print(f"RAM_TOTAL_GIB={mem['total']/1024**3:.2f}", flush=True)
     print(f"RAM_AVAILABLE_GIB={mem['available']/1024**3:.2f}", flush=True)
@@ -1385,6 +1432,7 @@ def _execute_admitted_multiwork(source_root, dest_root, scratch_root, ledger_zip
     memory_state = ['LAUNCH']
     draining_since = [None]
     native_stop = None
+    watchdog = None
     publisher_proc = None
     publisher_kwargs = dict(
         **{
@@ -1439,9 +1487,13 @@ def _execute_admitted_multiwork(source_root, dest_root, scratch_root, ledger_zip
             start_month(pending_months.pop(0))
 
     def check_memory(force=False):
+        if watchdog is not None:
+            watchdog.tick()
         if heartbeat is not None:
             heartbeat.update(committed_rows=published_rows, committed_days=published_days,
-                             active_workers=len(active), pending_publications=publish_backlog)
+                             active_workers=len(active), pending_publications=publish_backlog,
+                             worker_limit=workers, months_published=months_done, total_months=len(months),
+                             loop_tick_unix_ns=time.time_ns())
         now = time.perf_counter()
         if not force and now - last_memory[0] < 1.0:
             return memory_state[0]
@@ -1506,6 +1558,7 @@ def _execute_admitted_multiwork(source_root, dest_root, scratch_root, ledger_zip
         print("PUBLISHER_READY=YES",flush=True)
 
         heartbeat.update(phase='PIPELINE')
+        watchdog = MainLoopWatchdog(stop_event).start()
         fill_worker_slots()
 
         _print_progress(
@@ -1520,6 +1573,9 @@ def _execute_admitted_multiwork(source_root, dest_root, scratch_root, ledger_zip
 
         while active or months_done < len(months):
             if native_stop.requested():
+                raise KeyboardInterrupt()
+            if watchdog.fired:
+                print('SAFE_STOP_REASON=WATCHDOG_MAIN_LOOP_STALL', flush=True)
                 raise KeyboardInterrupt()
             check_memory()
             fill_worker_slots()
@@ -1716,6 +1772,10 @@ def _execute_admitted_multiwork(source_root, dest_root, scratch_root, ledger_zip
             else:
                 raise MultiworkBlocked("UNKNOWN_WORKER_EVENT:"+str(typ))
 
+        # The watchdog covers only the event loop; final reconciliation has its own
+        # heartbeat phase and may legitimately run for a long time.
+        watchdog.close()
+        if watchdog.fired: raise KeyboardInterrupt()
         if stop_event.is_set(): raise KeyboardInterrupt()
         if published_days!=total_days:
             raise MultiworkBlocked(f"PUBLISHED_DAY_COUNT_MISMATCH:{published_days}:{total_days}")
@@ -1764,6 +1824,8 @@ def _execute_admitted_multiwork(source_root, dest_root, scratch_root, ledger_zip
         primary_error=sys.exc_info()
         stop_and_join_all("ERROR_STOP")
     finally:
+        if watchdog is not None:
+            watchdog.close()
         primary_error = _finalize_coordinator_resources(
             active, sealed_pins, publisher_proc, lock, lease, primary_error)
         if native_stop is not None:

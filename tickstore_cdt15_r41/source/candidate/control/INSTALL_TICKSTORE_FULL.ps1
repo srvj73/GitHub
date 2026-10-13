@@ -3,7 +3,10 @@ param(
     [string]$WitnessPath='',
     [string]$Downloads='C:\Users\silvi\OneDrive\Downloads',
     [string]$InstallRoot=(Join-Path $env:LOCALAPPDATA 'TICKSTORE\Candidates'),
-    [switch]$ActivateMenu
+    [switch]$ActivateMenu,
+    [string]$ChainFile='',
+    [string]$ChainSha256='',
+    [string]$B06Sha256=''
 )
 Set-StrictMode -Version 2
 $ErrorActionPreference='Stop'
@@ -52,9 +55,16 @@ function WriteNew([string]$Path,[byte[]]$Raw) {
 }
 try {
     Require ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -eq 1) 'POWERSHELL_51_REQUIRED'
-    # G4 source-only gate: two-phase MENU writer not yet integrated or target-qualified.
-    # Fail BEFORE reading external witnesses, creating Candidates or modifying ACTIVE.
-    Require (-not $ActivateMenu) 'G4_MENU_ACTIVATION_REQUIRES_INTEGRATED_COMMIT_WRITER'
+    # R41: activation is only a dispatch to MENU_OFFICIAL_WRITER.py (single lock,
+    # D: backup, C: journal, COMMITTED/ROLLED_BACK recovery). It requires a technical
+    # release chain through B07 with a separately supplied B06 digest. Fail BEFORE
+    # reading external witnesses, creating Candidates or modifying ACTIVE.
+    if ($ActivateMenu) {
+        Require ($ChainFile -ne '' -and $ChainSha256 -cmatch '^[0-9A-F]{64}$' -and $B06Sha256 -cmatch '^[0-9A-F]{64}$') 'MENU_ACTIVATION_REQUIRES_RELEASE_CHAIN_THROUGH_B07'
+        Require ([IO.Path]::GetFullPath($InstallRoot) -ceq [IO.Path]::GetFullPath((Join-Path $env:LOCALAPPDATA 'TICKSTORE\Candidates'))) 'MENU_ACTIVATION_REQUIRES_OFFICIAL_INSTALL_ROOT'
+    } else {
+        Require ($ChainFile -eq '' -and $ChainSha256 -eq '' -and $B06Sha256 -eq '') 'CHAIN_ARGUMENTS_ONLY_WITH_ACTIVATE_MENU'
+    }
     if ($WitnessPath -eq '') {
         $found=@(Get-ChildItem -LiteralPath $Downloads -Filter 'WITNESS_TICKSTORE_FULL_FINAL_*.json' -File)
         Require ($found.Count -eq 1) 'FINAL_WITNESS_CARDINALITY'; $WitnessPath=$found[0].FullName
@@ -104,7 +114,11 @@ try {
     NoReparse $InstallRoot
     [IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($InstallRoot)) | Out-Null
     $target=Join-Path ([IO.Path]::GetFullPath($InstallRoot)) $w.package_sha256
-    Require (-not ([IO.File]::Exists($target) -or [IO.Directory]::Exists($target))) 'INSTALLATION_ALREADY_EXISTS_VERIFY_EXISTING'
+    $existing=([IO.File]::Exists($target) -or [IO.Directory]::Exists($target))
+    # An existing inactive installation is never rewritten; only activation may reuse it,
+    # and the writer re-verifies its intent, manifest members and DEPLOYMENT bytes.
+    Require ((-not $existing) -or $ActivateMenu) 'INSTALLATION_ALREADY_EXISTS_VERIFY_EXISTING'
+    if (-not $existing) {
     [IO.Directory]::CreateDirectory($target) | Out-Null
     WriteNew (Join-Path $target 'PACKAGE_MANIFEST.json') $manifestRaw
     foreach ($file in $manifest.files) {
@@ -150,10 +164,21 @@ try {
     WriteNew $intentPath $intentRaw
     Require ((StreamSha (OpenRead $intentPath)) -ceq (RawSha $intentRaw)) 'INSTALL_INTENT_READBACK'
     Write-Output 'MENU_INSTALL_INTENT=PASS_SOURCE_ONLY_NOT_AUTHORIZED'
-    # Legacy one-file MENU activation is permanently disabled in this source-only
-    # candidate. The independent COMMITTED writer must be integrated, qualified,
-    # and explicitly admitted before any official ACTIVE/MENU publication.
-    Write-Output 'MENU_ACTIVATION=NOT_SUPPORTED_TRANSACTIONAL_WRITER_PENDING'
+    } else { Write-Output 'INSTALLATION=EXISTING_REUSED_FOR_ACTIVATION' }
+    $launcher=Join-Path $target 'implementation_v001\candidate\control\RUN_TICKSTORE_FULL.ps1'
+    if ($ActivateMenu) {
+        # The installed writer bytes run from the installed instance itself; the release
+        # chain binds those bytes, and the writer performs live target re-admission.
+        $writer=Join-Path $target 'implementation_v001\candidate\control\MENU_OFFICIAL_WRITER.py'
+        Require ([IO.File]::Exists($writer)) 'INSTALLED_WRITER_MISSING'
+        $writerMatches=@($manifest.files | Where-Object { $_.path -ceq 'implementation_v001/candidate/control/MENU_OFFICIAL_WRITER.py' })
+        Require ($writerMatches.Count -eq 1 -and (StreamSha (OpenRead $writer)) -ceq $writerMatches[0].sha256) 'INSTALLED_WRITER_IDENTITY'
+        & $python -I -X utf8 -B $writer --mode official-publish --installed-root $target --package-sha256 $w.package_sha256 --witness-sha256 (StreamSha $witnessStream) --chain-file $ChainFile --chain-sha256 $ChainSha256 --b06-sha256 $B06Sha256
+        Require ($LASTEXITCODE -eq 0) ('MENU_OFFICIAL_WRITER_EXIT_'+$LASTEXITCODE)
+        Write-Output 'MENU_ACTIVATION=COMMITTED_BY_OFFICIAL_WRITER'
+    } else {
+        Write-Output 'MENU_ACTIVATION=NOT_REQUESTED_INACTIVE_INSTALL_ONLY'
+    }
     Write-Output ('INSTALLATION_ROOT='+$target)
     Write-Output ('LAUNCHER='+$launcher)
     Write-Output 'INSTALLATION=PASS_READBACK; FULL_STARTED=NO'

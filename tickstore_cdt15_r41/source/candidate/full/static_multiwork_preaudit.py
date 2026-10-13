@@ -14,7 +14,9 @@ checks={}
 checks['CORE_RC1_FROZEN']=hashlib.sha256(CORE.read_bytes()).hexdigest().upper()=='D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0'
 text=WRAPPER.read_text(encoding='utf-8')
 tree=ast.parse(text)
-checks['SPAWN_MULTIPROCESS']= 'mp.get_context("spawn")' in text and 'ctx.Process(' in text
+# R41: children start through the native Job (KILL_ON_JOB_CLOSE) wrapper.
+pc=(ROOT/'FULL_PROCESS_CONTROL.py').read_text(encoding='utf-8')
+checks['SPAWN_MULTIPROCESS']= 'mp.get_context("spawn")' in text and 'job.start(ctx' in text and 'ctx.Process(' in pc and '0x2000' in pc
 checks['AUTO_WORKERS_PRESENT']='WORKERS_EFFECTIVE=' in text and 'choose_workers(' in text
 checks['MAX_WORKERS_22']='DEFAULT_MAX_WORKERS = 22' in text and 'cpu_budget = max(1, cpu - 2)' in text
 checks['EXPLICIT_WORKERS_RAM_GATED']='WORKER_COUNT_EXCEEDS_RAM_BUDGET' in text
@@ -23,8 +25,13 @@ checks['SCRATCH_RESUME']='VALIDATED_PENDING_PUBLISH' in text and 'completed_grou
 checks['CANONICAL_SINGLE_WRITER']='core.acquire_lock(dest_root)' in text and 'PUBLICATION=DEDICATED_SINGLE_WRITER_PROCESS_AFTER_MONTH_SHA_VERIFIED' in text
 checks['PARENT_MONTH_PIN_CONTINUOUS']='class ParentMonthPin' in text and 'source_pin=True' in text and 'sealed_pins[month_id]=parent_pin' in text
 checks['FINAL_RECONCILIATION']='core.reconcile_full_readonly(' in text and 'FULL_SOURCE_CONTINUOUS_PIN_SEAL=PASS' in text
-checks['CORE_GATE_REQUIRED']='core.validate_full_owner_gate(' in text
-checks['MULTIWORK_GATE_REQUIRED']='validate_multiwork_gate(' in text and 'MULTIWORK_GATE_NOT_AUTHORIZED' in text
+# R41: administrative owner gates are revoked; the technical release chain is mandatory.
+checks['LEGACY_GATES_REVOKED']='LEGACY_ADMINISTRATIVE_OWNER_GATE_REVOKED' in text and 'core.validate_full_owner_gate(' not in text
+checks['TECHNICAL_CHAIN_REQUIRED']='TECHNICAL_RELEASE_CHAIN_REQUIRED' in text and 'ReleaseChain(chain_file, chain_sha256, b06_sha256' in text
+checks['ADMITTED_ENTRY_ONLY']='def _execute_admitted_multiwork(' in text and 'admission.validate_full(core_bindings' in text
+checks['AUTOCPU_PROCESS_AVAILABLE']='def available_logical_cpus()' in text and 'process_cpu_count' in text and 'cpu = available_logical_cpus()' in text
+checks['WATCHDOG_MAIN_LOOP']='class MainLoopWatchdog' in text and 'SAFE_STOP_REASON=WATCHDOG_MAIN_LOOP_STALL' in text
+checks['HEARTBEAT_LOOP_TICK']='loop_tick_unix_ns=time.time_ns()' in text
 checks['NO_THREADPOOL']='ThreadPoolExecutor' not in text and 'ProcessPoolExecutor' not in text
 checks['NO_SOURCE_DELETE_OPTION']='--delete' not in text.lower()
 checks['NO_CSV_DELETE_AUTH']='CSV_DELETION_AUTHORIZED=YES' not in text
@@ -45,7 +52,7 @@ checks['PREQUEUED_START']='WORKER_START_BARRIER=PREQUEUED_AFTER_PARENT_PIN' in t
 checks['RC3_SCRATCH_COMPAT']='FULL_MULTIWORK_RC4R2' in text and 'FULL_MULTIWORK_RC4' in text and 'FULL_MULTIWORK_RC3' in text and 'FULL_MULTIWORK_RC2R3' in text
 checks['RC4R2_CURRENT_SCRATCH_NAMESPACE']='current_root=scratch_root / "FULL_MULTIWORK_RC4R2"' in text and '"namespace":"RC4R2"' in text
 lt=LAUNCHER.read_text(encoding='utf-8')
-for p in ('SourceRoot','DestRoot','ScratchRoot','LedgerZip','FullGateFile','FullGateSha256','MultiworkGateFile','MultiworkGateSha256'):
+for p in ('SourceRoot','DestRoot','ScratchRoot','LedgerZip','ChainFile','ChainSha256','B06Sha256'):
     checks['LAUNCHER_'+p.upper()]=('[Parameter(Mandatory=$true)][string]$'+p) in lt
 obj=json.loads(TEMPLATE.read_text(encoding='utf-8'))
 checks['TEMPLATE_CLOSED']=obj.get('authorized') is False

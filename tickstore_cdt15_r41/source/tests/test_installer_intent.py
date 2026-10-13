@@ -90,8 +90,9 @@ class InstallerIntentTests(unittest.TestCase):
         self.assertRaisesRegex(Blocked,'MANIFEST_DUPLICATE',self.check)
     def test_installer_source_pins_and_block(self):
         src=(ROOT/'candidate/control/INSTALL_TICKSTORE_FULL.ps1').read_text(encoding='utf-8')
-        self.assertEqual(src.count("Require (-not $ActivateMenu) 'G4_MENU_ACTIVATION_REQUIRES_INTEGRATED_COMMIT_WRITER'"),1)
-        self.assertLess(src.index('G4_MENU_ACTIVATION_REQUIRES_INTEGRATED_COMMIT_WRITER'),src.index('WriteNew (Join-Path $target'))
+        # R41: activation dispatches only to the installed official writer under a B07 chain.
+        self.assertEqual(src.count("'MENU_ACTIVATION_REQUIRES_RELEASE_CHAIN_THROUGH_B07'"),1)
+        self.assertLess(src.index('MENU_ACTIVATION_REQUIRES_RELEASE_CHAIN_THROUGH_B07'),src.index('WriteNew (Join-Path $target'))
         self.assertIn("'MENU_INSTALL_INTENT.json'",src)
         self.assertIn("'INSTALL_INTENT_MENU_MISMATCH'",src)
         self.assertIn("'INSTALL_INTENT_READBACK'",src)

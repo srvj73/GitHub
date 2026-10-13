@@ -1,60 +1,75 @@
-"""Source-only prequalification of minimum removal of orphaned activation path.
-No execution of the effectful PowerShell installer and no formal audit.
+"""R41 installer activation contract (supersedes the R40 'activation pruned' contract).
+
+Legacy one-file activation stays removed. ``-ActivateMenu`` is now only a dispatch
+to the installed MENU_OFFICIAL_WRITER.py and requires a release chain through B07
+whose argument checks precede any witness read or write. Static checks only; the
+native PS 5.1 installer path is exercised by the Windows qualification driver.
 """
 from pathlib import Path
-import hashlib
-import sys
 import unittest
-import re
 
-HERE=Path(__file__).resolve().parents[1]
-P=HERE/'candidate/control/INSTALL_TICKSTORE_FULL.ps1'
-EXPECTED_PARENT='E59280D6B661D83D8E1AB9F55BE7B4E6DFA83D1256649BD636F88F7AB3514247'
-EXPECTED_NEW='8D7B93D34858A1BDA10238E87C9B2FA0582F6A3A6C7F547486DA61957E93217F'
-GATE="Require (-not $ActivateMenu) 'G4_MENU_ACTIVATION_REQUIRES_INTEGRATED_COMMIT_WRITER'"
+HERE = Path(__file__).resolve().parents[1]
+P = HERE / 'candidate/control/INSTALL_TICKSTORE_FULL.ps1'
+GATE = "'MENU_ACTIVATION_REQUIRES_RELEASE_CHAIN_THROUGH_B07'"
+DISPATCH = '--mode official-publish'
 
-class InstallerPruneContract(unittest.TestCase):
+
+class InstallerWriterActivationContract(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.text=P.read_text(encoding='utf-8')
-        cls.data=P.read_bytes()
-    def test01_patched_installer_identity(self):
-        self.assertEqual(hashlib.sha256(self.data).hexdigest().upper(),EXPECTED_NEW)
-    def test02_activation_argument_remains_explicit(self):
-        self.assertIn('[switch]$ActivateMenu',self.text)
-    def test03_activation_guard_remains(self):
-        self.assertEqual(self.text.count(GATE),1)
-    def test04_guard_before_witness_and_writes(self):
-        idx=self.text.index(GATE)
-        self.assertLess(idx,self.text.index('if ($WitnessPath -eq'))
-        self.assertLess(idx,self.text.index('[IO.Directory]::CreateDirectory'))
-        self.assertLess(idx,self.text.index('WriteNew (Join-Path $target'))
-    def test05_legacy_branch_removed(self):
-        self.assertNotIn('if ($ActivateMenu) {',self.text)
-        self.assertNotIn('MENU_DEPLOYMENT_SELECTED=YES',self.text)
-    def test06_no_direct_active_target_writer(self):
-        for pattern in ("$active=Join-Path", "[IO.File]::Replace($pending", "[IO.File]::Move($pending,$active)","WriteNew $pending $raw"):
-            with self.subTest(pattern=pattern): self.assertNotIn(pattern,self.text)
-    def test07_inert_intent_retained(self):
-        for token in ('MENU_INSTALL_INTENT.json',"transaction_state='NOT_STARTED'",'effectful_authorized=$false','production_started=$false'):
-            with self.subTest(token=token):self.assertIn(token,self.text)
-    def test08_install_readback_retained(self):
-        for token in ('INSTALL_READBACK','INSTALL_INTENT_MENU_MISMATCH','INSTALL_INTENT_READBACK','PACKAGE_MANIFEST_SHA256'):
-            with self.subTest(token=token):self.assertIn(token,self.text)
-    def test09_safe_only_status_emitted(self):
-        self.assertIn('MENU_ACTIVATION=NOT_SUPPORTED_TRANSACTIONAL_WRITER_PENDING',self.text)
-    def test10_no_official_transaction_promotion(self):
-        self.assertNotIn('MENU_TRANSACTION/PLAN.json',self.text)
-        self.assertNotIn('PASS_PRODUCTION',self.text)
-    def test11_control_negative_reinsertion_detected(self):
-        mutated=self.text+'\nif ($ActivateMenu) { Write-Output "MENU_DEPLOYMENT_SELECTED=YES" }\n'
-        self.assertIn('if ($ActivateMenu) {',mutated)
-        self.assertIn('MENU_DEPLOYMENT_SELECTED=YES',mutated)
-        self.assertNotEqual(hashlib.sha256(mutated.encode()).hexdigest().upper(),EXPECTED_NEW)
-    def test12_parent_byte_delta_exact(self):
-        patch=(HERE/'DELTA_INSTALLER_LEGACY_ACTIVATION_PRUNE.patch').read_text()
-        self.assertIn('--- parent/candidate/control/INSTALL_TICKSTORE_FULL.ps1',patch)
-        self.assertIn('+    Write-Output \'MENU_ACTIVATION=NOT_SUPPORTED_TRANSACTIONAL_WRITER_PENDING\'',patch)
-        self.assertIn("-        Write-Output 'MENU_DEPLOYMENT_SELECTED=YES",patch)
+        cls.data = P.read_bytes()
+        cls.text = cls.data.decode('utf-8')
 
-if __name__=='__main__': unittest.main(verbosity=2)
+    def test01_ascii_lf_no_bom(self):
+        self.assertFalse(self.data.startswith(b'\xef\xbb\xbf'))
+        self.assertTrue(all(b < 128 for b in self.data))
+
+    def test02_activation_requires_chain_before_witness_and_writes(self):
+        idx = self.text.index(GATE)
+        for later in ('if ($WitnessPath -eq', '[IO.Directory]::CreateDirectory', 'WriteNew (Join-Path $target'):
+            with self.subTest(later=later):
+                self.assertLess(idx, self.text.index(later))
+
+    def test03_activation_requires_official_install_root(self):
+        idx = self.text.index("'MENU_ACTIVATION_REQUIRES_OFFICIAL_INSTALL_ROOT'")
+        self.assertLess(idx, self.text.index('if ($WitnessPath -eq'))
+
+    def test04_chain_arguments_rejected_without_activation(self):
+        self.assertIn("'CHAIN_ARGUMENTS_ONLY_WITH_ACTIVATE_MENU'", self.text)
+
+    def test05_legacy_branch_absent(self):
+        for token in ('MENU_DEPLOYMENT_SELECTED=YES', '[IO.File]::Replace($pending', '[IO.File]::Move($pending,$active)',
+                      'WriteNew $pending $raw', "'G4_MENU_ACTIVATION_REQUIRES_INTEGRATED_COMMIT_WRITER'"):
+            with self.subTest(token=token):
+                self.assertNotIn(token, self.text)
+
+    def test06_no_direct_active_or_transaction_write(self):
+        self.assertNotIn('ACTIVE_DEPLOYMENT.json', self.text)
+        self.assertNotIn('MENU_TRANSACTION', self.text)
+
+    def test07_single_dispatch_to_installed_writer_with_identity(self):
+        self.assertEqual(self.text.count(DISPATCH), 1)
+        self.assertLess(self.text.index("'INSTALLED_WRITER_IDENTITY'"), self.text.index(DISPATCH))
+        self.assertIn("implementation_v001/candidate/control/MENU_OFFICIAL_WRITER.py", self.text)
+        self.assertIn("('MENU_OFFICIAL_WRITER_EXIT_'+$LASTEXITCODE)", self.text)
+
+    def test08_inert_intent_and_readback_retained(self):
+        for token in ('MENU_INSTALL_INTENT.json', "transaction_state='NOT_STARTED'", 'effectful_authorized=$false',
+                      'INSTALL_READBACK', 'INSTALL_INTENT_READBACK', 'PACKAGE_MANIFEST_SHA256'):
+            with self.subTest(token=token):
+                self.assertIn(token, self.text)
+
+    def test09_existing_install_reused_only_for_activation(self):
+        self.assertIn("Require ((-not $existing) -or $ActivateMenu) 'INSTALLATION_ALREADY_EXISTS_VERIFY_EXISTING'",
+                      self.text)
+
+    def test10_inactive_status_emitted(self):
+        self.assertIn('MENU_ACTIVATION=NOT_REQUESTED_INACTIVE_INSTALL_ONLY', self.text)
+
+    def test11_negative_control_reinsertion_detected(self):
+        mutated = self.text.replace(GATE, "'X'")
+        self.assertNotIn(GATE, mutated)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

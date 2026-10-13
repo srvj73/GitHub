@@ -16,7 +16,7 @@ class TestFullMultiworkHelpers(unittest.TestCase):
     def test_workers_auto_respects_cpu_ram_and_max(self):
         fake_mem={'total':32*1024**3,'available':24*1024**3,'load_percent':25}
         with mock.patch.object(m,'windows_memory_status',return_value=fake_mem), \
-             mock.patch.object(m.os,'cpu_count',return_value=24):
+             mock.patch.object(m,'available_logical_cpus',return_value=24):
             n,mem=m.choose_workers('AUTO',75,22,60)
         self.assertGreaterEqual(n,2)
         self.assertLessEqual(n,22)
@@ -26,25 +26,25 @@ class TestFullMultiworkHelpers(unittest.TestCase):
     def test_workers_auto_can_reach_22_on_24_cpu_when_ram_allows(self):
         fake_mem={'total':64*1024**3,'available':60*1024**3,'load_percent':6}
         with mock.patch.object(m,'windows_memory_status',return_value=fake_mem), \
-             mock.patch.object(m.os,'cpu_count',return_value=24):
+             mock.patch.object(m,'available_logical_cpus',return_value=24):
             n,_=m.choose_workers('AUTO',75,22,60)
         self.assertEqual(n,22)
 
     def test_workers_explicit_bound(self):
         fake_mem={'total':32*1024**3,'available':24*1024**3,'load_percent':25}
         with mock.patch.object(m,'windows_memory_status',return_value=fake_mem), \
-             mock.patch.object(m.os,'cpu_count',return_value=24):
+             mock.patch.object(m,'available_logical_cpus',return_value=24):
             n,_=m.choose_workers('7',75,22,60)
         self.assertEqual(n,7)
         with mock.patch.object(m,'windows_memory_status',return_value=fake_mem), \
-             mock.patch.object(m.os,'cpu_count',return_value=24):
+             mock.patch.object(m,'available_logical_cpus',return_value=24):
             with self.assertRaises(m.MultiworkBlocked):
                 m.choose_workers('23',75,22,60)
 
     def test_workers_explicit_cannot_bypass_ram_budget(self):
         fake_mem={'total':16*1024**3,'available':8*1024**3,'load_percent':50}
         with mock.patch.object(m,'windows_memory_status',return_value=fake_mem), \
-             mock.patch.object(m.os,'cpu_count',return_value=24):
+             mock.patch.object(m,'available_logical_cpus',return_value=24):
             with self.assertRaisesRegex(m.MultiworkBlocked,'WORKER_COUNT_EXCEEDS_RAM_BUDGET'):
                 m.choose_workers('22',75,22,60)
 
@@ -208,15 +208,17 @@ class TestFullMultiworkHelpers(unittest.TestCase):
             def put(self,x): self.items.append(x)
             def close(self): self.closed=True
             def cancel_join_thread(self): self.cancelled=True
+            def get_nowait(self):
+                raise m.queue.Empty
         class Stop:
             def __init__(self): self.v=False
             def set(self): self.v=True
         class Proc:
-            def __init__(self): self.alive=True; self.terminated=False; self.killed=False
+            def __init__(self): self.alive=True; self.terminated=False; self.killed=False; self.pid=4242; self.exitcode=None
             def is_alive(self): return self.alive
             def join(self,timeout=None): return
-            def terminate(self): self.terminated=True; self.alive=False
-            def kill(self): self.killed=True; self.alive=False
+            def terminate(self): self.terminated=True; self.alive=False; self.exitcode=-15
+            def kill(self): self.killed=True; self.alive=False; self.exitcode=-9
         worker=Proc();publisher=Proc();cq=FakeQ();pq=FakeQ();eq=FakeQ();stop=Stop()
         active={'W001-X':{'process':worker,'command_q':cq}}
         with mock.patch.object(m.signal,'getsignal',return_value='OLD'), \
@@ -232,6 +234,37 @@ class TestFullMultiworkHelpers(unittest.TestCase):
         self.assertIn('PUBLISHER',report['forced_terminate'])
         self.assertEqual(report['forced_kill'],[])
         self.assertTrue(cq.closed and pq.closed and eq.closed)
+        self.assertEqual(report['child_exit_codes'],{'WORKER:W001-X':-15,'PUBLISHER':-15})
+        self.assertFalse(m._cooperative_stop_confirmed(report))
+
+    def test_r41_autocpu_uses_process_available_cpus(self):
+        with mock.patch.object(m.os,'process_cpu_count',create=True,return_value=6), \
+             mock.patch.object(m.os,'cpu_count',return_value=24):
+            self.assertEqual(m.available_logical_cpus(),6)
+        with mock.patch.object(m,'available_logical_cpus',return_value=6), \
+             mock.patch.object(m,'windows_memory_status',return_value={'total':256*1024**3,'available':200*1024**3,'load_percent':10}):
+            workers,_=m.choose_workers('AUTO',75,22,60)
+        self.assertEqual(workers,4)
+
+    def test_r41_watchdog_requests_cooperative_stop_once(self):
+        class Stop:
+            def __init__(self): self.n=0
+            def set(self): self.n+=1
+        stop=Stop()
+        w=m.MainLoopWatchdog(stop,limit_seconds=0.05,poll_seconds=0.01).start()
+        import time as _t; _t.sleep(0.3); w.close()
+        self.assertTrue(w.fired); self.assertEqual(stop.n,1)
+        stop2=Stop(); w=m.MainLoopWatchdog(stop2,limit_seconds=5,poll_seconds=0.01).start()
+        for _ in range(5): w.tick(); _t.sleep(0.02)
+        w.close(); self.assertFalse(w.fired); self.assertEqual(stop2.n,0)
+
+    def test_r41_watchdog_scoped_to_event_loop(self):
+        text=Path(__file__).with_name('tickstore_full_multiwork.py').read_text(encoding='utf-8')
+        loop=text.index('while active or months_done < len(months):')
+        close=text.index('watchdog.close()\n        if watchdog.fired: raise KeyboardInterrupt()')
+        reconcile=text.index('core.reconcile_full_readonly(dest_root')
+        self.assertLess(loop,close); self.assertLess(close,reconcile)
+        self.assertIn("print('SAFE_STOP_REASON=WATCHDOG_MAIN_LOOP_STALL', flush=True)",text)
 
 if __name__=='__main__':
     unittest.main(verbosity=2)
