@@ -1,0 +1,103 @@
+RESULT_CONTEXT=ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 15
+RUN_DIR=C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R41_QUAL_20261013_174923_852_23668
+RUN_LOG=C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R41_QUAL_20261013_174923_852_23668\RUN_LOG.txt
+POWERSHELL=5.1.26100.9444 LOCALAPPDATA=C:\Users\silvi\AppData\Local
+ZIP_CANDIDATE=C:\Users\silvi\OneDrive\Downloads\TICKSTORE_CDT15_R41_QUAL_20261013.zip SHA256=8D13C8916B3C0DA43AF440F554289C58651DF2299024482CD0710BBDD3DBB163 BYTES=1598692 REPARSE_TAG=0x00000000
+ZIP_SELECTED_PRIVATE_COPY=C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R41_QUAL_20261013_174923_852_23668\INPUT\1_TICKSTORE_CDT15_R41_QUAL_20261013.zip IDENTICAL_COPIES=1
+EXTRACTED_TO=C:\Users\silvi\AppData\Local\TICKSTORE_QUAL_R41\R41_QUAL_20261013_174923_852_23668\X
+PYTHON=PASS 3.14.7 SHA256_PINNED
+QUAL_PROGRESS [------------------------------]   0.00% STEP=1/6 IDENTITY ELAPSED=0.00.00.01 ETA=UNKNOWN
+QUAL_IDENTITY=PASS PYTHON=3.14.7 CPU=24/24
+QUAL_PROGRESS [------------------------------]   2.00% STEP=2/6 FINAL_PACKAGE ELAPSED=0.00.00.01 ETA=0.00.00.07
+QUAL_FINAL_PACKAGE=PASS SHA256=B6D7D9B4332AE43284068E7ACE899DF93863701CE3AB2D878A4690C68D8F8AF5 MEMBERS=174
+QUAL_PROGRESS [#-----------------------------]   5.00% STEP=3/6 SUITES ELAPSED=0.00.00.01 ETA=0.00.00.07
+QUAL_SUITE S1_WRITER_EFFECTFUL=FAIL RUN=27/27 FAIL=0 ERROR=1 SKIP=0
+test_20_concurrent_writer_is_refused_without_effect (r41q_0_test_official_writer_effectful.Concurrency.test_20_concurrent_writer_is_refused_without_effect) ... ok
+test_21_lock_released_by_abrupt_owner_death (r41q_0_test_official_writer_effectful.Concurrency.test_21_lock_released_by_abrupt_owner_death) ... ok
+test_22_two_simultaneous_writer_processes_one_winner (r41q_0_test_official_writer_effectful.Concurrency.test_22_two_simultaneous_writer_processes_one_winner) ... ok
+test_10_each_crash_point_recovers_by_new_process (r41q_0_test_official_writer_effectful.CrashRecovery.test_10_each_crash_point_recovers_by_new_process) ... ok
+test_11_crash_after_committed_is_never_rolled_back (r41q_0_test_official_writer_effectful.CrashRecovery.test_11_crash_after_committed_is_never_rolled_back) ... ok
+test_12_orphan_staging_blocks_then_archives (r41q_0_test_official_writer_effectful.CrashRecovery.test_12_orphan_staging_blocks_then_archives) ... ok
+test_13_crash_during_recovery_is_recoverable (r41q_0_test_official_writer_effectful.CrashRecovery.test_13_crash_during_recovery_is_recoverable) ... ok
+test_14_partial_replacefile_menu_only_under_backup_name (r41q_0_test_official_writer_effectful.CrashRecovery.test_14_partial_replacefile_menu_only_under_backup_name) ... ok
+test_15_one_trailing_phase_record_tolerated_two_block (r41q_0_test_official_writer_effectful.CrashRecovery.test_15_one_trailing_phase_record_tolerated_two_block) ... ok
+test_30_menu_drift_blocks_before_write (r41q_0_test_official_writer_effectful.Negative.test_30_menu_drift_blocks_before_write) ... ok
+test_31_bat_drift_blocks (r41q_0_test_official_writer_effectful.Negative.test_31_bat_drift_blocks) ... ok
+test_32_preexisting_active_blocks (r41q_0_test_official_writer_effectful.Negative.test_32_preexisting_active_blocks) ... ok
+test_33_hardlinked_menu_blocks (r41q_0_test_official_writer_effectful.Negative.test_33_hardlinked_menu_blocks) ... ok
+test_34_redirected_ancestor_blocks (r41q_0_test_official_writer_effectful.Negative.test_34_redirected_ancestor_blocks) ... ERROR
+test_35_installed_candidate_drift_blocks (r41q_0_test_official_writer_effectful.Negative.test_35_installed_candidate_drift_blocks) ... ok
+test_36_artifact_name_collision_blocks (r41q_0_test_official_writer_effectful.Negative.test_36_artifact_name_collision_blocks) ... ok
+test_37_hostile_swap_inside_replace_window_detected (r41q_0_test_official_writer_effectful.Negative.test_37_hostile_swap_inside_replace_window_detected) ... ok
+test_38_forged_committed_journal_is_not_trusted (r41q_0_test_official_writer_effectful.Negative.test_38_forged_committed_journal_is_not_trusted) ... ok
+test_39_tampered_plan_breaks_binding (r41q_0_test_official_writer_effectful.Negative.test_39_tampered_plan_breaks_binding) ... ok
+test_40_sandbox_identity_required (r41q_0_test_official_writer_effectful.Negative.test_40_sandbox_identity_required) ... ok
+test_41_official_modes_fail_closed_here (r41q_0_test_official_writer_effectful.Negative.test_41_official_modes_fail_closed_here) ... ok
+test_42_official_layout_targets_are_fixed (r41q_0_test_official_writer_effectful.Negative.test_42_official_layout_targets_are_fixed) ... ok
+test_43_real_target_overlap_is_component_wise (r41q_0_test_official_writer_effectful.Negative.test_43_real_target_overlap_is_component_wise) ... ok
+test_01_publish_commits_and_consumer_accepts (r41q_0_test_official_writer_effectful.Nominal.test_01_publish_commits_and_consumer_accepts) ... ok
+test_02_recover_committed_is_read_only (r41q_0_test_official_writer_effectful.Nominal.test_02_recover_committed_is_read_only) ... ok
+test_03_second_publish_blocks_on_existing_transaction (r41q_0_test_official_writer_effectful.Nominal.test_03_second_publish_blocks_on_existing_transaction) ... ok
+test_04_cli_child_process_publish (r41q_0_test_official_writer_effectful.Nominal.test_04_cli_child_process_publish) ... ok
+
+======================================================================
+ERROR: test_34_redirected_ancestor_blocks (r41q_0_test_official_writer_effectful.Negative.test_34_redirected_ancestor_blocks)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\silvi\AppData\Local\TICKSTORE_QUAL_R41\R41_QUAL_20261013_174923_852_23668\FINAL_EXTRACT\implementation_v001\tests\test_official_writer_effectful.py", line 319, in test_34_redirected_ancestor_blocks
+    self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+                                      ~~~~~~~~~^~~~~~~~~~
+TypeError: unsupported operand type(s) for +: 'NoneType' and 'str'
+
+----------------------------------------------------------------------
+Ran 27 tests in 13.003s
+
+FAILED (errors=1)
+
+QUAL_SUITE S2_WRITER_CONTRACT=PASS RUN=40/40 FAIL=0 ERROR=0 SKIP=0
+QUAL_SUITE S3_INSTALLER_CONTRACT=PASS RUN=12/12 FAIL=0 ERROR=0 SKIP=0
+QUAL_SUITE S4_RUNNER_OBSERVABILITY=PASS RUN=14/14 FAIL=0 ERROR=0 SKIP=0
+QUAL_SUITE S5_NATIVE_PROCESS_CONTROL=FAIL RUN=4/4 FAIL=1 ERROR=0 SKIP=0
+test_01_safe_stop_event_crosses_processes (r41q_0_test_native_process_control_r41.NativeProcessControl.test_01_safe_stop_event_crosses_processes) ... ok
+test_02_job_close_kills_admitted_child_tree (r41q_0_test_native_process_control_r41.NativeProcessControl.test_02_job_close_kills_admitted_child_tree) ... FAIL
+test_03_full_lease_is_exclusive_and_released (r41q_0_test_native_process_control_r41.NativeProcessControl.test_03_full_lease_is_exclusive_and_released) ... ok
+test_04_autocpu_probe_matches_affinity (r41q_0_test_native_process_control_r41.NativeProcessControl.test_04_autocpu_probe_matches_affinity) ... ok
+
+======================================================================
+FAIL: test_02_job_close_kills_admitted_child_tree (r41q_0_test_native_process_control_r41.NativeProcessControl.test_02_job_close_kills_admitted_child_tree)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\silvi\AppData\Local\TICKSTORE_QUAL_R41\R41_QUAL_20261013_174923_852_23668\FINAL_EXTRACT\implementation_v001\tests\test_native_process_control_r41.py", line 56, in test_02_job_close_kills_admitted_child_tree
+    self.assertNotEqual(proc.exitcode, 0)
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^
+AssertionError: 0 == 0
+
+----------------------------------------------------------------------
+Ran 4 tests in 1.173s
+
+FAILED (failures=1)
+
+QUAL_SUITE S6_MULTIWORK_UNIT=PASS RUN=24/24 FAIL=0 ERROR=0 SKIP=0
+QUAL_SCRIPT S7_STATIC_MULTIWORK_PREAUDIT=PASS EXIT=0
+QUAL_PROGRESS [######################--------]  75.00% STEP=4/6 E2E ELAPSED=0.00.00.17 ETA=0.00.00.06
+QUAL_E2E=PASS E1_ACTIVATE_WITHOUT_CHAIN_BLOCKS=PASS E2_CHAIN_WITHOUT_ACTIVATE_BLOCKS=PASS E2B_ACTIVATE_REQUIRES_OFFICIAL_ROOT=PASS E3_PS51_INACTIVE_INSTALL_READBACK=PASS E4_REINSTALL_REFUSED_UNCHANGED=PASS E5_INSTALLED_WRITER_COMMITS_CROSS_VOLUME=PASS E5_INSTALLED_MENU_CONSUMER_ACCEPTS_COMMITTED=PASS E5_CROSS_VOLUME=PASS E6_CRASH_NEW_PROCESS_RECOVERY_ARCHIVE_RETRY=PASS
+QUAL_PROGRESS [############################--]  95.00% STEP=5/6 POSTCHECK ELAPSED=0.00.00.23 ETA=0.00.00.02
+QUAL_PROGRESS [#############################-]  97.00% STEP=6/6 RETURN ELAPSED=0.00.00.23 ETA=0.00.00.01
+
+RESULT_CONTEXT=ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 15
+SOURCE_SHA256=B6D7D9B4332AE43284068E7ACE899DF93863701CE3AB2D878A4690C68D8F8AF5
+MANIFEST=7A2C20A5647001C678BC582F2D5D2EED7D422DCEC93E2175D43688443C164FAF
+TESTS=S1_WRITER_EFFECTFUL:FAIL S2_WRITER_CONTRACT:PASS S3_INSTALLER_CONTRACT:PASS S4_RUNNER_OBSERVABILITY:PASS S5_NATIVE_PROCESS_CONTROL:FAIL S6_MULTIWORK_UNIT:PASS S7_STATIC_MULTIWORK_PREAUDIT:PASS
+E2E=PASS
+PRECHECK=PASS
+EXIT_CODE=2
+RETURN_ZIP=C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R41_QUAL_20261013_174923_852_23668\R41_QUAL_RETURN_R41_QUAL_20261013_174923_852_23668.zip
+RETURN_SHA256=32674DEB2784F1347CD7AE40DB701F0D506625FCC24F293EE969A5765EE542C5
+PRODUCTION_MODIFIED=FALSE
+FULL_STARTED=NO
+BLOCKER=QUALIFICATION_FAIL:S1_WRITER_EFFECTFUL,S5_NATIVE_PROCESS_CONTROL
+CLASSIFICATION=R41_WINDOWS_SANDBOX_QUALIFICATION_FAIL
+RESULT_RETURN_TO=ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 15
+QUAL_BOOTSTRAP_DRIVER_EXIT=2
+RUN_LOG=C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R41_QUAL_20261013_174923_852_23668\RUN_LOG.txt
+Devolva ao engenheiro: o arquivo RETURN_ZIP indicado acima (ou RUN_LOG.txt se nao houver RETURN_ZIP).

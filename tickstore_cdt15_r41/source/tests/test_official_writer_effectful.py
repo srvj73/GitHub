@@ -314,9 +314,10 @@ class Negative(WriterSandbox):
         real = self.d / 'Base CSV/Scripts'
         os.rename(real, self.d / 'Scripts_real')
         if os.name == 'nt':
-            r = subprocess.run(['cmd.exe', '/d', '/c', 'mklink', '/J', str(real), str(self.d / 'Scripts_real')],
-                               capture_output=True, text=True)
-            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+            # Native junction (no cmd.exe, no console code page, no privilege needed).
+            import _winapi
+            _winapi.CreateJunction(str(self.d / 'Scripts_real'), str(real))
+            self.assertTrue(os.lstat(real).st_file_attributes & 0x400, 'JUNCTION_NOT_CREATED')
         else:
             os.symlink(self.d / 'Scripts_real', real)
         with self.assertRaises(Exception):

@@ -11,10 +11,10 @@ param()
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
 $ZipPattern = 'TICKSTORE_CDT15_R41_QUAL_*.zip'
-$ExpectedZipName = 'TICKSTORE_CDT15_R41_QUAL_20261013.zip'
-$ExpectedZipSha = '8D13C8916B3C0DA43AF440F554289C58651DF2299024482CD0710BBDD3DBB163'
-$ExpectedZipBytes = 1598692
-$ExpectedQualManifestSha = '4A25E7967A9A2A689F15403C7E1A1B56602C273BAC5D3AD74BC30ED4D26B7AC6'
+$ExpectedZipName = 'TICKSTORE_CDT15_R41_QUAL_R1_20261013.zip'
+$ExpectedZipSha = '3654D59D5A2E7E9CA596C7B5915848CC9C418EB791AF2E16E8E17185E5FB00B5'
+$ExpectedZipBytes = 1598904
+$ExpectedQualManifestSha = '52A869F36C5B97F0101901BFAA40EB15F68969B479379C950224545A3D5BB73D'
 $Downloads = 'C:\Users\silvi\OneDrive\Downloads'
 $LogRoot = 'C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS'
 $Python = 'C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'

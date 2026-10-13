@@ -13,11 +13,11 @@ from pathlib import Path
 
 DATE = '20261013'
 FIXED_TIME = (2026, 10, 13, 0, 0, 0)
-FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_R41_%s.zip' % DATE
-FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_R41_%s.json' % DATE
-QUAL_NAME = 'TICKSTORE_CDT15_R41_QUAL_%s.zip' % DATE
-QUAL_WITNESS = 'WITNESS_TICKSTORE_CDT15_R41_QUAL_%s.json' % DATE
-BOOTSTRAP = 'RUN_TICKSTORE_CDT15_R41_QUAL.ps1'
+FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_R41R1_%s.zip' % DATE
+FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_R41R1_%s.json' % DATE
+QUAL_NAME = 'TICKSTORE_CDT15_R41_QUAL_R1_%s.zip' % DATE
+QUAL_WITNESS = 'WITNESS_TICKSTORE_CDT15_R41_QUAL_R1_%s.json' % DATE
+BOOTSTRAP = 'RUN_TICKSTORE_CDT15_R41R1_QUAL.ps1'
 BASELINE = {
     'handoff_zip_sha256': '2093EB4813C371DCD113C92C55AC1E15FFC24C7D201BDD1581FD9D49367F772C',
     'baseline_source_zip_sha256': '26F783A0B05DA2436DDD56B1CE23FC289FD9A44C8EBF8363419F8C55692CB757',
@@ -146,7 +146,7 @@ def main(source, out):
     write_zip(qual_path, [('QUAL_MANIFEST.json', qmanifest)] + qmembers)
     qual_raw = qual_path.read_bytes()
     # 5. Bootstrap (ASCII, CRLF) with embedded pins.
-    tpl = (Path(__file__).parent / (BOOTSTRAP + '.template')).read_text(encoding='ascii')
+    tpl = (Path(__file__).parent / 'RUN_TICKSTORE_CDT15_R41_QUAL.ps1.template').read_text(encoding='ascii')
     ps = (tpl.replace('@@ZIP_NAME@@', QUAL_NAME).replace('@@ZIP_SHA@@', sha(qual_raw))
              .replace('@@ZIP_BYTES@@', str(len(qual_raw))).replace('@@QUAL_MANIFEST_SHA@@', sha(qmanifest)))
     assert '@@' not in ps

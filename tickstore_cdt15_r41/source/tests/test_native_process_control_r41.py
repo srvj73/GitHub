@@ -43,6 +43,7 @@ class NativeProcessControl(unittest.TestCase):
         ctx = mp.get_context('spawn')
         job = ProcessJob()
         proc = job.start(ctx, time.sleep, args=(120,), name='R41-JOB-CHILD')
+        started = time.monotonic()
         try:
             time.sleep(1.0)
             self.assertTrue(proc.is_alive())
@@ -53,7 +54,10 @@ class NativeProcessControl(unittest.TestCase):
             job.close()
         proc.join(20)
         self.assertFalse(proc.is_alive())
-        self.assertNotEqual(proc.exitcode, 0)
+        # KILL_ON_JOB_CLOSE terminates members with exit code 0 (observed natively,
+        # R41 run 20261013_174923). Proof of containment is death far before 120 s.
+        self.assertIsNotNone(proc.exitcode)
+        self.assertLess(time.monotonic() - started, 30)
 
     def test_03_full_lease_is_exclusive_and_released(self):
         from tickstore_full_multiwork import FullProcessLease, MultiworkBlocked
