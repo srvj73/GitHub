@@ -309,14 +309,20 @@ class Negative(WriterSandbox):
             self.publish()
         self.assertFalse(self.layout.tx.exists())
 
-    @unittest.skipIf(os.name == 'nt', 'POSIX symlink fixture; Windows junction case is in the native driver')
-    def test_34_symlinked_ancestor_blocks(self):
+    def test_34_redirected_ancestor_blocks(self):
+        # Windows: NTFS junction (no privilege needed); POSIX: symlink.
         real = self.d / 'Base CSV/Scripts'
         os.rename(real, self.d / 'Scripts_real')
-        os.symlink(self.d / 'Scripts_real', real)
+        if os.name == 'nt':
+            r = subprocess.run(['cmd.exe', '/d', '/c', 'mklink', '/J', str(real), str(self.d / 'Scripts_real')],
+                               capture_output=True, text=True)
+            self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        else:
+            os.symlink(self.d / 'Scripts_real', real)
         with self.assertRaises(Exception):
             self.publish()
         self.assertFalse(self.layout.tx.exists())
+        self.assertEqual((self.d / 'Scripts_real/Biblioteca/MENU.py').read_bytes(), OLD)
 
     def test_35_installed_candidate_drift_blocks(self):
         (self.inst / MENU_REL).write_bytes(NEW + b'#tamper\n')
@@ -388,6 +394,18 @@ class Negative(WriterSandbox):
         self.assertIn("until='B07'", src)
         self.assertNotIn('--menu-path', src)
         self.assertNotIn('unlink(', src.replace('os.unlink(src)', ''))
+
+    def test_43_real_target_overlap_is_component_wise(self):
+        app = 'C:\\Users\\x\\AppData\\Local'
+        for bad in (r'D:\Base CSV\CDT15_R41_WRITER_QUAL_D_1', r'D:\Base CSV', 'D:\\',
+                    app + '\\TICKSTORE\\CDT15_R41_WRITER_QUAL_C_1', app):
+            with self.subTest(bad=bad):
+                self.assertTrue(W.touches_real_target(bad, app))
+        for ok in (app + '\\TICKSTORE_QUAL_R41\\CDT15_R41_WRITER_QUAL_C_1',
+                   r'D:\TICKSTORE_QUALIFICATION_SANDBOX\R41\CDT15_R41_WRITER_QUAL_D_1',
+                   r'D:\Base CSV2\CDT15_R41_WRITER_QUAL_D_1'):
+            with self.subTest(ok=ok):
+                self.assertFalse(W.touches_real_target(ok, app))
 
 
 if __name__ == '__main__':

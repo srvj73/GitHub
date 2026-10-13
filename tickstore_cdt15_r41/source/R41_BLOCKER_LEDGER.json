@@ -1,0 +1,65 @@
+{
+  "schema": "TICKSTORE_CDT15_R41_BLOCKER_LEDGER_V001",
+  "role": "ENGINEER_ONLY",
+  "status": {
+    "CANDIDATE_COMPLETENESS": "NOT_PROVEN",
+    "G4": "INCOMPLETE",
+    "G5": "NOT_PROVEN",
+    "B06": "NOT_STARTED",
+    "B07": "NOT_STARTED",
+    "D4_D5_CANARY_FULL": "NOT_RELEASED",
+    "FULL_STARTED": false,
+    "PRODUCTION_MODIFIED": false
+  },
+  "closed_in_r41_source_pending_windows": [
+    "OFFICIAL_WRITER_NOT_IMPLEMENTED",
+    "INSTALLER_ACTIVATION_NOT_INTEGRATED_WITH_WRITER",
+    "SAFE_STOP_STAGE_NOT_ELEVATED_CANNOT_OPEN_HIGH_INTEGRITY_GLOBAL_EVENT",
+    "ELEVATED_FULL_WINDOW_HIDDEN_PROGRESS_ETA_CTRL_C_INACCESSIBLE",
+    "NO_FIXED_FOLDER_RUN_LOG_FOR_FULL_LAUNCHER",
+    "NO_READ_ONLY_MONITOR_FOR_HEARTBEAT_ETA_WATCHDOG",
+    "AUTOCPU_USED_SYSTEM_CPU_COUNT_NOT_PROCESS_AVAILABLE",
+    "STALE_TEST_full/test_full_multiwork.py_1_ERROR",
+    "STALE_STATIC_full/static_multiwork_preaudit.py_6_OBSOLETE_CHECKS"
+  ],
+  "open_blockers": [
+    {
+      "id": "R41-B1",
+      "title": "QUALIFICATION_CONTRACT.json exige 125 IDs de testes de modulos ausentes da base",
+      "evidence": "candidate/control/QUALIFICATION_CONTRACT.json required_tests referencia tests_stage_closure, tests_full_lifecycle, tests_resume_delta, test_first_admission_transaction, test_bootstrap_contract, tests_delta, tests_native_delta; nenhum desses modulos existe no pacote 26F783A0 (grep confirmado).",
+      "effect": "FULL_QUALIFICATION_CONTRACT.validate exige exatamente esses IDs nativos sobre os bytes finais; G5 nao pode ser satisfeito com a base entregue.",
+      "needed_from_origin": "Fornecer o arquivo historico da linha de base (archive_sha256 DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8) ou autorizar re-derivacao do contrato de qualificacao para a arvore atual."
+    },
+    {
+      "id": "R41-B2",
+      "title": "Nao existe produtor tecnico de recibos G5 e B07",
+      "evidence": "FULL_INSTANCE_PREPARE.py declara 'cannot issue G5/B06/B07 receipts'; nenhum outro modulo publica STAGE_G5/STAGE_B07; a cadeia (FULL_RELEASE_CHAIN.STAGES) exige ambos antes de D4.",
+      "effect": "Mesmo com B06 independente aprovado, D4 e o FULL permanecem inalcancaveis.",
+      "needed_from_origin": "Definicao de custodia: quem emite G5 (congelamento de bytes) e qual runner nativo produz B07 (checks native_windows, physical_policy_capture, state_continuity, vss_identity, negative_controls, process_tree_cleanup)."
+    },
+    {
+      "id": "R41-B3",
+      "title": "Fechamento D4/1399, Stage B E9/F1/F2 e FULL/H1-H6 so sao provaveis nos gates D4..FULL",
+      "evidence": "Executam no orquestrador congelado com STATE/journal reais; dependem de B07.",
+      "effect": "Prova fim a fim permanece pendente; regressões portateis da base (186) seguem PASS."
+    },
+    {
+      "id": "R41-B4",
+      "title": "Durabilidade a queda de energia nao comprovavel por software",
+      "evidence": "Qualificacao cobre morte abrupta de processo em todos os pontos do protocolo; FlushFileBuffers/MOVEFILE_WRITE_THROUGH aplicados.",
+      "effect": "Declarar apenas PROCESS_DEATH_RECOVERY; CHECKPOINT_POWERLOSS_RECOVERY continua NAO PROVADO."
+    },
+    {
+      "id": "R41-B5",
+      "title": "Smoke nativo do motor multiwork sobre os novos bytes do wrapper",
+      "evidence": "windows_multiwork_smoke_22/rc4 sao historicos; o wrapper mudou (watchdog, AUTOCPU).",
+      "effect": "Proxima prova dirigida (R42) com fixtures sinteticas no formato PTS2G, ou cobertura no CANARY."
+    },
+    {
+      "id": "R41-B6",
+      "title": "Controles negativos conhecidos de B06 nao reverificados no R41",
+      "evidence": "STATE recreation, TOCTOU de configuracao, sobrescrita concorrente de recibos, falha pos-checkpoint: a base contem testes portateis relacionados (186 PASS), mas o R41 nao auditou sua suficiencia.",
+      "effect": "Permanece pendente para a fase de completude antes do B06."
+    }
+  ]
+}

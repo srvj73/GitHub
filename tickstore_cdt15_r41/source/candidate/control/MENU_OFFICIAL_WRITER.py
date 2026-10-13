@@ -30,7 +30,7 @@ import stat
 import sys
 import time
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
@@ -401,6 +401,20 @@ def official_layout():
                   MENU_SHA, BAT_SHA, True).validate()
 
 
+def touches_real_target(root: str, local_appdata: str) -> bool:
+    """Component-wise overlap with real targets ('...\\TICKSTORE_QUAL' is not '...\\TICKSTORE')."""
+    reals = [r'D:\Base CSV']
+    if re.fullmatch(r'[A-Za-z]:\\[^%]+', local_appdata or ''):
+        reals.append(ntpath.join(local_appdata, 'TICKSTORE'))
+    parts = [x.casefold() for x in PureWindowsPath(root).parts]
+    for real in reals:
+        real_parts = [x.casefold() for x in PureWindowsPath(real).parts]
+        n = min(len(parts), len(real_parts))
+        if parts[:n] == real_parts[:n]:
+            return True
+    return False
+
+
 def qualification_layout(d_root: Path, c_root: Path, menu_before_sha256: str, bat_sha256: str):
     """Disposable sentinel-marked sandbox; refuses anything resembling a real target."""
     d_root, c_root = Path(d_root).absolute(), Path(c_root).absolute()
@@ -408,10 +422,9 @@ def qualification_layout(d_root: Path, c_root: Path, menu_before_sha256: str, ba
         require(root.name.startswith(SANDBOX_PREFIX), 'QUALIFICATION_SANDBOX_NAME')
         require(read_pinned(root / 'SANDBOX_ONLY.txt') == SANDBOX_SENTINEL, 'QUALIFICATION_SENTINEL')
     require(d_root != c_root, 'QUALIFICATION_ROOTS_DISTINCT')
-    for real in (r'D:\Base CSV', os.environ.get('LOCALAPPDATA', '') + '\\TICKSTORE'):
-        if real.strip('\\'):
-            for root in (d_root, c_root):
-                require(not str(root).casefold().startswith(real.casefold()), 'QUALIFICATION_TOUCHES_REAL_TARGET')
+    for root in (d_root, c_root):
+        require(not touches_real_target(str(root), os.environ.get('LOCALAPPDATA', '')),
+                'QUALIFICATION_TOUCHES_REAL_TARGET')
     return Layout('QUALIFICATION', d_root / 'Base CSV' / 'Scripts' / 'Biblioteca' / 'MENU.py',
                   d_root / 'Base CSV' / 'Manutenção Base de Dados.bat', c_root / 'TICKSTORE',
                   menu_before_sha256, bat_sha256, os.name == 'nt').validate()
