@@ -38,13 +38,12 @@ function NoReparse([string]$Path) {
     while ($p) {
         if ([IO.File]::Exists($p) -or [IO.Directory]::Exists($p)) {
             if (([IO.File]::GetAttributes($p) -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
-                # OneDrive turns synced folders into Cloud Files directories (tag 0x9000x01A,
-                # observed natively on TICKSTORE_RUNS in R41R1). Accept only that tag, only for
-                # directories under the OneDrive root; junctions/symlinks stay rejected.
+                # OneDrive marks synced folders as reparse points (observed natively on
+                # TICKSTORE_RUNS in R41R1/R41R2; FindFirstFile reported tag 0).
                 $under=($p -ieq 'C:\Users\silvi\OneDrive' -or $p.StartsWith('C:\Users\silvi\OneDrive\',[StringComparison]::OrdinalIgnoreCase))
-                $tag=[TickstoreReparseTag]::Tag($p)
-                if (-not ($under -and [IO.Directory]::Exists($p) -and (($tag -band [uint32]4294905855) -eq [uint32]2415919130))) {
-                    throw ('LOG_REPARSE:'+$p+' TAG='+('0x{0:X8}' -f $tag))
+                # Accept only when the object resolves to itself (a junction resolves elsewhere).
+                if (-not ($under -and [IO.Directory]::Exists($p) -and ([TickstoreReparseTag]::FinalPath($p) -ieq $p))) {
+                    throw ('LOG_REPARSE:'+$p+' TAG='+('0x{0:X8}' -f [TickstoreReparseTag]::Tag($p))+' FINAL='+[TickstoreReparseTag]::FinalPath($p))
                 }
             }
         }
@@ -56,22 +55,43 @@ if (-not ('TickstoreReparseTag' -as [type])) {
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 public static class TickstoreReparseTag {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct WIN32_FIND_DATA {
-        public uint dwFileAttributes; public long ftCreationTime; public long ftLastAccessTime; public long ftLastWriteTime;
-        public uint nFileSizeHigh; public uint nFileSizeLow; public uint dwReserved0; public uint dwReserved1;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string cFileName;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)] public string cAlternateFileName;
-    }
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    static extern IntPtr FindFirstFileW(string name, out WIN32_FIND_DATA data);
-    [DllImport("kernel32.dll")] static extern bool FindClose(IntPtr h);
-    public static uint Tag(string path) {
-        WIN32_FIND_DATA d; IntPtr h = FindFirstFileW(path, out d);
+    static extern IntPtr CreateFileW(string name, uint access, uint share, IntPtr sa, uint disp, uint flags, IntPtr tpl);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern uint GetFinalPathNameByHandleW(IntPtr h, StringBuilder buf, uint len, uint flags);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool GetFileInformationByHandleEx(IntPtr h, int cls, out FILE_ATTRIBUTE_TAG_INFO info, uint size);
+    [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr h);
+    [StructLayout(LayoutKind.Sequential)] public struct FILE_ATTRIBUTE_TAG_INFO { public uint FileAttributes; public uint ReparseTag; }
+    static IntPtr Open(string p, bool noFollow) {
+        uint flags = 0x02000000 | (noFollow ? 0x00200000u : 0u);
+        IntPtr h = CreateFileW(p, 0x80, 7, IntPtr.Zero, 3, flags, IntPtr.Zero);
         if (h == new IntPtr(-1)) { throw new System.ComponentModel.Win32Exception(); }
-        FindClose(h);
-        return (d.dwFileAttributes & 0x400) != 0 ? d.dwReserved0 : 0;
+        return h;
+    }
+    // Where the path really resolves after following any reparse point.
+    public static string FinalPath(string p) {
+        IntPtr h = Open(p, false);
+        try {
+            StringBuilder b = new StringBuilder(32768);
+            uint n = GetFinalPathNameByHandleW(h, b, 32768, 0);
+            if (n == 0 || n >= 32768) { throw new System.ComponentModel.Win32Exception(); }
+            string s = b.ToString();
+            if (s.StartsWith(@"\\?\UNC\")) { return @"\\" + s.Substring(8); }
+            if (s.StartsWith(@"\\?\")) { return s.Substring(4); }
+            return s;
+        } finally { CloseHandle(h); }
+    }
+    // Diagnostic only: the object's own reparse tag (handle opened without following).
+    public static uint Tag(string p) {
+        IntPtr h = Open(p, true);
+        try {
+            FILE_ATTRIBUTE_TAG_INFO i;
+            if (!GetFileInformationByHandleEx(h, 9, out i, 8)) { return 0xFFFFFFFF; }
+            return (i.FileAttributes & 0x400) != 0 ? i.ReparseTag : 0;
+        } finally { CloseHandle(h); }
     }
 }
 '@

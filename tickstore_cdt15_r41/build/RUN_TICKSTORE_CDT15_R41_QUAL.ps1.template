@@ -20,7 +20,7 @@ $LogRoot = 'C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS'
 $Python = 'C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'
 $PythonSha = '4942B86A6597E5AEE0128DAA00050ED79BC21F6E709A78EB19CBFEB0C2F39AC9'
 $DParent = 'D:\TICKSTORE_QUALIFICATION_SANDBOX'
-$CloudFilesTag = [uint32]2415943706  # IO_REPARSE_TAG_CLOUD_6 0x9000601A (OneDrive Files On-Demand)
+$CloudFilesMask = [uint32]4294905855; $CloudFilesTag = [uint32]2415919130  # IO_REPARSE_TAG_CLOUD_* 0x9000x01A (OneDrive)
 $utf8 = New-Object Text.UTF8Encoding($false)
 $script:RunDir = ''
 
@@ -35,19 +35,19 @@ function Sha([string]$Path) {
     try { return [BitConverter]::ToString($h.ComputeHash($s)).Replace('-', '') } finally { $h.Dispose(); $s.Dispose() }
 }
 function IsOneDriveCloudDir([string]$p) {
-    # OneDrive turns synced folders into Cloud Files directories (IO_REPARSE_TAG_CLOUD_*
-    # = 0x9000x01A). Accept only that tag, only on directories, only under the OneDrive root.
-    # Junctions (0xA0000003) and symlinks (0xA000000C) remain rejected everywhere.
+    # OneDrive marks synced folders as reparse points (Cloud Files). Such a folder is
+    # accepted only under the OneDrive root, only as a directory, and only when the
+    # object resolves to itself: a junction/symlink resolves elsewhere and is rejected.
     if (-not [IO.Directory]::Exists($p)) { return $false }
     if (-not ($p -ieq 'C:\Users\silvi\OneDrive' -or $p.StartsWith('C:\Users\silvi\OneDrive\', [StringComparison]::OrdinalIgnoreCase))) { return $false }
-    return (([R41Reparse]::Tag($p)) -band [uint32]4294905855) -eq [uint32]2415919130
+    return ([R41Reparse]::FinalPath($p) -ieq $p)
 }
 function NoReparseBelow([string]$Path, [string[]]$Allowed) {
     $p = [IO.Path]::GetFullPath($Path)
     while ($p) {
         if ([IO.Directory]::Exists($p) -or [IO.File]::Exists($p)) {
             if ((([IO.File]::GetAttributes($p)) -band [IO.FileAttributes]::ReparsePoint) -ne 0 -and -not ($Allowed -contains $p) -and -not (IsOneDriveCloudDir $p)) {
-                throw ('REPARSE_IN_PATH:' + $p + ' TAG=' + ('0x{0:X8}' -f [R41Reparse]::Tag($p)))
+                throw ('REPARSE_IN_PATH:' + $p + ' TAG=' + ('0x{0:X8}' -f [R41Reparse]::Tag($p)) + ' FINAL=' + [R41Reparse]::FinalPath($p))
             }
         }
         $parent = [IO.Directory]::GetParent($p); if ($null -eq $parent) { break }; $p = $parent.FullName
@@ -67,22 +67,43 @@ try {
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 public static class R41Reparse {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct WIN32_FIND_DATA {
-        public uint dwFileAttributes; public long ftCreationTime; public long ftLastAccessTime; public long ftLastWriteTime;
-        public uint nFileSizeHigh; public uint nFileSizeLow; public uint dwReserved0; public uint dwReserved1;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string cFileName;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)] public string cAlternateFileName;
-    }
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    static extern IntPtr FindFirstFileW(string name, out WIN32_FIND_DATA data);
-    [DllImport("kernel32.dll")] static extern bool FindClose(IntPtr h);
-    public static uint Tag(string path) {
-        WIN32_FIND_DATA d; IntPtr h = FindFirstFileW(path, out d);
+    static extern IntPtr CreateFileW(string name, uint access, uint share, IntPtr sa, uint disp, uint flags, IntPtr tpl);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern uint GetFinalPathNameByHandleW(IntPtr h, StringBuilder buf, uint len, uint flags);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool GetFileInformationByHandleEx(IntPtr h, int cls, out FILE_ATTRIBUTE_TAG_INFO info, uint size);
+    [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr h);
+    [StructLayout(LayoutKind.Sequential)] public struct FILE_ATTRIBUTE_TAG_INFO { public uint FileAttributes; public uint ReparseTag; }
+    static IntPtr Open(string p, bool noFollow) {
+        uint flags = 0x02000000 | (noFollow ? 0x00200000u : 0u);
+        IntPtr h = CreateFileW(p, 0x80, 7, IntPtr.Zero, 3, flags, IntPtr.Zero);
         if (h == new IntPtr(-1)) { throw new System.ComponentModel.Win32Exception(); }
-        FindClose(h);
-        return (d.dwFileAttributes & 0x400) != 0 ? d.dwReserved0 : 0;
+        return h;
+    }
+    // Where the path really resolves after following any reparse point.
+    public static string FinalPath(string p) {
+        IntPtr h = Open(p, false);
+        try {
+            StringBuilder b = new StringBuilder(32768);
+            uint n = GetFinalPathNameByHandleW(h, b, 32768, 0);
+            if (n == 0 || n >= 32768) { throw new System.ComponentModel.Win32Exception(); }
+            string s = b.ToString();
+            if (s.StartsWith(@"\\?\UNC\")) { return @"\\" + s.Substring(8); }
+            if (s.StartsWith(@"\\?\")) { return s.Substring(4); }
+            return s;
+        } finally { CloseHandle(h); }
+    }
+    // Diagnostic only: the object's own reparse tag (handle opened without following).
+    public static uint Tag(string p) {
+        IntPtr h = Open(p, true);
+        try {
+            FILE_ATTRIBUTE_TAG_INFO i;
+            if (!GetFileInformationByHandleEx(h, 9, out i, 8)) { return 0xFFFFFFFF; }
+            return (i.FileAttributes & 0x400) != 0 ? i.ReparseTag : 0;
+        } finally { CloseHandle(h); }
     }
 }
 '@
@@ -111,7 +132,7 @@ public static class R41Reparse {
         foreach ($f in @(Get-ChildItem -LiteralPath $dir -File -Filter $ZipPattern)) {
             $n++
             $tag = [R41Reparse]::Tag($f.FullName)
-            if ($tag -ne 0 -and $tag -ne $CloudFilesTag) { Log ('ZIP_REJECTED_REPARSE_TAG=' + ('0x{0:X8}' -f $tag) + ' ' + $f.FullName); continue }
+            if ($tag -ne 0 -and (($tag -band $CloudFilesMask) -ne $CloudFilesTag)) { Log ('ZIP_REJECTED_REPARSE_TAG=' + ('0x{0:X8}' -f $tag) + ' ' + $f.FullName); continue }
             # Private copy: hash the bytes actually copied, then re-hash the copy on disk.
             $copy = Join-Path $inputDir ([string]$n + '_' + $f.Name)
             $src = [IO.File]::Open($f.FullName, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::Read)
