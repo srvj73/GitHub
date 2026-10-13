@@ -61,5 +61,33 @@
       "evidence": "STATE recreation, TOCTOU de configuracao, sobrescrita concorrente de recibos, falha pos-checkpoint: a base contem testes portateis relacionados (186 PASS), mas o R41 nao auditou sua suficiencia.",
       "effect": "Permanece pendente para a fase de completude antes do B06."
     }
-  ]
+  ],
+  "native_windows_qualification": {
+    "run": "R41_QUAL_20261013_181544_767_29780",
+    "classification": "R41_WINDOWS_SANDBOX_QUALIFICATION_PASS",
+    "qual_zip_sha256": "FCDF2C838F121421C77038C023F76FA9FA104C3FF20212C35C8899D693EE086F",
+    "final_package_sha256": "14C9A90BA2EE0CB86AC09E5FDFFE72AB0EE15C9FB5E90829375A86E139F4A4C4",
+    "package_manifest_sha256": "B6176728B80DBC821BEF31EB504B026B33A178F7E61146A509D39AFCAD195C40",
+    "return_zip_sha256": "EDBA88820C5C3B2509C57E578170F7F47C38E6E6DC67B184D9076C08079F7915",
+    "tests": {
+      "S1_WRITER_EFFECTFUL": "27/27",
+      "S2_WRITER_CONTRACT": "40/40",
+      "S3_INSTALLER_CONTRACT": "12/12",
+      "S4_RUNNER_OBSERVABILITY": "14/14",
+      "S5_NATIVE_PROCESS_CONTROL": "4/4",
+      "S6_MULTIWORK_UNIT": "24/24",
+      "S7_STATIC_MULTIWORK_PREAUDIT": "PASS"
+    },
+    "e2e": "PASS_9_OF_9_CROSS_VOLUME_C_D",
+    "production_modified": false,
+    "full_started": false,
+    "platform": "Windows PowerShell 5.1.26100.9444, Python 3.14.7 pinned, 24 logical CPUs",
+    "scope": "R41 delta in disposable sandboxes; process-death recovery only; not G4/G5/B06/B07",
+    "evidence_file": "evidence/R41_QUAL_20261013_181544_767_29780_RUN_LOG.txt",
+    "prior_failed_runs": [
+      "R41_QUAL_20261013_174923_852_23668 (2 test-code defects, fixed R41R1)",
+      "R41R1/R41R2 bootstrap OneDrive Cloud Files folder check (fixed R41R3)"
+    ]
+  },
+  "closed_in_r41_source_pending_windows_status": "QUALIFIED_NATIVE_SANDBOX_R41R3"
 }
