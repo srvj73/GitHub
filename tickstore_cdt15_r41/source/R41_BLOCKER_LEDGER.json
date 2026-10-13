@@ -53,7 +53,8 @@
       "id": "R41-B5",
       "title": "Smoke nativo do motor multiwork sobre os novos bytes do wrapper",
       "evidence": "windows_multiwork_smoke_22/rc4 sao historicos; o wrapper mudou (watchdog, AUTOCPU).",
-      "effect": "Proxima prova dirigida (R42) com fixtures sinteticas no formato PTS2G, ou cobertura no CANARY."
+      "effect": "Proxima prova dirigida (R42) com fixtures sinteticas no formato PTS2G, ou cobertura no CANARY.",
+      "status": "ADDRESSED_BY_R42_PENDING_NATIVE_RUN"
     },
     {
       "id": "R41-B6",
@@ -89,5 +90,32 @@
       "R41R1/R41R2 bootstrap OneDrive Cloud Files folder check (fixed R41R3)"
     ]
   },
-  "closed_in_r41_source_pending_windows_status": "QUALIFIED_NATIVE_SANDBOX_R41R3"
+  "closed_in_r41_source_pending_windows_status": "QUALIFIED_NATIVE_SANDBOX_R41R3",
+  "r42": {
+    "scope": "Native end-to-end of the real MULTIWORK coordinator (_execute_admitted_multiwork) on synthetic production-format data, plus re-run of historical native smokes that import the changed wrapper.",
+    "product_fix": {
+      "id": "R42-F1",
+      "file": "candidate/full/tickstore_full_multiwork.py",
+      "function": "_finalize_coordinator_resources",
+      "defect": "publisher_proc None (error before publisher start) raised AttributeError in finally: primary error masked, writer lock/lease/StopEvent/Job not released.",
+      "found_by": "R42 offline harness (STOP_RESUME resume with invalid worker count)",
+      "present_in_baseline": true,
+      "regression_test": "candidate/full/test_full_multiwork.py::test_r42_finalize_without_publisher_keeps_primary_error_and_releases"
+    },
+    "scenarios": [
+      "NOMINAL",
+      "STOP_RESUME",
+      "WATCHDOG",
+      "RAM"
+    ],
+    "smokes_rerun": [
+      "windows_multiwork_smoke",
+      "windows_rc1_recovery_bridge_smoke",
+      "windows_multiwork_smoke_22",
+      "windows_rc4_publisher_smoke",
+      "windows_rc4r2_shutdown_smoke"
+    ],
+    "offline_harness": "PASS (POSIX seams; not evidence)",
+    "native_windows": "PENDING_OWNER_PC"
+  }
 }

@@ -266,5 +266,17 @@ class TestFullMultiworkHelpers(unittest.TestCase):
         self.assertLess(loop,close); self.assertLess(close,reconcile)
         self.assertIn("print('SAFE_STOP_REASON=WATCHDOG_MAIN_LOOP_STALL', flush=True)",text)
 
+    def test_r42_finalize_without_publisher_keeps_primary_error_and_releases(self):
+        # R42 finding: an error before publisher start made finalization raise
+        # AttributeError, masking the cause and skipping lock/lease release.
+        released=[];closed=[]
+        class Lease:
+            def close(self): closed.append(True)
+        primary=(RuntimeError,RuntimeError('ORIGINAL_CAUSE'),None)
+        with mock.patch.object(m.core,'release_lock',side_effect=lambda lock: released.append(lock)):
+            out=m._finalize_coordinator_resources({},{},None,'LOCK',Lease(),primary)
+        self.assertIs(out,primary)
+        self.assertEqual(released,['LOCK']); self.assertEqual(closed,[True])
+
 if __name__=='__main__':
     unittest.main(verbosity=2)

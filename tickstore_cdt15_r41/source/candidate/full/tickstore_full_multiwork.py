@@ -1280,7 +1280,9 @@ def _finalize_coordinator_resources(active, sealed_pins, publisher_proc, lock, l
         if primary_error is None or isinstance(primary_error[1], KeyboardInterrupt):
             primary_error = (MultiworkBlocked, MultiworkBlocked("FINALIZATION_" + label), None)
 
-    children_alive = publisher_proc.is_alive() or any(
+    # The publisher does not exist when an error precedes its start (R42 finding):
+    # a None publisher must not mask the primary error nor skip lock/lease release.
+    children_alive = (publisher_proc is not None and publisher_proc.is_alive()) or any(
         info["process"].is_alive() for info in active.values())
     if children_alive:
         print("LOCK_RETAINED=YES PROCESS_TREE_CLEAN=NO", flush=True)

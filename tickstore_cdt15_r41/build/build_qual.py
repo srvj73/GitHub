@@ -1,4 +1,4 @@
-"""Deterministic R41 build: manifests, FINAL package, QUAL bundle, bootstrap, witness.
+"""Deterministic CDT15 qualification build: manifests, FINAL package, QUAL bundle, bootstrap, witness.
 
 Usage: python3 -I -B build_r41.py <source_dir> <out_dir>
 No network, no execution of packaged code (test counts come from unittest loading).
@@ -13,11 +13,13 @@ from pathlib import Path
 
 DATE = '20261013'
 FIXED_TIME = (2026, 10, 13, 0, 0, 0)
-FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_R41R3_%s.zip' % DATE
-FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_R41R3_%s.json' % DATE
-QUAL_NAME = 'TICKSTORE_CDT15_R41_QUAL_R3_%s.zip' % DATE
-QUAL_WITNESS = 'WITNESS_TICKSTORE_CDT15_R41_QUAL_R3_%s.json' % DATE
-BOOTSTRAP = 'RUN_TICKSTORE_CDT15_R41R3_QUAL.ps1'
+REV = 'R42'
+FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_%s_%s.zip' % (REV, DATE)
+FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_%s_%s.json' % (REV, DATE)
+QUAL_NAME = 'TICKSTORE_CDT15_%s_QUAL_%s.zip' % (REV, DATE)
+QUAL_WITNESS = 'WITNESS_TICKSTORE_CDT15_%s_QUAL_%s.json' % (REV, DATE)
+BOOTSTRAP = 'RUN_TICKSTORE_CDT15_%s_QUAL.ps1' % REV
+ZIP_PATTERN = 'TICKSTORE_CDT15_%s_QUAL_*.zip' % REV
 BASELINE = {
     'handoff_zip_sha256': '2093EB4813C371DCD113C92C55AC1E15FFC24C7D201BDD1581FD9D49367F772C',
     'baseline_source_zip_sha256': '26F783A0B05DA2436DDD56B1CE23FC289FD9A44C8EBF8363419F8C55692CB757',
@@ -42,8 +44,24 @@ SUITES = {
     'S6_MULTIWORK_UNIT': {'files': [{'file': 'candidate/full/test_full_multiwork.py'}],
                           'sys_path': ['candidate/full']},
 }
-SCRIPTS = {'S7_STATIC_MULTIWORK_PREAUDIT': {'script': 'candidate/full/static_multiwork_preaudit.py',
-                                            'expect': 'STATIC_MULTIWORK_PREAUDIT=PASS'}}
+SCRIPTS = {
+    'S7_STATIC_MULTIWORK_PREAUDIT': {'script': 'candidate/full/static_multiwork_preaudit.py',
+                                     'expect': 'STATIC_MULTIWORK_PREAUDIT=PASS'},
+    # Historical native smokes import the changed multiwork wrapper: re-run is justified.
+    'H1_SMOKE_SINGLE': {'script': 'candidate/full/windows_multiwork_smoke.py', 'isolated': False,
+                        'native_only': True, 'expect': ['WINDOWS_MULTIWORK_SMOKE=PASS']},
+    'H2_SMOKE_RC1_BRIDGE': {'script': 'candidate/full/windows_rc1_recovery_bridge_smoke.py', 'isolated': False,
+                            'native_only': True, 'expect': ['WINDOWS_RC1_RECOVERY_BRIDGE=PASS']},
+    'H3_SMOKE_22_WORKERS': {'script': 'candidate/full/windows_multiwork_smoke_22.py', 'isolated': False,
+                            'native_only': True, 'timeout': 1800,
+                            'expect': ['WINDOWS_MULTIWORK_22_SMOKE=PASS', 'WINDOWS_MULTIWORK_22_SOURCE_WRITE_DENIAL=PASS']},
+    'H4_SMOKE_RC4_PUBLISHER': {'script': 'candidate/full/windows_rc4_publisher_smoke.py', 'isolated': False,
+                               'native_only': True, 'expect': ['WINDOWS_RC4_PUBLISHER_SMOKE=PASS']},
+    'H5_SMOKE_RC4R2_SHUTDOWN': {'script': 'candidate/full/windows_rc4r2_shutdown_smoke.py', 'isolated': False,
+                                'native_only': True, 'expect': ['WINDOWS_RC4R2_SAFE_STOP_PROCESS_TREE_SMOKE=PASS']},
+}
+SCENARIOS = {name: {'runner': 'qual/R42_MULTIWORK_E2E.py', 'scenario': name, 'timeout': 1800}
+             for name in ('NOMINAL', 'STOP_RESUME', 'WATCHDOG', 'RAM')}
 
 
 def sha(raw):
@@ -104,19 +122,19 @@ def main(source, out):
     out.mkdir(parents=True, exist_ok=True)
     # 1. Runtime code manifest (outside the candidate root: ReleaseChain closed set).
     code = files_under(source / 'candidate')
-    runtime = {'schema': 'TICKSTORE_FINAL_RUNTIME_CODE_MANIFEST_V001', 'revision': 'CDT15_R41',
+    runtime = {'schema': 'TICKSTORE_FINAL_RUNTIME_CODE_MANIFEST_V001', 'revision': 'CDT15_' + REV,
                'root': 'implementation_v001/candidate', 'files': [record(r, b) for r, b in code]}
     (source / 'RUNTIME_CODE_MANIFEST.json').write_bytes(canon(runtime))
     runtime_sha = sha((source / 'RUNTIME_CODE_MANIFEST.json').read_bytes())
     # 2. Source manifest of the whole implementation tree.
     src = files_under(source, exclude=('SOURCE_MANIFEST.json',))
-    smanifest = {'schema': 'SOURCE_FILE_MANIFEST_SHA256_V001', 'revision': 'CDT15_R41',
+    smanifest = {'schema': 'SOURCE_FILE_MANIFEST_SHA256_V001', 'revision': 'CDT15_' + REV,
                  'file_count': len(src), 'files': [record(r, b) for r, b in src]}
     (source / 'SOURCE_MANIFEST.json').write_bytes(canon(smanifest))
     src = files_under(source)
     # 3. FINAL package in the installer's format.
     members = [('implementation_v001/' + r, b) for r, b in src]
-    pmanifest = canon({'schema': 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001', 'revision': 'CDT15_R41',
+    pmanifest = canon({'schema': 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001', 'revision': 'CDT15_' + REV,
                        'files': [record(n, b) for n, b in members]})
     # The installer and verifier require member records with exactly path/bytes/sha256.
     final_path = out / FINAL_NAME
@@ -136,8 +154,10 @@ def main(source, out):
         suites[name] = dict(spec, expected=count_tests(source, spec))
     plan = canon({'schema': 'TICKSTORE_CDT15_R41_QUAL_PLAN_V001', 'final_package_name': FINAL_NAME,
                   'final_package_sha256': sha(final_raw), 'final_witness_name': FINAL_WITNESS,
-                  'runtime_code_manifest_sha256': runtime_sha, 'suites': suites, 'scripts': SCRIPTS})
+                  'runtime_code_manifest_sha256': runtime_sha, 'suites': suites, 'scripts': SCRIPTS,
+                  'scenarios': {'R42_' + k: v for k, v in SCENARIOS.items()}, 'revision': REV})
     qmembers = [('qual/QUAL_DRIVER.py', (source / 'qual/QUAL_DRIVER.py').read_bytes()),
+                ('qual/R42_MULTIWORK_E2E.py', (source / 'qual/R42_MULTIWORK_E2E.py').read_bytes()),
                 ('qual/QUAL_PLAN.json', plan), ('FINAL/' + FINAL_NAME, final_raw), ('FINAL/' + FINAL_WITNESS, fwitness)]
     qmanifest = canon({'schema': 'TICKSTORE_CDT15_R41_QUAL_BUNDLE_MANIFEST_V001',
                        'files': [record(n, b) for n, b in qmembers]})
@@ -146,14 +166,15 @@ def main(source, out):
     write_zip(qual_path, [('QUAL_MANIFEST.json', qmanifest)] + qmembers)
     qual_raw = qual_path.read_bytes()
     # 5. Bootstrap (ASCII, CRLF) with embedded pins.
-    tpl = (Path(__file__).parent / 'RUN_TICKSTORE_CDT15_R41_QUAL.ps1.template').read_text(encoding='ascii')
+    tpl = (Path(__file__).parent / 'RUN_TICKSTORE_CDT15_QUAL.ps1.template').read_text(encoding='ascii')
     ps = (tpl.replace('@@ZIP_NAME@@', QUAL_NAME).replace('@@ZIP_SHA@@', sha(qual_raw))
-             .replace('@@ZIP_BYTES@@', str(len(qual_raw))).replace('@@QUAL_MANIFEST_SHA@@', sha(qmanifest)))
+             .replace('@@ZIP_BYTES@@', str(len(qual_raw))).replace('@@QUAL_MANIFEST_SHA@@', sha(qmanifest))
+             .replace('@@REV@@', REV).replace('@@BOOTSTRAP@@', BOOTSTRAP).replace('@@ZIP_PATTERN@@', ZIP_PATTERN))
     assert '@@' not in ps
     ps_raw = ps.replace('\r\n', '\n').replace('\n', '\r\n').encode('ascii')
     (out / BOOTSTRAP).write_bytes(ps_raw)
     # 6. External witness.
-    witness = canon({'schema': 'EXTERNAL_WITNESS_TICKSTORE_CDT15_R41_QUAL_V001', 'role': 'ENGINEER_ONLY',
+    witness = canon({'schema': 'EXTERNAL_WITNESS_TICKSTORE_CDT15_QUAL_V002', 'revision': REV, 'role': 'ENGINEER_ONLY',
                      'qual_zip': QUAL_NAME, 'qual_zip_sha256': sha(qual_raw), 'qual_zip_bytes': len(qual_raw),
                      'qual_manifest_sha256': sha(qmanifest), 'bootstrap': BOOTSTRAP,
                      'bootstrap_sha256': sha(ps_raw), 'bootstrap_bytes': len(ps_raw),
@@ -163,6 +184,7 @@ def main(source, out):
                      'source_manifest_sha256': sha((source / 'SOURCE_MANIFEST.json').read_bytes()),
                      'policy': POLICY, **BASELINE,
                      'expected_tests': {k: v['expected'] for k, v in suites.items()},
+                     'scripts': sorted(SCRIPTS), 'scenarios': sorted(SCENARIOS),
                      'invocation': 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File '
                                    '"C:\\Users\\silvi\\OneDrive\\Downloads\\' + BOOTSTRAP + '"',
                      'production_modified': False, 'full_started': False, 'b06_formal_audit': False,

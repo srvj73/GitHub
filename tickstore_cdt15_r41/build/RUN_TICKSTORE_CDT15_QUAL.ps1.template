@@ -1,16 +1,16 @@
-# TICKSTORE CDT15 R41 - Windows sandbox qualification bootstrap (Windows PowerShell 5.1).
+# TICKSTORE CDT15 @@REV@@ - Windows sandbox qualification bootstrap (Windows PowerShell 5.1).
 # Run (no cd needed):
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R41_QUAL.ps1"
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\@@BOOTSTRAP@@"
 # Effects: creates only run-owned folders
-#   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R41_QUAL_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
-#   %LOCALAPPDATA%\TICKSTORE_QUAL_R41\R41_QUAL_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
-#   D:\TICKSTORE_QUALIFICATION_SANDBOX\R41_QUAL_<timestamp>_<PID>\                (D: sandboxes)
+#   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\@@REV@@_QUAL_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
+#   %LOCALAPPDATA%\TICKSTORE_QUAL_@@REV@@\@@REV@@_QUAL_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
+#   D:\TICKSTORE_QUALIFICATION_SANDBOX\@@REV@@_QUAL_<timestamp>_<PID>\                (D: sandboxes)
 # It never writes D:\Base CSV, %LOCALAPPDATA%\TICKSTORE, MENU.py, the BAT, ACTIVE_DEPLOYMENT or STATE.
 [CmdletBinding()]
 param()
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
-$ZipPattern = 'TICKSTORE_CDT15_R41_QUAL_*.zip'
+$ZipPattern = '@@ZIP_PATTERN@@'
 $ExpectedZipName = '@@ZIP_NAME@@'
 $ExpectedZipSha = '@@ZIP_SHA@@'
 $ExpectedZipBytes = @@ZIP_BYTES@@
@@ -107,7 +107,7 @@ public static class R41Reparse {
     }
 }
 '@
-    $runName = 'R41_QUAL_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
+    $runName = '@@REV@@_QUAL_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
     [IO.Directory]::CreateDirectory($LogRoot) | Out-Null
     NoReparseBelow $LogRoot @()
     $script:RunDir = Join-Path $LogRoot $runName
@@ -152,7 +152,7 @@ public static class R41Reparse {
     Log ('ZIP_SELECTED_PRIVATE_COPY=' + $zipCopy + ' IDENTICAL_COPIES=' + $matched.Count)
 
     # 2. Extract into a fresh run-owned, non-synced folder; every member re-verified.
-    $work = Join-Path (Join-Path $app 'TICKSTORE_QUAL_R41') $runName
+    $work = Join-Path (Join-Path $app 'TICKSTORE_QUAL_@@REV@@') $runName
     NoReparseBelow $app @()
     Require (-not [IO.Directory]::Exists($work)) 'WORK_DIR_COLLISION'
     [IO.Directory]::CreateDirectory($work) | Out-Null

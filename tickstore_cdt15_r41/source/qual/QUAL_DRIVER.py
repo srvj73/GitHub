@@ -35,7 +35,7 @@ import uuid
 import zipfile
 from pathlib import Path
 
-DRIVER_SCHEMA = 'TICKSTORE_CDT15_R41_WINDOWS_QUALIFICATION_RECEIPT_V001'
+DRIVER_SCHEMA = 'TICKSTORE_CDT15_WINDOWS_QUALIFICATION_RECEIPT_V002'
 RESULT_CONTEXT = 'ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compress\u00e3o De Ticks 15'
 REAL_MENU = r'D:\Base CSV\Scripts\Biblioteca\MENU.py'
 REAL_BAT = 'D:\\Base CSV\\Manuten\u00e7\u00e3o Base de Dados.bat'
@@ -275,13 +275,39 @@ def run_suite(name, spec, impl, env, evidence, python):
     return summary
 
 
-def run_script(name, script, impl, env, evidence, python, expect_token):
-    r = subprocess.run([python, '-I', '-X', 'utf8', '-B', str(Path(impl) / script)], env=env,
-                       capture_output=True, text=True, timeout=600)
+def run_script(name, script, impl, env, evidence, python, expect_token, isolated=True, timeout=600):
+    # Historical smokes import their sibling modules: they need the script directory on
+    # sys.path, so they run with -E -s (no env/user site) instead of -I (which implies -P).
+    flags = ['-I'] if isolated else ['-E', '-s']
+    r = subprocess.run([python] + flags + ['-X', 'utf8', '-B', str(Path(impl) / script)], env=env,
+                       capture_output=True, text=True, timeout=timeout)
     (Path(evidence) / ('SCRIPT_' + name + '.txt')).write_text(r.stdout + '\n---STDERR---\n' + r.stderr, encoding='utf-8')
-    ok = r.returncode == 0 and expect_token in r.stdout
+    tokens = expect_token if isinstance(expect_token, list) else [expect_token]
+    ok = r.returncode == 0 and all(t in r.stdout for t in tokens)
     print('QUAL_SCRIPT %s=%s EXIT=%d' % (name, 'PASS' if ok else 'FAIL', r.returncode), flush=True)
     return {'suite': name, 'status': 'PASS' if ok else 'FAIL', 'exit': r.returncode}
+
+
+def run_scenario(name, spec, bundle, impl, work, env, evidence, python, native):
+    out = Path(evidence) / ('SCENARIO_' + name + '.json')
+    wdir = Path(work) / ('SCN_' + name)
+    args = [python, '-I', '-X', 'utf8', '-B', str(bundle / spec['runner']), '--impl', str(impl),
+            '--work', str(wdir), '--scenario', spec['scenario'], '--out', str(out)]
+    if not native:
+        args.append('--offline')
+    t0 = time.monotonic()
+    r = subprocess.run(args, env=env, capture_output=True, text=True, timeout=spec.get('timeout', 1800))
+    (Path(evidence) / ('SCENARIO_' + name + '_STDIO.txt')).write_text(
+        r.stdout[-200000:] + '\n---STDERR---\n' + r.stderr[-50000:], encoding='utf-8')
+    res = json.loads(out.read_bytes()) if out.is_file() else {'status': 'NO_RESULT'}
+    ok = r.returncode == 0 and res.get('status') == 'PASS'
+    status = 'PASS' if ok else 'FAIL'
+    if ok and not native:
+        status = 'OFFLINE_HARNESS_PASS'
+    line = next((l for l in r.stdout.splitlines() if l.startswith('R42_SCENARIO ')), 'R42_SCENARIO ' + name + '=NO_LINE')
+    print(line, flush=True)
+    return {'suite': name, 'status': status, 'seconds': round(time.monotonic() - t0, 3),
+            'checks': res.get('checks', {}), 'error': res.get('error')}
 
 
 # ----------------------------------------------------------------------------- E2E
@@ -430,7 +456,7 @@ def main(a):
         if native:
             for k, v in vols.items():
                 require(v['filesystem'] == 'NTFS', 'VOLUME_NOT_NTFS:' + k)
-                require(v['free_bytes'] >= 1024**3, 'VOLUME_FREE_SPACE_BELOW_1GIB:' + k)
+                require(v['free_bytes'] >= 4 * 1024**3, 'VOLUME_FREE_SPACE_BELOW_4GIB:' + k)  # core free_space_gate needs 2.5 GiB
         cpu_avail = getattr(os, 'process_cpu_count', os.cpu_count)()
         receipt['PRECHECK'] = dict(python=sys.version, python_sha256=sha_file(sys.executable),
                                    platform=platform.platform(), cpu_logical=os.cpu_count(), cpu_available=cpu_avail,
@@ -469,7 +495,12 @@ def main(a):
                 suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
             suites.append(run_suite(name, spec, impl, senv, evidence, sys.executable))
         for name, spec in final['plan']['scripts'].items():
-            suites.append(run_script(name, spec['script'], impl, env, evidence, sys.executable, spec['expect']))
+            if spec.get('native_only') and not native:
+                suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
+            suites.append(run_script(name, spec['script'], impl, env, evidence, sys.executable, spec['expect'],
+                                     isolated=spec.get('isolated', True), timeout=spec.get('timeout', 600)))
+        for name, spec in final['plan'].get('scenarios', {}).items():
+            suites.append(run_scenario(name, spec, Path(bundle), impl, work, env, evidence, sys.executable, native))
         receipt['TESTS'] = suites
         prog.end('SUITES')
 
@@ -482,16 +513,18 @@ def main(a):
         (evidence / 'REAL_TARGETS_AFTER.json').write_bytes(canonical(after))
         receipt['PRODUCTION_MODIFIED'] = (before != after) if native else False
         receipt['REAL_TARGETS_BEFORE_SHA256'] = sha_bytes(canonical(before))
-        failed = [s['suite'] for s in suites if s['status'] not in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE')]
+        failed = [s['suite'] for s in suites if s['status'] not in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE', 'OFFLINE_HARNESS_PASS')]
         e2e_ok = receipt['E2E']['status'] in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE')
         if receipt['PRODUCTION_MODIFIED']:
             receipt['BLOCKER'] = 'REAL_TARGET_CHANGED_DURING_QUALIFICATION'
         elif failed or not e2e_ok:
             receipt['BLOCKER'] = 'QUALIFICATION_FAIL:' + ','.join(failed + ([] if e2e_ok else ['E2E']))
         passed = receipt['BLOCKER'] is None
-        receipt['CLASSIFICATION'] = (('R41_WINDOWS_SANDBOX_QUALIFICATION_PASS' if native else 'OFFLINE_PREFLIGHT_ONLY')
-                                     if passed else 'R41_WINDOWS_SANDBOX_QUALIFICATION_FAIL')
-        receipt['SCOPE'] = ('Native PS5.1/Python 3.14.7 sandbox evidence for the R41 delta only. Not G4/G5/B06/B07, '
+        rev = final['plan'].get('revision', 'R41')
+        receipt['REVISION'] = rev
+        receipt['CLASSIFICATION'] = ((rev + '_WINDOWS_SANDBOX_QUALIFICATION_PASS' if native else 'OFFLINE_PREFLIGHT_ONLY')
+                                     if passed else rev + '_WINDOWS_SANDBOX_QUALIFICATION_FAIL')
+        receipt['SCOPE'] = ('Native PS5.1/Python 3.14.7 sandbox evidence for the ' + rev + ' delta only. Not G4/G5/B06/B07, '
                             'not production admission, not power-loss durability (process death only).')
         code = 0 if passed else 2
         prog.end('POSTCHECK')
@@ -506,9 +539,9 @@ def main(a):
     prog.begin('RETURN')
     receipt['EXIT_CODE'] = code
     receipt['finished_unix_ns'] = time.time_ns()
-    rpath = run_dir / 'R41_QUAL_RECEIPT.json'
+    rpath = run_dir / 'QUAL_RECEIPT.json'
     rpath.write_bytes(canonical(receipt))
-    ret = run_dir / ('R41_QUAL_RETURN_' + run_dir.name + '.zip')
+    ret = run_dir / ('QUAL_RETURN_' + run_dir.name + '.zip')
     with zipfile.ZipFile(ret, 'x', zipfile.ZIP_DEFLATED) as z:
         z.write(rpath, rpath.name)
         for p in sorted(evidence.iterdir()):
