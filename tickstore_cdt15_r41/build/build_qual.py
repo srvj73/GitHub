@@ -73,6 +73,10 @@ SUITES = {
                                                {'file': 'candidate/full/test_full_multiwork.py'}],
                                      'sys_path': ['candidate/full'], 'timeout': 3600, 'native_only': True},
     'S21_RC1R1_SUCCESSOR_MIGRATION': {'files': [{'file': 'tests/test_rc1r1_successor_migration.py'}], 'sys_path': ['tests']},
+    # R47 POWERLOSS-SCRATCH-01 (found by the offline campaign): MULTIWORK resume after scratch crash debris
+    # (torn journal shadow, partial without journal) is byte-identical to an uninterrupted control build.
+    'S22_SCRATCH_POWERLOSS_DEBRIS': {'files': [{'file': 'tests/test_scratch_powerloss_debris.py'}], 'sys_path': ['tests'],
+                                     'timeout': 3600},
 }
 SCRIPTS = {
     'R45_B2C_NATIVE_PROBE': {'script': 'qual/R45_B2C_NATIVE_PROBE.py', 'isolated': True, 'timeout': 600,

@@ -453,6 +453,29 @@ class StreamingMonthSource:
         return digest
 
 
+def _discard_scratch_crash_debris(namespace: str, partial: Path, journal: Path):
+    """Power-loss debris of one scratch day (R47 POWERLOSS-SCRATCH-01).
+
+    Scratch has zero publication authority: nothing leaves scratch without a validated journal.
+    Same classification as the canonical RC1 path (reconcile_or_build):
+      * an uncommitted journal shadow (crash inside atomic_write_bytes, before the replace) is
+        discarded; when the main journal exists it stays the authority and must parse first;
+      * a partial without any journal (crash inside init_partial, before the first journal) has no
+        durable progress and is discarded.
+    A journal without its partial is never repaired here (fail-closed in the pair check below).
+    """
+    shadow=journal.with_suffix(journal.suffix+".partial")
+    journal_exists=core.strict_lstat(journal,allow_missing=True) is not None
+    if core.strict_lstat(shadow,allow_missing=True) is not None:
+        if journal_exists:
+            core.read_json_strict(journal)
+        core.discard_uncommitted(shadow,"scratch_journal_atomic")
+        print(f"SCRATCH_CRASH_DEBRIS_DISCARDED=JOURNAL_SHADOW NAMESPACE={namespace} FILE={shadow.name}",flush=True)
+    if not journal_exists and core.strict_lstat(partial,allow_missing=True) is not None:
+        core.discard_uncommitted(partial,"scratch_partial_without_journal")
+        print(f"SCRATCH_CRASH_DEBRIS_DISCARDED=PARTIAL_WITHOUT_JOURNAL NAMESPACE={namespace} FILE={partial.name}",flush=True)
+
+
 def _scratch_day_paths(scratch_root: Path, month_id: str, date_key: str):
     """Use RC4R2 scratch first, then resume one compatible RC4/RC3/RC2R3 pair in place.
 
@@ -472,6 +495,7 @@ def _scratch_day_paths(scratch_root: Path, month_id: str, date_key: str):
     for namespace,root in roots:
         partial=root/(date_key+".pts2g.partial")
         journal=root/(date_key+".journal.json")
+        _discard_scratch_crash_debris(namespace,partial,journal)
         pe=core.strict_lstat(partial,allow_missing=True) is not None
         je=core.strict_lstat(journal,allow_missing=True) is not None
         if pe!=je:

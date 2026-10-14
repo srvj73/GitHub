@@ -426,5 +426,51 @@ class TestRc1HistoricalScratch(unittest.TestCase):
             self.r.release_lock(lock)
 
 
+class TestScratchCrashDebris(unittest.TestCase):
+    """R47 POWERLOSS-SCRATCH-01: crash debris of a scratch day is classified like the canonical path."""
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        self.scratch=Path(self.temp.name)
+
+    def day(self,ns="FULL_MULTIWORK_RC4R2",journal=None,partial=None,shadow=None):
+        d=self.scratch/ns/"2023_12"/"20231211";d.mkdir(parents=True,exist_ok=True)
+        files={"journal":d/"20231211.journal.json","partial":d/"20231211.pts2g.partial","shadow":d/"20231211.journal.json.partial"}
+        for k,v in (("journal",journal),("partial",partial),("shadow",shadow)):
+            if v is not None:files[k].write_bytes(v)
+        return files
+
+    def paths(self):
+        import contextlib,io
+        out=io.StringIO()
+        with contextlib.redirect_stdout(out):
+            sp=m._scratch_day_paths(self.scratch,"2023_12","20231211")
+        return sp,out.getvalue()
+
+    def test_uncommitted_journal_shadow_discarded_main_journal_kept(self):
+        f=self.day(journal=b'{"state":"BUILDING"}\n',partial=b"P",shadow=b'{"state":"BUILD')
+        sp,out=self.paths()
+        self.assertEqual((sp["journal"],sp["namespace"]),(f["journal"],"RC4R2"))
+        self.assertFalse(f["shadow"].exists());self.assertEqual(f["partial"].read_bytes(),b"P")
+        self.assertIn("SCRATCH_CRASH_DEBRIS_DISCARDED=JOURNAL_SHADOW",out)
+
+    def test_shadow_next_to_unreadable_main_journal_is_fail_closed(self):
+        f=self.day(journal=b"{not json",partial=b"P",shadow=b"{}")
+        with self.assertRaises(m.core.Blocked):self.paths()
+        self.assertTrue(f["shadow"].exists() and f["journal"].exists() and f["partial"].exists())
+
+    def test_partial_without_journal_discarded_in_every_namespace(self):
+        for ns,shadow in (("FULL_MULTIWORK_RC4R2",None),("FULL_MULTIWORK_RC4",b'{"state":"BU'),("FULL_MULTIWORK_RC2R3",None)):
+            with self.subTest(ns=ns):
+                f=self.day(ns=ns,partial=b"prefix only",shadow=shadow)
+                sp,out=self.paths()
+                self.assertEqual(sp["namespace"],"RC4R2");self.assertFalse(f["partial"].exists());self.assertFalse(f["shadow"].exists())
+                self.assertIn("PARTIAL_WITHOUT_JOURNAL",out)
+
+    def test_journal_without_partial_stays_fail_closed(self):
+        f=self.day(journal=b'{"state":"BUILDING"}\n')
+        with self.assertRaisesRegex(m.core.Blocked,"RC4R2_SCRATCH_PARTIAL_JOURNAL_PAIR_MISMATCH"):self.paths()
+        self.assertTrue(f["journal"].exists())
+
+
 if __name__=='__main__':
     unittest.main(verbosity=2)

@@ -45,6 +45,7 @@ checks['NO_DAY_ACK_BARRIER']='DAY_READY' not in text and 'WORKER_BAD_ACK' not in
 checks['MONTH_SHA_BEFORE_PUBLISH']='MONTH_VERIFIED' in text and 'SOURCE_SHA256_MISMATCH_SINGLE_PASS' in text
 checks['RC1_HISTORICAL_PROVENANCE']=(text.count('core.historical_rc1_scratch_oracle(')==2 and 'core.historical_rc1_oracle(pp,c,month,identity,ledger_sha)' in text
     and 'core.reject_historical_rc1_transient(' in text)
+checks['SCRATCH_POWERLOSS_DEBRIS_CLASSIFIED']=('def _discard_scratch_crash_debris(' in text and '_discard_scratch_crash_debris(namespace,partial,journal)' in text and 'scratch_partial_without_journal' in text)
 checks['LEGACY_SCRATCH_COMPAT']='FULL_MULTIWORK_RC2R3' in text and 'SCRATCH_REVISION_CONFLICT' in text
 
 checks['DEDICATED_PUBLISHER_PROCESS']='def _publisher_main(' in text and 'TICKSTORE-RC4R2-PUBLISHER' in text
