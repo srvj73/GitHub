@@ -2,7 +2,9 @@ from __future__ import annotations
 import argparse,csv,hashlib,io,json,math,os,pathlib,zipfile
 
 LEDGER_SHA="27FF5A0FE47F3DDC5FD63F6371CCF0EDA8124E0E5D504A8F0756A4DF0DB9C3CA"
-CORE_SHA="D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0"
+CORE_SHA="749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00"
+# RC1R1: days published by the historical RC1 core keep their provenance.
+RC1_HISTORICAL_CORE_SHA="D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0"
 REFERENCE_SHA="74EE141B014DE7A9F9C401C2B3C5AF6BF72E5D7D80F49E67F9D9032338480165"
 R8_CERTIFIED_DATES=frozenset(("20211022","20260731"))
 R8_CERTIFIED_RUNNER_IDS={
@@ -87,7 +89,7 @@ def verify(root,ledger):
         req(o.get("ledger_zip_sha256")==LEDGER_SHA,"ORACLE_LEDGER:"+key)
         req(o.get("format_id")==FORMAT_ID and o.get("codec_id")==CODEC_ID and int(o.get("row_group_ticks",-1))==ROW_GROUP_TICKS,"ORACLE_FORMAT:"+key)
         ids=o.get("runner_ids",{});runner=ids.get("runner_sha256") if isinstance(ids,dict) else None
-        if runner==CORE_SHA:req(ids.get("reference_sha256")==REFERENCE_SHA,"ORACLE_RUNNER_IDS:"+key)
+        if runner in (CORE_SHA,RC1_HISTORICAL_CORE_SHA):req(ids.get("reference_sha256")==REFERENCE_SHA,"ORACLE_RUNNER_IDS:"+key)
         elif runner==R8_CERTIFIED_RUNNER_IDS["runner_sha256"]:
             req(key in R8_CERTIFIED_DATES and ids==R8_CERTIFIED_RUNNER_IDS,"ORACLE_R8_CERTIFIED_PROVENANCE:"+key)
         else:raise Blocked("ORACLE_RUNNER_IDS:"+key)

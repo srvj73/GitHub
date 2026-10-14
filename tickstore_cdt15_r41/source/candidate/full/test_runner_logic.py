@@ -5,7 +5,7 @@ import tickstore_serial_runner as r
 
 def main():
     here=Path(__file__).resolve().parent
-    assert r.PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE is True
+    assert r.PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE is False  # RC1R1: legacy pilot CLI route disabled in code
     assert r.FULL_HISTORY_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE is False
 
     # Canonical ledger is pinned and parsed from one in-memory image.

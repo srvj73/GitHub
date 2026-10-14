@@ -1,6 +1,6 @@
 # Ledger interno — TICKSTORE CDT15 conclusão FULL (diretiva da origem: encerrar ping-pong)
 
-Base: commit dfe680a (R45B interno). RC1 D3A15572… preservado.
+Base: commit dfe680a (R45B interno). R47: núcleo recertificado RC1R1 749EEC5D… (decisão da origem, opção A). O RC1 D3A15572… está preservado como histórico em `history/RC1_V002R22` e nos fixtures de teste.
 
 | ID | Origem | Lacuna | Classe | Estado |
 |---|---|---|---|---|
@@ -18,10 +18,13 @@ Base: commit dfe680a (R45B interno). RC1 D3A15572… preservado.
 | G8 | auditoria | Stop só no nó G3 | interna/desenho | FECHADO POR DESENHO (Stop cooperativo em FULL; demais estágios: FAIL retomável, testado) |
 | G9 | auditoria | STATE_CAS_RECOVERY sem testes | interna | CORRIGIDO (11 testes da tabela R1–R4 e do apply) |
 | G10 | auditoria | readback D5, full_admission_facts e FULL_GO sem teste | interna | CORRIGIDO (D5, FULL_PREP, FULL_ADMIT/FULL_GO, full_admission_facts) |
-| G11 | auditoria | G4 fora da cadeia (só status) | documentação | aberto |
+| G11 | auditoria + origem R46 | G4 fora da cadeia (só status): o binder aceitava qualquer `NATIVE_RETURN_ZIP` sem checagem semântica | interna | CORRIGIDO (R47). G4 é pré-cadeia deliberada e imposta no código. `ORIGIN_DECISION_BINDER` só materializa G5 sobre RETURN ZIP fechado, com recibo QUAL nativo vinculado a FINAL e código, idêntico à proveniência da completude e com `windows_qualification=PASS`. B07 exige o mesmo ZIP do recibo técnico. Testes 16–19; a mutação sem a checagem gera 7 falhas |
 | G12 | auditoria | validate_multiwork_gate morto (gate legado) | interna | CORRIGIDO (validador de gate multiwork removido) |
 | G13 | auditoria | regra de log do titular não aplicada a ferramentas | interna | CORRIGIDO (RUN_LOG_FIXED nas CLIs; instalador e writer com RUN_LOG fixo) |
 | G14 | auditoria | laboratório de energia: arm/inspect/reconcile não ligados | interna (execução externa) | CORRIGIDO (arm/inspect/reconcile/aggregate conectados; e2e offline; execução física externa) |
-| LEGACY-ENTRY | origem | CLI direta do RC1 aceita owner gate forjado | externa (release instalada + proveniência) | decisão consolidada |
+| LEGACY-ENTRY | origem | CLI direta do RC1 aceita owner gate forjado | interna após decisão (opção A) | CORRIGIDO (R47, RC1R1). Rotas FULL_SERIAL e PILOT fecham por capacidade antes de qualquer acesso, mesmo com gate forjado. Delta AST restrito e provado. Motores e verificador pós-FULL aceitam a proveniência RC1 histórica. Sucessor D4 V002R23 com migração SOURCE_ONLY |
+| R47-S0-PROVENANCE | engenharia (achado da recertificação) | após trocar o núcleo, o MULTIWORK recusaria os 1399 dias S0 validados pelo RC1 e os 151 pares C0 publicados pelo RC1 (oráculo com runner RC1) | interna | CORRIGIDO. C0 e S0 validados mantêm a proveniência RC1 (oráculo reconstruído e conferido contra ledger e referência). Construção RC1 inacabada ou transiente canônico RC1 falham fechado. Testes em núcleo e multiwork, com mutação |
+| R47-POLICY | origem R46 | captura R40 empacotada não é autoridade; a política ativa é a R41 | documentação | CORRIGIDO. Procedimentos e pedido de reconciliação exigem reconciliação viva contra R41 ou posterior. Sem mudança de código: o vínculo não fixa revisão |
+| R47-MIGRATION | origem R46 (opção A) | release D4 instalada (V002R22) precisa migrar para os bytes recertificados | interna (aplicação externa) | CORRIGIDO no código. `RC1R1_SUCCESSOR_MIGRATION.py`: simulação por padrão. `--apply` só com cadeia até B07; backup por renomeação, staging verificado, recibo técnico e retomada após queda. A aplicação no Windows é externa |
 | B2D-B06 | engenharia | binder exige review_verdict == SHA do recibo B06 (inconsistente com produtor/D4) | interna | CORRIGIDO (recibo B06 vs veredito B06 distintos e cruzados; testes) |
 | G13 | (parcial) | RUN_LOG_FIXED aplicado às CLIs Python; falta INSTALL_TICKSTORE_FULL.ps1 | interna | CORRIGIDO (RUN_LOG_FIXED nas CLIs; instalador e writer com RUN_LOG fixo) |

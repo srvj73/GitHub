@@ -36,7 +36,7 @@ def complete_report(root:Path,date='20260731'):
     }
 
 def main():
-    assert r.PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE is True
+    assert r.PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE is False  # RC1R1: legacy pilot CLI route disabled in code
     assert r.FULL_HISTORY_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE is False
     assert set(r.FROZEN_PILOT_DATES)=={'20260731','20211022'}
     with tempfile.TemporaryDirectory() as td:
@@ -61,7 +61,11 @@ def main():
     fakez=types.SimpleNamespace(__name__='compression.zstd',__spec__=types.SimpleNamespace(name='compression.zstd',origin='/tmp/shadow/compression/zstd/__init__.py'))
     blocked(lambda:r.native_zstd_origin_evidence(fakez),'WINDOWS_PILOT_ZSTD_NOT_FROM_STDLIB')
     # An arbitrary ledger date is rejected before any Windows runtime access.
+    # RC1R1: the package capability blocks first; the frozen-date check stays as defense in depth.
     with patch('sys.argv',['runner','--ledger-zip',str(LEDGER),'--pilot-date','20260923']):
+        blocked(r.main,'PILOT_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE')
+    with patch('sys.argv',['runner','--ledger-zip',str(LEDGER),'--pilot-date','20260923']), \
+         patch.object(r,'PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE',True):
         blocked(r.main,'PILOT_DATE_NOT_FROZEN_GATE_B_CASE')
     # FULL remains hard blocked.
     with tempfile.TemporaryDirectory() as td:

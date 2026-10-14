@@ -160,6 +160,41 @@ def _check_evidence_semantics(stage, role, raw, *, code_sha, final_package_sha, 
                  and obj.get('produced_after_independent_b06') is True, 'DECISION_EVIDENCE_B07_RECEIPT')
 
 
+def _qualification_contract():
+    spec = importlib.util.spec_from_file_location('b2d_full_qualification_contract', HERE / 'FULL_QUALIFICATION_CONTRACT.py')
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    return mod
+
+
+def _check_native_chain(stage, bodies, *, code_sha, final_package_sha):
+    """G11: G4 is a deliberate PRE-CHAIN stage without its own stage receipt; its proof is the closed
+    native RETURN ZIP itself.  G5 is materialized only on that exact ZIP: closed RETURN_MANIFEST, a native
+    QUAL receipt bound to these FINAL/code bytes, and the same ZIP and QUAL receipt that the engineering
+    completeness names as its native provenance.  B07 binds the RETURN ZIP its technical receipt names."""
+    zraw = bodies['NATIVE_RETURN_ZIP']
+    if stage == 'B07':
+        b07 = _strict_json(bodies['B07_TECHNICAL_RECEIPT'])
+        _require(b07.get('return_zip_sha256') == _sha(zraw), 'DECISION_B07_RETURN_ZIP_NOT_THE_TECHNICAL_RECEIPT_ZIP')
+        return
+    q = _qualification_contract()
+    findings, files = q.return_zip_findings(zraw)
+    _require(not findings, 'DECISION_G4_RETURN_ZIP:' + ';'.join(findings))
+    member = q.MEMBERS['qual_receipt']
+    try:
+        receipt = q._strict_json(files[member])
+    except Exception:  # unreadable member: reported by the findings below
+        receipt = None
+    rf = q.qual_receipt_findings(receipt, final_package_sha, code_sha)
+    _require(not rf, 'DECISION_G4_QUAL_RECEIPT:' + ';'.join(rf))
+    comp = _strict_json(bodies['ENGINEERING_COMPLETENESS'])
+    delta = comp.get('delta_qualification') or {}
+    prov = delta.get('native_provenance') or {}
+    _require((prov.get('return_zip') or {}).get('sha256') == _sha(zraw), 'DECISION_G4_RETURN_ZIP_NOT_THE_COMPLETENESS_PROVENANCE')
+    _require(prov.get('qual_receipt_sha256') == _sha(files[member]), 'DECISION_G4_QUAL_RECEIPT_NOT_THE_COMPLETENESS_PROVENANCE')
+    _require(comp.get('windows_qualification') == 'PASS' and delta.get('native_windows') is True
+             and delta.get('tested_code_equals_packaged_code') == 'PASS', 'DECISION_G4_NATIVE_QUALIFICATION_NOT_PASS')
+
+
 def materialize(decision_path, decision_sha256, *, stage, code_sha, final_package_sha, instance_sha, policy_root,
                 policy_reconciliation, policy_reconciliation_sha256, predecessor_hashes, evidence_paths, out_path,
                 b06_sha=None, b06_verdict_sha=None, b06_receipt_path=None, read=None, now=None):
@@ -182,13 +217,15 @@ def materialize(decision_path, decision_sha256, *, stage, code_sha, final_packag
                  'DECISION_B06_RECEIPT_DOES_NOT_CITE_VERDICT')
     _require(isinstance(evidence_paths, dict) and set(evidence_paths) == {e['role'] for e in d['evidence']},
              'DECISION_EVIDENCE_FILES_SET')
-    evidence = []
+    evidence = []; bodies = {}
     for e in d['evidence']:
         body = read(evidence_paths[e['role']])
         _require(_sha(body) == e['sha256'], 'DECISION_EVIDENCE_SHA256:' + e['role'])
         _check_evidence_semantics(stage, e['role'], body, code_sha=code_sha, final_package_sha=final_package_sha,
                                   b06_sha=b06_sha, b06_verdict_sha=b06_verdict_sha)
+        bodies[e['role']] = body
         evidence.append({'path': str(Path(evidence_paths[e['role']]).absolute()), 'sha256': e['sha256'], 'role': e['role']})
+    _check_native_chain(stage, bodies, code_sha=code_sha, final_package_sha=final_package_sha)
     evidence.append({'path': str(Path(decision_path).absolute()), 'sha256': decision_sha256, 'role': 'ORIGIN_DECISION'})
     receipt = {'schema': STAGE_RECEIPT_SCHEMA, 'stage': stage, 'status': 'PASS', 'environment': environment,
                'code_manifest_sha256': code_sha, 'instance_sha256': instance_sha,

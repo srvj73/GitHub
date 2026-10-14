@@ -24,6 +24,8 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / 'candidate/control'))
 import ORIGIN_DECISION_BINDER as D  # noqa: E402
 from FULL_RELEASE_CHAIN import validate_chain  # noqa: E402
+sys.path.insert(0, str(HERE))
+from g5_native_fixture import NativeFixture, load_consumer  # noqa: E402
 
 CODE, FINAL, INST, B06 = 'A' * 64, 'B' * 64, 'C' * 64, 'D' * 64
 NATIVE = os.name == 'nt'
@@ -34,6 +36,32 @@ R40 = HERE / 'fixtures/R40_CAPTURE_NON_AUTHORITATIVE'
 
 def h(raw):
     return hashlib.sha256(raw).hexdigest().upper()
+
+
+QNS = load_consumer()
+
+
+def native_return(code, final, **receipt_extra):
+    """Synthetic closed native RETURN ZIP (UNIT FIXTURE) whose QUAL receipt binds these code/FINAL digests."""
+    nf = NativeFixture(QNS)
+    nf.receipt_extra = dict({'SOURCE_SHA256': final, 'RUNTIME_CODE_MANIFEST_SHA256': code}, **receipt_extra)
+    with tempfile.TemporaryDirectory() as t:
+        rz, _fz, _c, _f = nf.make(t)
+        raw = rz.read_bytes()
+    import zipfile
+    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+        qual = z.read(QNS['MEMBERS']['qual_receipt'])
+    return raw, h(qual)
+
+
+def completeness(code, final, zraw, qual_sha, **over):
+    obj = {'schema': 'TICKSTORE_ENGINEERING_COMPLETENESS_V002', 'status': 'COMPLETE', 'known_blockers': [],
+           'code_manifest_sha256': code, 'provenance_mode': 'CLOSED_NATIVE_RETURN_ZIP', 'windows_qualification': 'PASS',
+           'delta_qualification': {'native_windows': True, 'tested_code_equals_packaged_code': 'PASS',
+                                   'native_provenance': {'final_zip': {'sha256': final}, 'return_zip': {'sha256': h(zraw)},
+                                                         'qual_receipt_sha256': qual_sha}}}
+    obj.update(over)
+    return obj
 
 
 def j(obj):
@@ -47,6 +75,7 @@ class Binder(unittest.TestCase):
         import shutil; shutil.copytree(R40, self.policy)
         self.rec, self.rec_sha = self.reconciliation()
         hd = json.loads((R40 / 'POLITICA_CANONICA_HEAD.json').read_bytes())
+        self.zraw, self.qual_sha = native_return(CODE, FINAL)
         self.capture = {'master_sha256': h((R40 / 'POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md').read_bytes()),
                         'head_sha256': h((R40 / 'POLITICA_CANONICA_HEAD.json').read_bytes()),
                         'revision_id': hd['revision_id'], 'reconciliation_sha256': self.rec_sha}
@@ -54,11 +83,8 @@ class Binder(unittest.TestCase):
             'G5_EVIDENCE_PACK': j({'schema': 'TICKSTORE_G5_EVIDENCE_PACK_V001', 'completeness_status': 'COMPLETE',
                                    'known_blockers': [], 'consumer_self_check': 'ACCEPTS', 'code_manifest_sha256': CODE,
                                    'gate_verdict_issued': False}),
-            'ENGINEERING_COMPLETENESS': j({'schema': 'TICKSTORE_ENGINEERING_COMPLETENESS_V002', 'status': 'COMPLETE',
-                                           'known_blockers': [], 'code_manifest_sha256': CODE,
-                                           'provenance_mode': 'CLOSED_NATIVE_RETURN_ZIP',
-                                           'delta_qualification': {'native_provenance': {'final_zip': {'sha256': FINAL}}}}),
-            'NATIVE_RETURN_ZIP': b'PK fixture bytes',
+            'ENGINEERING_COMPLETENESS': j(completeness(CODE, FINAL, self.zraw, self.qual_sha)),
+            'NATIVE_RETURN_ZIP': self.zraw,
             'B07_TECHNICAL_RECEIPT': j({'schema': 'TICKSTORE_B07_TECHNICAL_RECEIPT_V001', 'status': 'PASS',
                                         'platform': 'WINDOWS_NTFS_PS51', 'code_manifest_sha256': CODE,
                                         'review_verdict_sha256': B06}),
@@ -138,6 +164,7 @@ class Binder(unittest.TestCase):
                                                             'platform': 'WINDOWS_NTFS_PS51', 'code_manifest_sha256': CODE,
                                                             'review_verdict_sha256': verdict_sha,
                                                             'b06_stage_receipt_sha256': b06_sha,
+                                                            'return_zip_sha256': h(self.zraw),
                                                             'produced_after_independent_b06': produced_after}))
         d = self.decision('B07', predecessors=preds, previous_receipt_sha256=b06_sha, b06_receipt_sha256=b06_sha,
                           b06_verdict_sha256=verdict_sha, b06_independent=True)
@@ -263,10 +290,9 @@ class Binder(unittest.TestCase):
         self.paths['G5_EVIDENCE_PACK'].write_bytes(j({'schema': 'TICKSTORE_G5_EVIDENCE_PACK_V001', 'completeness_status': 'COMPLETE',
                                                       'known_blockers': [], 'consumer_self_check': 'ACCEPTS',
                                                       'code_manifest_sha256': h(b'code'), 'gate_verdict_issued': False}))
-        self.paths['ENGINEERING_COMPLETENESS'].write_bytes(j({'schema': 'TICKSTORE_ENGINEERING_COMPLETENESS_V002',
-            'status': 'COMPLETE', 'known_blockers': [], 'code_manifest_sha256': h(b'code'),
-            'provenance_mode': 'CLOSED_NATIVE_RETURN_ZIP',
-            'delta_qualification': {'native_provenance': {'final_zip': {'sha256': h(b'final')}}}}))
+        zraw, qual_sha = native_return(h(b'code'), h(b'final'))
+        self.paths['NATIVE_RETURN_ZIP'].write_bytes(zraw)
+        self.paths['ENGINEERING_COMPLETENESS'].write_bytes(j(completeness(h(b'code'), h(b'final'), zraw, qual_sha)))
         d['evidence'] = [{'role': r, 'sha256': h(self.paths[r].read_bytes())} for r in D.REQUIRED_EVIDENCE['G5']]
         raw = j(d); dp = self.t / 'D_cli.json'; dp.write_bytes(raw)
         args = ['--stage', 'G5', '--decision', str(dp), '--decision-sha256', h(raw), '--code-manifest', str(files['code']),
@@ -287,6 +313,52 @@ class Binder(unittest.TestCase):
         with contextlib.redirect_stdout(buf):
             self.assertEqual(D.main(args), 2)  # same --out: no clobber, the CLI fails closed
         self.assertIn('ORIGIN_DECISION_BINDER=BLOCKED', buf.getvalue()); self.assertIn('STAGE_RECEIPT_EXISTS', buf.getvalue())
+
+
+    # ---- R47 G11: G4 is a deliberate pre-chain stage enforced at G5 materialization ----------------
+    def g4_variant(self, zraw=None, comp=None):
+        zraw = self.zraw if zraw is None else zraw
+        self.paths['NATIVE_RETURN_ZIP'].write_bytes(zraw)
+        self.paths['ENGINEERING_COMPLETENESS'].write_bytes(j(comp or completeness(CODE, FINAL, zraw, self.qual_sha)))
+        return self.decision('G5')
+
+    def test_16_g5_requires_the_closed_native_g4_return_zip(self):
+        import zipfile
+        buf = io.BytesIO()
+        with zipfile.ZipFile(io.BytesIO(self.zraw)) as z, zipfile.ZipFile(buf, 'w') as w:
+            for n in z.namelist():
+                w.writestr(n, z.read(n))
+            w.writestr('PLANTED_OUTSIDE_MANIFEST.json', b'{}')
+        self.blocked('DECISION_G4_RETURN_ZIP:RETURN_MANIFEST_COVERAGE', d=self.g4_variant(buf.getvalue()))
+        self.blocked('DECISION_G4_RETURN_ZIP', d=self.g4_variant(b'PK fixture bytes'))
+
+    def test_17_g5_requires_a_native_qual_receipt_bound_to_these_bytes(self):
+        for extra, needle in (({'mode': 'OFFLINE_HARNESS_CHECK'}, 'QUAL_RECEIPT_NOT_NATIVE'),
+                              ({'SOURCE_SHA256': '9' * 64}, 'QUAL_RECEIPT_FINAL_ZIP_BINDING'),
+                              ({'RUNTIME_CODE_MANIFEST_SHA256': '9' * 64}, 'QUAL_RECEIPT_CODE_MANIFEST_BINDING'),
+                              ({'TESTED_CODE_EQUALS_PACKAGED_CODE': 'FAIL'}, 'QUAL_RECEIPT_TESTED_NOT_PACKAGED')):
+            with self.subTest(needle=needle):
+                zraw, qual_sha = native_return(CODE, FINAL, **extra)
+                d = self.g4_variant(zraw, completeness(CODE, FINAL, zraw, qual_sha))
+                self.blocked('DECISION_G4_QUAL_RECEIPT:.*' + needle, d=d)
+
+    def test_18_g4_zip_must_be_the_completeness_native_provenance(self):
+        other, other_qual = native_return(CODE, FINAL, RUN_ID='OTHER_RUN')
+        self.blocked('DECISION_G4_RETURN_ZIP_NOT_THE_COMPLETENESS_PROVENANCE',
+                     d=self.g4_variant(other, completeness(CODE, FINAL, self.zraw, self.qual_sha)))
+        comp = completeness(CODE, FINAL, self.zraw, other_qual)
+        self.blocked('DECISION_G4_QUAL_RECEIPT_NOT_THE_COMPLETENESS_PROVENANCE', d=self.g4_variant(comp=comp))
+        comp = completeness(CODE, FINAL, self.zraw, self.qual_sha, windows_qualification='NOT_PASS')
+        self.blocked('DECISION_G4_NATIVE_QUALIFICATION_NOT_PASS', d=self.g4_variant(comp=comp))
+
+    def test_19_b07_return_zip_must_be_the_one_its_technical_receipt_names(self):
+        g5, b06, b06_sha, b06_path, verdict_sha, preds, d = self.b07_setup()
+        other, _ = native_return(CODE, FINAL, RUN_ID='B07_OTHER')
+        self.paths['NATIVE_RETURN_ZIP'].write_bytes(other)
+        d = self.decision('B07', predecessors=preds, previous_receipt_sha256=b06_sha, b06_receipt_sha256=b06_sha,
+                          b06_verdict_sha256=verdict_sha, b06_independent=True)
+        self.blocked('DECISION_B07_RETURN_ZIP_NOT_THE_TECHNICAL_RECEIPT_ZIP', stage='B07', d=d, preds=preds,
+                     b06=b06_sha, b06_verdict=verdict_sha, b06_receipt=b06_path)
 
 
 if __name__ == '__main__':

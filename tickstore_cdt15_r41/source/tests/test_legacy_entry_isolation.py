@@ -1,15 +1,16 @@
-"""R45: legacy FULL_SERIAL / pilot / full-history entries isolated without touching the frozen RC1 core.
+"""Legacy FULL_SERIAL / pilot / full-history entries: isolated (R45) and closed in code (RC1R1, R47).
 
 Proof layers
-  1. the RC1 core is byte-identical (CORE_RC1_FROZEN D3A15572...);
+  1. the core is the recertified RC1R1 (CORE_RC1R1_FROZEN); RC1 D3A15572 is preserved as history;
   2. packaging: the legacy launchers and their release audits are quarantined out of the package;
   3. static non-reachability: no launcher (.ps1/.bat/.cmd) and no non-test module of the package
      carries a legacy CLI route or calls a legacy entry function of the core;
-  4. direct entry (native in R45): every legacy CLI form fails closed without the administrative
-     owner gate that R40 revoked; the multiwork API rejects legacy gate arguments.
-Residual (declared, not hidden): a human-forged FULL_SERIAL owner gate bound exactly to the
-current bindings would still be accepted by the frozen core CLI; R40 forbids issuing it and the
-core cannot be modified without re-certification.  That decision belongs to the origin.
+  4. direct entry (native): every legacy CLI form fails closed on the package capability, before any
+     gate, ledger, source or destination access, even with a forged binding-exact owner gate;
+     the multiwork API rejects legacy gate arguments.
+The former residual (a forged FULL_SERIAL owner gate accepted by the RC1 CLI) is closed by the origin
+decision Option A: FULL_SERIAL_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE and PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE
+are False in the recertified core.
 """
 import ast
 import hashlib
@@ -22,13 +23,14 @@ from pathlib import Path
 R = Path(__file__).resolve().parents[1]
 C = R / 'candidate'
 CORE = C / 'full/tickstore_serial_runner.py'
-CORE_SHA = 'D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0'
+CORE_SHA = '749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00'
+RC1_HISTORICAL_SHA = 'D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0'
 QUARANTINED = ('run_tickstore_full_serial_r9.ps1', 'RUN_WINDOWS_GATE_B.ps1', 'run_tickstore_serial.ps1',
                'static_runner_preaudit_r3.py', 'static_runner_preaudit_r8.py', 'static_runner_preaudit_r9.py')
 CLI_TOKENS = ('--mode FULL_SERIAL', "'FULL_SERIAL'", '"FULL_SERIAL"', '--pilot-date', '--pilot-gate-file',
               '--full-history', '--full-gate-file', '--full-gate-sha256', 'PILOT_LOW', 'PILOT_HIGH')
 # Core-bound callee: hashed into every core binding (file_ids.preflight_sha256) and spawned only by the core's
-# own pilot preflight; it cannot leave the package without changing RC1 bindings.  Pinned, and no other module
+# own pilot preflight (disabled in RC1R1); it cannot leave the package without changing core bindings.  Pinned, and no other module
 # may reference it.
 CORE_BOUND = {C / 'full/WINDOWS_GATE_B_PREFLIGHT_V005.py': 'CDC49F5E6AC1A1A43954D36F900CC8BE82EC8FCD7EF4A903515CC92A462EAE0F'}
 LEGACY_FUNCS = {'run_full_serial', 'run_one_day', 'require_pilot_owner_gate', 'validate_full_owner_gate',
@@ -52,8 +54,9 @@ def scan_cli_routes(root):
 
 
 class LegacyIsolation(unittest.TestCase):
-    def test_01_rc1_core_byte_identical(self):
+    def test_01_rc1r1_core_byte_identical(self):
         self.assertEqual(hashlib.sha256(CORE.read_bytes()).hexdigest().upper(), CORE_SHA)
+        self.assertNotEqual(CORE_SHA, RC1_HISTORICAL_SHA)
 
     def test_02_legacy_launchers_and_release_audits_not_packaged(self):
         for name in QUARANTINED:
@@ -93,19 +96,23 @@ class LegacyIsolation(unittest.TestCase):
                            timeout=120, cwd=str(CORE.parent))
         return r.returncode, r.stdout + r.stderr
 
-    def test_05_direct_full_serial_entry_fails_closed_without_revoked_gate(self):
-        for args, reason in ((['--mode', 'FULL_SERIAL'], 'FULL_OWNER_GATE_REQUIRED'),
-                             (['--mode', 'FULL_SERIAL', '--full-gate-file', 'gate.json'], 'FULL_OWNER_GATE_TRUSTED_SHA256_REQUIRED')):
+    def test_05_direct_full_serial_entry_closed_by_package_capability(self):
+        forged = ['--mode', 'FULL_SERIAL', '--full-gate-file', 'gate.json', '--full-gate-sha256', 'A' * 64,
+                  '--source-root', 'S', '--dest-root', 'D', '--scratch-root', 'X', '--ledger-zip', 'L.zip']
+        for args in (['--mode', 'FULL_SERIAL'], ['--mode', 'FULL_SERIAL', '--full-gate-file', 'gate.json'], forged):
             code, out = self.run_core(*args)
-            self.assertNotEqual(code, 0); self.assertIn('TICKSTORE_RUNNER_STATUS=BLOCKED', out); self.assertIn(reason, out)
+            self.assertNotEqual(code, 0); self.assertIn('TICKSTORE_RUNNER_STATUS=BLOCKED', out)
+            self.assertIn('REASON=FULL_SERIAL_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE', out)
 
     def test_06_direct_full_history_and_pilot_entries_fail_closed(self):
         code, out = self.run_core('--full-history', '--ledger-zip', 'x.zip')
         self.assertNotEqual(code, 0); self.assertIn('FULL_HISTORY_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE', out)
-        code, out = self.run_core('--pilot-date', '20990101', '--ledger-zip', 'x.zip')
-        self.assertNotEqual(code, 0); self.assertIn('PILOT_DATE_NOT_FROZEN_GATE_B_CASE', out)
-        code, out = self.run_core('--pilot-date', '20260731', '--ledger-zip', 'x.zip')
-        self.assertNotEqual(code, 0); self.assertIn('TICKSTORE_RUNNER_STATUS=BLOCKED', out)
+        for date in ('20990101', '20260731'):
+            code, out = self.run_core('--pilot-date', date, '--ledger-zip', 'x.zip', '--source-root', 'S',
+                                      '--dest-root', 'D', '--scratch-root', 'X', '--windows-preflight-report', 'P',
+                                      '--pilot-gate-file', 'G')
+            self.assertNotEqual(code, 0); self.assertIn('TICKSTORE_RUNNER_STATUS=BLOCKED', out)
+            self.assertIn('REASON=PILOT_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE', out)
 
     def test_07_multiwork_api_rejects_legacy_gate_arguments(self):
         sys.path.insert(0, str(C / 'full'))

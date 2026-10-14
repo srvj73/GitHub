@@ -167,10 +167,11 @@ class ConsumersHaveNoPolicyPins(unittest.TestCase):
                          ('policy_capture_binding_sha256', 'control/POLICY_CAPTURE_BINDING.py')):
             self.assertEqual(b[key], sha((MERGED / rel).read_bytes()), key)
 
-    def test_22_frozen_rc1_core_untouched(self):
-        # Legacy entry isolation is proved by test_legacy_entry_isolation; the core stays byte-identical.
+    def test_22_frozen_rc1r1_core_untouched(self):
+        # RC1R1 (origin decision Option A) closes the legacy CLI routes; the delta to RC1 D3A15572 is
+        # proved structurally by test_rc1r1_recertification and the core stays byte-identical to RC1R1.
         core = (MERGED / 'full/tickstore_serial_runner.py').read_bytes()
-        self.assertEqual(sha(core), 'D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0')
+        self.assertEqual(sha(core), '749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00')
 
 
 class TransactionConsumesVerifiedCapture(Base):

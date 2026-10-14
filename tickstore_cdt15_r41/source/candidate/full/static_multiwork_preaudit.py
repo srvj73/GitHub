@@ -11,7 +11,7 @@ TEMPLATE=ROOT/'FULL_MULTIWORK_OWNER_GATE_TEMPLATE_DO_NOT_USE.json'
 PREFLIGHT=ROOT/'RUN_WINDOWS_MULTIWORK_PREFLIGHT.ps1'
 
 checks={}
-checks['CORE_RC1_FROZEN']=hashlib.sha256(CORE.read_bytes()).hexdigest().upper()=='D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0'
+checks['CORE_RC1R1_FROZEN']=hashlib.sha256(CORE.read_bytes()).hexdigest().upper()=='749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00'
 text=WRAPPER.read_text(encoding='utf-8')
 tree=ast.parse(text)
 # R41: children start through the native Job (KILL_ON_JOB_CLOSE) wrapper.
@@ -43,6 +43,8 @@ checks['ONE_SOURCE_PASS']='SOURCE_PASS=ONE_PHYSICAL_PASS_PER_MONTH' in text and 
 checks['NO_WORKER_PREHASH']='core.FullSerialMonth(' not in text and '.hash_all(' not in text
 checks['NO_DAY_ACK_BARRIER']='DAY_READY' not in text and 'WORKER_BAD_ACK' not in text and 'WORKER_DAY_ACK_BARRIER=NO' in text
 checks['MONTH_SHA_BEFORE_PUBLISH']='MONTH_VERIFIED' in text and 'SOURCE_SHA256_MISMATCH_SINGLE_PASS' in text
+checks['RC1_HISTORICAL_PROVENANCE']=(text.count('core.historical_rc1_scratch_oracle(')==2 and 'core.historical_rc1_oracle(pp,c,month,identity,ledger_sha)' in text
+    and 'core.reject_historical_rc1_transient(' in text)
 checks['LEGACY_SCRATCH_COMPAT']='FULL_MULTIWORK_RC2R3' in text and 'SCRATCH_REVISION_CONFLICT' in text
 
 checks['DEDICATED_PUBLISHER_PROCESS']='def _publisher_main(' in text and 'TICKSTORE-RC4R2-PUBLISHER' in text

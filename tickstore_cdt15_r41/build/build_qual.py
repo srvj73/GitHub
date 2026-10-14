@@ -13,7 +13,7 @@ from pathlib import Path
 
 DATE = '20261014'
 FIXED_TIME = (2026, 10, 13, 0, 0, 0)
-REV = 'R46'
+REV = 'R47'
 FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_%s_%s.zip' % (REV, DATE)
 FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_%s_%s.json' % (REV, DATE)
 QUAL_NAME = 'TICKSTORE_CDT15_%s_QUAL_%s.zip' % (REV, DATE)
@@ -33,12 +33,18 @@ BASELINE = {
     'parent_final_r45_sha256': 'C0D1921634AE24D068BE7970C587244C7C1AEA10C6B06CB60E1C796139EFC700',
     # R46 parent: R45B internal candidate (B07 fixes), superseded by the completeness campaign.
     'parent_final_r45b_sha256': '3155EE11B81EA2E0973B9C525A4399558690DFABCFC8FB3B633D79787615B875',
+    # R47 parent: R46 FINAL reviewed by the origin (PACKAGE_INTEGRITY=PASS, CANDIDATE_COMPLETENESS=NOT_PROVEN:
+    # LEGACY-ENTRY -> Option A RC1R1 recertification, G11, R41 policy authority).
+    'parent_final_r46_sha256': '0CAA565C784A7EA99458E150F878DE7F2BEA78E5C3DCD7F4928DE8337FB69DC2',
 }
-POLICY = {'revision': '20261013T070500-0300-695DCD6495E549B1',
-          'master_sha256': '695DCD6495E549B13B13A73E063EA147CF97354C53940A70647EDFD0A0BC7DF5',
-          'head_sha256': 'B3B419592DC29651487B1545E1CD7AE66604AB78582202883684E69BCB1FF7EA',
-          'custody': 'SNAPSHOT_NON_AUTHORITATIVE_RECONCILE_AT_CHATGPT_ORIGIN',
-          'POLICY_RECONCILIATION_FOR_R45': 'NOT_ISSUED'}
+# Active policy named by the origin R46 review (R41). Recorded for routing only: every effectful stage
+# requires a live, hash-bound origin reconciliation against R41 or a later revision.
+POLICY = {'revision': 'R41', 'revision_id': '20261014T085300-0300-B00AF978A2C4728D',
+          'master_sha256': 'B00AF978A2C4728D8E12BAC8F56F4F4963032D62FDEA399C1CC7085DD0BCB23C',
+          'head_sha256': '0F8127056E9DA3EFB9D69CC96F436AA6D888AD261CC218420D204274CF480590',
+          'custody': 'ORIGIN_R46_REVIEW_STATEMENT_NOT_A_RECONCILIATION',
+          'packaged_capture': 'R40_NON_AUTHORITATIVE_TEST_FIXTURE_ONLY',
+          'POLICY_RECONCILIATION_FOR_R47': 'NOT_ISSUED'}
 SUITES = {
     # B2-G5-01 producer/consumer controls and the runner/consumer contract (new in R44).
     'S8_G5_EVIDENCE_BUILDER': {'files': [{'file': 'tests/test_g5_evidence_builder.py'}], 'sys_path': ['tests']},
@@ -58,6 +64,15 @@ SUITES = {
     # Physical power-loss lab tooling (preflight/plan/arm/inspect/reconcile/aggregate) on the packaged
     # engine with an EMULATED cut; never physical evidence (that runs only in a separate lab).
     'S18_POWERLOSS_LAB_TOOLING': {'files': [{'file': 'tests/test_lab_powerloss.py'}], 'sys_path': ['tests'], 'timeout': 7200},
+    # R47 (origin decision Option A): RC1R1 recertification. Structural delta RC1 -> RC1R1 and engines, embedded
+    # core identity, RC1/RC1R1 provenance in engine and post-FULL verifier, legacy routes closed; the core and
+    # MULTIWORK regression suites natively on the recertified bytes (historical RC1 provenance included);
+    # the SOURCE_ONLY successor migration (dry run, gated apply, crash resume).
+    'S19_RC1R1_RECERTIFICATION': {'files': [{'file': 'tests/test_rc1r1_recertification.py'}], 'sys_path': ['tests']},
+    'S20_RC1R1_CORE_AND_MULTIWORK': {'files': [{'file': 'candidate/full/test_full_serial_r9.py'},
+                                               {'file': 'candidate/full/test_full_multiwork.py'}],
+                                     'sys_path': ['candidate/full'], 'timeout': 3600, 'native_only': True},
+    'S21_RC1R1_SUCCESSOR_MIGRATION': {'files': [{'file': 'tests/test_rc1r1_successor_migration.py'}], 'sys_path': ['tests']},
 }
 SCRIPTS = {
     'R45_B2C_NATIVE_PROBE': {'script': 'qual/R45_B2C_NATIVE_PROBE.py', 'isolated': True, 'timeout': 600,
@@ -142,7 +157,7 @@ def main(source, out):
     source, out = Path(source).resolve(), Path(out).resolve()
     for name, digest in B2C_APPROVED.items():
         assert sha((B2C_FIX / name).read_bytes()) == digest, 'B2C_APPROVED_FIXTURE_DRIFT:' + name
-    assert REV not in ('R44', 'R45', 'R45B'), 'PREVIOUS_FINALS_ARE_FROZEN_NEVER_REBUILT'
+    assert REV not in ('R44', 'R45', 'R45B', 'R46'), 'PREVIOUS_FINALS_ARE_FROZEN_NEVER_REBUILT'
     import re as _re
     menu_pin = _re.search(r"CANDIDATE_MENU_SHA = '([0-9A-F]{64})'",
                           (source / 'candidate/control/MENU_OFFICIAL_ADMISSION_READONLY.py').read_text(encoding='utf-8'))

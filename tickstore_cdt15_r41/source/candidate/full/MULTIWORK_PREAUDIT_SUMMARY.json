@@ -15,7 +15,19 @@
     "worker_day_ack_barrier": false,
     "worker_start": "PREQUEUED_AFTER_PARENT_PIN"
   },
-  "core_rc1_frozen_sha256": "D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0",
+  "core_rc1_frozen_sha256": "749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00",
+  "core_recertification": {
+    "current": "RC1R1",
+    "current_sha256": "749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00",
+    "historical_preaudit_fields": [
+      "wrapper_sha256",
+      "windows_preflight_sha256",
+      "windows_rc4_publisher_smoke_sha256",
+      "windows_rc4r2_shutdown_smoke_sha256"
+    ],
+    "historical_rc1_sha256": "D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0",
+    "reason": "R46 origin decision Option A: legacy FULL_SERIAL/PILOT CLI routes disabled in code; historical RC1 commits keep their provenance"
+  },
   "csv_deletion_authorized": false,
   "full_execution_authorized": false,
   "local_tests": {

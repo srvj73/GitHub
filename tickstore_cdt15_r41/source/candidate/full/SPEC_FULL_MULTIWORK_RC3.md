@@ -6,7 +6,7 @@ PREAUDIT ONLY. Real production execution is not authorized by this package.
 
 ## Invariants
 
-1. Frozen RC1 core SHA-256 remains `D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0`.
+1. Frozen core SHA-256 is RC1R1 `749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00` (recertified from RC1 `D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0` by origin decision Option A: the legacy FULL_SERIAL and PILOT CLI routes are disabled in code; final pairs published by RC1 keep their RC1 provenance).
 2. Source root remains read-only.
 3. Canonical destination publication is single-writer and protected by the RC1 writer lock.
 4. `AUTO` is bounded by 22 workers, CPU budget, and RAM target 60%.

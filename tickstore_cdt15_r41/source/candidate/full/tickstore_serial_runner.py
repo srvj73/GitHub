@@ -27,11 +27,16 @@ import zipfile
 import pts2g_reference as ref
 
 RUNNER_SCHEMA="TICKSTORE_SERIAL_RUNNER_V001R9_FULL_SERIAL_RELEASE_RC1"
-FULL_SERIAL_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE=True
+# RC1R1 recertification (origin decision Option A, R46 review): the legacy CLI routes that accepted an
+# administrative owner gate are disabled in code; FULL runs only through MULTIWORK + FULL_RELEASE_CHAIN.
+FULL_SERIAL_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE=False
 FULL_OWNER_GATE_SCHEMA="TICKSTORE_FULL_OWNER_GATE_V001"
 FULL_PLAN_CONTRACT_SHA256="D07217CDB7BB50DC6EECCC1DF7746F412BD71B1E5968CFB133B5A6E06AA3A4D5"
 GATE_B_CERTIFICATE_SHA256="7D142D73D740986FA62219DE6CA0C9BD0AF347A9186D58AC1C8DFB35EFB5DFF7"
 FROZEN_REFERENCE_SHA256="74EE141B014DE7A9F9C401C2B3C5AF6BF72E5D7D80F49E67F9D9032338480165"
+# Historical provenance: days published by the certified RC1 core (before RC1R1) stay valid; their
+# oracle is rebuilt from the commit's own runner ids and must match the ledger contract exactly.
+RC1_HISTORICAL_RUNNER_SHA256="D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0"
 JOURNAL_SCHEMA="TICKSTORE_DAY_JOURNAL_V003"
 COMMIT_SCHEMA="TICKSTORE_DAY_COMMIT_V003"
 MANIFEST_SCHEMA="TICKSTORE_GLOBAL_MANIFEST_V003"
@@ -43,7 +48,7 @@ EXPECTED_P4A_LEDGER_SHA256="27FF5A0FE47F3DDC5FD63F6371CCF0EDA8124E0E5D504A8F0756
 # R3 independent audit authorizes only a separate, explicitly-gated Windows pilot revision.
 # This package may execute ONE explicitly selected pilot day after its machine preflight and
 # owner gate are both present. Full-history remains intentionally unavailable.
-PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE=True
+PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE=False
 FULL_HISTORY_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE=False
 WINDOWS_PREFLIGHT_SCHEMA="TICKSTORE_WINDOWS_GATE_B_PREFLIGHT_V005"
 OWNER_GATE_SCHEMA="TICKSTORE_PILOT_OWNER_GATE_V002"
@@ -2191,6 +2196,52 @@ def validate_certified_r8_day(pp,c,month,src_identity,ledger_sha,cert,dest_root,
     return "REUSED"
 
 
+def _rc1_historical_rebuild(oracle,c,month,src_identity,ledger_sha):
+    ids=oracle.get("runner_ids")
+    if not (isinstance(ids,dict) and ids.get("runner_sha256")==RC1_HISTORICAL_RUNNER_SHA256): return None
+    if ids.get("reference_sha256")!=FROZEN_REFERENCE_SHA256: raise Blocked("FULL_RC1_HISTORICAL_REFERENCE")
+    rebuilt=make_oracle(c,month,src_identity,ledger_sha,ids)
+    if rebuilt!=oracle: raise Blocked("FULL_RC1_HISTORICAL_ORACLE_MISMATCH")
+    return rebuilt
+
+
+def historical_rc1_oracle(pp,c,month,src_identity,ledger_sha):
+    """Oracle of a day published by the historical RC1 core, or None if the commit is not RC1's."""
+    if strict_lstat(pp["commit"],allow_missing=True) is None: return None
+    obj=_full_json(secure_read_all(pp["commit"]))
+    oracle=obj.get("oracle")
+    if not isinstance(oracle,dict): raise Blocked("FULL_COMMIT_ORACLE_INVALID")
+    return _rc1_historical_rebuild(oracle,c,month,src_identity,ledger_sha)
+
+
+def historical_rc1_scratch_oracle(journal_path,c,month,src_identity,ledger_sha):
+    """Oracle of a scratch day fully built and validated by the historical RC1 core, or None.
+
+    Only VALIDATED_PENDING_PUBLISH is adopted: its payload was entirely produced by RC1, so the
+    published commit keeps RC1 as producer. An unfinished RC1 build is never continued by RC1R1.
+    """
+    if strict_lstat(journal_path,allow_missing=True) is None: return None
+    obj=_full_json(secure_read_all(journal_path))
+    oracle=obj.get("oracle") if isinstance(obj,dict) else None
+    if not isinstance(oracle,dict): raise Blocked("SCRATCH_JOURNAL_ORACLE_INVALID")
+    ids=oracle.get("runner_ids")
+    if not (isinstance(ids,dict) and ids.get("runner_sha256")==RC1_HISTORICAL_RUNNER_SHA256): return None
+    if obj.get("state")!="VALIDATED_PENDING_PUBLISH":
+        raise Blocked("FULL_RC1_HISTORICAL_SCRATCH_NOT_VALIDATED:"+str(obj.get("state")))
+    return _rc1_historical_rebuild(oracle,c,month,src_identity,ledger_sha)
+
+
+def reject_historical_rc1_transient(pp):
+    """An unfinished RC1 transaction is never completed by RC1R1 under RC1's identity (fail-closed)."""
+    for k in ("journal","journal_atomic","commit_partial"):
+        if strict_lstat(pp[k],allow_missing=True) is None: continue
+        try: obj=_full_json(secure_read_all(pp[k]))
+        except Blocked: continue
+        ids=(obj.get("oracle") or {}).get("runner_ids") if isinstance(obj,dict) else None
+        if isinstance(ids,dict) and ids.get("runner_sha256")==RC1_HISTORICAL_RUNNER_SHA256:
+            raise Blocked("FULL_RC1_HISTORICAL_TRANSIENT_TRANSACTION:"+k)
+
+
 def _is_r8_pair(pp,cert):
     if strict_lstat(pp["commit"],allow_missing=True) is None: return False
     obj=_full_json(secure_read_all(pp["commit"]))
@@ -2250,7 +2301,8 @@ def reconcile_full_readonly(dest_root,days,months,ledger_sha,ids,cert,source_ide
             validate_certified_r8_day(pp,c,months[c["month_id"]],src_id,ledger_sha,cert,
                                      dest_root,zstd,manifest["records"][c["date_key"]])
         else:
-            oracle=make_oracle(c,months[c["month_id"]],src_id,ledger_sha,ids)
+            oracle=(historical_rc1_oracle(pp,c,months[c["month_id"]],src_id,ledger_sha)
+                    or make_oracle(c,months[c["month_id"]],src_id,ledger_sha,ids))
             commit_matches(pp["commit"],oracle,pp["container"],manifest["records"][c["date_key"]],zstd,c)
     _full_artifact_inventory(dest_root,expected)
     # A second immutable read catches manifest changes during reconciliation.

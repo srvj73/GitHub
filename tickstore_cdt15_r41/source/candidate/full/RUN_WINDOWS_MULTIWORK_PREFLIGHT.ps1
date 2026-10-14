@@ -4,7 +4,7 @@ $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $Root=$PSScriptRoot
 $Core=Join-Path $Root 'tickstore_serial_runner.py'
-$ExpectedCore='D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0'
+$ExpectedCore='749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00'
 if((Get-FileHash -LiteralPath $Core -Algorithm SHA256).Hash.ToUpperInvariant() -ne $ExpectedCore){throw 'BLOCKED: CORE_RC1_SHA_MISMATCH'}
 $Py=(& py -3.14 -c "import sys;print(sys.executable)").Trim()
 if($LASTEXITCODE -ne 0){throw 'BLOCKED: PYTHON314'}

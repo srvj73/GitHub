@@ -637,6 +637,8 @@ def _worker_main(worker_id: str, source_root: str, scratch_root: str, month_id: 
                     event_q.put({"type":"STATE","worker":worker_id,"month_id":month_id,"state":"BUILDING","date_key":key})
                     oracle = core.make_oracle(c, month, identity, ledger_sha, ids)
                     sp = _scratch_day_paths(Path(scratch_root), month_id, key)
+                    # RC1R1: a scratch day validated by the historical RC1 core is reused under its own provenance.
+                    oracle = core.historical_rc1_scratch_oracle(sp["journal"], c, month, identity, ledger_sha) or oracle
                     core.free_space_gate(Path(scratch_root), int(c["source_day_bytes"]))
                     try:
                         status = _build_or_resume_day_cooperative(
@@ -717,6 +719,7 @@ def _recover_full_serial_day(source_root: Path, dest_root: Path, c: dict, month:
     The generic single-day run_one_day() route intentionally uses file_ids() instead and
     therefore cannot be used as a compatibility bridge for a FULL_SERIAL journal.
     """
+    core.reject_historical_rc1_transient(core._full_day_paths(dest_root, c))
     src = core.source_for(source_root, c)
     lock = None
     result = None
@@ -765,7 +768,8 @@ def _publish_ready_day(dest_root: Path, c, month, parent_pin: ParentMonthPin, le
                        scratch_partial: Path, scratch_journal: Path):
     guard = ExternalWorkerPinGuard(parent_pin)
     identity = dict(parent_pin.identity)
-    oracle = core.make_oracle(c, month, identity, ledger_sha, ids)
+    oracle = (core.historical_rc1_scratch_oracle(Path(scratch_journal), c, month, identity, ledger_sha)
+              or core.make_oracle(c, month, identity, ledger_sha, ids))
     core.validate_validated_partial(
         Path(scratch_partial), Path(scratch_journal), c, oracle, zstd,
         allowed_states=("VALIDATED_PENDING_PUBLISH",)
@@ -913,7 +917,9 @@ def _validate_existing_for_month(dest_root: Path, days: list, existing_keys: set
             )
             guard.verify_full()
         else:
-            oracle=core.make_oracle(c,month,identity,ledger_sha,ids)
+            # RC1R1: a final pair published by the historical RC1 core keeps its own provenance.
+            oracle=(core.historical_rc1_oracle(pp,c,month,identity,ledger_sha)
+                    or core.make_oracle(c,month,identity,ledger_sha,ids))
             status=core._run_day_already_locked(guard,c,oracle,dest_root,zstd,core.FaultInjector(None))
         if status not in ("REUSED","RESUMED","RESUMED_PUBLICATION","RESUMED_MANIFEST","BUILT"):
             raise core.Blocked("MULTIWORK_UNEXPECTED_EXISTING_STATUS:"+str(status))

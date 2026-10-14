@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -80,7 +81,7 @@ class TestFullMultiworkHelpers(unittest.TestCase):
         core_path=Path(__file__).with_name('tickstore_serial_runner.py')
         self.assertEqual(
             m.sha256_file(core_path),
-            'D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0'
+            '749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00'
         )
 
 
@@ -291,6 +292,139 @@ class TestFullMultiworkHelpers(unittest.TestCase):
             out=m._finalize_coordinator_resources({},{},None,'LOCK',Lease(),primary)
         self.assertIs(out,primary)
         self.assertEqual(released,['LOCK']); self.assertEqual(closed,[True])
+
+class TestRc1HistoricalProvenance(unittest.TestCase):
+    """RC1R1: MULTIWORK reuses final pairs published by the historical RC1 core without relabeling them."""
+    def setUp(self):
+        import contextlib, io
+        import test_full_serial_r9 as t9
+        self.t9=t9;self.r=t9.r
+        self.assertIs(m.core,self.r)
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        root=Path(self.temp.name)
+        (self.source,self.dest,self.days,self.months,_contract,self.ids,self.cert)=t9.fixture(root,dates=("20260730","20260731"))
+        self.codec=t9.SyntheticCodec()
+        self.rc1={"runner_sha256":self.r.RC1_HISTORICAL_RUNNER_SHA256,"reference_sha256":self.r.FROZEN_REFERENCE_SHA256,
+                  "spec_sha256":"SYNTHETIC_SPEC"}
+        with mock.patch.object(self.r,"_require_full_serial_windows"),contextlib.redirect_stdout(io.StringIO()):
+            rc=self.r._execute_full_serial(self.source,self.dest,self.days,self.months,t9.LEDGER_SHA,
+                                           self.rc1,self.cert,self.codec,None)
+        self.assertEqual(rc,0)
+        self.month=self.months["2026_07"]
+        path=self.source/"WIN@N_ticks_2026_07.csv"
+        with self.r.PinnedSource(path,int(self.month["source_size"]),self.month["source_sha256"]) as pin:
+            identity=dict(pin.identity)
+        self.pin=m.ParentMonthPin(path,identity).open()
+        self.addCleanup(lambda: os.close(self.pin.fd))
+
+    def validate(self):
+        from collections import Counter
+        keys={c["date_key"] for c in self.days};counts=Counter()
+        out=m._validate_existing_for_month(self.dest,self.days,keys,keys,self.month,self.pin,
+                                           self.t9.LEDGER_SHA,self.ids,self.cert,self.codec,counts)
+        return out,counts
+
+    def test_existing_rc1_pairs_reused_with_their_own_provenance(self):
+        before={p:p.read_bytes() for p in self.dest.rglob("*") if p.is_file()}
+        (rows,days),counts=self.validate()
+        self.assertEqual((rows,days),(6,2));self.assertEqual(counts["REUSED"],2)
+        after={p:p.read_bytes() for p in self.dest.rglob("*") if p.is_file()}
+        self.assertEqual(before,after)
+
+    def test_tampered_rc1_commit_rejected(self):
+        pp=self.r._full_day_paths(self.dest,self.days[0])
+        obj=json.loads(pp["commit"].read_bytes());obj["oracle"]["rows"]=99
+        pp["commit"].write_text(json.dumps(obj))
+        with self.assertRaisesRegex(self.r.Blocked,"FULL_RC1_HISTORICAL_ORACLE_MISMATCH"):
+            self.validate()
+
+    def test_foreign_runner_commit_falls_back_to_current_ids_and_is_rejected(self):
+        pp=self.r._full_day_paths(self.dest,self.days[0])
+        obj=json.loads(pp["commit"].read_bytes());obj["oracle"]["runner_ids"]["runner_sha256"]="F"*64
+        pp["commit"].write_text(json.dumps(obj))
+        with self.assertRaisesRegex(self.r.Blocked,"ORACLE"):
+            self.validate()
+
+    def test_recovery_bridge_refuses_rc1_transient_before_any_source_access(self):
+        pp=self.r._full_day_paths(self.dest,self.days[0])
+        pp["journal"].write_text(json.dumps({"oracle":{"runner_ids":self.rc1}}))
+        with mock.patch.object(self.r,"source_for",side_effect=AssertionError("source access")), \
+             self.assertRaisesRegex(self.r.Blocked,"FULL_RC1_HISTORICAL_TRANSIENT_TRANSACTION:journal"):
+            m._recover_full_serial_day(self.source,self.dest,self.days[0],self.month,self.t9.LEDGER_SHA,self.ids,self.codec)
+
+
+class TestRc1HistoricalScratch(unittest.TestCase):
+    """RC1R1: S0 scratch days validated by RC1 are published with RC1 provenance; RC1 builds are never continued."""
+    def setUp(self):
+        import contextlib, io, shutil
+        import test_full_serial_r9 as t9
+        self.t9=t9;self.r=t9.r
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
+        root=Path(self.temp.name)
+        (self.source,self.dest,self.days,self.months,_contract,self.ids,self.cert)=t9.fixture(root,dates=("20260730",))
+        self.codec=t9.SyntheticCodec();self.c=self.days[0];self.month=self.months["2026_07"]
+        self.rc1={"runner_sha256":self.r.RC1_HISTORICAL_RUNNER_SHA256,"reference_sha256":self.r.FROZEN_REFERENCE_SHA256,
+                  "spec_sha256":"SYNTHETIC_SPEC"}
+        class Stop:
+            def hit(self,point):
+                if point=="AFTER_VALIDATE_BEFORE_COMMIT_PARTIAL": raise KeyboardInterrupt()
+        with mock.patch.object(self.r,"_require_full_serial_windows"),contextlib.redirect_stdout(io.StringIO()):
+            rc=self.r._execute_full_serial(self.source,self.dest,self.days,self.months,t9.LEDGER_SHA,
+                                           self.rc1,self.cert,self.codec,Stop())
+        self.assertEqual(rc,130)
+        pp=self.r._full_day_paths(self.dest,self.c)
+        self.scratch=root/"scratch";self.scratch.mkdir()
+        sroot=self.scratch/"FULL_MULTIWORK_RC4"/"2026_07"/"20260730";sroot.mkdir(parents=True)
+        self.sj=sroot/"20260730.journal.json";self.sp=sroot/"20260730.pts2g.partial"
+        shutil.move(str(pp["journal"]),self.sj);shutil.move(str(pp["partial"]),self.sp)
+        self.assertEqual(json.loads(self.sj.read_bytes())["state"],"VALIDATED_PENDING_PUBLISH")
+        path=self.source/"WIN@N_ticks_2026_07.csv"
+        with self.r.PinnedSource(path,int(self.month["source_size"]),self.month["source_sha256"]) as pin:
+            self.identity=dict(pin.identity)
+        self.pin=m.ParentMonthPin(path,self.identity).open()
+        self.addCleanup(lambda: os.close(self.pin.fd))
+
+    def test_scratch_paths_find_the_rc1_pair_in_place(self):
+        sp=m._scratch_day_paths(self.scratch,"2026_07","20260730")
+        self.assertEqual((sp["journal"],sp["namespace"]),(self.sj,"RC4"))
+        oracle=self.r.historical_rc1_scratch_oracle(sp["journal"],self.c,self.month,self.identity,self.t9.LEDGER_SHA)
+        self.assertEqual(oracle["runner_ids"],self.rc1)
+
+    def test_rc1_validated_scratch_published_with_rc1_provenance(self):
+        lock=self.r.acquire_lock(self.dest)
+        try:
+            status=m._publish_ready_day(self.dest,self.c,self.month,self.pin,self.t9.LEDGER_SHA,self.ids,self.codec,
+                                        self.sp,self.sj)
+        finally:
+            self.r.release_lock(lock)
+        self.assertIn(status,("BUILT","RESUMED","RESUMED_PUBLICATION","RESUMED_MANIFEST"))
+        pp=self.r._full_day_paths(self.dest,self.c)
+        self.assertEqual(json.loads(pp["commit"].read_bytes())["oracle"]["runner_ids"],self.rc1)
+        identities={"2026_07":self.identity}
+        self.r.reconcile_full_readonly(self.dest,self.days,self.months,self.t9.LEDGER_SHA,self.ids,self.cert,identities,self.codec)
+
+    def test_rc1_building_scratch_is_never_continued(self):
+        obj=json.loads(self.sj.read_bytes());obj["state"]="BUILDING";self.sj.write_text(json.dumps(obj))
+        with self.assertRaisesRegex(self.r.Blocked,"FULL_RC1_HISTORICAL_SCRATCH_NOT_VALIDATED:BUILDING"):
+            self.r.historical_rc1_scratch_oracle(self.sj,self.c,self.month,self.identity,self.t9.LEDGER_SHA)
+
+    def test_rc1_scratch_tamper_and_current_ids_mismatch_rejected(self):
+        raw=self.sj.read_bytes()
+        obj=json.loads(raw);obj["oracle"]["rows"]=99;self.sj.write_text(json.dumps(obj))
+        with self.assertRaisesRegex(self.r.Blocked,"FULL_RC1_HISTORICAL_ORACLE_MISMATCH"):
+            self.r.historical_rc1_scratch_oracle(self.sj,self.c,self.month,self.identity,self.t9.LEDGER_SHA)
+        obj=json.loads(raw);obj["oracle"]["runner_ids"]["reference_sha256"]="0"*64;self.sj.write_text(json.dumps(obj))
+        with self.assertRaisesRegex(self.r.Blocked,"FULL_RC1_HISTORICAL_REFERENCE"):
+            self.r.historical_rc1_scratch_oracle(self.sj,self.c,self.month,self.identity,self.t9.LEDGER_SHA)
+        obj=json.loads(raw);obj["oracle"]["runner_ids"]["runner_sha256"]="F"*64;self.sj.write_text(json.dumps(obj))
+        self.assertIsNone(self.r.historical_rc1_scratch_oracle(self.sj,self.c,self.month,self.identity,self.t9.LEDGER_SHA))
+        lock=self.r.acquire_lock(self.dest)
+        try:
+            with self.assertRaises(self.r.Blocked):
+                m._publish_ready_day(self.dest,self.c,self.month,self.pin,self.t9.LEDGER_SHA,self.ids,self.codec,self.sp,self.sj)
+        finally:
+            self.r.release_lock(lock)
+
 
 if __name__=='__main__':
     unittest.main(verbosity=2)

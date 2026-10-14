@@ -122,8 +122,11 @@ class FullSerialTests(unittest.TestCase):
              patch.object(r,"full_gate_bindings",return_value=expected),\
              patch.object(r,"secure_read_all",return_value=raw),\
              patch.object(r,"_execute_full_serial",dispatch):
-            return r.run_full_serial(self.source,self.dest,scratch,Path("synthetic-ledger.zip"),
-                                     Path("synthetic-owner-gate.json"),trusted_sha)
+            # RC1R1: the legacy gate validator is kept as defense in depth; it is reachable only
+            # when the package capability is forced in-memory by the test.
+            with patch.object(r,"FULL_SERIAL_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE",True):
+                return r.run_full_serial(self.source,self.dest,scratch,Path("synthetic-ledger.zip"),
+                                         Path("synthetic-owner-gate.json"),trusted_sha)
 
     def test_canonical_sealed_plan(self):
         contract,cert,ids=r.full_release_materials(BASE)
@@ -538,6 +541,48 @@ class FullSerialTests(unittest.TestCase):
         pp["commit"].write_text(json.dumps(obj))
         with self.assertRaises(r.Blocked):self.reconcile()
 
+    def rc1_ids(self):
+        return {"runner_sha256":r.RC1_HISTORICAL_RUNNER_SHA256,"reference_sha256":r.FROZEN_REFERENCE_SHA256,
+                "spec_sha256":"SYNTHETIC_SPEC"}
+
+    def test_rc1r1_reuses_days_published_by_historical_rc1_with_their_provenance(self):
+        current=self.ids
+        self.ids=self.rc1_ids();rc,_=self.execute();self.assertEqual(rc,0)
+        self.ids=current
+        # Read-only final reconciliation (used by MULTIWORK) accepts RC1 provenance with current ids.
+        self.reconcile()
+        for c in self.days:
+            obj=json.loads(r._full_day_paths(self.dest,c)["commit"].read_bytes())
+            self.assertEqual(obj["oracle"]["runner_ids"]["runner_sha256"],r.RC1_HISTORICAL_RUNNER_SHA256)
+
+    def test_rc1_historical_provenance_rejects_tamper_and_foreign_runner(self):
+        current=self.ids
+        self.ids=self.rc1_ids();self.execute();self.ids=current
+        pp=r._full_day_paths(self.dest,self.days[0]);raw=pp["commit"].read_bytes()
+        cases=(("reference_sha256","0"*64,"FULL_RC1_HISTORICAL_REFERENCE"),
+               ("ledger_zip_sha256","0"*64,"FULL_RC1_HISTORICAL_ORACLE_MISMATCH"),
+               ("runner_sha256","F"*64,"ORACLE"))
+        for field,value,reason in cases:
+            with self.subTest(field=field):
+                obj=json.loads(raw)
+                if field in obj["oracle"]["runner_ids"]:obj["oracle"]["runner_ids"][field]=value
+                else:obj["oracle"][field]=value
+                pp["commit"].write_text(json.dumps(obj))
+                with self.assertRaisesRegex(r.Blocked,reason):self.reconcile()
+        pp["commit"].write_bytes(raw);self.reconcile()
+
+    def test_rc1_historical_transient_transaction_is_never_adopted(self):
+        pp=r._full_day_paths(self.dest,self.days[0]);pp["dir"].mkdir(parents=True)
+        self.assertIsNone(r.reject_historical_rc1_transient(pp))
+        for key in ("journal","journal_atomic","commit_partial"):
+            with self.subTest(key=key):
+                pp[key].write_text(json.dumps({"oracle":{"runner_ids":{"runner_sha256":"SYNTHETIC_R9"}}}))
+                self.assertIsNone(r.reject_historical_rc1_transient(pp))
+                pp[key].write_text(json.dumps({"oracle":{"runner_ids":self.rc1_ids()}}))
+                with self.assertRaisesRegex(r.Blocked,"FULL_RC1_HISTORICAL_TRANSIENT_TRANSACTION:"+key):
+                    r.reject_historical_rc1_transient(pp)
+                pp[key].unlink()
+
     def test_final_reconciliation_has_no_mutation_or_source_hash(self):
         self.execute()
         identities={}
@@ -595,8 +640,11 @@ class FullSerialTests(unittest.TestCase):
 
     def test_release_identity_capability_and_legacy_full_history_block(self):
         self.assertEqual(r.RUNNER_SCHEMA,"TICKSTORE_SERIAL_RUNNER_V001R9_FULL_SERIAL_RELEASE_RC1")
-        self.assertIs(r.FULL_SERIAL_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE,True)
+        # RC1R1 (origin decision Option A): the legacy FULL_SERIAL and PILOT CLI routes are disabled in code.
+        self.assertIs(r.FULL_SERIAL_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE,False)
+        self.assertIs(r.PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE,False)
         self.assertIs(r.FULL_HISTORY_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE,False)
+        self.assertEqual(r.RC1_HISTORICAL_RUNNER_SHA256,"D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0")
         with patch("sys.argv",["runner","--ledger-zip","synthetic-ledger.zip","--full-history"]),\
              self.assertRaisesRegex(r.Blocked,"FULL_HISTORY_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE"):
             r.main()
@@ -617,9 +665,32 @@ class FullSerialTests(unittest.TestCase):
              patch.object(r,"full_gate_bindings",side_effect=AssertionError("path/volume access")),\
              patch.object(r,"_execute_full_serial",side_effect=AssertionError("dispatch")) as dispatch:
             for argv,reason in argv_cases:
-                with self.subTest(argv=argv),patch("sys.argv",argv),self.assertRaisesRegex(r.Blocked,reason):
+                # RC1R1: the package capability blocks first, whatever the gate arguments are.
+                with self.subTest(argv=argv,capability=False),patch("sys.argv",argv),\
+                     self.assertRaisesRegex(r.Blocked,"FULL_SERIAL_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE"):
+                    r.main()
+                with self.subTest(argv=argv,capability=True),patch("sys.argv",argv),\
+                     patch.object(r,"FULL_SERIAL_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE",True),\
+                     self.assertRaisesRegex(r.Blocked,reason):
                     r.main()
             dispatch.assert_not_called()
+
+    def test_rc1r1_disabled_routes_refuse_even_a_forged_valid_gate(self):
+        valid=self.release_gate_bindings();digest=r.sha256_bytes(r.stable_json(valid))
+        dispatch=Mock(return_value="MUST_NOT_REACH")
+        with patch.object(r,"_execute_full_serial",dispatch),\
+             patch.object(r,"secure_read_all",return_value=r.stable_json(valid)),\
+             self.assertRaisesRegex(r.Blocked,"FULL_SERIAL_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE"):
+            r.run_full_serial(self.source,self.dest,self.root/"scratch",Path("synthetic-ledger.zip"),
+                              Path("synthetic-owner-gate.json"),digest)
+        dispatch.assert_not_called()
+        argv=["runner","--ledger-zip","synthetic-ledger.zip","--pilot-date",sorted(r.FROZEN_PILOT_DATES)[0],
+              "--source-root","s","--dest-root","d","--scratch-root","x","--windows-preflight-report","p",
+              "--pilot-gate-file","g"]
+        with patch("sys.argv",argv),patch.object(r,"run_one_day",side_effect=AssertionError("dispatch")),\
+             patch.object(r,"require_windows_pilot_runtime",side_effect=AssertionError("runtime access")),\
+             self.assertRaisesRegex(r.Blocked,"PILOT_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE"):
+            r.main()
 
     def test_release_owner_gate_controls_dispatch_for_every_binding(self):
         valid=self.release_gate_bindings();valid_raw=r.stable_json(valid)
