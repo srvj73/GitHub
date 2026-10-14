@@ -618,17 +618,3 @@
      & $python @argv
      $code=$LASTEXITCODE
      if ($null -eq $code) { throw 'RUNNER_EXIT_UNKNOWN' }
---- a/candidate/full/tickstore_serial_runner.py
-+++ b/candidate/full/tickstore_serial_runner.py
-@@ -2404,6 +2404,11 @@
-     ap.add_argument("--inject")
-     args=ap.parse_args()
- 
-+    # R40/R44-B2C: administrative owner gates are revoked.  The legacy FULL_SERIAL, pilot and
-+    # full-history entries consumed human-issued gate files; FULL runs only via FULL_RUNNER
-+    # (technical release chain + independent B06 digest).
-+    if args.mode=="FULL_SERIAL" or args.pilot_date or args.full_history or args.pilot_gate_file or args.full_gate_file:
-+        raise Blocked("LEGACY_ADMINISTRATIVE_OWNER_GATE_REVOKED:USE_CONTROL_FULL_RUNNER")
-     if args.mode=="FULL_SERIAL":
-         if args.plan or args.pilot_date or args.full_history or args.inject:
-             raise Blocked("FULL_SERIAL_CONFLICTING_MODE")

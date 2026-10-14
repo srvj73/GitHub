@@ -1,0 +1,89 @@
+{
+ "plan_sha256": "092D7112EDD47215973507CC867D070F4D6EA6A98A3F265DA4796A750096D038",
+ "rounds": [
+  {
+   "cut": true,
+   "fixture_seed": 18909938,
+   "hold_seconds": 4.1,
+   "round_id": "POST_COMMIT_PRE_CHECKPOINT_01",
+   "window": "POST_COMMIT_PRE_CHECKPOINT"
+  },
+  {
+   "cut": true,
+   "fixture_seed": 341553868,
+   "hold_seconds": 17.147,
+   "round_id": "JOURNAL_RECEIPT_UPDATE_03",
+   "window": "JOURNAL_RECEIPT_UPDATE"
+  },
+  {
+   "cut": false,
+   "fixture_seed": 150467070,
+   "hold_seconds": 0.0,
+   "round_id": "CONTROL_02",
+   "window": null
+  },
+  {
+   "cut": true,
+   "fixture_seed": 700337097,
+   "hold_seconds": 12.638,
+   "round_id": "JOURNAL_RECEIPT_UPDATE_01",
+   "window": "JOURNAL_RECEIPT_UPDATE"
+  },
+  {
+   "cut": true,
+   "fixture_seed": 482510475,
+   "hold_seconds": 7.212,
+   "round_id": "PRE_COMMIT_WRITE_03",
+   "window": "PRE_COMMIT_WRITE"
+  },
+  {
+   "cut": true,
+   "fixture_seed": 727612350,
+   "hold_seconds": 8.449,
+   "round_id": "JOURNAL_RECEIPT_UPDATE_02",
+   "window": "JOURNAL_RECEIPT_UPDATE"
+  },
+  {
+   "cut": true,
+   "fixture_seed": 250515587,
+   "hold_seconds": 9.354,
+   "round_id": "PRE_COMMIT_WRITE_01",
+   "window": "PRE_COMMIT_WRITE"
+  },
+  {
+   "cut": true,
+   "fixture_seed": 812664866,
+   "hold_seconds": 14.483,
+   "round_id": "POST_COMMIT_PRE_CHECKPOINT_03",
+   "window": "POST_COMMIT_PRE_CHECKPOINT"
+  },
+  {
+   "cut": true,
+   "fixture_seed": 650650045,
+   "hold_seconds": 3.803,
+   "round_id": "POST_COMMIT_PRE_CHECKPOINT_02",
+   "window": "POST_COMMIT_PRE_CHECKPOINT"
+  },
+  {
+   "cut": true,
+   "fixture_seed": 483526399,
+   "hold_seconds": 5.18,
+   "round_id": "PRE_COMMIT_WRITE_02",
+   "window": "PRE_COMMIT_WRITE"
+  },
+  {
+   "cut": false,
+   "fixture_seed": 240539269,
+   "hold_seconds": 0.0,
+   "round_id": "CONTROL_01",
+   "window": null
+  }
+ ],
+ "schema": "TICKSTORE_PHYSICAL_POWERLOSS_PLAN_V001",
+ "seed": 44,
+ "windows": [
+  "PRE_COMMIT_WRITE",
+  "POST_COMMIT_PRE_CHECKPOINT",
+  "JOURNAL_RECEIPT_UPDATE"
+ ]
+}

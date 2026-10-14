@@ -1,0 +1,12 @@
+{
+ "totals": {
+  "tests_run": 106,
+  "failures": 0,
+  "errors": 0,
+  "skips": 0
+ },
+ "success": true,
+ "tests_expected": 106,
+ "tested_code_unchanged": true,
+ "scope": "PORTABLE_106_ON_MERGED_TREE_R44+B2C+B2D+B07_WITH_B1A_B1B_B2C_APPROVED_FIXTURES_NOT_NATIVE_NOT_QUALIFICATION"
+}

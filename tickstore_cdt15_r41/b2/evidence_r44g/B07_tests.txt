@@ -1,0 +1,12 @@
+test_01_complete_native_evidence_yields_consumer_shaped_receipt (__main__.Producer.test_01_complete_native_evidence_yields_consumer_shaped_receipt) ... ok
+test_02_b06_verdict_must_be_independent_pass_and_digest_supplied (__main__.Producer.test_02_b06_verdict_must_be_independent_pass_and_digest_supplied) ... ok
+test_03_missing_check_or_failed_test_or_probe (__main__.Producer.test_03_missing_check_or_failed_test_or_probe) ... ok
+test_04_binding_runner_and_policy (__main__.Producer.test_04_binding_runner_and_policy) ... ok
+test_05_transaction_check_needs_every_contract_id (__main__.Producer.test_05_transaction_check_needs_every_contract_id) ... ok
+test_06_no_clobber (__main__.Producer.test_06_no_clobber) ... ok
+test_10_runner_refuses_off_windows_and_without_b06_chain (__main__.RunnerGuard.test_10_runner_refuses_off_windows_and_without_b06_chain) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.247s
+
+OK

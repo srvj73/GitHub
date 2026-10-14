@@ -1,0 +1,24 @@
+test_01_r40_capture_with_current_origin_reconciliation (__main__.CaptureVerification.test_01_r40_capture_with_current_origin_reconciliation) ... ok
+test_02_cardinality_extra_file (__main__.CaptureVerification.test_02_cardinality_extra_file) ... ok
+test_03_master_drift_after_head (__main__.CaptureVerification.test_03_master_drift_after_head) ... ok
+test_04_head_not_frozen (__main__.CaptureVerification.test_04_head_not_frozen) ... ok
+test_05_revision_not_bound_to_master (__main__.CaptureVerification.test_05_revision_not_bound_to_master) ... ok
+test_06_historical_v38_capture_is_never_current (__main__.CaptureVerification.test_06_historical_v38_capture_is_never_current) ... ok
+test_07_reconciliation_digest_supplied_separately_must_match (__main__.CaptureVerification.test_07_reconciliation_digest_supplied_separately_must_match) ... ok
+test_08_library_moved_after_reconciliation (__main__.CaptureVerification.test_08_library_moved_after_reconciliation) ... ok
+test_09_reconciliation_time_window (__main__.CaptureVerification.test_09_reconciliation_time_window) ... ok
+test_10_no_authority_claims (__main__.CaptureVerification.test_10_no_authority_claims) ... ok
+test_11_legitimate_future_policy_needs_no_code_change (__main__.CaptureVerification.test_11_legitimate_future_policy_needs_no_code_change) ... ok
+test_20_no_historical_or_current_policy_literal_in_consumers (__main__.ConsumersHaveNoPolicyPins.test_20_no_historical_or_current_policy_literal_in_consumers) ... ok
+test_21_first_admission_binding_matches_merged_bytes (__main__.ConsumersHaveNoPolicyPins.test_21_first_admission_binding_matches_merged_bytes) ... ok
+test_22_frozen_rc1_core_and_legacy_launchers_untouched (__main__.ConsumersHaveNoPolicyPins.test_22_frozen_rc1_core_and_legacy_launchers_untouched) ... ok
+test_30_receipt_bound_to_verified_capture_accepts (__main__.TransactionConsumesVerifiedCapture.test_30_receipt_bound_to_verified_capture_accepts) ... ok
+test_31_v38_receipt_rejected (__main__.TransactionConsumesVerifiedCapture.test_31_v38_receipt_rejected) ... ok
+test_32_capture_required_and_reconciliation_bound (__main__.TransactionConsumesVerifiedCapture.test_32_capture_required_and_reconciliation_bound) ... ok
+test_33_capture_claiming_authority_rejected (__main__.TransactionConsumesVerifiedCapture.test_33_capture_claiming_authority_rejected) ... ok
+test_34_d4_dispatch_requires_current_reconciliation (__main__.TransactionConsumesVerifiedCapture.test_34_d4_dispatch_requires_current_reconciliation) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.148s
+
+OK

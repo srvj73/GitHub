@@ -1,0 +1,8 @@
+{
+ "schema": "TICKSTORE_PHYSICAL_POWERLOSS_EXTERNAL_LOGGER_V001",
+ "outside_equipment_under_test": true,
+ "records": ["cut_instant", "restore_instant", "round_id", "supply_state"],
+ "device": "<identificacao do registrador externo / PDU>",
+ "clock_reference": "<fonte de tempo>",
+ "template_only": true
+}

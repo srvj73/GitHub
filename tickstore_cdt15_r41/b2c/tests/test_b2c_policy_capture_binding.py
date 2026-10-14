@@ -189,14 +189,14 @@ class ConsumersHaveNoPolicyPins(unittest.TestCase):
                          ('policy_capture_binding_sha256', 'control/POLICY_CAPTURE_BINDING.py')):
             self.assertEqual(b[key], sha((MERGED / rel).read_bytes()), key)
 
-    def test_22_legacy_administrative_gate_entries_revoked(self):
-        runner = MERGED / 'full/tickstore_serial_runner.py'
-        for args in (['--mode', 'FULL_SERIAL'], ['--pilot-date', '20260730', '--ledger-zip', 'x'],
-                     ['--full-history', '--ledger-zip', 'x'], ['--plan', '--pilot-gate-file', 'g', '--ledger-zip', 'x']):
-            r = subprocess.run([sys.executable, '-B', str(runner)] + args, capture_output=True, text=True, timeout=120,
-                               cwd=str(runner.parent))
-            self.assertNotEqual(r.returncode, 0)
-            self.assertIn('LEGACY_ADMINISTRATIVE_OWNER_GATE_REVOKED', r.stdout + r.stderr, args)
+    def test_22_frozen_rc1_core_and_legacy_launchers_untouched(self):
+        # The legacy FULL_SERIAL/pilot entries live in the frozen RC1 core (SHA pinned by
+        # CORE_RC1_FROZEN); B2C must not modify it.  Residual risk is reported to the origin.
+        import hashlib as _h
+        core = (MERGED / 'full/tickstore_serial_runner.py').read_bytes()
+        self.assertEqual(_h.sha256(core).hexdigest().upper(),
+                         'D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0')
+        self.assertFalse((B2C / 'candidate_overlay/full').exists())
 
 
 class TransactionConsumesVerifiedCapture(Base):

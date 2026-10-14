@@ -1,0 +1,7 @@
+{
+ "PHYSICAL_POWERLOSS_ENVIRONMENT": "NOT_AVAILABLE",
+ "execution_authorized": false,
+ "reason": "No isolated laboratory machine with an externally isolable supply and a sacrificial NTFS volume has been identified; the origin specification does not authorize execution.",
+ "schema": "TICKSTORE_PHYSICAL_POWERLOSS_ENVIRONMENT_V001",
+ "status": "BLOCKED"
+}

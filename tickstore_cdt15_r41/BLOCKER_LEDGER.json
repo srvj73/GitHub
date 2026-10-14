@@ -4,7 +4,7 @@
  "status": {
   "CANDIDATE_COMPLETENESS": "NOT_PROVEN",
   "G4": "INCOMPLETE",
-  "G5": "NOT_PROVEN_EVIDENCE_PACK_INCOMPLETE_PHYSICAL_POWERLOSS_PENDING_ORIGIN",
+  "G5": "INCOMPLETE_BLOCKED_PHYSICAL_POWERLOSS",
   "B06": "NOT_STARTED",
   "B07": "NOT_STARTED",
   "D4_D5_CANARY_FULL": "NOT_RELEASED",
@@ -51,7 +51,7 @@
    "title": "Durabilidade a queda de energia nao comprovavel por software",
    "evidence": "Qualificacao cobre morte abrupta de processo em todos os pontos do protocolo; FlushFileBuffers/MOVEFILE_WRITE_THROUGH aplicados.",
    "effect": "Declarar apenas PROCESS_DEATH_RECOVERY; CHECKPOINT_POWERLOSS_RECOVERY continua NAO PROVADO.",
-   "status": "POWERLOSS_EMULATED_RUNNER_IN_R44_REPORTED_SEPARATELY_PHYSICAL_PROOF_PENDING_ORIGIN_SPECIFICATION"
+   "status": "PHYSICAL_POWERLOSS_ENVIRONMENT_NOT_AVAILABLE=BLOCKED_LAB_PROTOCOL_AND_TOOLING_SOURCE_ONLY"
   },
   {
    "id": "R41-B5",
@@ -93,7 +93,7 @@
   {
    "id": "R44-B2C",
    "title": "Pins V37/V38 nos consumidores D4/FULL",
-   "status": "SOURCE_ONLY_DELTA_READY_REQUIRES_ORIGIN_DECISION_ON_CONTRACT_FIXTURE_DERIVATION",
+   "status": "FIXTURES_APPROVED_EXACT_BYTES_RUNTIME_INTEGRATION_PLANNED_R45_NATIVE_QUALIFICATION_PENDING",
    "evidence": "b2c/ (overlay, 19 testes, impacto 38/106 IDs portateis sem derivacao; 106/106 com a derivacao proposta)"
   },
   {
@@ -105,12 +105,17 @@
   {
    "id": "R44-B07-RUNNER",
    "title": "Produtor tecnico do recibo B07 (10 checks)",
-   "status": "NOT_STARTED_SOURCE_ONLY_NEXT_EXECUTION_ONLY_AFTER_INDEPENDENT_B06_PASS"
+   "status": "SOURCE_ONLY_PRODUCER_AND_RUNNERS_IMPLEMENTED_7_TESTS_EXECUTION_ONLY_AFTER_INDEPENDENT_B06_PASS"
   },
   {
    "id": "R44-LEGACY-GATES",
    "title": "Caminhos legados FULL_SERIAL/piloto do tickstore_serial_runner consomem gate administrativo (revogado R40)",
-   "status": "REVOKED_IN_B2C_OVERLAY_SOURCE_ONLY"
+   "status": "NOT_MODIFIED_FROZEN_RC1_CORE_D3A15572_RESIDUAL_RISK_ORIGIN_DECISION_QUARANTINE_OR_ACCEPT"
+  },
+  {
+   "id": "R44-DROOT-01",
+   "title": "Admissao fisica do D:\\TICKSTORE_QUALIFICATION_SANDBOX na fronteira do R44",
+   "status": "R44D_DELTA_RUNNER_READY_AWAITING_WINDOWS_RUN_DRIVER_AND_BOOTSTRAP_FIXED_FOR_FUTURE_RUNNERS"
   }
  ],
  "native_windows_qualification": {

@@ -1,0 +1,11 @@
+{
+ "schema": "TICKSTORE_PHYSICAL_POWERLOSS_USER_AUTHORIZATION_V001",
+ "issuer": "OWNER_USER",
+ "authorizes": "PHYSICAL_POWER_INTERRUPTION_OF_SEPARATE_LAB_ONLY",
+ "lab_machine_description": "<preencher apos identificar o laboratorio>",
+ "lab_volume_serial": "<serial do volume NTFS descartavel, 8 hex>",
+ "production_pc": false,
+ "plan_sha256": "<plan_sha256 do plano semeado>",
+ "valid_until_unix": 0,
+ "template_only_not_an_authorization": true
+}

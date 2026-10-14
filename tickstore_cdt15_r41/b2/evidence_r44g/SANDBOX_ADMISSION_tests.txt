@@ -1,0 +1,10 @@
+test_file_missing_relative_rejected (__main__.Admission.test_file_missing_relative_rejected) ... ok
+test_plain_directory_admitted_and_revalidated (__main__.Admission.test_plain_directory_admitted_and_revalidated) ... ok
+test_swap_detected_on_revalidate (__main__.Admission.test_swap_detected_on_revalidate) ... ok
+test_symlink_root_and_ancestor_rejected (__main__.Admission.test_symlink_root_and_ancestor_rejected) ... ok
+test_tree_census_reports_internal_links (__main__.Admission.test_tree_census_reports_internal_links) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.006s
+
+OK

@@ -1,0 +1,13 @@
+{
+ "schema": "TICKSTORE_PHYSICAL_POWERLOSS_ROUND_RECEIPT_V001",
+ "plan_sha256": "<hex>",
+ "round": {"round_id": "<id>", "window": "<PRE_COMMIT_WRITE|POST_COMMIT_PRE_CHECKPOINT|JOURNAL_RECEIPT_UPDATE|null>", "cut": true, "hold_seconds": 0.0, "fixture_seed": 0},
+ "preflight_sha256": "<hex>",
+ "inspection": {"status": "<INSPECTED_READY_FOR_PRODUCT_RESUME|BLOCKED>", "reasons": []},
+ "reconciliation": {"status": "<ROUND_PASS|ROUND_FAIL_CLOSED|ROUND_BLOCKED>", "reasons": []},
+ "artifacts": [{"path": "<membro do ZIP fechado>", "sha256": "<hex>"}],
+ "physical_power_interruption": true,
+ "equivalent_to_process_death": false,
+ "gate_verdict_issued": false,
+ "template_only": true
+}

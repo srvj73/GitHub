@@ -1,0 +1,15 @@
+test_10_plan_deterministic_all_windows_with_controls (__main__.PlanAndClassification.test_10_plan_deterministic_all_windows_with_controls) ... ok
+test_11_inspection_ambiguity_blocks (__main__.PlanAndClassification.test_11_inspection_ambiguity_blocks) ... ok
+test_12_reconciliation_requires_exact_containers (__main__.PlanAndClassification.test_12_reconciliation_requires_exact_containers) ... ok
+test_13_no_execution_in_source_only (__main__.PlanAndClassification.test_13_no_execution_in_source_only) ... PHYSICAL_POWERLOSS_ENVIRONMENT_NOT_AVAILABLE=BLOCKED (arm not enabled in SOURCE_ONLY)
+ok
+test_01_isolated_lab_with_authorization_passes (__main__.Preflight.test_01_isolated_lab_with_authorization_passes) ... ok
+test_02_production_pc_refused (__main__.Preflight.test_02_production_pc_refused) ... ok
+test_03_system_pagefile_reserved_or_unlabelled_volume_refused (__main__.Preflight.test_03_system_pagefile_reserved_or_unlabelled_volume_refused) ... ok
+test_04_separate_user_authorization_required (__main__.Preflight.test_04_separate_user_authorization_required) ... ok
+test_05_external_logger_required (__main__.Preflight.test_05_external_logger_required) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.004s
+
+OK
