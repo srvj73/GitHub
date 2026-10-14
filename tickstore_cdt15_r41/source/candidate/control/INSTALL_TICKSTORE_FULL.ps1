@@ -11,6 +11,13 @@ param(
 Set-StrictMode -Version 2
 $ErrorActionPreference='Stop'
 $held=New-Object System.Collections.Generic.List[System.IDisposable]
+# Owner log rule: fixed absolute log root, never derived from the current directory.
+$LogRoot='C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS'
+$script:RunLog=''
+function Log([string]$Line) {
+    Write-Output $Line
+    if ($script:RunLog -ne '') { [IO.File]::AppendAllText($script:RunLog,$Line+"`r`n",(New-Object Text.UTF8Encoding($false))) }
+}
 function Require([bool]$Condition,[string]$Reason) { if (-not $Condition) { throw $Reason } }
 function NoReparse([string]$Path) {
     $p=[IO.Path]::GetFullPath($Path)
@@ -54,6 +61,13 @@ function WriteNew([string]$Path,[byte[]]$Raw) {
     try { $f.Write($Raw,0,$Raw.Length); $f.Flush($true) } finally { $f.Dispose() }
 }
 try {
+    # Run-owned log folder only (TICKSTORE_RUNS); no installation write precedes the gates below.
+    $logDir=[IO.Directory]::CreateDirectory($LogRoot)
+    $runDir=Join-Path $LogRoot ('INSTALL_'+(Get-Date).ToString('yyyyMMdd_HHmmss_fff')+'_'+$PID)
+    Require (-not ([IO.Directory]::Exists($runDir) -or [IO.File]::Exists($runDir))) 'RUN_DIR_COLLISION'
+    $logDir=[IO.Directory]::CreateDirectory($runDir)
+    $script:RunLog=Join-Path $runDir 'RUN_LOG.txt'
+    Log ('RUN_LOG='+$script:RunLog)
     Require ($PSVersionTable.PSVersion.Major -eq 5 -and $PSVersionTable.PSVersion.Minor -eq 1) 'POWERSHELL_51_REQUIRED'
     # R41: activation is only a dispatch to MENU_OFFICIAL_WRITER.py (single lock,
     # D: backup, C: journal, COMMITTED/ROLLED_BACK recovery). It requires a technical
@@ -163,8 +177,8 @@ try {
     $intentPath=Join-Path $target 'MENU_INSTALL_INTENT.json'
     WriteNew $intentPath $intentRaw
     Require ((StreamSha (OpenRead $intentPath)) -ceq (RawSha $intentRaw)) 'INSTALL_INTENT_READBACK'
-    Write-Output 'MENU_INSTALL_INTENT=PASS_SOURCE_ONLY_NOT_AUTHORIZED'
-    } else { Write-Output 'INSTALLATION=EXISTING_REUSED_FOR_ACTIVATION' }
+    Log 'MENU_INSTALL_INTENT=PASS_SOURCE_ONLY_NOT_AUTHORIZED'
+    } else { Log 'INSTALLATION=EXISTING_REUSED_FOR_ACTIVATION' }
     $launcher=Join-Path $target 'implementation_v001\candidate\control\RUN_TICKSTORE_FULL.ps1'
     if ($ActivateMenu) {
         # The installed writer bytes run from the installed instance itself; the release
@@ -175,17 +189,19 @@ try {
         Require ($writerMatches.Count -eq 1 -and (StreamSha (OpenRead $writer)) -ceq $writerMatches[0].sha256) 'INSTALLED_WRITER_IDENTITY'
         & $python -I -X utf8 -B $writer --mode official-publish --installed-root $target --package-sha256 $w.package_sha256 --witness-sha256 (StreamSha $witnessStream) --chain-file $ChainFile --chain-sha256 $ChainSha256 --b06-sha256 $B06Sha256
         Require ($LASTEXITCODE -eq 0) ('MENU_OFFICIAL_WRITER_EXIT_'+$LASTEXITCODE)
-        Write-Output 'MENU_ACTIVATION=COMMITTED_BY_OFFICIAL_WRITER'
+        Log 'MENU_ACTIVATION=COMMITTED_BY_OFFICIAL_WRITER'
     } else {
-        Write-Output 'MENU_ACTIVATION=NOT_REQUESTED_INACTIVE_INSTALL_ONLY'
+        Log 'MENU_ACTIVATION=NOT_REQUESTED_INACTIVE_INSTALL_ONLY'
     }
-    Write-Output ('INSTALLATION_ROOT='+$target)
-    Write-Output ('LAUNCHER='+$launcher)
-    Write-Output 'INSTALLATION=PASS_READBACK; FULL_STARTED=NO'
+    Log ('INSTALLATION_ROOT='+$target)
+    Log ('LAUNCHER='+$launcher)
+    Log 'INSTALLATION=PASS_READBACK; FULL_STARTED=NO'
+    if ($script:RunLog -ne '') { Log ('RUN_LOG='+$script:RunLog) }
     exit 0
 } catch {
-    Write-Output ('INSTALLATION_BLOCKED='+$_.Exception.Message)
-    Write-Output 'PARTIAL_INSTALLATION_PRESERVED=YES; FULL_STARTED=NO'
+    Log ('INSTALLATION_BLOCKED='+$_.Exception.Message)
+    Log 'PARTIAL_INSTALLATION_PRESERVED=YES; FULL_STARTED=NO'
+    if ($script:RunLog -ne '') { Log ('RUN_LOG='+$script:RunLog) }
     exit 2
 } finally {
     for ($n=$held.Count-1; $n -ge 0; $n--) { $held[$n].Dispose() }

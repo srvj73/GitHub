@@ -333,6 +333,57 @@ def run_b1(bundle, impl, work, env, evidence, python, native):
             'seconds': round(time.monotonic() - t0, 3)}
 
 
+# ----------------------------------------------------------------------------- B07 (after independent B06)
+
+B07_RUNNER_REL = 'candidate/b07/B07_CHECK_RUNNERS.py'
+
+
+def run_b07(a, bundle, final, impl, work, env, evidence, python, run_id, native):
+    """Native B07 checks from the extracted FINAL; guarded by the chain up to an independent B06 PASS."""
+    spec = final['plan']['b1']
+    args = [python, '-I', '-X', 'utf8', '-B', str(Path(impl) / B07_RUNNER_REL),
+            '--chain-file', a.b07_chain_file, '--chain-sha256', a.b07_chain_sha256, '--b06-sha256', a.b06_sha256,
+            '--evidence', str(evidence), '--work', str(Path(work) / 'B07_WORK'), '--run-id', run_id,
+            '--final-zip-sha256', final['witness']['package_sha256'],
+            '--code-manifest-sha256', final['plan']['runtime_code_manifest_sha256'],
+            '--policy-root', a.policy_root, '--policy-reconciliation', a.policy_reconciliation,
+            '--policy-reconciliation-sha256', a.policy_reconciliation_sha256,
+            '--r3-archive', str(Path(bundle) / spec['r3_archive'])]
+    for ov in spec['overlays']:
+        derived = Path(bundle) / ov['derived']
+        require(sha_file(derived) == ov['derived_sha256'], 'B07_OVERLAY_BUNDLE_SHA256:' + ov['target'])
+        args += ['--overlay', ov['target'] + '=' + str(derived)]
+    (Path(work) / 'B07_WORK').mkdir(parents=True, exist_ok=False)
+    t0 = time.monotonic()
+    r = subprocess.run(args, env=env, capture_output=True, text=True, timeout=10800)
+    (Path(evidence) / 'B07_RUNNER_STDIO.txt').write_text(r.stdout[-200000:] + '\n---STDERR---\n' + r.stderr[-50000:],
+                                                        encoding='utf-8')
+    checks = {}
+    for line in r.stdout.splitlines():
+        if line.startswith('B07_CHECK '):
+            name, _, status = line[len('B07_CHECK '):].partition('=')
+            checks[name] = status
+        if line.startswith(('B07_CHECK ', 'B07_BLOCKED=')):
+            print(line, flush=True)
+    status = 'PASS' if r.returncode == 0 and checks and all(v == 'PASS' for v in checks.values()) else 'FAIL'
+    if not native and r.returncode == 2 and 'B07_BLOCKED=NATIVE_WINDOWS_REQUIRED' in r.stdout:
+        status = 'OFFLINE_HARNESS_ONLY'
+    return {'suite': 'B07_NATIVE_CHECKS', 'status': status, 'exit': r.returncode, 'checks': checks,
+            'seconds': round(time.monotonic() - t0, 3)}
+
+
+def produce_b07_receipt(a, final, impl, ret, run_dir):
+    """Technical receipt from the CLOSED RETURN ZIP (never a gate verdict; stage receipt needs the origin)."""
+    spec = importlib.util.spec_from_file_location('qual_b07_producer', Path(impl) / 'candidate/control/B07_TECHNICAL_PRODUCER.py')
+    producer = importlib.util.module_from_spec(spec); spec.loader.exec_module(producer)
+    out = Path(run_dir) / 'B07_TECHNICAL_RECEIPT.json'
+    receipt = producer.build(return_zip=ret, final_zip=final['package_path'], b06_verdict=a.b06_verdict,
+                             b06_verdict_sha256=a.b06_verdict_sha256, policy_root=a.policy_root,
+                             policy_reconciliation=a.policy_reconciliation,
+                             policy_reconciliation_sha256=a.policy_reconciliation_sha256, out_path=out)
+    return out, receipt
+
+
 # ----------------------------------------------------------------------------- G5 proofs
 
 def run_proof(name, spec, final, impl, work, d_parent, evidence, env, python, run_id, native):
@@ -411,16 +462,23 @@ def main(a):
     evidence = run_dir / 'EVIDENCE'; evidence.mkdir(parents=False, exist_ok=False)
     sys.stdout = Tee(sys.stdout, run_dir / 'RUN_LOG.txt'); sys.stderr = Tee(sys.stderr, run_dir / 'RUN_LOG.txt')
     native = os.name == 'nt' and not a.offline_preflight
-    receipt = dict(schema=DRIVER_SCHEMA, RESULT_CONTEXT=RESULT_CONTEXT, RUN_ID=run_dir.name,
+    b07_mode = a.mode == 'B07'
+    missing_b07 = [k for k in ('b07_chain_file', 'b07_chain_sha256', 'b06_sha256', 'b06_verdict', 'b06_verdict_sha256',
+                               'policy_root', 'policy_reconciliation', 'policy_reconciliation_sha256')
+                   if b07_mode and not getattr(a, k)]
+    receipt = dict(schema=DRIVER_SCHEMA, RESULT_CONTEXT=RESULT_CONTEXT, RUN_ID=run_dir.name, QUAL_MODE=a.mode,
                    mode='NATIVE_WINDOWS' if native else 'OFFLINE_PREFLIGHT',
                    PRODUCTION_MODIFIED=None, FULL_STARTED=False, B06='NOT_STARTED', G4='INCOMPLETE',
                    G5='NOT_PROVEN', B07='NOT_STARTED', GATE_VERDICT_ISSUED=False, BLOCKER=None,
                    started_unix_ns=time.time_ns())
-    steps = [('IDENTITY', 2), ('FINAL_PACKAGE', 3), ('SUITES', 30), ('PROOFS', 60), ('POSTCHECK', 2), ('RETURN', 3)]
+    steps = ([('IDENTITY', 2), ('FINAL_PACKAGE', 3), ('B07', 85), ('POSTCHECK', 2), ('RETURN', 3), ('B07_RECEIPT', 5)]
+             if b07_mode else
+             [('IDENTITY', 2), ('FINAL_PACKAGE', 3), ('SUITES', 30), ('PROOFS', 60), ('POSTCHECK', 2), ('RETURN', 3)])
     prog = Progress(steps)
     code = 2
     try:
         prog.begin('IDENTITY')
+        require(not missing_b07, 'B07_INPUT_REQUIRED:' + ','.join(missing_b07))
         app = os.environ.get('LOCALAPPDATA', '') if native else ''
         if native:
             require(sys.version_info[:3] == (3, 14, 7) and sys.maxsize > 2**32, 'PYTHON_3147_64BIT_REQUIRED')
@@ -459,7 +517,7 @@ def main(a):
         print('QUAL_FINAL_PACKAGE=PASS SHA256=%s MEMBERS=%d' % (receipt['SOURCE_SHA256'], final['members']), flush=True)
         prog.end('FINAL_PACKAGE')
 
-        prog.begin('SUITES')
+        prog.begin('B07' if b07_mode else 'SUITES')
         impl = Path(final['extract']) / 'implementation_v001'
         tmp = work / 'TMP'; tmp.mkdir(parents=True, exist_ok=False)
         env = dict(os.environ, TMP=str(tmp), TEMP=str(tmp), PYTHONDONTWRITEBYTECODE='1', PYTHONUTF8='1')
@@ -472,7 +530,7 @@ def main(a):
         import SANDBOX_ADMISSION as admission
         held = [admission.HeldChain(work)]
         admitted = {'work_root': held[0].leaf.identity}
-        if native:
+        if native and not b07_mode:  # the B07 checks never touch D:
             held.append(admission.HeldChain(a.d_parent))
             admitted['d_sandbox_root'] = held[-1].leaf.identity
             admission.create_run_dir_exclusive(held[-1], run_dir.name).close()
@@ -481,30 +539,38 @@ def main(a):
         receipt['SANDBOX_ADMISSION'] = admitted
         print('QUAL_SANDBOX_ADMISSION=PASS ' + ' '.join(sorted(admitted)), flush=True)
         suites = []
-        for name, spec in final['plan']['suites'].items():
+        if b07_mode:
+            suites.append(run_b07(a, Path(bundle), final, impl, work, env, evidence, sys.executable, run_dir.name, native))
+            receipt['TESTS'] = suites
+            verify_closed_manifest(final['extract'], 'PACKAGE_MANIFEST.json', 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001')
+            receipt['FINAL_EXTRACT_UNCHANGED_AFTER_RUN'] = 'PASS'
+            prog.end('B07')
+            proofs = []
+        for name, spec in ([] if b07_mode else final['plan']['suites'].items()):
             if spec.get('native_only') and not native:
                 suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
             suites.append(run_suite(name, spec, impl, env, evidence, sys.executable))
-        for name, spec in final['plan']['scripts'].items():
+        for name, spec in ([] if b07_mode else final['plan']['scripts'].items()):
             if spec.get('native_only') and not native:
                 suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
             suites.append(run_script(name, spec['script'], impl, env, evidence, sys.executable, spec['expect'],
                                      isolated=spec.get('isolated', True), timeout=spec.get('timeout', 600)))
-        if 'b1' in final['plan']:
-            suites.append(run_b1(Path(bundle), impl, work, env, evidence, sys.executable, native))
-        receipt['TESTS'] = suites
-        prog.end('SUITES')
+        if not b07_mode:
+            if 'b1' in final['plan']:
+                suites.append(run_b1(Path(bundle), impl, work, env, evidence, sys.executable, native))
+            receipt['TESTS'] = suites
+            prog.end('SUITES')
 
-        prog.begin('PROOFS')
-        proofs = []
-        for name, spec in final['plan'].get('proofs', {}).items():
-            proofs.append(run_proof(name, spec, final, impl, work, d_parent, evidence, env, sys.executable,
-                                    run_dir.name, native))
-        receipt['PROOFS'] = proofs
-        # Nothing may have modified the extracted FINAL bytes the tests and proofs ran from.
-        verify_closed_manifest(final['extract'], 'PACKAGE_MANIFEST.json', 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001')
-        receipt['FINAL_EXTRACT_UNCHANGED_AFTER_RUN'] = 'PASS'
-        prog.end('PROOFS')
+            prog.begin('PROOFS')
+            proofs = []
+            for name, spec in final['plan'].get('proofs', {}).items():
+                proofs.append(run_proof(name, spec, final, impl, work, d_parent, evidence, env, sys.executable,
+                                        run_dir.name, native))
+            receipt['PROOFS'] = proofs
+            # Nothing may have modified the extracted FINAL bytes the tests and proofs ran from.
+            verify_closed_manifest(final['extract'], 'PACKAGE_MANIFEST.json', 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001')
+            receipt['FINAL_EXTRACT_UNCHANGED_AFTER_RUN'] = 'PASS'
+            prog.end('PROOFS')
 
         prog.begin('POSTCHECK')
         for chain in held:
@@ -527,8 +593,11 @@ def main(a):
         passed = receipt['BLOCKER'] is None
         rev = final['plan'].get('revision', 'R44')
         receipt['REVISION'] = rev
-        receipt['CLASSIFICATION'] = ((rev + '_WINDOWS_SANDBOX_QUALIFICATION_PASS' if native else 'OFFLINE_PREFLIGHT_ONLY')
-                                     if passed else rev + '_WINDOWS_SANDBOX_QUALIFICATION_FAIL')
+        kind = '_B07_NATIVE_CHECKS' if b07_mode else '_WINDOWS_SANDBOX_QUALIFICATION'
+        receipt['CLASSIFICATION'] = ((rev + kind + '_PASS' if native else 'OFFLINE_PREFLIGHT_ONLY')
+                                     if passed else rev + kind + '_FAIL')
+        if b07_mode:
+            receipt['B07'] = 'NATIVE_CHECKS_EXECUTED_AFTER_INDEPENDENT_B06_TECHNICAL_RECEIPT_FOLLOWS'
         receipt['SCOPE'] = ('Native elevated PS5.1/Python 3.14.7 sandbox evidence for ' + rev + ' only: 126 contract IDs '
                             'and typed G5 target-proof candidates. Not a G5/B06/B07 verdict, not production, '
                             'not physical power-loss evidence (POWERLOSS_EMULATED is process death only).')
@@ -567,6 +636,15 @@ def main(a):
         print('RETURN_ZIP=' + str(ret))
         print('RETURN_SHA256=' + rsha)
         print('RETURN_MEMBERS=%d RETURN_READBACK=PASS' % count)
+        if b07_mode and code == 0 and native:
+            prog.begin('B07_RECEIPT')
+            out, b07 = produce_b07_receipt(a, final, impl, ret, run_dir)
+            prog.end('B07_RECEIPT')
+            print('B07_TECHNICAL_RECEIPT=' + str(out))
+            print('B07_TECHNICAL_RECEIPT_SHA256=' + sha_file(out))
+            print('B07_TECHNICAL_STATUS=' + b07['status'] + ' FINDINGS=' + ';'.join(b07['findings'][:20]))
+            print('B07_STAGE_RECEIPT=REQUIRES_ORIGIN_DECISION (ORIGIN_DECISION_BINDER)')
+            code = 0 if b07['status'] == 'PASS' else 2
     except BaseException as exc:
         print('RETURN_ZIP_BLOCKED=' + type(exc).__name__ + ':' + str(exc))
         code = 2
@@ -583,6 +661,10 @@ if __name__ == '__main__':
     ap.add_argument('--ps-version', default='UNKNOWN')
     ap.add_argument('--bootstrap-sha256', default='UNKNOWN')
     ap.add_argument('--offline-preflight', action='store_true')
+    ap.add_argument('--mode', choices=('QUAL', 'B07'), default='QUAL')
+    for k in ('b07-chain-file', 'b07-chain-sha256', 'b06-sha256', 'b06-verdict', 'b06-verdict-sha256',
+              'policy-root', 'policy-reconciliation', 'policy-reconciliation-sha256'):
+        ap.add_argument('--' + k, default='')
     args = ap.parse_args()
     if args.run_suite_child:
         raise SystemExit(run_suite_child(args.impl, args.spec, args.out))

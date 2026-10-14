@@ -13,12 +13,13 @@ from pathlib import Path
 
 DATE = '20261014'
 FIXED_TIME = (2026, 10, 13, 0, 0, 0)
-REV = 'R45B'
+REV = 'R46'
 FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_%s_%s.zip' % (REV, DATE)
 FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_%s_%s.json' % (REV, DATE)
 QUAL_NAME = 'TICKSTORE_CDT15_%s_QUAL_%s.zip' % (REV, DATE)
 QUAL_WITNESS = 'WITNESS_TICKSTORE_CDT15_%s_QUAL_%s.json' % (REV, DATE)
 BOOTSTRAP = 'RUN_TICKSTORE_CDT15_%s_QUAL.ps1' % REV
+BOOTSTRAP_B07 = 'RUN_TICKSTORE_CDT15_%s_B07.ps1' % REV
 ZIP_PATTERN = 'TICKSTORE_CDT15_%s_QUAL_*.zip' % REV
 BASELINE = {
     'handoff_zip_sha256': '2093EB4813C371DCD113C92C55AC1E15FFC24C7D201BDD1581FD9D49367F772C',
@@ -28,8 +29,10 @@ BASELINE = {
     # R45 parent: the R44 FINAL qualified natively (126/126, RETURN 02036B1E...); never rebuilt here.
     'parent_final_r44_sha256': '0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D',
     'parent_r44_native_return_sha256': '02036B1EA45370BE570865E281F8F5FC4C5D1C5364171680E2EE493EC7C5BB6D',
-    # R45B parent: R45 FINAL audited by the origin (SOURCE_PASS, native held for B07-PROVENANCE-01/ORDER-01).
+    # R45 FINAL audited by the origin (SOURCE_PASS, native held for B07-PROVENANCE-01/ORDER-01).
     'parent_final_r45_sha256': 'C0D1921634AE24D068BE7970C587244C7C1AEA10C6B06CB60E1C796139EFC700',
+    # R46 parent: R45B internal candidate (B07 fixes), superseded by the completeness campaign.
+    'parent_final_r45b_sha256': '3155EE11B81EA2E0973B9C525A4399558690DFABCFC8FB3B633D79787615B875',
 }
 POLICY = {'revision': '20261013T070500-0300-695DCD6495E549B1',
           'master_sha256': '695DCD6495E549B13B13A73E063EA147CF97354C53940A70647EDFD0A0BC7DF5',
@@ -46,6 +49,12 @@ SUITES = {
     'S12_B07_TECHNICAL_PRODUCER': {'files': [{'file': 'tests/test_b07_technical_producer.py'}], 'sys_path': ['tests']},
     'S13_SANDBOX_ADMISSION': {'files': [{'file': 'tests/test_sandbox_admission.py'}], 'sys_path': ['tests']},
     'S14_LEGACY_ENTRY_ISOLATION': {'files': [{'file': 'tests/test_legacy_entry_isolation.py'}], 'sys_path': ['tests']},
+    # R46 completeness: operator entries (MENU, D4 Ctrl+C, continuation retry, wrapper elevation),
+    # gate-chain procedures (chain until B06, D5/FULL_PREP/FULL_ADMIT publication, admission facts),
+    # STATE CAS recovery decision table.
+    'S15_OPERATOR_ENTRY_POINTS': {'files': [{'file': 'tests/test_operator_entry_points.py'}], 'sys_path': ['tests']},
+    'S16_GATE_CHAIN_PROCEDURES': {'files': [{'file': 'tests/test_gate_chain_procedures.py'}], 'sys_path': ['tests']},
+    'S17_STATE_CAS_RECOVERY': {'files': [{'file': 'tests/test_state_cas_recovery.py'}], 'sys_path': ['tests']},
 }
 SCRIPTS = {
     'R45_B2C_NATIVE_PROBE': {'script': 'qual/R45_B2C_NATIVE_PROBE.py', 'isolated': True, 'timeout': 600,
@@ -130,7 +139,7 @@ def main(source, out):
     source, out = Path(source).resolve(), Path(out).resolve()
     for name, digest in B2C_APPROVED.items():
         assert sha((B2C_FIX / name).read_bytes()) == digest, 'B2C_APPROVED_FIXTURE_DRIFT:' + name
-    assert REV not in ('R44', 'R45'), 'R44_AND_R45_FINALS_ARE_FROZEN_NEVER_REBUILT'
+    assert REV not in ('R44', 'R45', 'R45B'), 'PREVIOUS_FINALS_ARE_FROZEN_NEVER_REBUILT'
     import re as _re
     menu_pin = _re.search(r"CANDIDATE_MENU_SHA = '([0-9A-F]{64})'",
                           (source / 'candidate/control/MENU_OFFICIAL_ADMISSION_READONLY.py').read_text(encoding='utf-8'))
@@ -213,17 +222,24 @@ def main(source, out):
     qual_raw = qual_path.read_bytes()
     # 5. Bootstrap (ASCII, CRLF) with embedded pins.
     tpl = (Path(__file__).parent / 'RUN_TICKSTORE_CDT15_QUAL.ps1.template').read_text(encoding='ascii')
-    ps = (tpl.replace('@@ZIP_NAME@@', QUAL_NAME).replace('@@ZIP_SHA@@', sha(qual_raw))
-             .replace('@@ZIP_BYTES@@', str(len(qual_raw))).replace('@@QUAL_MANIFEST_SHA@@', sha(qmanifest))
-             .replace('@@REV@@', REV).replace('@@BOOTSTRAP@@', BOOTSTRAP).replace('@@DRIVER@@', 'qual\\QUAL_DRIVER.py').replace('@@ZIP_PATTERN@@', ZIP_PATTERN))
-    assert '@@' not in ps
-    ps_raw = ps.replace('\r\n', '\n').replace('\n', '\r\n').encode('ascii')
-    (out / BOOTSTRAP).write_bytes(ps_raw)
+    boot = {}
+    for mode, name in (('QUAL', BOOTSTRAP), ('B07', BOOTSTRAP_B07)):
+        ps = (tpl.replace('@@ZIP_NAME@@', QUAL_NAME).replace('@@ZIP_SHA@@', sha(qual_raw))
+                 .replace('@@ZIP_BYTES@@', str(len(qual_raw))).replace('@@QUAL_MANIFEST_SHA@@', sha(qmanifest))
+                 .replace('@@REV@@', REV).replace('@@BOOTSTRAP@@', name).replace('@@MODE@@', mode)
+                 .replace('@@DRIVER@@', 'qual\\QUAL_DRIVER.py').replace('@@ZIP_PATTERN@@', ZIP_PATTERN))
+        assert '@@' not in ps
+        boot[mode] = ps.replace('\r\n', '\n').replace('\n', '\r\n').encode('ascii')
+        (out / name).write_bytes(boot[mode])
+    ps_raw = boot['QUAL']
     # 6. External witness.
     witness = canon({'schema': 'EXTERNAL_WITNESS_TICKSTORE_CDT15_QUAL_V002', 'revision': REV, 'role': 'ENGINEER_ONLY',
                      'qual_zip': QUAL_NAME, 'qual_zip_sha256': sha(qual_raw), 'qual_zip_bytes': len(qual_raw),
                      'qual_manifest_sha256': sha(qmanifest), 'bootstrap': BOOTSTRAP,
                      'bootstrap_sha256': sha(ps_raw), 'bootstrap_bytes': len(ps_raw),
+                     'bootstrap_b07': BOOTSTRAP_B07, 'bootstrap_b07_sha256': sha(boot['B07']),
+                     'bootstrap_b07_bytes': len(boot['B07']),
+                     'b07_mode': 'ONLY_AFTER_INDEPENDENT_B06_PASS_CHAIN_UNTIL_B06_REQUIRED',
                      'final_package': FINAL_NAME, 'final_package_sha256': sha(final_raw),
                      'final_package_manifest_sha256': sha(pmanifest),
                      'runtime_code_manifest_sha256': runtime_sha,
@@ -239,7 +255,7 @@ def main(source, out):
                      'B06': 'NOT_STARTED', 'B07': 'NOT_STARTED_SOURCE_ONLY_AFTER_B06',
                      'gate_verdict_issued': False})
     (out / QUAL_WITNESS).write_bytes(witness)
-    for name in (QUAL_NAME, BOOTSTRAP, QUAL_WITNESS, FINAL_NAME, FINAL_WITNESS):
+    for name in (QUAL_NAME, BOOTSTRAP, BOOTSTRAP_B07, QUAL_WITNESS, FINAL_NAME, FINAL_WITNESS):
         print('%s %s %d' % (sha((out / name).read_bytes()), name, (out / name).stat().st_size))
 
 

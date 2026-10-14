@@ -82,18 +82,20 @@ def prepare(inputs_path, inputs_sha, output):
         return dict(instance_path=str(Path(output).absolute()),instance_sha256=sha(raw),production_started=False)
 
 
-def assemble_chain(instance_path, instance_sha, manifest_path, manifest_sha, receipt_spec, output, b06_sha):
+def assemble_chain(instance_path, instance_sha, manifest_path, manifest_sha, receipt_spec, output, b06_sha, until='B07'):
+    """Initial chain descriptor: until='B06' feeds the B07 runner (R45 G2), until='B07' feeds D4."""
     root=Path(__file__).resolve().parent.parent
+    require(until in ('B06','B07'),'INITIAL_CHAIN_UNTIL')
     with Reads() as reads:
         reads.read(instance_path,digest(instance_sha,'INSTANCE'))
         reads.read(manifest_path,digest(manifest_sha,'CODE'))
-        spec=strict_json(reads.read(receipt_spec));required=STAGES[:3]
-        require(set(spec)==set(required),'INITIAL_CHAIN_REQUIRES_G5_B06_B07')
+        spec=strict_json(reads.read(receipt_spec));required=STAGES[:STAGES.index(until)+1]
+        require(set(spec)==set(required),'INITIAL_CHAIN_REQUIRES_'+'_'.join(required))
         receipts={};hashes={}
         for stage in required:
             meta=spec[stage];raw=reads.read(meta['path'],digest(meta['sha256'],stage))
             receipts[stage]=strict_json(raw);hashes[stage]=sha(raw)
-        validate_chain(receipts,hashes,code_sha=manifest_sha,instance_sha=instance_sha,b06_sha=b06_sha,until='B07')
+        validate_chain(receipts,hashes,code_sha=manifest_sha,instance_sha=instance_sha,b06_sha=b06_sha,until=until)
         descriptor=dict(schema='TICKSTORE_EXECUTION_CHAIN_V001',environment='WINDOWS_PRODUCTION',
             instance_path=str(Path(instance_path).absolute()),instance_sha256=instance_sha,
             code_manifest_path=str(Path(manifest_path).absolute()),code_manifest_sha256=manifest_sha,
@@ -103,7 +105,7 @@ def assemble_chain(instance_path, instance_sha, manifest_path, manifest_sha, rec
         # on failure preserve diagnostics, never expose a supposedly valid chain.
         pending=Path(output).with_name(Path(output).name+'.validation.'+uuid.uuid4().hex)
         write_new(pending,raw)
-        with ReleaseChain(pending,sha(raw),b06_sha,root,until='B07') as admitted:
+        with ReleaseChain(pending,sha(raw),b06_sha,root,until=until) as admitted:
             admitted.revalidate();write_new(Path(output),raw)
             admitted.read(output,sha(raw));admitted.revalidate()
         return dict(chain_file=str(Path(output).absolute()),chain_sha256=sha(raw),production_started=False)
@@ -114,9 +116,10 @@ def main():
     p=sub.add_parser('prepare');p.add_argument('--inputs',required=True);p.add_argument('--inputs-sha256',required=True);p.add_argument('--output',required=True)
     p=sub.add_parser('chain')
     for x in ('instance-path','instance-sha256','manifest-path','manifest-sha256','receipt-spec','output','b06-sha256'):p.add_argument('--'+x,required=True)
+    p.add_argument('--until',choices=('B06','B07'),default='B07')
     a=ap.parse_args()
     try:
-        result=prepare(a.inputs,a.inputs_sha256,a.output) if a.mode=='prepare' else assemble_chain(a.instance_path,a.instance_sha256,a.manifest_path,a.manifest_sha256,a.receipt_spec,a.output,a.b06_sha256)
+        result=prepare(a.inputs,a.inputs_sha256,a.output) if a.mode=='prepare' else assemble_chain(a.instance_path,a.instance_sha256,a.manifest_path,a.manifest_sha256,a.receipt_spec,a.output,a.b06_sha256,a.until)
         print(canonical(result).decode(),end='');return 0
     except (RuntimeError,OSError,KeyError,TypeError,ValueError) as exc:
         print('INSTANCE_PREPARATION_BLOCKED='+str(exc));return 2

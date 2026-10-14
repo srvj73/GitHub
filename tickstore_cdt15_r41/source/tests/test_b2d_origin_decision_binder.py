@@ -97,7 +97,7 @@ class Binder(unittest.TestCase):
         return d
 
     def run_stage(self, stage, d, preds=None, sha=None, out=None, b06=None, evidence=None, rec=None, rec_sha=None,
-                  policy=None):
+                  policy=None, b06_verdict=None, b06_receipt=None):
         self.n += 1
         raw = j(d); p = self.t / ('DECISION_%d.json' % self.n); p.write_bytes(raw)
         ev = evidence or {r: self.paths[r] for r in {e['role'] for e in d['evidence']}}
@@ -105,7 +105,8 @@ class Binder(unittest.TestCase):
                              policy_root=policy or self.policy, policy_reconciliation=rec or self.rec,
                              policy_reconciliation_sha256=rec_sha or self.rec_sha,
                              predecessor_hashes=preds if preds is not None else {}, evidence_paths=ev,
-                             out_path=out or self.t / ('STAGE_%s_%d.json' % (stage, self.n)), b06_sha=b06, now=NOW)
+                             out_path=out or self.t / ('STAGE_%s_%d.json' % (stage, self.n)), b06_sha=b06,
+                             b06_verdict_sha=b06_verdict, b06_receipt_path=b06_receipt, now=NOW)
 
     def blocked(self, needle, stage='G5', **kw):
         with self.assertRaisesRegex(D.DecisionBlocked, needle):
@@ -123,27 +124,54 @@ class Binder(unittest.TestCase):
             with self.assertRaisesRegex(Exception, 'G5_ENVIRONMENT'):
                 validate_chain({'G5': obj}, {'G5': r['sha256']}, code_sha=CODE, instance_sha=INST, b06_sha=B06, until='G5')
 
-    def test_02_b07_binds_g5_b06_chain_and_independent_b06(self):
+    def b07_setup(self, cite_verdict=True, produced_after=True):
         g5 = self.run_stage('G5', self.decision('G5'))
+        verdict = b'B06 INDEPENDENT REVIEW\nVERDICT=PASS\n'; verdict_sha = h(verdict)
         b06 = {'schema': 'TICKSTORE_STAGE_RECEIPT_V001', 'stage': 'B06', 'status': 'PASS', 'environment': ENV,
                'code_manifest_sha256': CODE, 'instance_sha256': INST, 'previous_receipt_sha256': g5['sha256'], 'blockers': [],
                'checks': dict(independent_review=True, final_bytes=True, no_critical_or_major_findings=True),
-               'evidence': [{'path': 'B06_VERDICT', 'sha256': 'E' * 64}], 'reviewer': 'INDEPENDENT_FIXTURE',
-               'implementation_participant': False}
-        b06_raw = j(b06); b06_sha = h(b06_raw)
+               'evidence': [{'path': 'B06_VERDICT.txt', 'sha256': verdict_sha if cite_verdict else 'E' * 64}],
+               'reviewer': 'INDEPENDENT_FIXTURE', 'implementation_participant': False}
+        b06_raw = j(b06); b06_sha = h(b06_raw); b06_path = self.t / ('B06_%d.json' % self.n); b06_path.write_bytes(b06_raw)
         preds = {'G5': g5['sha256'], 'B06': b06_sha}
         self.paths['B07_TECHNICAL_RECEIPT'].write_bytes(j({'schema': 'TICKSTORE_B07_TECHNICAL_RECEIPT_V001', 'status': 'PASS',
                                                             'platform': 'WINDOWS_NTFS_PS51', 'code_manifest_sha256': CODE,
-                                                            'review_verdict_sha256': b06_sha}))
-        d = self.decision('B07', predecessors=preds, previous_receipt_sha256=b06_sha, b06_verdict_sha256=b06_sha,
-                          b06_independent=True)
-        r = self.run_stage('B07', d, preds=preds, b06=b06_sha)
-        receipts = {'G5': json.loads(Path(g5['path']).read_bytes()), 'B06': b06,
-                    'B07': json.loads(Path(r['path']).read_bytes())}
+                                                            'review_verdict_sha256': verdict_sha,
+                                                            'b06_stage_receipt_sha256': b06_sha,
+                                                            'produced_after_independent_b06': produced_after}))
+        d = self.decision('B07', predecessors=preds, previous_receipt_sha256=b06_sha, b06_receipt_sha256=b06_sha,
+                          b06_verdict_sha256=verdict_sha, b06_independent=True)
+        return g5, b06, b06_sha, b06_path, verdict_sha, preds, d
+
+    def test_02_b07_binds_g5_b06_chain_and_independent_b06(self):
+        g5, b06, b06_sha, b06_path, verdict_sha, preds, d = self.b07_setup()
+        r = self.run_stage('B07', d, preds=preds, b06=b06_sha, b06_verdict=verdict_sha, b06_receipt=b06_path)
+        obj = json.loads(Path(r['path']).read_bytes())
+        self.assertEqual((obj['b06_receipt_sha256'], obj['b06_verdict_sha256']), (b06_sha, verdict_sha))
+        receipts = {'G5': json.loads(Path(g5['path']).read_bytes()), 'B06': b06, 'B07': obj}
         validate_chain(receipts, {'G5': g5['sha256'], 'B06': b06_sha, 'B07': r['sha256']}, code_sha=CODE,
                        instance_sha=INST, b06_sha=b06_sha, until='B07', environment=ENV)
         with self.assertRaisesRegex(D.DecisionBlocked, 'DECISION_B06'):
-            self.run_stage('B07', dict(d, b06_independent=False), preds=preds, b06=b06_sha)
+            self.run_stage('B07', dict(d, b06_independent=False), preds=preds, b06=b06_sha, b06_verdict=verdict_sha,
+                           b06_receipt=b06_path)
+
+    def test_02b_b06_receipt_and_verdict_digests_are_distinct_and_cross_bound(self):
+        g5, b06, b06_sha, b06_path, verdict_sha, preds, d = self.b07_setup()
+        kw = dict(preds=preds, b06=b06_sha, b06_verdict=verdict_sha, b06_receipt=b06_path)
+        self.blocked('DECISION_B06_VERDICT_BINDING', stage='B07', d=d, **dict(kw, b06_verdict='9' * 64))
+        self.blocked('DECISION_B06_RECEIPT_REQUIRED', stage='B07', d=d, **dict(kw, b06_receipt=None))
+        other = self.t / 'OTHER_B06.json'; other.write_bytes(b'{}')
+        self.blocked('DECISION_B06_RECEIPT_SHA256', stage='B07', d=d, **dict(kw, b06_receipt=other))
+        # the old (inconsistent) semantics: verdict digest == B06 receipt digest is refused
+        self.blocked('DECISION_B06_VERDICT_BINDING', stage='B07', d=dict(d, b06_verdict_sha256=b06_sha), **kw)
+
+    def test_02c_b06_receipt_must_cite_the_verdict_and_b07_must_follow_b06(self):
+        g5, b06, b06_sha, b06_path, verdict_sha, preds, d = self.b07_setup(cite_verdict=False)
+        self.blocked('DECISION_B06_RECEIPT_DOES_NOT_CITE_VERDICT', stage='B07', d=d, preds=preds, b06=b06_sha,
+                     b06_verdict=verdict_sha, b06_receipt=b06_path)
+        g5, b06, b06_sha, b06_path, verdict_sha, preds, d = self.b07_setup(produced_after=False)
+        self.blocked('DECISION_EVIDENCE_B07_RECEIPT', stage='B07', d=d, preds=preds, b06=b06_sha,
+                     b06_verdict=verdict_sha, b06_receipt=b06_path)
 
     def test_03_never_without_the_separately_supplied_digest(self):
         self.blocked('DECISION_SHA256_SUPPLIED_SEPARATELY', sha='0' * 64)

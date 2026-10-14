@@ -90,7 +90,7 @@ def _canonical(obj):
 
 
 def verify_decision(decision_raw, decision_sha256, *, stage, code_sha, final_package_sha, instance_sha,
-                    policy_capture, predecessor_hashes, b06_sha=None):
+                    policy_capture, predecessor_hashes, b06_sha=None, b06_verdict_sha=None):
     """Pure verification of the origin decision bindings; returns the parsed decision."""
     _require(stage in MATERIALIZABLE, 'DECISION_STAGE_NOT_MATERIALIZABLE:' + str(stage))
     _require(_sha(decision_raw) == _hex(decision_sha256, 'decision'), 'DECISION_SHA256_SUPPLIED_SEPARATELY')
@@ -116,8 +116,11 @@ def verify_decision(decision_raw, decision_sha256, *, stage, code_sha, final_pac
     previous = predecessor_hashes[names[-1]] if names else None
     _require(d.get('previous_receipt_sha256') == previous, 'DECISION_PREVIOUS_RECEIPT')
     if stage == 'B07':
-        _require(d.get('b06_verdict_sha256') == _hex(b06_sha, 'b06') and predecessor_hashes['B06'] == b06_sha,
+        # Two distinct B06 digests (R45 B2D-B06): the B06 STAGE RECEIPT (chain predecessor) and the
+        # independent B06 VERDICT text that the B07 producer and the D4 transaction bind.
+        _require(d.get('b06_receipt_sha256') == _hex(b06_sha, 'b06') and predecessor_hashes['B06'] == b06_sha,
                  'DECISION_B06_BINDING')
+        _require(d.get('b06_verdict_sha256') == _hex(b06_verdict_sha, 'b06_verdict'), 'DECISION_B06_VERDICT_BINDING')
         _require(d.get('b06_independent') is True, 'DECISION_B06_INDEPENDENCE')
     _require(d.get('blockers') == [], 'DECISION_BLOCKERS')
     checks = d.get('checks')
@@ -134,7 +137,7 @@ def verify_decision(decision_raw, decision_sha256, *, stage, code_sha, final_pac
     return d
 
 
-def _check_evidence_semantics(stage, role, raw, *, code_sha, final_package_sha, b06_sha):
+def _check_evidence_semantics(stage, role, raw, *, code_sha, final_package_sha, b06_sha, b06_verdict_sha=None):
     if role == 'NATIVE_RETURN_ZIP':
         return
     obj = _strict_json(raw)
@@ -152,19 +155,31 @@ def _check_evidence_semantics(stage, role, raw, *, code_sha, final_package_sha, 
     elif role == 'B07_TECHNICAL_RECEIPT':
         _require(obj.get('schema') == 'TICKSTORE_B07_TECHNICAL_RECEIPT_V001' and obj.get('status') == 'PASS'
                  and obj.get('platform') == 'WINDOWS_NTFS_PS51' and obj.get('code_manifest_sha256') == code_sha
-                 and obj.get('review_verdict_sha256') == b06_sha, 'DECISION_EVIDENCE_B07_RECEIPT')
+                 and obj.get('review_verdict_sha256') == b06_verdict_sha
+                 and obj.get('b06_stage_receipt_sha256') == b06_sha
+                 and obj.get('produced_after_independent_b06') is True, 'DECISION_EVIDENCE_B07_RECEIPT')
 
 
 def materialize(decision_path, decision_sha256, *, stage, code_sha, final_package_sha, instance_sha, policy_root,
                 policy_reconciliation, policy_reconciliation_sha256, predecessor_hashes, evidence_paths, out_path,
-                b06_sha=None, read=None, now=None):
+                b06_sha=None, b06_verdict_sha=None, b06_receipt_path=None, read=None, now=None):
     """Write the stage receipt (no-clobber) only if the origin decision binds everything."""
     read = read or (lambda p: Path(p).read_bytes())
     policy_capture, environment = verified_policy(policy_root, policy_reconciliation, policy_reconciliation_sha256, now=now)
     raw = read(decision_path)
     d = verify_decision(raw, decision_sha256, stage=stage, code_sha=code_sha, final_package_sha=final_package_sha,
                         instance_sha=instance_sha, policy_capture=policy_capture,
-                        predecessor_hashes=predecessor_hashes, b06_sha=b06_sha)
+                        predecessor_hashes=predecessor_hashes, b06_sha=b06_sha, b06_verdict_sha=b06_verdict_sha)
+    if stage == 'B07':
+        # The B06 stage receipt itself must cite the verdict text as evidence.
+        _require(b06_receipt_path is not None, 'DECISION_B06_RECEIPT_REQUIRED')
+        b06_raw = read(b06_receipt_path)
+        _require(_sha(b06_raw) == b06_sha, 'DECISION_B06_RECEIPT_SHA256')
+        b06_obj = _strict_json(b06_raw)
+        _require(b06_obj.get('stage') == 'B06' and b06_obj.get('status') == 'PASS'
+                 and b06_obj.get('implementation_participant') is False, 'DECISION_B06_RECEIPT_CONTENT')
+        _require(any(isinstance(e, dict) and e.get('sha256') == b06_verdict_sha for e in b06_obj.get('evidence') or []),
+                 'DECISION_B06_RECEIPT_DOES_NOT_CITE_VERDICT')
     _require(isinstance(evidence_paths, dict) and set(evidence_paths) == {e['role'] for e in d['evidence']},
              'DECISION_EVIDENCE_FILES_SET')
     evidence = []
@@ -172,7 +187,7 @@ def materialize(decision_path, decision_sha256, *, stage, code_sha, final_packag
         body = read(evidence_paths[e['role']])
         _require(_sha(body) == e['sha256'], 'DECISION_EVIDENCE_SHA256:' + e['role'])
         _check_evidence_semantics(stage, e['role'], body, code_sha=code_sha, final_package_sha=final_package_sha,
-                                  b06_sha=b06_sha)
+                                  b06_sha=b06_sha, b06_verdict_sha=b06_verdict_sha)
         evidence.append({'path': str(Path(evidence_paths[e['role']]).absolute()), 'sha256': e['sha256'], 'role': e['role']})
     evidence.append({'path': str(Path(decision_path).absolute()), 'sha256': decision_sha256, 'role': 'ORIGIN_DECISION'})
     receipt = {'schema': STAGE_RECEIPT_SCHEMA, 'stage': stage, 'status': 'PASS', 'environment': environment,
@@ -187,7 +202,8 @@ def materialize(decision_path, decision_sha256, *, stage, code_sha, final_packag
                'materialized_by': 'ORIGIN_DECISION_BINDER_COPY_ONLY', 'decision_owner': 'CHATGPT_ORIGIN',
                'implementation_participant_is_issuer': False}
     if stage == 'B07':
-        receipt['b06_verdict_sha256'] = b06_sha
+        receipt['b06_receipt_sha256'] = b06_sha
+        receipt['b06_verdict_sha256'] = b06_verdict_sha
     raw_out = _canonical(receipt)
     out = Path(out_path)
     _require(not os.path.lexists(out), 'STAGE_RECEIPT_EXISTS')
@@ -214,7 +230,8 @@ def main(argv=None):
     ap.add_argument('--policy-reconciliation', required=True)
     ap.add_argument('--policy-reconciliation-sha256', required=True)
     ap.add_argument('--predecessor', action='append', default=[], help='STAGE=RECEIPT_PATH, in chain order')
-    ap.add_argument('--b06-sha256', default=None)
+    ap.add_argument('--b06-receipt', default=None, help='B06 stage receipt (B07 only); its digest is computed')
+    ap.add_argument('--b06-verdict-sha256', default=None, help='digest of the independent B06 verdict text (B07 only)')
     ap.add_argument('--evidence', action='append', default=[], help='ROLE=PATH')
     ap.add_argument('--out', required=True)
     a = ap.parse_args(argv)
@@ -233,7 +250,10 @@ def main(argv=None):
                         final_package_sha=_file_sha(a.final_zip), instance_sha=_file_sha(a.instance),
                         policy_root=a.policy_root, policy_reconciliation=a.policy_reconciliation,
                         policy_reconciliation_sha256=a.policy_reconciliation_sha256.upper(), predecessor_hashes=preds,
-                        evidence_paths=evidence, out_path=a.out, b06_sha=a.b06_sha256.upper() if a.b06_sha256 else None)
+                        evidence_paths=evidence, out_path=a.out,
+                        b06_sha=_file_sha(a.b06_receipt) if a.b06_receipt else None,
+                        b06_verdict_sha=a.b06_verdict_sha256.upper() if a.b06_verdict_sha256 else None,
+                        b06_receipt_path=a.b06_receipt)
     except (DecisionBlocked, OSError, ValueError, KeyError) as exc:
         print('ORIGIN_DECISION_BINDER=BLOCKED REASON=%s:%s' % (type(exc).__name__, exc))
         return 2

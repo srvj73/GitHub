@@ -24,6 +24,13 @@ Janelas de transação: `PRE_COMMIT_WRITE`, `POST_COMMIT_PRE_CHECKPOINT` e `JOUR
 5. Retomada **pelo próprio produto**. Um reinício fail-closed (por exemplo, `WRITER_LOCK_EXISTS`) é aceito como `ROUND_FAIL_CLOSED` e a reconciliação segue o procedimento documentado.
 6. `reconcile`: os contêineres devem ser byte a byte iguais aos do controle, sem perda, duplicação ou sobrescrita. Gerar o recibo da rodada (`TICKSTORE_PHYSICAL_POWERLOSS_ROUND_RECEIPT_V001`) com as evidências brutas fechadas.
 
+## 4b. Comandos (ferramenta conectada; execução só no laboratório)
+Todos exigem Windows e os bytes congelados do candidato (`--candidate-impl` = `implementation_v001` extraído do FINAL e `--code-manifest-sha256` do manifesto de runtime). Raiz do ensaio: `<VOL>:\TICKSTORE_POWERLOSS_LAB\<plan_sha[:16]>\<round_id>`.
+- `arm`: reexecuta o `preflight` ao vivo, exige `plan_sha256` na autorização e liga o candidato byte a byte. Roda o motor MULTIWORK empacotado sobre a carga sintética semeada e anuncia `READY_TO_CUT`. Mantém um `BEACON.jsonl` com fsync a cada ~50 ms, que registra o estado observado e a janela classificada.
+- `inspect` (somente leitura, antes de qualquer retomada): lê o beacon (o último registro pode estar rasgado), o bit dirty (`fsutil dirty query`), o estado de cada dia (`COMMITTED_VERIFIED`, `PARTIAL_UNCOMMITTED` ou `COMMIT_WITHOUT_MATCHING_BYTES`), os journals, o processo dono do lock e o registro do logger externo (com SHA informado à parte). Grava `INSPECTION.json`.
+- `reconcile`: o **produto** retoma sozinho. Se ocorrer fail-closed por lock, aplica a reconciliação documentada somente se a inspeção provou que não há processo vivo. Em seguida, compara os contêineres byte a byte com um controle não interrompido da mesma semente e grava `ROUND_RECEIPT.json`. Janela planejada não atingida resulta em `ROUND_WINDOW_MISSED`.
+- `aggregate`: cobertura por janela e status `PROPOSABLE_TO_ORIGIN` ou `INCOMPLETE`. Nunca é veredito G5.
+
 ## 5. Resultado
 O agregado só pode ser proposto à origem se todas as rodadas forem PASS ou FAIL_CLOSED reconciliado, com evidência completa. O consumidor G5 continua sem executor aceito para esta prova até que a origem promova a regra e o tipo de recibo. O engenheiro não altera o contrato.
 

@@ -26,7 +26,9 @@ class InstallerWriterActivationContract(unittest.TestCase):
 
     def test02_activation_requires_chain_before_witness_and_writes(self):
         idx = self.text.index(GATE)
-        for later in ('if ($WitnessPath -eq', '[IO.Directory]::CreateDirectory', 'WriteNew (Join-Path $target'):
+        # The only earlier write is the run-owned log folder under the fixed TICKSTORE_RUNS root.
+        for later in ('if ($WitnessPath -eq', '[IO.Directory]::CreateDirectory([IO.Path]::GetFullPath($InstallRoot))',
+                      'WriteNew (Join-Path $target'):
             with self.subTest(later=later):
                 self.assertLess(idx, self.text.index(later))
 
@@ -52,6 +54,12 @@ class InstallerWriterActivationContract(unittest.TestCase):
         self.assertLess(self.text.index("'INSTALLED_WRITER_IDENTITY'"), self.text.index(DISPATCH))
         self.assertIn("implementation_v001/candidate/control/MENU_OFFICIAL_WRITER.py", self.text)
         self.assertIn("('MENU_OFFICIAL_WRITER_EXIT_'+$LASTEXITCODE)", self.text)
+
+    def test09_fixed_absolute_run_log(self):
+        self.assertIn("$LogRoot='C:\\Users\\silvi\\OneDrive\\Downloads\\TICKSTORE_RUNS'", self.text)
+        self.assertNotIn('Get-Location', self.text)
+        first_write = self.text.index('[IO.Directory]::CreateDirectory(')
+        self.assertEqual(self.text[first_write:first_write + 40], '[IO.Directory]::CreateDirectory($LogRoot')
 
     def test08_inert_intent_and_readback_retained(self):
         for token in ('MENU_INSTALL_INTENT.json', "transaction_state='NOT_STARTED'", 'effectful_authorized=$false',

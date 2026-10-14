@@ -1,17 +1,31 @@
-# TICKSTORE CDT15 @@REV@@ - Windows sandbox qualification bootstrap (Windows PowerShell 5.1).
+# TICKSTORE CDT15 @@REV@@ - Windows @@MODE@@ bootstrap (Windows PowerShell 5.1).
 # Run (no cd needed):
 #   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\@@BOOTSTRAP@@"
+# Mode B07 (only after an independent B06 PASS) also takes, each digest supplied separately:
+#   -ChainFile <EXECUTION_CHAIN until B06> -ChainSha256 <hex> -B06Sha256 <B06 stage receipt hex>
+#   -B06Verdict <B06 verdict text> -B06VerdictSha256 <hex> -PolicyRoot <capture 1+1>
+#   -PolicyReconciliation <origin record> -PolicyReconciliationSha256 <hex>
 # Requires Administrator (symlink tests). When started without elevation it opens a new
 # elevated window of itself (UAC prompt) and the non-elevated run ends with exit code 3.
 # Effects: creates only run-owned folders
-#   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\@@REV@@_QUAL_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
-#   %LOCALAPPDATA%\TICKSTORE_QUAL_@@REV@@\@@REV@@_QUAL_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
-#   D:\TICKSTORE_QUALIFICATION_SANDBOX\@@REV@@_QUAL_<timestamp>_<PID>\                (D: sandboxes)
+#   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\@@REV@@_@@MODE@@_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
+#   %LOCALAPPDATA%\TICKSTORE_QUAL_@@REV@@\@@REV@@_@@MODE@@_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
+#   D:\TICKSTORE_QUALIFICATION_SANDBOX\@@REV@@_QUAL_<timestamp>_<PID>\                (D: sandboxes; QUAL mode only)
 # It never writes D:\Base CSV, %LOCALAPPDATA%\TICKSTORE, MENU.py, the BAT, ACTIVE_DEPLOYMENT or STATE.
 [CmdletBinding()]
-param()
+param(
+    [string]$ChainFile = '',
+    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$ChainSha256 = '',
+    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$B06Sha256 = '',
+    [string]$B06Verdict = '',
+    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$B06VerdictSha256 = '',
+    [string]$PolicyRoot = '',
+    [string]$PolicyReconciliation = '',
+    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$PolicyReconciliationSha256 = ''
+)
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
+$Mode = '@@MODE@@'
 $ZipPattern = '@@ZIP_PATTERN@@'
 $ExpectedZipName = '@@ZIP_NAME@@'
 $ExpectedZipSha = '@@ZIP_SHA@@'
@@ -109,7 +123,7 @@ public static class R41Reparse {
     }
 }
 '@
-    $runName = '@@REV@@_QUAL_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
+    $runName = '@@REV@@_' + $Mode + '_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
     [IO.Directory]::CreateDirectory($LogRoot) | Out-Null
     NoReparseBelow $LogRoot @()
     $script:RunDir = Join-Path $LogRoot $runName
@@ -128,11 +142,32 @@ public static class R41Reparse {
     Log ('BOOTSTRAP_SHA256=' + $bootstrapSha + ' PARSED_AND_RUNNING_UNDER_PS=' + $PSVersionTable.PSVersion.ToString())
     $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-    Log ('ELEVATED=' + $(if ($isAdmin) { 'YES' } else { 'NO' }))
+    Log ('ELEVATED=' + $(if ($isAdmin) { 'YES' } else { 'NO' }) + ' MODE=' + $Mode)
+    $b07Args = @()
+    if ($Mode -ceq 'B07') {
+        foreach ($pair in @(@('ChainFile',$ChainFile),@('ChainSha256',$ChainSha256),@('B06Sha256',$B06Sha256),
+                            @('B06Verdict',$B06Verdict),@('B06VerdictSha256',$B06VerdictSha256),@('PolicyRoot',$PolicyRoot),
+                            @('PolicyReconciliation',$PolicyReconciliation),@('PolicyReconciliationSha256',$PolicyReconciliationSha256))) {
+            Require ($pair[1] -ne '') ('B07_PARAMETER_REQUIRED:' + $pair[0])
+            Require ($pair[1].IndexOf([char]34) -lt 0) ('B07_PARAMETER_QUOTE:' + $pair[0])
+        }
+        $b07Args = @('--b07-chain-file',$ChainFile,'--b07-chain-sha256',$ChainSha256,'--b06-sha256',$B06Sha256,
+                     '--b06-verdict',$B06Verdict,'--b06-verdict-sha256',$B06VerdictSha256,'--policy-root',$PolicyRoot,
+                     '--policy-reconciliation',$PolicyReconciliation,'--policy-reconciliation-sha256',$PolicyReconciliationSha256)
+        Log ('B07_INPUTS=CHAIN:' + $ChainFile + ' CHAIN_SHA256=' + $ChainSha256 + ' B06_SHA256=' + $B06Sha256 + ' B06_VERDICT_SHA256=' + $B06VerdictSha256 + ' POLICY_RECONCILIATION_SHA256=' + $PolicyReconciliationSha256)
+    }
     if (-not $isAdmin) {
         Require ([IO.File]::Exists($PSCommandPath)) 'SCRIPT_PATH_UNKNOWN_FOR_ELEVATION'
         Log 'ELEVATION_REQUIRED: abrindo uma nova janela do PowerShell como Administrador (confirme o UAC).'
         $argList = '-NoProfile -ExecutionPolicy Bypass -NoExit -File "' + $PSCommandPath + '"'
+        if ($Mode -ceq 'B07') {
+            foreach ($pair in @(@('ChainFile',$ChainFile),@('ChainSha256',$ChainSha256),@('B06Sha256',$B06Sha256),
+                                @('B06Verdict',$B06Verdict),@('B06VerdictSha256',$B06VerdictSha256),@('PolicyRoot',$PolicyRoot),
+                                @('PolicyReconciliation',$PolicyReconciliation),@('PolicyReconciliationSha256',$PolicyReconciliationSha256))) {
+                # Native quoting: double trailing backslashes before the closing quote.
+                $argList += ' -' + $pair[0] + ' "' + [regex]::Replace($pair[1], '(\\+)$', '$1$1') + '"'
+            }
+        }
         Start-Process -FilePath 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Verb RunAs -ArgumentList $argList | Out-Null
         throw 'ELEVATED_WINDOW_STARTED'
     }
@@ -171,10 +206,12 @@ public static class R41Reparse {
     # R44D-ORIGIN-01: the D: sandbox root is NEVER created here.  It must already exist and is
     # admitted physically (no reparse component, resolves to itself) before anything touches D:;
     # the Python driver then holds it by handle and creates its run directory exclusively.
-    Require ([IO.Directory]::Exists($DParent)) ('D_SANDBOX_ROOT_ABSENT_NOT_CREATED:' + $DParent)
-    NoReparseBelow $DParent @()
-    Require ([R41Reparse]::FinalPath($DParent) -ieq $DParent) ('D_SANDBOX_ROOT_REDIRECTED:' + [R41Reparse]::FinalPath($DParent))
-    Log ('D_SANDBOX_ROOT_ADMITTED_PREWRITE=' + $DParent)
+    if ($Mode -ceq 'QUAL') {
+        Require ([IO.Directory]::Exists($DParent)) ('D_SANDBOX_ROOT_ABSENT_NOT_CREATED:' + $DParent)
+        NoReparseBelow $DParent @()
+        Require ([R41Reparse]::FinalPath($DParent) -ieq $DParent) ('D_SANDBOX_ROOT_REDIRECTED:' + [R41Reparse]::FinalPath($DParent))
+        Log ('D_SANDBOX_ROOT_ADMITTED_PREWRITE=' + $DParent)
+    } else { Log 'D_SANDBOX=NOT_USED_IN_B07_MODE' }
     Require (-not [IO.Directory]::Exists($work)) 'WORK_DIR_COLLISION'
     [IO.Directory]::CreateDirectory($work) | Out-Null
     $bundle = Join-Path $work 'X'; [IO.Directory]::CreateDirectory($bundle) | Out-Null
@@ -206,7 +243,7 @@ public static class R41Reparse {
 
     # 4. Driver (its own output is mirrored into RUN_LOG.txt by Python).
     $driver = Join-Path $bundle '@@DRIVER@@'
-    & $Python -I -X utf8 -B $driver --run-dir $script:RunDir --work-root $work --bundle-dir $bundle --d-parent $DParent --ps-version ($PSVersionTable.PSVersion.ToString()) --bootstrap-sha256 $bootstrapSha
+    & $Python -I -X utf8 -B $driver --run-dir $script:RunDir --work-root $work --bundle-dir $bundle --d-parent $DParent --ps-version ($PSVersionTable.PSVersion.ToString()) --bootstrap-sha256 $bootstrapSha --mode $Mode @b07Args
     $exitCode = $LASTEXITCODE
     if ($null -eq $exitCode) { $exitCode = 2 }
     Log ('QUAL_BOOTSTRAP_DRIVER_EXIT=' + $exitCode)
