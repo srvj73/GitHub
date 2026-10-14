@@ -8,7 +8,7 @@ Esta é a lista única e consolidada. Nada aqui é dispensado nem declarado PASS
 |---|---|---|---|
 | A1 | Parser PS5.1 | `CHECK_PS51_SYNTAX.ps1` | somente leitura |
 | A2 | R44D2 (admissão física de `D:` para a sandbox de qualificação) | `RUN_TICKSTORE_CDT15_R44D2_DROOT.ps1` | **Só se ainda não existir RETURN R44D2 nativo**; não repetir. Exige `D:\TICKSTORE_QUALIFICATION_SANDBOX` existente (sem ela, BLOCKED sem criar nada). Não roda os 126 IDs do R44 |
-| A3 | **Campanha nativa R47 (G4)** | `RUN_TICKSTORE_CDT15_R47_QUAL.ps1` | Elevada. Roda os 126 IDs **sobre os bytes R47**, que mudaram, por isso a reexecução é legítima. Inclui as suítes S8–S21 (S19–S21: recertificação RC1R1, núcleo e MULTIWORK nativos, migração), o probe B2C e as 6 provas. SAFE_STOP: arquivo `STOP` na pasta RUN. Retomada: `-ResumeFrom <RETURN ZIP>` |
+| A3 | **Campanha nativa R47 (G4)** | `RUN_TICKSTORE_CDT15_R47_QUAL.ps1` | Elevada. Roda os 126 IDs **sobre os bytes R47**, que mudaram, por isso a reexecução é legítima. Inclui as suítes S8–S22 (S19–S22: recertificação RC1R1, núcleo e MULTIWORK nativos, migração, retomada após detritos de queda no scratch), o probe B2C e as 6 provas. SAFE_STOP: arquivo `STOP` na pasta RUN. Retomada: `-ResumeFrom <RETURN ZIP>` |
 | A4 | B07 nativo | `RUN_TICKSTORE_CDT15_R47_B07.ps1` | **somente depois do B06 independente PASS** e da cadeia até B06 (procedimento, passos 4–6) |
 | A5 | Migração do sucessor D4 (V002R22 → V002R23) | `RC1R1_SUCCESSOR_MIGRATION.py` (procedimento, passo 8b) | primeiro a simulação somente leitura; `--apply` só com a cadeia até B07; nunca apaga o V002R22 |
 

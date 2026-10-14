@@ -9,7 +9,8 @@ Papel: **ENGINEER_ONLY / SOURCE_ONLY**. Limites desta entrega:
 O candidato TICKSTORE FULL R47 congelado. Ele absorve todos os achados da revisão R46:
 - **LEGACY-ENTRY:** recertificação RC1 → RC1R1 com proveniência histórica, sucessor D4 V002R23 e migração SOURCE_ONLY;
 - **G11:** G4 imposto no código antes de G5;
-- **política R41:** como autoridade de reconciliação.
+- **política R41:** como autoridade de reconciliação;
+- **POWERLOSS-SCRATCH-01:** defeito de retomada após queda no scratch do MULTIWORK, achado pela própria pré-qualificação R47 e corrigido.
 
 | Arquivo | Conteúdo |
 |---|---|
@@ -29,7 +30,7 @@ O candidato TICKSTORE FULL R47 congelado. Ele absorve todos os achados da revis�
 Os comandos rodam em `PS C:\Users\silvi>`, e os arquivos ficam em `C:\Users\silvi\OneDrive\Downloads`.
 1. `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\CHECK_PS51_SYNTAX.ps1"`
 2. **Somente se ainda não existir RETURN R44D2 nativo:** `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R44D2_DROOT.ps1"`.
-3. `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R47_QUAL.ps1"`. Esta é a campanha G4 sobre os bytes definitivos R47, com janela elevada.
+3. `powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R47_QUAL.ps1"`. Esta é a campanha G4 sobre os bytes definitivos R47 (suítes S8–S22), com janela elevada.
    - **Pausar (SAFE_STOP):** crie o arquivo `STOP` na pasta RUN.
    - **Retomar:** acrescente `-ResumeFrom "<…\QUAL_RETURN_<RUN>.zip>"`.
    - **Acompanhar:** `HEARTBEAT.json`.

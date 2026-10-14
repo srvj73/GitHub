@@ -77,10 +77,11 @@ Por isso o ZIP instalado `4BC28843…` **não é necessário** e nenhum arquivo 
 
 ## 6. Provas
 - **S19:** 9 testes (delta estrutural, identidade embutida, proveniência no motor e no pós-FULL, rotas fechadas).
-- **S20:** 77 testes nativos (núcleo e MULTIWORK com C0/S0 RC1).
+- **S20:** 81 testes nativos (núcleo e MULTIWORK com C0/S0 RC1 e detritos de queda do scratch).
+- **S22:** e2e de retomada após detritos de queda no scratch (POWERLOSS-SCRATCH-01).
 - **S21:** 15 testes da migração.
 - **S11:** 21 testes (G11).
 - **S14:** 9 testes (isolamento legado com as rotas fechadas).
-- **Mutações:** 14 de 14 eliminadas (`RC1R1_MUTATION_EVIDENCE_R47.txt`).
+- **Mutações:** 15 de 15 eliminadas (`RC1R1_MUTATION_EVIDENCE_R47.txt`).
 - **Harness R3:** 106/106 sobre os bytes R47.
 - **Laboratório de energia S18:** 15/15 com os novos motores.

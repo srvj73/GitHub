@@ -1,102 +1,110 @@
 BASELINE CORE_FULL_SERIAL_CAPABILITY_TRUE rc=0
-Ran 1 test in 0.008s
+Ran 1 test in 0.004s
 OK
 MUTANT CORE_FULL_SERIAL_CAPABILITY_TRUE rc=1 KILLED
 FAIL: test_rc1r1_disabled_routes_refuse_even_a_forged_valid_gate (test_full_serial_r9.FullSerialTests.test_rc1r1_disabled_routes_refuse_even_a_forged_valid_gate)
-Ran 1 test in 0.004s
+Ran 1 test in 0.005s
 FAILED (failures=1)
 BASELINE CORE_PILOT_CAPABILITY_TRUE rc=0
-Ran 1 test in 0.007s
+Ran 1 test in 0.004s
 OK
 MUTANT CORE_PILOT_CAPABILITY_TRUE rc=1 KILLED
 FAIL: test_rc1r1_disabled_routes_refuse_even_a_forged_valid_gate (test_full_serial_r9.FullSerialTests.test_rc1r1_disabled_routes_refuse_even_a_forged_valid_gate)
-Ran 1 test in 0.011s
+Ran 1 test in 0.009s
 FAILED (failures=1)
 BASELINE CORE_RC1_REFERENCE_CHECK_REMOVED rc=0
-Ran 1 test in 0.101s
+Ran 1 test in 0.089s
 OK
 MUTANT CORE_RC1_REFERENCE_CHECK_REMOVED rc=1 KILLED
 FAIL: test_rc1_historical_provenance_rejects_tamper_and_foreign_runner (test_full_serial_r9.FullSerialTests.test_rc1_historical_provenance_rejects_tamper_and_foreign_runner) (field='reference_sha256')
-Ran 1 test in 0.120s
+Ran 1 test in 0.094s
 FAILED (failures=1)
 BASELINE CORE_RC1_BUILDING_SCRATCH_ADOPTED rc=0
-Ran 1 test in 0.033s
+Ran 1 test in 0.027s
 OK
 MUTANT CORE_RC1_BUILDING_SCRATCH_ADOPTED rc=1 KILLED
 FAIL: test_rc1_building_scratch_is_never_continued (test_full_multiwork.TestRc1HistoricalScratch.test_rc1_building_scratch_is_never_continued)
 Ran 1 test in 0.034s
 FAILED (failures=1)
 BASELINE CORE_READONLY_RECONCILE_HISTORICAL_REMOVED rc=0
-Ran 1 test in 0.106s
+Ran 1 test in 0.095s
 OK
 MUTANT CORE_READONLY_RECONCILE_HISTORICAL_REMOVED rc=1 KILLED
 ERROR: test_rc1r1_reuses_days_published_by_historical_rc1_with_their_provenance (test_full_serial_r9.FullSerialTests.test_rc1r1_reuses_days_published_by_historical_rc1_with_their_provenance)
-Ran 1 test in 0.100s
+Ran 1 test in 0.079s
 FAILED (errors=1)
 BASELINE MW_C0_HISTORICAL_REMOVED rc=0
-Ran 4 tests in 0.232s
+Ran 4 tests in 0.231s
 OK
 MUTANT MW_C0_HISTORICAL_REMOVED rc=1 KILLED
 ERROR: test_existing_rc1_pairs_reused_with_their_own_provenance (test_full_multiwork.TestRc1HistoricalProvenance.test_existing_rc1_pairs_reused_with_their_own_provenance)
 FAIL: test_tampered_rc1_commit_rejected (test_full_multiwork.TestRc1HistoricalProvenance.test_tampered_rc1_commit_rejected)
-Ran 4 tests in 0.252s
+Ran 4 tests in 0.304s
 FAILED (failures=1, errors=1)
 BASELINE MW_S0_PUBLISH_HISTORICAL_REMOVED rc=0
-Ran 4 tests in 0.128s
+Ran 4 tests in 0.088s
 OK
 MUTANT MW_S0_PUBLISH_HISTORICAL_REMOVED rc=1 KILLED
 ERROR: test_rc1_validated_scratch_published_with_rc1_provenance (test_full_multiwork.TestRc1HistoricalScratch.test_rc1_validated_scratch_published_with_rc1_provenance)
-Ran 4 tests in 0.084s
+Ran 4 tests in 0.104s
 FAILED (errors=1)
 BASELINE MW_RC1_TRANSIENT_GUARD_REMOVED rc=0
-Ran 4 tests in 0.249s
+Ran 4 tests in 0.250s
 OK
 MUTANT MW_RC1_TRANSIENT_GUARD_REMOVED rc=1 KILLED
 FAIL: test_recovery_bridge_refuses_rc1_transient_before_any_source_access (test_full_multiwork.TestRc1HistoricalProvenance.test_recovery_bridge_refuses_rc1_transient_before_any_source_access)
-Ran 4 tests in 0.229s
+Ran 4 tests in 0.240s
 FAILED (failures=1)
 BASELINE ENGINE_RC1_HISTORICAL_DROPPED rc=0
-Ran 4 tests in 0.144s
+Ran 4 tests in 0.158s
 OK
 MUTANT ENGINE_RC1_HISTORICAL_DROPPED rc=1 KILLED
 ERROR: test_oracle_contract_accepts_rc1r1_and_historical_rc1 (test_rc1r1_recertification.EngineProvenanceTest.test_oracle_contract_accepts_rc1r1_and_historical_rc1) (engine='release', runner='D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0')
 FAIL: test_oracle_contract_rejects_wrong_reference_and_unknown_runner (test_rc1r1_recertification.EngineProvenanceTest.test_oracle_contract_rejects_wrong_reference_and_unknown_runner) (engine='release')
-Ran 4 tests in 0.201s
+Ran 4 tests in 0.138s
 FAILED (failures=1, errors=1)
 BASELINE POSTFULL_RC1_HISTORICAL_DROPPED rc=0
-Ran 1 test in 0.328s
+Ran 1 test in 0.220s
 OK
 MUTANT POSTFULL_RC1_HISTORICAL_DROPPED rc=1 KILLED
 ERROR: test_rc1_and_rc1r1_provenance_verified_and_tamper_refused (test_rc1r1_recertification.PostfullProvenanceTest.test_rc1_and_rc1r1_provenance_verified_and_tamper_refused) (runner='D3A1557253461BA6C19D40E60D70AF99962290D4BB488C88035D4D9D52D5F6C0')
-Ran 1 test in 0.236s
+Ran 1 test in 0.212s
 FAILED (errors=1)
 BASELINE BINDER_G4_ENFORCEMENT_REMOVED rc=0
-Ran 21 tests in 0.759s
+Ran 21 tests in 0.788s
 OK
 MUTANT BINDER_G4_ENFORCEMENT_REMOVED rc=1 KILLED
 FAIL: test_18_g4_zip_must_be_the_completeness_native_provenance (test_b2d_origin_decision_binder.Binder.test_18_g4_zip_must_be_the_completeness_native_provenance)
 FAIL: test_19_b07_return_zip_must_be_the_one_its_technical_receipt_names (test_b2d_origin_decision_binder.Binder.test_19_b07_return_zip_must_be_the_one_its_technical_receipt_names)
-Ran 21 tests in 0.707s
+Ran 21 tests in 0.703s
 FAILED (failures=7)
+BASELINE MW_SCRATCH_CRASH_DEBRIS_IGNORED rc=0
+Ran 4 tests in 0.011s
+OK
+MUTANT MW_SCRATCH_CRASH_DEBRIS_IGNORED rc=1 KILLED
+FAIL: test_shadow_next_to_unreadable_main_journal_is_fail_closed (test_full_multiwork.TestScratchCrashDebris.test_shadow_next_to_unreadable_main_journal_is_fail_closed)
+FAIL: test_uncommitted_journal_shadow_discarded_main_journal_kept (test_full_multiwork.TestScratchCrashDebris.test_uncommitted_journal_shadow_discarded_main_journal_kept)
+Ran 4 tests in 0.023s
+FAILED (failures=2, errors=3)
 BASELINE MIGRATION_APPLY_WITHOUT_CHAIN rc=0
-Ran 4 tests in 0.738s
+Ran 4 tests in 0.708s
 OK
 MUTANT MIGRATION_APPLY_WITHOUT_CHAIN rc=1 KILLED
 FAIL: test_main_apply_requires_native_and_release_chain_until_b07 (test_rc1r1_successor_migration.Apply.test_main_apply_requires_native_and_release_chain_until_b07)
-Ran 4 tests in 0.734s
+Ran 4 tests in 0.745s
 FAILED (failures=1)
 BASELINE MIGRATION_SKIPS_FINAL_TREE_EQUALITY rc=0
-Ran 7 tests in 0.326s
+Ran 7 tests in 0.433s
 OK
 MUTANT MIGRATION_SKIPS_FINAL_TREE_EQUALITY rc=1 KILLED
 FAIL: test_successor_must_equal_this_final_recovery_tree (test_rc1r1_successor_migration.Blockers.test_successor_must_equal_this_final_recovery_tree)
-Ran 7 tests in 0.434s
+Ran 7 tests in 0.333s
 FAILED (failures=1)
 BASELINE MIGRATION_ADMITTED_AUTHORITY_IGNORED rc=0
-Ran 7 tests in 0.337s
+Ran 7 tests in 0.397s
 OK
 MUTANT MIGRATION_ADMITTED_AUTHORITY_IGNORED rc=1 KILLED
 FAIL: test_admitted_run_authority_blocks (test_rc1r1_successor_migration.Blockers.test_admitted_run_authority_blocks)
-Ran 7 tests in 0.329s
+Ran 7 tests in 0.390s
 FAILED (failures=1)
 RC1R1_MUTATION_CHECK=PASS
