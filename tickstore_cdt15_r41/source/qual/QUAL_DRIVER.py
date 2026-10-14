@@ -465,6 +465,17 @@ def main(a):
         env = dict(os.environ, TMP=str(tmp), TEMP=str(tmp), PYTHONDONTWRITEBYTECODE='1', PYTHONUTF8='1')
         env.pop('PYTHONPATH', None)
         d_parent = Path(a.d_parent) / run_dir.name if native else work / 'D_PARENT'
+        # R44-DROOT-01: the D: sandbox root and the work root are admitted physically before any
+        # write (no reparse component, resolves to itself, NTFS) and re-checked at POSTCHECK.
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import SANDBOX_ADMISSION as admission
+        admitted = {'work_root': admission.admit_root(work)}
+        if native:
+            admitted['d_sandbox_root'] = admission.admit_root(a.d_parent)
+            d_parent.mkdir(parents=False, exist_ok=False)
+            admitted['d_run_root'] = admission.admit_root(d_parent)
+        receipt['SANDBOX_ADMISSION'] = admitted
+        print('QUAL_SANDBOX_ADMISSION=PASS ' + ' '.join(sorted(admitted)), flush=True)
         suites = []
         for name, spec in final['plan']['suites'].items():
             if spec.get('native_only') and not native:
@@ -492,6 +503,9 @@ def main(a):
         prog.end('PROOFS')
 
         prog.begin('POSTCHECK')
+        for key, rec in admitted.items():
+            admission.revalidate(rec)
+        receipt['SANDBOX_ADMISSION_REVALIDATED'] = 'PASS'
         after = snapshot_real_targets(app) if native else {}
         (evidence / 'REAL_TARGETS_AFTER.json').write_bytes(canonical(after))
         receipt['PRODUCTION_MODIFIED'] = (before != after) if native else False

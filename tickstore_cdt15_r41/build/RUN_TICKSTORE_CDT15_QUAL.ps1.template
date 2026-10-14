@@ -166,6 +166,11 @@ public static class R41Reparse {
     # 2. Extract into a fresh run-owned, non-synced folder; every member re-verified.
     $work = Join-Path (Join-Path $app 'TICKSTORE_QUAL_@@REV@@') $runName
     NoReparseBelow $app @()
+    # R44-DROOT-01: the D: sandbox root must be a plain NTFS directory chain (no junction/symlink).
+    if (-not [IO.Directory]::Exists($DParent)) { [IO.Directory]::CreateDirectory($DParent) | Out-Null }
+    NoReparseBelow $DParent @()
+    Require ([R41Reparse]::FinalPath($DParent) -ieq $DParent) ('D_SANDBOX_ROOT_REDIRECTED:' + [R41Reparse]::FinalPath($DParent))
+    Log ('D_SANDBOX_ROOT_ADMITTED=' + $DParent)
     Require (-not [IO.Directory]::Exists($work)) 'WORK_DIR_COLLISION'
     [IO.Directory]::CreateDirectory($work) | Out-Null
     $bundle = Join-Path $work 'X'; [IO.Directory]::CreateDirectory($bundle) | Out-Null
@@ -196,7 +201,7 @@ public static class R41Reparse {
     Log 'PYTHON=PASS 3.14.7 SHA256_PINNED'
 
     # 4. Driver (its own output is mirrored into RUN_LOG.txt by Python).
-    $driver = Join-Path $bundle 'qual\QUAL_DRIVER.py'
+    $driver = Join-Path $bundle '@@DRIVER@@'
     & $Python -I -X utf8 -B $driver --run-dir $script:RunDir --work-root $work --bundle-dir $bundle --d-parent $DParent --ps-version ($PSVersionTable.PSVersion.ToString())
     $exitCode = $LASTEXITCODE
     if ($null -eq $exitCode) { $exitCode = 2 }

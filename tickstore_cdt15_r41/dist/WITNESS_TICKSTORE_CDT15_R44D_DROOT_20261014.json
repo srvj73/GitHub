@@ -1,0 +1,21 @@
+{
+ "audited_r44_final_sha256": "0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D",
+ "bootstrap": "RUN_TICKSTORE_CDT15_R44D_DROOT.ps1",
+ "bootstrap_bytes": 13927,
+ "bootstrap_sha256": "0AED17FAF5358F8909BC34A7686CC996CE3E25D996D479954EEBF457FB6DEC20",
+ "elevation_required": true,
+ "final_bytes_touched": false,
+ "full_started": false,
+ "gate_verdict_issued": false,
+ "invocation": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\silvi\\OneDrive\\Downloads\\RUN_TICKSTORE_CDT15_R44D_DROOT.ps1\"",
+ "production_modified": false,
+ "purpose": "R44-DROOT-01 delta: read-only audit of R44 sandbox topology + native negative admission probes",
+ "qual_manifest_sha256": "8E2FDD1290B8F129D4810FB6358A928EDB28705A60AFD33734B216AAA99632BE",
+ "qual_zip": "TICKSTORE_CDT15_R44D_DROOT_20261014.zip",
+ "qual_zip_bytes": 7950,
+ "qual_zip_sha256": "80A3B678CCDDC22364333B7536753BF441A2F095DA1D1F6C977AE8773EE4A39C",
+ "r44_126_rerun": false,
+ "revision": "R44D",
+ "role": "ENGINEER_ONLY",
+ "schema": "EXTERNAL_WITNESS_TICKSTORE_CDT15_QUAL_V002"
+}

@@ -175,7 +175,7 @@ def main(source, out):
     tpl = (Path(__file__).parent / 'RUN_TICKSTORE_CDT15_QUAL.ps1.template').read_text(encoding='ascii')
     ps = (tpl.replace('@@ZIP_NAME@@', QUAL_NAME).replace('@@ZIP_SHA@@', sha(qual_raw))
              .replace('@@ZIP_BYTES@@', str(len(qual_raw))).replace('@@QUAL_MANIFEST_SHA@@', sha(qmanifest))
-             .replace('@@REV@@', REV).replace('@@BOOTSTRAP@@', BOOTSTRAP).replace('@@ZIP_PATTERN@@', ZIP_PATTERN))
+             .replace('@@REV@@', REV).replace('@@BOOTSTRAP@@', BOOTSTRAP).replace('@@DRIVER@@', 'qual\\QUAL_DRIVER.py').replace('@@ZIP_PATTERN@@', ZIP_PATTERN))
     assert '@@' not in ps
     ps_raw = ps.replace('\r\n', '\n').replace('\n', '\r\n').encode('ascii')
     (out / BOOTSTRAP).write_bytes(ps_raw)
