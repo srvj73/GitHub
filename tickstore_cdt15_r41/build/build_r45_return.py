@@ -57,11 +57,11 @@ def physical_diff(old, new):
 def main(repo, offline_run, portable_dir):
     repo, offline_run, portable_dir = Path(repo), Path(offline_run), Path(portable_dir)
     dist = repo / 'dist'
-    fw = json.loads((dist / 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_R45_%s.json' % DATE).read_bytes())
-    qw = json.loads((dist / 'WITNESS_TICKSTORE_CDT15_R45_QUAL_%s.json' % DATE).read_bytes())
+    fw = json.loads((dist / ('WITNESS_TICKSTORE_FULL_FINAL_CDT15_R45_%s.json' % DATE)).read_bytes())
+    qw = json.loads((dist / ('WITNESS_TICKSTORE_CDT15_R45_QUAL_%s.json' % DATE)).read_bytes())
     final_raw = (dist / fw['package_name']).read_bytes()
     assert sha(final_raw) == fw['package_sha256'] == qw['final_package_sha256']
-    r44_final = dist / 'TICKSTORE_FULL_FINAL_CDT15_R44_%s.zip' % DATE
+    r44_final = dist / ('TICKSTORE_FULL_FINAL_CDT15_R44_%s.zip' % DATE)
     assert sha(r44_final.read_bytes()) == fw['parent_final_r44_sha256'], 'R44_FINAL_CHANGED'
     old, new = final_tree(r44_final), final_tree(dist / fw['package_name'])
     assert sha(new['candidate/full/tickstore_serial_runner.py']) == CORE_RC1 == sha(old['candidate/full/tickstore_serial_runner.py'])
