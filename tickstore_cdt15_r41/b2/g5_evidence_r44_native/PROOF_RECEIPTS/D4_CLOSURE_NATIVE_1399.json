@@ -1,0 +1,43 @@
+{
+ "artifacts": [
+  {
+   "bytes": 957,
+   "member": "EVIDENCE/PROOFS/D4_CLOSURE_NATIVE_1399/D4_CLOSURE_OBSERVATION.json",
+   "sha256": "765E81D79DAE3EA2DA2A21BED7349E3CB59AAEF3E4FD51EE436D28C91EC81281"
+  },
+  {
+   "bytes": 125349,
+   "member": "EVIDENCE/PROOFS/D4_CLOSURE_NATIVE_1399/D4_SYNTHETIC_CHECKPOINT.json",
+   "sha256": "6BA223F0FB50E32E1CDE4962649C82E17EA988A134215C392A40847BB691E848"
+  }
+ ],
+ "checks": {
+  "closure_complete_readback": "PASS",
+  "closure_rejects_missing_entry": "PASS",
+  "closure_rejects_tampered_entry": "PASS",
+  "inventory_entries_1399": "PASS",
+  "no_production_target": "PASS",
+  "ntfs_sandbox_volume": "PASS",
+  "sandbox_only": "PASS"
+ },
+ "code_manifest_sha256": "A4C4D746A5C8556F7752891FDE7AE3DB4608B9479B269287DDF1A99672CEBEF2",
+ "error": null,
+ "final_zip_sha256": "0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D",
+ "gate_verdict_issued": false,
+ "kind": "TICKSTORE_G5_PROOF_D4_CLOSURE_SYNTHETIC_1399_V001",
+ "native_windows": true,
+ "platform": "Windows-11-10.0.26200-SP0",
+ "production_execution": false,
+ "proof": "D4_CLOSURE_NATIVE_1399",
+ "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+ "run_id": "R44_QUAL_20261014_065214_300_41492",
+ "runner": {
+  "function": "proof_d4_closure_synthetic_1399",
+  "path": "g5proof/G5_PROOF_RUNNERS.py",
+  "sha256": "2096E64C3F3C03D5D31AC09CE5F37D1D050A1D4A0EA4880F44136361AB874996"
+ },
+ "scenario": "Synthetic 1399-entry S0 inventory on NTFS: engine attestations, no-clobber receipts, chunk mirrors and signed checkpoint written by the packaged engine helpers, verified by FULL_D4_CLOSURE with native protected reads; not a D4 execution (no VSS, no STATE, no DPAPI authority)",
+ "schema": "TICKSTORE_G5_TARGET_PROOF_RECEIPT_V001",
+ "seconds": 32.571,
+ "status": "PASS"
+}

@@ -1,0 +1,53 @@
+{
+ "artifacts": [
+  {
+   "bytes": 4787,
+   "member": "EVIDENCE/PROOFS/SAFE_STOP_RESUME_ROW_GROUP/JOURNAL_AT_SAFE_STOP.json",
+   "sha256": "7337F1D417C6893B609BFE77F5C8B9BB757261EE859B4F8559903D129A262910"
+  },
+  {
+   "bytes": 8059,
+   "member": "EVIDENCE/PROOFS/SAFE_STOP_RESUME_ROW_GROUP/RESUME_RUN_STDOUT_TAIL.txt",
+   "sha256": "55DCE9D9C9D4150124440F46AFB69A7FFE252E28F01AD07AC72892FA6C88C68B"
+  },
+  {
+   "bytes": 3260,
+   "member": "EVIDENCE/PROOFS/SAFE_STOP_RESUME_ROW_GROUP/SAFE_STOP_RESUME_OBSERVATION.json",
+   "sha256": "BB0C24EAD3964808357ADF49D73C29D3B94194EEFBECC88122C8CC1830D50659"
+  },
+  {
+   "bytes": 3392,
+   "member": "EVIDENCE/PROOFS/SAFE_STOP_RESUME_ROW_GROUP/STOP_RUN_STDOUT_TAIL.txt",
+   "sha256": "452488988D53B82B96A31741833810E1483B13EED6633452F7D19ADBD715D52C"
+  }
+ ],
+ "checks": {
+  "named_stop_honoured": "PASS",
+  "no_duplicate_or_lost_rows": "PASS",
+  "partial_day_preserved": "PASS",
+  "resume_completed_partial_day": "PASS",
+  "resume_reused_completed_days": "PASS",
+  "resume_worker_count_changed": "PASS",
+  "sandbox_only": "PASS"
+ },
+ "code_manifest_sha256": "A4C4D746A5C8556F7752891FDE7AE3DB4608B9479B269287DDF1A99672CEBEF2",
+ "error": null,
+ "final_zip_sha256": "0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D",
+ "gate_verdict_issued": false,
+ "kind": "TICKSTORE_G5_PROOF_SAFE_STOP_RESUME_V001",
+ "native_windows": true,
+ "platform": "Windows-11-10.0.26200-SP0",
+ "production_execution": false,
+ "proof": "SAFE_STOP_RESUME_ROW_GROUP",
+ "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+ "run_id": "R44_QUAL_20261014_065214_300_41492",
+ "runner": {
+  "function": "proof_safe_stop_resume",
+  "path": "g5proof/G5_PROOF_RUNNERS.py",
+  "sha256": "2096E64C3F3C03D5D31AC09CE5F37D1D050A1D4A0EA4880F44136361AB874996"
+ },
+ "scenario": "SAFE_STOP named event from another process while day 20240110 (1100000 rows, 5 groups) is BUILDING; resume with 2 workers vs 1; containers byte-equal to an uninterrupted control build",
+ "schema": "TICKSTORE_G5_TARGET_PROOF_RECEIPT_V001",
+ "seconds": 250.291,
+ "status": "PASS"
+}

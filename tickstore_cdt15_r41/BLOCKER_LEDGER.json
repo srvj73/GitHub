@@ -4,7 +4,7 @@
  "status": {
   "CANDIDATE_COMPLETENESS": "NOT_PROVEN",
   "G4": "INCOMPLETE",
-  "G5": "NOT_PROVEN",
+  "G5": "NOT_PROVEN_EVIDENCE_PACK_INCOMPLETE_PHYSICAL_POWERLOSS_PENDING_ORIGIN",
   "B06": "NOT_STARTED",
   "B07": "NOT_STARTED",
   "D4_D5_CANARY_FULL": "NOT_RELEASED",
@@ -29,7 +29,7 @@
    "evidence": "candidate/control/QUALIFICATION_CONTRACT.json required_tests referencia tests_stage_closure, tests_full_lifecycle, tests_resume_delta, test_first_admission_transaction, test_bootstrap_contract, tests_delta, tests_native_delta; nenhum desses modulos existe no pacote 26F783A0 (grep confirmado).",
    "effect": "FULL_QUALIFICATION_CONTRACT.validate exige exatamente esses IDs nativos sobre os bytes finais; G5 nao pode ser satisfeito com a base entregue.",
    "needed_from_origin": "Fornecer o arquivo historico da linha de base (archive_sha256 DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8) ou autorizar re-derivacao do contrato de qualificacao para a arvore atual.",
-   "status": "R44_RUNNER_READY_126_IDS_B1A_B1B_APPROVED_ELEVATED_AWAITING_WINDOWS_RUN",
+   "status": "CLOSED_NATIVE_R44_126_OF_126_PASS_RETURN_02036B1E",
    "reconciliation": "b1/R42_B1_RECONCILIATION.json"
   },
   {
@@ -38,7 +38,7 @@
    "evidence": "FULL_INSTANCE_PREPARE.py declara 'cannot issue G5/B06/B07 receipts'; nenhum outro modulo publica STAGE_G5/STAGE_B07; a cadeia (FULL_RELEASE_CHAIN.STAGES) exige ambos antes de D4.",
    "effect": "Mesmo com B06 independente aprovado, D4 e o FULL permanecem inalcancaveis.",
    "needed_from_origin": "Definicao de custodia: quem emite G5 (congelamento de bytes) e qual runner nativo produz B07 (checks native_windows, physical_policy_capture, state_continuity, vss_identity, negative_controls, process_tree_cleanup).",
-   "status": "G5_PRODUCER_CONSUMER_HARDENED_B2D_BINDER_SOURCE_ONLY_B07_RUNNER_PENDING"
+   "status": "G5_EVIDENCE_PACK_READY_INCOMPLETE_ONLY_PHYSICAL_POWERLOSS_B2D_BINDER_SOURCE_ONLY_B07_RUNNER_PENDING"
   },
   {
    "id": "R41-B3",
@@ -87,7 +87,7 @@
   {
    "id": "B2-G5-01",
    "title": "Falso positivo de completude G5 (origem 20261013)",
-   "status": "FIXED_SOURCE_PRODUCER_AND_CONSUMER_NEGATIVE_CONTROLS_PASS_NATIVE_EVIDENCE_PENDING_R44",
+   "status": "FIXED_AND_NATIVELY_EXERCISED_R44_G5_BUILDER_ONLY_BLOCKER_PHYSICAL_POWERLOSS",
    "evidence": "source/candidate/control/FULL_QUALIFICATION_CONTRACT.py, G5_EVIDENCE_BUILDER.py, tests/test_g5_evidence_builder.py (34), reprodutor adversarial da origem agora INCOMPLETE/REJECTS"
   },
   {
@@ -189,5 +189,15 @@
   ],
   "reconciliation": "b1/R42_B1_RECONCILIATION.json"
  },
- "driver_fix": "R43 RETURN ZIP omitted EVIDENCE subfolders; QUAL_DRIVER now includes them recursively"
+ "driver_fix": "R43 RETURN ZIP omitted EVIDENCE subfolders; QUAL_DRIVER now includes them recursively",
+ "r44_native": {
+  "run": "R44_QUAL_20261014_065214_300_41492",
+  "return_zip_sha256": "02036B1EA45370BE570865E281F8F5FC4C5D1C5364171680E2EE493EC7C5BB6D",
+  "final_sha256": "0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D",
+  "classification": "R44_WINDOWS_SANDBOX_QUALIFICATION_PASS",
+  "b1": "126/126",
+  "proofs_pass": 5,
+  "powerloss_emulated": "EMULATED_PASS (not physical)",
+  "production_modified": false
+ }
 }

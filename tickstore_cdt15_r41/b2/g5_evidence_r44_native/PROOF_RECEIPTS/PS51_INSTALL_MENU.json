@@ -1,0 +1,72 @@
+{
+ "artifacts": [
+  {
+   "bytes": 142,
+   "member": "EVIDENCE/PROOFS/PS51_INSTALL_MENU/PS51_E1_ACTIVATE_WITHOUT_CHAIN.txt",
+   "sha256": "D3C6E7F5026194F4C92B2B83254B4EF9ECB399474076E3D8301087C8A5194B7B"
+  },
+  {
+   "bytes": 131,
+   "member": "EVIDENCE/PROOFS/PS51_INSTALL_MENU/PS51_E2_CHAIN_WITHOUT_ACTIVATE.txt",
+   "sha256": "F02959277F242791D45C3E989AD592C962103D1EAEEBFA0EEE9722EA77567E79"
+  },
+  {
+   "bytes": 138,
+   "member": "EVIDENCE/PROOFS/PS51_INSTALL_MENU/PS51_E2B_ACTIVATE_SANDBOX_ROOT.txt",
+   "sha256": "8745D900E9BCAF6A3E37E0132BEE0871119F2A04549D29C5D9614D4ACDF3D96F"
+  },
+  {
+   "bytes": 717,
+   "member": "EVIDENCE/PROOFS/PS51_INSTALL_MENU/PS51_E3_INACTIVE_INSTALL.txt",
+   "sha256": "B55C549B56D1F5486361DF9B51E7D54F3409EFC0DE9BC65F5A40EA8657CFC327"
+  },
+  {
+   "bytes": 135,
+   "member": "EVIDENCE/PROOFS/PS51_INSTALL_MENU/PS51_E4_REINSTALL.txt",
+   "sha256": "E013C449B62373012BCB9DE1851467204945D10F5005CA132B65E705142B6E62"
+  },
+  {
+   "bytes": 717,
+   "member": "EVIDENCE/PROOFS/PS51_INSTALL_MENU/PS51_E6_INSTALL.txt",
+   "sha256": "611CB85678E188CBEA25E488F93323595416FAC8A09A9F76DCD2BA33CB18B59C"
+  },
+  {
+   "bytes": 1732,
+   "member": "EVIDENCE/PROOFS/PS51_INSTALL_MENU/PS51_INSTALL_OBSERVATION.json",
+   "sha256": "D971ED7D8EC0AE3F7487D4F58F40C1FE605F86FE66DC3DC6968305D4A7C428CE"
+  },
+  {
+   "bytes": 913,
+   "member": "EVIDENCE/PROOFS/PS51_INSTALL_MENU/WRITER_E5_PUBLISH.txt",
+   "sha256": "0946500B12DD19470BC6B5AEFE8EC340B14F8D5D48B407C5DE4E402003F5886B"
+  }
+ ],
+ "checks": {
+  "inactive_install_readback": "PASS",
+  "menu_not_activated_without_chain": "PASS",
+  "official_menu_untouched": "PASS",
+  "ps51_host_version": "PASS",
+  "qualification_layout_writer_committed": "PASS",
+  "sandbox_only": "PASS"
+ },
+ "code_manifest_sha256": "A4C4D746A5C8556F7752891FDE7AE3DB4608B9479B269287DDF1A99672CEBEF2",
+ "error": null,
+ "final_zip_sha256": "0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D",
+ "gate_verdict_issued": false,
+ "kind": "TICKSTORE_G5_PROOF_PS51_INSTALL_MENU_V001",
+ "native_windows": true,
+ "platform": "Windows-11-10.0.26200-SP0",
+ "production_execution": false,
+ "proof": "PS51_INSTALL_MENU",
+ "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+ "run_id": "R44_QUAL_20261014_065214_300_41492",
+ "runner": {
+  "function": "proof_ps51_install_menu",
+  "path": "g5proof/G5_PROOF_RUNNERS.py",
+  "sha256": "2096E64C3F3C03D5D31AC09CE5F37D1D050A1D4A0EA4880F44136361AB874996"
+ },
+ "scenario": "Windows PowerShell 5.1 inactive install of the FINAL package into sandbox Candidates roots; installed writer in QUALIFICATION layout (cross-volume), crash + new-process recovery; official MENU never activated",
+ "schema": "TICKSTORE_G5_TARGET_PROOF_RECEIPT_V001",
+ "seconds": 6.816,
+ "status": "PASS"
+}

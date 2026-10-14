@@ -1,0 +1,41 @@
+{
+ "artifacts": [
+  {
+   "bytes": 1126,
+   "member": "EVIDENCE/PROOFS/STAGE_B_FULL_CHAIN_NATIVE/STAGE_B_RESULT.json",
+   "sha256": "E203B7B22CE0734546769BCD8AD13DF55B9DD2F2E383DBBCC9A2090FE0103B10"
+  },
+  {
+   "bytes": 7530,
+   "member": "EVIDENCE/PROOFS/STAGE_B_FULL_CHAIN_NATIVE/STAGE_B_UNITTEST.log",
+   "sha256": "906D548C5EF2E18BC9E85F33D1711FD44E51EC1C7ADC52244E9E0571CF8F4CBE"
+  }
+ ],
+ "checks": {
+  "no_production_target": "PASS",
+  "no_skips": "PASS",
+  "physical_publication_readback": "PASS",
+  "sandbox_only": "PASS",
+  "stage_b_suites_executed_natively": "PASS"
+ },
+ "code_manifest_sha256": "A4C4D746A5C8556F7752891FDE7AE3DB4608B9479B269287DDF1A99672CEBEF2",
+ "error": null,
+ "final_zip_sha256": "0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D",
+ "gate_verdict_issued": false,
+ "kind": "TICKSTORE_G5_PROOF_STAGE_B_SYNTHETIC_CHAIN_V001",
+ "native_windows": true,
+ "platform": "Windows-11-10.0.26200-SP0",
+ "production_execution": false,
+ "proof": "STAGE_B_FULL_CHAIN_NATIVE",
+ "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+ "run_id": "R44_QUAL_20261014_065214_300_41492",
+ "runner": {
+  "function": "proof_stage_b_synthetic_chain",
+  "path": "g5proof/G5_PROOF_RUNNERS.py",
+  "sha256": "2096E64C3F3C03D5D31AC09CE5F37D1D050A1D4A0EA4880F44136361AB874996"
+ },
+ "scenario": "Stage B / FULL_PREP / CANARY publication and FULL post-verify chain with synthetic fixtures, native protected reads (49 tests); not E9/F1/F2, CANARY or FULL execution",
+ "schema": "TICKSTORE_G5_TARGET_PROOF_RECEIPT_V001",
+ "seconds": 5.783,
+ "status": "PASS"
+}

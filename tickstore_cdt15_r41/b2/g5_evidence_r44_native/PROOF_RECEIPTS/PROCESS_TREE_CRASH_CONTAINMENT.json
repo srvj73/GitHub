@@ -1,0 +1,36 @@
+{
+ "artifacts": [
+  {
+   "bytes": 558,
+   "member": "EVIDENCE/PROOFS/PROCESS_TREE_CRASH_CONTAINMENT/TREE_CRASH_OBSERVATION.json",
+   "sha256": "A29ACAD7C7E106853B64891DC0C37FC8B71B8111F0043D5D8F09F04E9A719090"
+  }
+ ],
+ "checks": {
+  "coordinator_terminated_abruptly": "PASS",
+  "job_child_alive_before_crash": "PASS",
+  "job_child_dead_after_coordinator_crash": "PASS",
+  "no_job_descendant_survives": "PASS",
+  "sandbox_only": "PASS"
+ },
+ "code_manifest_sha256": "A4C4D746A5C8556F7752891FDE7AE3DB4608B9479B269287DDF1A99672CEBEF2",
+ "error": null,
+ "final_zip_sha256": "0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D",
+ "gate_verdict_issued": false,
+ "kind": "TICKSTORE_G5_PROOF_PROCESS_TREE_CRASH_V001",
+ "native_windows": true,
+ "platform": "Windows-11-10.0.26200-SP0",
+ "production_execution": false,
+ "proof": "PROCESS_TREE_CRASH_CONTAINMENT",
+ "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+ "run_id": "R44_QUAL_20261014_065214_300_41492",
+ "runner": {
+  "function": "proof_process_tree_crash",
+  "path": "g5proof/G5_PROOF_RUNNERS.py",
+  "sha256": "2096E64C3F3C03D5D31AC09CE5F37D1D050A1D4A0EA4880F44136361AB874996"
+ },
+ "scenario": "Job (KILL_ON_JOB_CLOSE) coordinator with child and grandchild; coordinator killed by TerminateProcess",
+ "schema": "TICKSTORE_G5_TARGET_PROOF_RECEIPT_V001",
+ "seconds": 0.268,
+ "status": "PASS"
+}
