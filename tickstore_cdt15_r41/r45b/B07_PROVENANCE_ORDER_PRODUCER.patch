@@ -1,0 +1,108 @@
+--- R45/candidate/control/B07_TECHNICAL_PRODUCER.py
++++ R45B/candidate/control/B07_TECHNICAL_PRODUCER.py
+@@ -7,16 +7,25 @@
+   * the FINAL ZIP and its runtime code manifest;
+   * the independent B06 verdict file, whose SHA-256 is supplied separately and which must say
+     VERDICT=PASS, INDEPENDENT_REVIEW=YES and 0 critical/major findings;
+-  * the verified current policy capture (R44-B2C).
++  * the CURRENT policy capture, verified HERE from physical bytes (R45 B07-PROVENANCE-01): the
++    capture folder and the origin reconciliation record are read through the sealed D4 reader
++    (D4_FIRST_ADMISSION_PREP.Reads: Win32 handles denying write/delete on Windows), the verifier
++    module is admitted only by its FIRST_ADMISSION_BINDING digest, and the reconciliation SHA-256
++    is supplied separately by the operator.  No caller-supplied capture dictionary is accepted;
++    a PASS needs native protected reads.
+ Each of the 10 B07 checks needs its own typed check receipt (EVIDENCE/B07/<CHECK>/CHECK_RECEIPT.json)
+ from the packaged runner function, with exactly its required test IDs (each once, PASS) and
+ required native probes (PASS) and non-empty artifacts.  Anything missing -> status NOT_PASS.
++produced_after_independent_b06 is derived from the verdict actually verified here (R45 B07-ORDER-01):
++True only when the B06 verdict file exists, matches its separately supplied digest and states an
++independent PASS with no critical/major findings; never asserted unconditionally.
+ The B07 *stage* receipt (FULL_RELEASE_CHAIN) is NOT produced here: only the origin decision,
+ bound by ORIGIN_DECISION_BINDER (R44-B2D), can materialize it.
+ """
+ from __future__ import annotations
+ 
+ import hashlib
++import importlib.util
+ import json
+ import os
+ from pathlib import Path
+@@ -105,6 +114,27 @@
+     return f
+ 
+ 
++def verify_policy(policy_root, reconciliation, reconciliation_sha256, now=None):
++    """Verify the capture from physical bytes with the sealed reader; return (capture|None, mode, findings)."""
++    findings, capture, mode = [], None, 'NOT_READ'
++    try:
++        spec = importlib.util.spec_from_file_location('b07_d4_first_admission_prep', HERE / 'D4_FIRST_ADMISSION_PREP.py')
++        prep = importlib.util.module_from_spec(spec); spec.loader.exec_module(prep)
++        manifest = json.loads((HERE / 'FIRST_ADMISSION_BINDING.json').read_bytes())
++        with prep.Reads() as reads:
++            mode = 'WIN32_PROTECTED_HANDLES' if reads.store is not None else 'POSIX_OPTIMISTIC_NOT_NATIVE'
++            binding = prep.load_policy_binding(reads, manifest)
++            verified = binding.verify_capture(reads.read, Path(policy_root), Path(reconciliation),
++                                              reconciliation_sha256, now=now)
++            reads.revalidate()
++        capture = dict(verified, binding_module_sha256=manifest['policy_capture_binding_sha256'])
++    except Exception as exc:  # PolicyBlocked, reader Blocked, OSError: all fail closed
++        findings.append('POLICY_CAPTURE_NOT_VERIFIED:%s:%s' % (type(exc).__name__, str(exc)[:200]))
++    if mode != 'WIN32_PROTECTED_HANDLES':
++        findings.append('POLICY_CAPTURE_READ_NOT_NATIVE_PROTECTED')
++    return capture, mode, findings
++
++
+ def check_findings(name, receipt, member, rfiles, code_index, final_sha, code_sha, run_id, all_tx_ids=None):
+     spec = CHECKS[name]
+     f = []
+@@ -143,10 +173,13 @@
+     return f
+ 
+ 
+-def build(*, return_zip, final_zip, b06_verdict, b06_verdict_sha256, policy_capture, out_path, transaction_test_ids):
++def build(*, return_zip, final_zip, b06_verdict, b06_verdict_sha256, policy_root, policy_reconciliation,
++          policy_reconciliation_sha256, out_path, transaction_test_ids, now=None):
+     """Write the B07 technical receipt (no-clobber); status PASS only when every finding list is empty."""
+     q = load_consumer()
+-    rraw, fraw, vraw = Path(return_zip).read_bytes(), Path(final_zip).read_bytes(), Path(b06_verdict).read_bytes()
++    rraw, fraw = Path(return_zip).read_bytes(), Path(final_zip).read_bytes()
++    vpath = Path(b06_verdict)
++    vraw = vpath.read_bytes() if vpath.is_file() and not vpath.is_symlink() else None
+     final_sha = _sha(fraw)
+     code_raw = q['_zip_members'](fraw, 'FINAL')[1].get('implementation_v001/RUNTIME_CODE_MANIFEST.json', b'')
+     code_sha = _sha(code_raw)
+@@ -158,9 +191,11 @@
+     except ValueError:
+         qr = {}
+     findings += q['qual_receipt_findings'](qr, final_sha, code_sha)
+-    findings += verdict_findings(vraw, b06_verdict_sha256)
+-    if not (isinstance(policy_capture, dict) and policy_capture.get('schema') == 'TICKSTORE_VERIFIED_POLICY_CAPTURE_V001'):
+-        findings.append('POLICY_CAPTURE_REQUIRED')
++    vf = ['B06_VERDICT_MISSING'] if vraw is None else verdict_findings(vraw, b06_verdict_sha256)
++    b06_verified = not vf
++    findings += vf
++    capture, read_mode, pf = verify_policy(policy_root, policy_reconciliation, policy_reconciliation_sha256, now=now)
++    findings += pf
+     checks, evidence = {}, []
+     for name in B07_CHECKS:
+         member = CHECK_PREFIX + name + '/CHECK_RECEIPT.json'
+@@ -180,11 +215,15 @@
+     receipt = {'schema': RECEIPT_SCHEMA, 'status': status, 'platform': 'WINDOWS_NTFS_PS51' if not any(
+                    x.startswith(('QUAL_PRECHECK', 'QUAL_RECEIPT_NOT_NATIVE')) for x in findings) else 'NOT_PROVEN',
+                'code_manifest_sha256': code_sha, 'final_zip_sha256': final_sha,
+-               'review_verdict_sha256': _sha(vraw), 'checks': checks, 'findings': sorted(set(findings)),
++               'review_verdict_sha256': _sha(vraw) if vraw is not None else None, 'checks': checks, 'findings': sorted(set(findings)),
+                'evidence': evidence, 'return_zip_sha256': _sha(rraw),
+-               'policy': {k: (policy_capture or {}).get(k) for k in ('master_sha256', 'head_sha256', 'revision_id',
+-                                                                     'reconciliation_sha256')},
+-               'produced_after_independent_b06': True, 'gate_verdict_issued': False,
++               'policy': dict({k: (capture or {}).get(k) for k in ('master_sha256', 'head_sha256', 'revision_id',
++                                                                    'reconciliation_sha256', 'valid_until',
++                                                                    'binding_module_sha256')},
++                              verified_by='POLICY_CAPTURE_BINDING.verify_capture' if capture else 'NOT_VERIFIED',
++                              read_mode=read_mode),
++               'b06_independent_verdict': 'VERIFIED_PASS' if b06_verified else 'NOT_VERIFIED',
++               'produced_after_independent_b06': b06_verified, 'gate_verdict_issued': False,
+                'stage_receipt_requires_origin_decision': 'R44-B2D ORIGIN_DECISION_BINDER'}
+     raw = _canonical(receipt)
+     out = Path(out_path)

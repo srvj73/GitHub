@@ -13,7 +13,7 @@ from pathlib import Path
 
 DATE = '20261014'
 FIXED_TIME = (2026, 10, 13, 0, 0, 0)
-REV = 'R45'
+REV = 'R45B'
 FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_%s_%s.zip' % (REV, DATE)
 FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_%s_%s.json' % (REV, DATE)
 QUAL_NAME = 'TICKSTORE_CDT15_%s_QUAL_%s.zip' % (REV, DATE)
@@ -28,6 +28,8 @@ BASELINE = {
     # R45 parent: the R44 FINAL qualified natively (126/126, RETURN 02036B1E...); never rebuilt here.
     'parent_final_r44_sha256': '0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D',
     'parent_r44_native_return_sha256': '02036B1EA45370BE570865E281F8F5FC4C5D1C5364171680E2EE493EC7C5BB6D',
+    # R45B parent: R45 FINAL audited by the origin (SOURCE_PASS, native held for B07-PROVENANCE-01/ORDER-01).
+    'parent_final_r45_sha256': 'C0D1921634AE24D068BE7970C587244C7C1AEA10C6B06CB60E1C796139EFC700',
 }
 POLICY = {'revision': '20261013T070500-0300-695DCD6495E549B1',
           'master_sha256': '695DCD6495E549B13B13A73E063EA147CF97354C53940A70647EDFD0A0BC7DF5',
@@ -128,7 +130,7 @@ def main(source, out):
     source, out = Path(source).resolve(), Path(out).resolve()
     for name, digest in B2C_APPROVED.items():
         assert sha((B2C_FIX / name).read_bytes()) == digest, 'B2C_APPROVED_FIXTURE_DRIFT:' + name
-    assert REV != 'R44', 'R44_FINAL_IS_FROZEN_NEVER_REBUILT'
+    assert REV not in ('R44', 'R45'), 'R44_AND_R45_FINALS_ARE_FROZEN_NEVER_REBUILT'
     out.mkdir(parents=True, exist_ok=True)
     # 1. Runtime code manifest (outside the candidate root: ReleaseChain closed set).
     code = files_under(source / 'candidate')

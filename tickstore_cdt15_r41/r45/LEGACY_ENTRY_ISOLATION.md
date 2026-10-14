@@ -13,8 +13,17 @@ O núcleo congelado RC1 (`candidate/full/tickstore_serial_runner.py`, SHA-256 `D
 
 A suíte entra no plano de qualificação R45 como `S14_LEGACY_ENTRY_ISOLATION` (9 testes) e roda a partir do FINAL extraído (testado = empacotado).
 
-## Risco residual (declarado, não ocultado)
+## Risco residual — ABERTO, bloqueia a admissão produtiva (decisão da origem R45, achado LEGACY-ENTRY)
 
-O RC1 congelado aceita um gate de dono FULL_SERIAL que um humano forje e vincule exatamente aos bindings correntes (fontes, destino, ledger, SHAs do núcleo/referência/spec/preflight). A R40 proíbe emitir esse gate e revogou o OWNER_GATE administrativo. A barreira restante é procedimental: nenhum gate desse tipo existe, é produzido ou é aceito por qualquer outro caminho do pacote.
+A quarentena dos lançadores **não** fecha o risco. O RC1 congelado continua invocável diretamente (`python full\tickstore_serial_runner.py --mode FULL_SERIAL ...`) e aceitaria um Owner Gate administrativo FULL_SERIAL forjado e vinculado exatamente aos bindings correntes. Isso é incompatível com a revogação da autoridade administrativa pela R40. Estado: `LEGACY_ENTRY=RESIDUAL_BLOCKS_PRODUCTION`. Nenhum Owner Gate foi ou será fabricado.
 
-Fechar o residual por código exige alterar o RC1, com nova certificação, ou retirar o RC1 do FINAL. As duas opções mudam o núcleo congelado. **Decisão reservada à origem.** O engenheiro não alterou o núcleo.
+As camadas acima servem à engenharia e à qualificação. Elas reduzem a superfície, mas não provam impossibilidade de acesso, porque qualquer processo com Python e leitura do pacote alcança a CLI do núcleo.
+
+### Proposta para decisão da origem (nada implementado)
+
+| Opção | Mudança | Efeito | Custo |
+|---|---|---|---|
+| A. Patch explícito do RC1 | `FULL_SERIAL_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE=False` e `PILOT_EXECUTION_AUTHORIZED_BY_THIS_PACKAGE=False` (2 linhas). Não afeta a rota MULTIWORK, que não lê essas flags. | A CLI legada passa a bloquear antes de ler gate, ledger ou raízes (`FULL_SERIAL_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE`, `PILOT_EXECUTION_NOT_AUTHORIZED_BY_PACKAGE`). Isso prova impossibilidade por código. | O SHA do núcleo muda. Ele está fixado em: engine de release `v004_release` (`CORE_SHA`, linha 35) e no SHA desse engine na cadeia D4 (`RELEASE_SHA`, pacote `4BC28843…`); `v004_candidate`; 4 bases de review; `postfull_verifier`; `STAGE_A_SEALED_VALUES_V001.json`; `RUN_WINDOWS_MULTIWORK_PREFLIGHT.ps1`; `static_multiwork_preaudit`; `MULTIWORK_PREAUDIT_SUMMARY.json`; e nos testes `test_full_multiwork`, `test_full_serial_r9` (`is True`), `test_gate_b_r8` e `test_runner_logic`. Exige nova certificação do RC1 e do engine de release, além de nova qualificação nativa completa. |
+| B. Manter o RC1 e não admitir produção | Nenhuma | O resíduo permanece. A admissão produtiva continua bloqueada até a origem aceitar formalmente o risco ou escolher A. | Nenhum agora. Bloqueia a produção. |
+
+Recomendação técnica: **A**, num ciclo próprio de recertificação do RC1, separado deste delta B07. A decisão e a autorização para alterar o núcleo congelado cabem à origem.
