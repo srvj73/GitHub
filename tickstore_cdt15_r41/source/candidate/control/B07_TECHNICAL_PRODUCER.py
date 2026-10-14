@@ -115,24 +115,10 @@ def verdict_findings(raw, supplied_sha):
 
 
 def verify_policy(policy_root, reconciliation, reconciliation_sha256, now=None):
-    """Verify the capture from physical bytes with the sealed reader; return (capture|None, mode, findings)."""
-    findings, capture, mode = [], None, 'NOT_READ'
-    try:
-        spec = importlib.util.spec_from_file_location('b07_d4_first_admission_prep', HERE / 'D4_FIRST_ADMISSION_PREP.py')
-        prep = importlib.util.module_from_spec(spec); spec.loader.exec_module(prep)
-        manifest = json.loads((HERE / 'FIRST_ADMISSION_BINDING.json').read_bytes())
-        with prep.Reads() as reads:
-            mode = 'WIN32_PROTECTED_HANDLES' if reads.store is not None else 'POSIX_OPTIMISTIC_NOT_NATIVE'
-            binding = prep.load_policy_binding(reads, manifest)
-            verified = binding.verify_capture(reads.read, Path(policy_root), Path(reconciliation),
-                                              reconciliation_sha256, now=now)
-            reads.revalidate()
-        capture = dict(verified, binding_module_sha256=manifest['policy_capture_binding_sha256'])
-    except Exception as exc:  # PolicyBlocked, reader Blocked, OSError: all fail closed
-        findings.append('POLICY_CAPTURE_NOT_VERIFIED:%s:%s' % (type(exc).__name__, str(exc)[:200]))
-    if mode != 'WIN32_PROTECTED_HANDLES':
-        findings.append('POLICY_CAPTURE_READ_NOT_NATIVE_PROTECTED')
-    return capture, mode, findings
+    """Physical capture verification (shared with ORIGIN_DECISION_BINDER); see POLICY_PHYSICAL_VERIFY."""
+    spec = importlib.util.spec_from_file_location('b07_policy_physical_verify', HERE / 'POLICY_PHYSICAL_VERIFY.py')
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    return mod.verify_policy(policy_root, reconciliation, reconciliation_sha256, now=now)
 
 
 def check_findings(name, receipt, member, rfiles, code_index, final_sha, code_sha, run_id, all_tx_ids=None):

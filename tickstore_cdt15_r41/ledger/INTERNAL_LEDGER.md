@@ -1,0 +1,25 @@
+# Ledger interno — TICKSTORE CDT15 conclusão FULL (diretiva da origem: encerrar ping-pong)
+
+Base: commit dfe680a (R45B interno). RC1 D3A15572… preservado.
+
+| ID | Origem | Lacuna | Classe | Estado |
+|---|---|---|---|---|
+| B07-PROVENANCE-01 | origem R45 | produtor B07 aceitava captura sintética | interna | CORRIGIDO (R45B) |
+| B07-ORDER-01 | origem R45 | produced_after_independent_b06 incondicional | interna | CORRIGIDO (R45B) |
+| B2D-PROVENANCE | engenharia | binder aceitava captura sintética; sem CLI | interna | CORRIGIDO |
+| G1 | auditoria | ID de teste B07 com classe errada (EffectfulWriter vs Concurrency) | interna | aberto |
+| G2 | auditoria | sem montador de cadeia até B06 para o runner B07 | interna | aberto |
+| G3 | auditoria | sem driver/RETURN ZIP do B07; árvore de testes não vinculada; tx ids do chamador | interna | aberto |
+| B07-RUNNER | engenharia | probe de política sem digest selado; cardinalidade fixa; probe sandbox usa R44D | interna | aberto |
+| G4 | auditoria | MENU não repassa reconciliação; sem Monitor; sem teste | interna | aberto |
+| G5 | auditoria | CLIs de compatibilidade sempre bloqueiam | interna | aberto |
+| G6 | auditoria | autoelevação do wrapper quebrada (-ElevatedChild bloqueado) | interna | aberto |
+| G7 | auditoria | Ctrl+C mata o wrapper D4 (subprocess.call) | interna | aberto |
+| G8 | auditoria | Stop só no nó G3 | interna/desenho | aberto |
+| G9 | auditoria | STATE_CAS_RECOVERY sem testes | interna | aberto |
+| G10 | auditoria | readback D5, full_admission_facts e FULL_GO sem teste | interna | aberto |
+| G11 | auditoria | G4 fora da cadeia (só status) | documentação | aberto |
+| G12 | auditoria | validate_multiwork_gate morto (gate legado) | interna | aberto |
+| G13 | auditoria | regra de log do titular não aplicada a ferramentas | interna | aberto |
+| G14 | auditoria | laboratório de energia: arm/inspect/reconcile não ligados | interna (execução externa) | aberto |
+| LEGACY-ENTRY | origem | CLI direta do RC1 aceita owner gate forjado | externa (release instalada + proveniência) | decisão consolidada |

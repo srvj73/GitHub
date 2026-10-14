@@ -10,13 +10,23 @@ implementer can never be the issuer.
 Bindings (all mandatory): stage, policy capture (master/head/revision + origin
 reconciliation), code manifest, FINAL package, instance, evidence (re-read and hashed),
 blockers (empty), predecessor receipt chain and, for B07, the independent B06 verdict.
+
+The policy identity is never taken from the caller (R45, B2D analogue of B07-PROVENANCE-01):
+materialize() verifies the capture folder and the origin reconciliation record itself through
+POLICY_PHYSICAL_VERIFY (sealed reader, sealed verifier module, separately supplied digest).
+Only native protected reads produce an operational WINDOWS_PRODUCTION receipt; any other read
+mode yields environment FIXTURE_NOT_NATIVE, which FULL_RELEASE_CHAIN never consumes.
+Operator entry: python ORIGIN_DECISION_BINDER.py --stage G5|B07 ... (see main()).
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 DECISION_SCHEMA = 'TICKSTORE_ORIGIN_STAGE_DECISION_V001'
@@ -32,6 +42,19 @@ REQUIRED_CHECKS = {
 REQUIRED_EVIDENCE = {'G5': ('G5_EVIDENCE_PACK', 'ENGINEERING_COMPLETENESS', 'NATIVE_RETURN_ZIP'),
                      'B07': ('B07_TECHNICAL_RECEIPT', 'NATIVE_RETURN_ZIP')}
 HEX64 = re.compile('[0-9A-F]{64}')
+HERE = Path(__file__).resolve().parent
+OPERATIONAL_ENVIRONMENT = 'WINDOWS_PRODUCTION'
+FIXTURE_ENVIRONMENT = 'FIXTURE_NOT_NATIVE'
+
+
+def verified_policy(policy_root, reconciliation, reconciliation_sha256, now=None):
+    """Physically verified capture plus the receipt environment it allows."""
+    spec = importlib.util.spec_from_file_location('b2d_policy_physical_verify', HERE / 'POLICY_PHYSICAL_VERIFY.py')
+    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+    capture, mode, findings = mod.verify_policy(policy_root, reconciliation, reconciliation_sha256, now=now)
+    hard = [f for f in findings if f != mod.NOT_NATIVE]
+    _require(capture is not None and not hard, 'DECISION_POLICY_NOT_VERIFIED:' + ';'.join(hard or findings))
+    return capture, (OPERATIONAL_ENVIRONMENT if mode == mod.NATIVE_MODE and not findings else FIXTURE_ENVIRONMENT)
 
 
 class DecisionBlocked(RuntimeError):
@@ -132,10 +155,12 @@ def _check_evidence_semantics(stage, role, raw, *, code_sha, final_package_sha, 
                  and obj.get('review_verdict_sha256') == b06_sha, 'DECISION_EVIDENCE_B07_RECEIPT')
 
 
-def materialize(decision_path, decision_sha256, *, stage, code_sha, final_package_sha, instance_sha, policy_capture,
-                predecessor_hashes, evidence_paths, out_path, b06_sha=None, read=None):
+def materialize(decision_path, decision_sha256, *, stage, code_sha, final_package_sha, instance_sha, policy_root,
+                policy_reconciliation, policy_reconciliation_sha256, predecessor_hashes, evidence_paths, out_path,
+                b06_sha=None, read=None, now=None):
     """Write the stage receipt (no-clobber) only if the origin decision binds everything."""
     read = read or (lambda p: Path(p).read_bytes())
+    policy_capture, environment = verified_policy(policy_root, policy_reconciliation, policy_reconciliation_sha256, now=now)
     raw = read(decision_path)
     d = verify_decision(raw, decision_sha256, stage=stage, code_sha=code_sha, final_package_sha=final_package_sha,
                         instance_sha=instance_sha, policy_capture=policy_capture,
@@ -150,12 +175,15 @@ def materialize(decision_path, decision_sha256, *, stage, code_sha, final_packag
                                   b06_sha=b06_sha)
         evidence.append({'path': str(Path(evidence_paths[e['role']]).absolute()), 'sha256': e['sha256'], 'role': e['role']})
     evidence.append({'path': str(Path(decision_path).absolute()), 'sha256': decision_sha256, 'role': 'ORIGIN_DECISION'})
-    receipt = {'schema': STAGE_RECEIPT_SCHEMA, 'stage': stage, 'status': 'PASS', 'environment': 'WINDOWS_PRODUCTION',
+    receipt = {'schema': STAGE_RECEIPT_SCHEMA, 'stage': stage, 'status': 'PASS', 'environment': environment,
                'code_manifest_sha256': code_sha, 'instance_sha256': instance_sha,
                'previous_receipt_sha256': d['previous_receipt_sha256'], 'blockers': [],
                'checks': {k: True for k in REQUIRED_CHECKS[stage]}, 'evidence': evidence,
                'origin_decision_sha256': decision_sha256, 'origin_decision_id': d['decision_id'],
                'final_package_sha256': final_package_sha, 'policy': dict(d['policy']),
+               'policy_verification': {'read_mode': policy_capture['read_mode'],
+                                       'binding_module_sha256': policy_capture['binding_module_sha256'],
+                                       'verified_by': 'POLICY_CAPTURE_BINDING.verify_capture'},
                'materialized_by': 'ORIGIN_DECISION_BINDER_COPY_ONLY', 'decision_owner': 'CHATGPT_ORIGIN',
                'implementation_participant_is_issuer': False}
     if stage == 'B07':
@@ -166,4 +194,53 @@ def materialize(decision_path, decision_sha256, *, stage, code_sha, final_packag
     with open(out, 'xb') as f:
         f.write(raw_out); f.flush(); os.fsync(f.fileno())
     _require(out.read_bytes() == raw_out, 'STAGE_RECEIPT_READBACK')
-    return {'path': str(out.absolute()), 'sha256': _sha(raw_out), 'stage': stage}
+    return {'path': str(out.absolute()), 'sha256': _sha(raw_out), 'stage': stage, 'environment': environment}
+
+
+def _file_sha(path):
+    return _sha(Path(path).read_bytes())
+
+
+def main(argv=None):
+    """Operator entry: identities are hashed from the physical files; trust anchors are supplied separately."""
+    ap = argparse.ArgumentParser(allow_abbrev=False)
+    ap.add_argument('--stage', required=True, choices=MATERIALIZABLE)
+    ap.add_argument('--decision', required=True)
+    ap.add_argument('--decision-sha256', required=True)
+    ap.add_argument('--code-manifest', required=True)
+    ap.add_argument('--final-zip', required=True)
+    ap.add_argument('--instance', required=True)
+    ap.add_argument('--policy-root', required=True)
+    ap.add_argument('--policy-reconciliation', required=True)
+    ap.add_argument('--policy-reconciliation-sha256', required=True)
+    ap.add_argument('--predecessor', action='append', default=[], help='STAGE=RECEIPT_PATH, in chain order')
+    ap.add_argument('--b06-sha256', default=None)
+    ap.add_argument('--evidence', action='append', default=[], help='ROLE=PATH')
+    ap.add_argument('--out', required=True)
+    a = ap.parse_args(argv)
+    try:
+        preds = {}
+        for item in a.predecessor:
+            name, _, path = item.partition('=')
+            _require(name and path and name not in preds, 'CLI_PREDECESSOR:' + item)
+            preds[name] = _file_sha(path)
+        evidence = {}
+        for item in a.evidence:
+            role, _, path = item.partition('=')
+            _require(role and path and role not in evidence, 'CLI_EVIDENCE:' + item)
+            evidence[role] = path
+        r = materialize(a.decision, a.decision_sha256.upper(), stage=a.stage, code_sha=_file_sha(a.code_manifest),
+                        final_package_sha=_file_sha(a.final_zip), instance_sha=_file_sha(a.instance),
+                        policy_root=a.policy_root, policy_reconciliation=a.policy_reconciliation,
+                        policy_reconciliation_sha256=a.policy_reconciliation_sha256.upper(), predecessor_hashes=preds,
+                        evidence_paths=evidence, out_path=a.out, b06_sha=a.b06_sha256.upper() if a.b06_sha256 else None)
+    except (DecisionBlocked, OSError, ValueError, KeyError) as exc:
+        print('ORIGIN_DECISION_BINDER=BLOCKED REASON=%s:%s' % (type(exc).__name__, exc))
+        return 2
+    print('ORIGIN_DECISION_BINDER=MATERIALIZED STAGE=%s ENVIRONMENT=%s RECEIPT_SHA256=%s PATH=%s'
+          % (r['stage'], r['environment'], r['sha256'], r['path']))
+    return 0 if r['environment'] == OPERATIONAL_ENVIRONMENT else 3
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

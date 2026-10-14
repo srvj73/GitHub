@@ -2,10 +2,19 @@
 
 Decision records built here are UNIT FIXTURES ONLY (never origin evidence).  The produced
 receipts are validated by the unmodified FULL_RELEASE_CHAIN.validate_chain.
+
+R45: the binder verifies the policy capture itself from physical bytes (R40 capture fixture and a
+reconciliation UNIT FIXTURE in a private temp dir, marked unit_fixture_not_origin_record).  Off
+Windows the reads are optimistic, so receipts carry environment FIXTURE_NOT_NATIVE and are refused
+by the operational chain; natively the same inputs yield WINDOWS_PRODUCTION.
 """
+import contextlib
 import copy
+import datetime as dt
 import hashlib
+import io
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -17,6 +26,10 @@ import ORIGIN_DECISION_BINDER as D  # noqa: E402
 from FULL_RELEASE_CHAIN import validate_chain  # noqa: E402
 
 CODE, FINAL, INST, B06 = 'A' * 64, 'B' * 64, 'C' * 64, 'D' * 64
+NATIVE = os.name == 'nt'
+ENV = 'WINDOWS_PRODUCTION' if NATIVE else 'FIXTURE_NOT_NATIVE'
+NOW = dt.datetime(2026, 10, 14, 12, 0, tzinfo=dt.timezone.utc)
+R40 = HERE / 'fixtures/R40_CAPTURE_NON_AUTHORITATIVE'
 
 
 def h(raw):
@@ -30,8 +43,13 @@ def j(obj):
 class Binder(unittest.TestCase):
     def setUp(self):
         t = tempfile.TemporaryDirectory(); self.addCleanup(t.cleanup); self.t = Path(t.name)
-        self.capture = {'schema': 'TICKSTORE_VERIFIED_POLICY_CAPTURE_V001', 'master_sha256': '1' * 64,
-                        'head_sha256': '2' * 64, 'revision_id': 'R', 'reconciliation_sha256': '3' * 64}
+        self.policy = self.t / 'policy'
+        import shutil; shutil.copytree(R40, self.policy)
+        self.rec, self.rec_sha = self.reconciliation()
+        hd = json.loads((R40 / 'POLITICA_CANONICA_HEAD.json').read_bytes())
+        self.capture = {'master_sha256': h((R40 / 'POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md').read_bytes()),
+                        'head_sha256': h((R40 / 'POLITICA_CANONICA_HEAD.json').read_bytes()),
+                        'revision_id': hd['revision_id'], 'reconciliation_sha256': self.rec_sha}
         files = {
             'G5_EVIDENCE_PACK': j({'schema': 'TICKSTORE_G5_EVIDENCE_PACK_V001', 'completeness_status': 'COMPLETE',
                                    'known_blockers': [], 'consumer_self_check': 'ACCEPTS', 'code_manifest_sha256': CODE,
@@ -50,6 +68,21 @@ class Binder(unittest.TestCase):
             p = self.t / (role + '.bin'); p.write_bytes(raw); self.paths[role] = p
         self.n = 0
 
+    def reconciliation(self, name='RECONCILIATION.json', **over):
+        hd = json.loads((R40 / 'POLITICA_CANONICA_HEAD.json').read_bytes())
+        rec = {'schema': 'TICKSTORE_ORIGIN_POLICY_RECONCILIATION_V001', 'issuer': 'CHATGPT_ORIGIN',
+               'status': 'CURRENT_AT_ORIGIN', 'unit_fixture_not_origin_record': True,
+               'policy_master_sha256': h((R40 / 'POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md').read_bytes()),
+               'policy_head_sha256': h((R40 / 'POLITICA_CANONICA_HEAD.json').read_bytes()),
+               'policy_revision': hd['revision_id'], 'live_cardinality': {'master': 1, 'head': 1}, 'live_state': 'FROZEN',
+               'capture_operational_authority': False, 'administrative_owner_gate_required': False,
+               'scope': ['D4_FIRST_ADMISSION'], 'routing_project': 'Base de Dados CSV / Tickstore',
+               'routing_thread': 'Compress\u00e3o De Ticks 15', 'reconciled_at': '2026-10-14T00:00:00+00:00',
+               'valid_until': '2026-10-15T00:00:00+00:00'}
+        rec.update(over)
+        p = self.t / name; p.write_bytes(j(rec))
+        return p, h(p.read_bytes())
+
     def decision(self, stage, **over):
         roles = D.REQUIRED_EVIDENCE[stage]
         d = {'schema': D.DECISION_SCHEMA, 'issuer': 'CHATGPT_ORIGIN', 'implementation_participant_is_issuer': False,
@@ -63,13 +96,16 @@ class Binder(unittest.TestCase):
         d.update(over)
         return d
 
-    def run_stage(self, stage, d, preds=None, sha=None, out=None, b06=None, evidence=None):
+    def run_stage(self, stage, d, preds=None, sha=None, out=None, b06=None, evidence=None, rec=None, rec_sha=None,
+                  policy=None):
         self.n += 1
         raw = j(d); p = self.t / ('DECISION_%d.json' % self.n); p.write_bytes(raw)
         ev = evidence or {r: self.paths[r] for r in {e['role'] for e in d['evidence']}}
         return D.materialize(p, sha or h(raw), stage=stage, code_sha=CODE, final_package_sha=FINAL, instance_sha=INST,
-                             policy_capture=self.capture, predecessor_hashes=preds if preds is not None else {},
-                             evidence_paths=ev, out_path=out or self.t / ('STAGE_%s_%d.json' % (stage, self.n)), b06_sha=b06)
+                             policy_root=policy or self.policy, policy_reconciliation=rec or self.rec,
+                             policy_reconciliation_sha256=rec_sha or self.rec_sha,
+                             predecessor_hashes=preds if preds is not None else {}, evidence_paths=ev,
+                             out_path=out or self.t / ('STAGE_%s_%d.json' % (stage, self.n)), b06_sha=b06, now=NOW)
 
     def blocked(self, needle, stage='G5', **kw):
         with self.assertRaisesRegex(D.DecisionBlocked, needle):
@@ -79,11 +115,17 @@ class Binder(unittest.TestCase):
         r = self.run_stage('G5', self.decision('G5'))
         obj = json.loads(Path(r['path']).read_bytes())
         self.assertEqual(obj['materialized_by'], 'ORIGIN_DECISION_BINDER_COPY_ONLY')
-        validate_chain({'G5': obj}, {'G5': r['sha256']}, code_sha=CODE, instance_sha=INST, b06_sha=B06, until='G5')
+        self.assertEqual(obj['environment'], ENV); self.assertEqual(r['environment'], ENV)
+        self.assertEqual(obj['policy_verification']['verified_by'], 'POLICY_CAPTURE_BINDING.verify_capture')
+        validate_chain({'G5': obj}, {'G5': r['sha256']}, code_sha=CODE, instance_sha=INST, b06_sha=B06, until='G5',
+                       environment=ENV)
+        if not NATIVE:  # a non-native receipt is never consumable by the operational chain
+            with self.assertRaisesRegex(Exception, 'G5_ENVIRONMENT'):
+                validate_chain({'G5': obj}, {'G5': r['sha256']}, code_sha=CODE, instance_sha=INST, b06_sha=B06, until='G5')
 
     def test_02_b07_binds_g5_b06_chain_and_independent_b06(self):
         g5 = self.run_stage('G5', self.decision('G5'))
-        b06 = {'schema': 'TICKSTORE_STAGE_RECEIPT_V001', 'stage': 'B06', 'status': 'PASS', 'environment': 'WINDOWS_PRODUCTION',
+        b06 = {'schema': 'TICKSTORE_STAGE_RECEIPT_V001', 'stage': 'B06', 'status': 'PASS', 'environment': ENV,
                'code_manifest_sha256': CODE, 'instance_sha256': INST, 'previous_receipt_sha256': g5['sha256'], 'blockers': [],
                'checks': dict(independent_review=True, final_bytes=True, no_critical_or_major_findings=True),
                'evidence': [{'path': 'B06_VERDICT', 'sha256': 'E' * 64}], 'reviewer': 'INDEPENDENT_FIXTURE',
@@ -99,7 +141,7 @@ class Binder(unittest.TestCase):
         receipts = {'G5': json.loads(Path(g5['path']).read_bytes()), 'B06': b06,
                     'B07': json.loads(Path(r['path']).read_bytes())}
         validate_chain(receipts, {'G5': g5['sha256'], 'B06': b06_sha, 'B07': r['sha256']}, code_sha=CODE,
-                       instance_sha=INST, b06_sha=b06_sha, until='B07')
+                       instance_sha=INST, b06_sha=b06_sha, until='B07', environment=ENV)
         with self.assertRaisesRegex(D.DecisionBlocked, 'DECISION_B06'):
             self.run_stage('B07', dict(d, b06_independent=False), preds=preds, b06=b06_sha)
 
@@ -157,6 +199,66 @@ class Binder(unittest.TestCase):
         src = (HERE.parent / 'candidate/control/ORIGIN_DECISION_BINDER.py').read_text(encoding='utf-8')
         self.assertEqual(src.count("'status': 'PASS'"), 1)  # only inside materialize, after verify_decision
         self.assertNotIn('OWNER_GATE_V', src)
+
+    # ---- R45: policy provenance (analogue of B07-PROVENANCE-01) ---------------------------------
+    def test_12_caller_supplied_capture_dictionary_is_refused(self):
+        d = self.decision('G5'); raw = j(d); p = self.t / 'D_forged.json'; p.write_bytes(raw)
+        forged = {'schema': 'TICKSTORE_VERIFIED_POLICY_CAPTURE_V001', 'master_sha256': '1' * 64, 'head_sha256': '2' * 64,
+                  'revision_id': 'R', 'reconciliation_sha256': '3' * 64}
+        with self.assertRaises(TypeError):
+            D.materialize(p, h(raw), stage='G5', code_sha=CODE, final_package_sha=FINAL, instance_sha=INST,
+                          policy_capture=forged, predecessor_hashes={}, evidence_paths={}, out_path=self.t / 'X.json')
+        self.assertFalse((self.t / 'X.json').exists())
+
+    def test_13_fictitious_or_unverifiable_policy_blocks_before_reading_the_decision(self):
+        out = self.t / 'NEVER.json'
+        rec, rec_sha = self.reconciliation('FAKE.json', policy_master_sha256='1' * 64)
+        self.blocked('DECISION_POLICY_NOT_VERIFIED:.*POLICY_RECONCILIATION_BINDING', rec=rec, rec_sha=rec_sha, out=out)
+        self.blocked('DECISION_POLICY_NOT_VERIFIED:.*SHA_MISMATCH', rec_sha='3' * 64, out=out)
+        rec, rec_sha = self.reconciliation('OLD.json', valid_until='2026-10-14T06:00:00+00:00')
+        self.blocked('DECISION_POLICY_NOT_VERIFIED:.*EXPIRED', rec=rec, rec_sha=rec_sha, out=out)
+        empty = self.t / 'empty'; empty.mkdir()
+        self.blocked('DECISION_POLICY_NOT_VERIFIED:.*CARDINALITY', policy=empty, out=out)
+        self.assertFalse(out.exists())
+
+    def test_14_decision_policy_must_equal_the_physically_verified_capture(self):
+        pol = dict(self.decision('G5')['policy'], master_sha256='1' * 64)
+        self.blocked('DECISION_POLICY_BINDING:master', d=self.decision('G5', policy=pol))
+
+    def test_15_operator_cli_hashes_physical_inputs(self):
+        d = self.decision('G5', code_manifest_sha256=None, final_package_sha256=None, instance_sha256=None)
+        files = {}
+        for name in ('code', 'final', 'instance'):
+            p = self.t / (name + '.bin'); p.write_bytes(name.encode()); files[name] = p
+        d.update(code_manifest_sha256=h(b'code'), final_package_sha256=h(b'final'), instance_sha256=h(b'instance'))
+        # The G5 pack is bound to the code manifest digest, so re-derive the evidence for these physical inputs.
+        self.paths['G5_EVIDENCE_PACK'].write_bytes(j({'schema': 'TICKSTORE_G5_EVIDENCE_PACK_V001', 'completeness_status': 'COMPLETE',
+                                                      'known_blockers': [], 'consumer_self_check': 'ACCEPTS',
+                                                      'code_manifest_sha256': h(b'code'), 'gate_verdict_issued': False}))
+        self.paths['ENGINEERING_COMPLETENESS'].write_bytes(j({'schema': 'TICKSTORE_ENGINEERING_COMPLETENESS_V002',
+            'status': 'COMPLETE', 'known_blockers': [], 'code_manifest_sha256': h(b'code'),
+            'provenance_mode': 'CLOSED_NATIVE_RETURN_ZIP',
+            'delta_qualification': {'native_provenance': {'final_zip': {'sha256': h(b'final')}}}}))
+        d['evidence'] = [{'role': r, 'sha256': h(self.paths[r].read_bytes())} for r in D.REQUIRED_EVIDENCE['G5']]
+        raw = j(d); dp = self.t / 'D_cli.json'; dp.write_bytes(raw)
+        args = ['--stage', 'G5', '--decision', str(dp), '--decision-sha256', h(raw), '--code-manifest', str(files['code']),
+                '--final-zip', str(files['final']), '--instance', str(files['instance']), '--policy-root', str(self.policy),
+                '--policy-reconciliation', str(self.rec), '--policy-reconciliation-sha256', self.rec_sha,
+                '--out', str(self.t / 'G5_cli.json')]
+        for r in D.REQUIRED_EVIDENCE['G5']:
+            args += ['--evidence', '%s=%s' % (r, self.paths[r])]
+        real = D.verified_policy  # pin the clock of the reconciliation window (deterministic test)
+        D.verified_policy = lambda *a, **k: real(*a, **dict(k, now=NOW))
+        self.addCleanup(setattr, D, 'verified_policy', real)
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            rc = D.main(args)
+        self.assertEqual(rc, 0 if NATIVE else 3, buf.getvalue())
+        self.assertIn('ORIGIN_DECISION_BINDER=MATERIALIZED STAGE=G5 ENVIRONMENT=' + ENV, buf.getvalue())
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            self.assertEqual(D.main(args), 2)  # same --out: no clobber, the CLI fails closed
+        self.assertIn('ORIGIN_DECISION_BINDER=BLOCKED', buf.getvalue()); self.assertIn('STAGE_RECEIPT_EXISTS', buf.getvalue())
 
 
 if __name__ == '__main__':
