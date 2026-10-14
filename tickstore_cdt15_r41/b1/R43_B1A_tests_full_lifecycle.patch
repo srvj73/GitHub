@@ -1,5 +1,5 @@
---- /tmp/claude-0/-home-user-GitHub/8d489fba-35fb-5a2f-80ae-41135484a8dd/scratchpad/origin/x/TEST_MODULES_R3/engineering/tests_full_lifecycle.py	2026-10-13 16:00:00.000000000 +0000
-+++ engineering/tests_full_lifecycle.py	2026-10-13 21:29:50.435718115 +0000
+--- /tmp/claude-0/-home-user-GitHub/8d489fba-35fb-5a2f-80ae-41135484a8dd/scratchpad/origin/x/TEST_MODULES_R3/engineering/tests_full_lifecycle.py
++++ b1/derived/tests_full_lifecycle.py
 @@ -25,8 +25,8 @@
    self.a.instance=dict(run_id='same_instance',bindings=dict(source_root=str(self.root/'source'),dest_root=str(self.root/'dest'),scratch_root=str(self.root/'scratch')),resources=dict(max_workers=4,ram_target_percent=50),ledger_path=str(self.root/'ledger'))
    self.a.descriptor=dict(instance_sha256='A'*64,code_manifest_sha256='B'*64,receipts={})

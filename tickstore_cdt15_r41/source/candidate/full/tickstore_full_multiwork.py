@@ -206,12 +206,18 @@ def windows_memory_status():
 
 
 def available_logical_cpus():
-    """CPUs this process may actually use (affinity/processor groups), probed per run."""
+    """CPUs this process may actually use (affinity/processor groups), probed per run.
+
+    Affinity can only reduce the system count, so the result is the minimum of both.
+    R42-B1: the historical AUTOCPU contract test bounds the machine via os.cpu_count;
+    the process probe must never raise the budget above that system count.
+    """
+    system = int(os.cpu_count() or 1)
     probe = getattr(os, "process_cpu_count", None)
     value = probe() if probe is not None else None
     if not value and hasattr(os, "sched_getaffinity"):
         value = len(os.sched_getaffinity(0))
-    return max(1, int(value or os.cpu_count() or 1))
+    return max(1, min(system, int(value or system)))
 
 
 class MainLoopWatchdog:

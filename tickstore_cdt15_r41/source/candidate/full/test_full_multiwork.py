@@ -246,6 +246,19 @@ class TestFullMultiworkHelpers(unittest.TestCase):
             workers,_=m.choose_workers('AUTO',75,22,60)
         self.assertEqual(workers,4)
 
+    def test_r42_autocpu_never_exceeds_system_count(self):
+        # Historical contract (tests_delta.test_auto_cpu_zero_one_n_and_invalid_request)
+        # bounds the machine through os.cpu_count; affinity may only lower it.
+        with mock.patch.object(m.os,'process_cpu_count',create=True,return_value=24), \
+             mock.patch.object(m.os,'cpu_count',return_value=8):
+            self.assertEqual(m.available_logical_cpus(),8)
+        mem={'total':32*1024**3,'available':24*1024**3}
+        with mock.patch.object(m,'windows_memory_status',return_value=mem), \
+             mock.patch.object(m.os,'process_cpu_count',create=True,return_value=24), \
+             mock.patch.object(m.os,'cpu_count',return_value=8):
+            self.assertEqual(m.choose_workers('AUTO',20,32,60)[0],6)
+            with self.assertRaisesRegex(RuntimeError,'CPU_BUDGET'): m.choose_workers('7',20,32,60)
+
     def test_r41_watchdog_requests_cooperative_stop_once(self):
         class Stop:
             def __init__(self): self.n=0

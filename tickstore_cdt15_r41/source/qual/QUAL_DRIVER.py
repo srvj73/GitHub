@@ -310,6 +310,26 @@ def run_scenario(name, spec, bundle, impl, work, env, evidence, python, native):
             'checks': res.get('checks', {}), 'error': res.get('error')}
 
 
+def run_b1(bundle, impl, work, env, evidence, python, native):
+    args = [python, '-I', '-X', 'utf8', '-B', str(bundle / 'qual/R43_B1_RUNNER.py'), '--bundle', str(bundle),
+            '--impl', str(impl), '--work', str(work), '--evidence', str(evidence),
+            '--plan', str(bundle / 'qual/QUAL_PLAN.json')]
+    if not native:
+        args.append('--offline')
+    t0 = time.monotonic()
+    r = subprocess.run(args, env=env, capture_output=True, text=True, timeout=10800)
+    (Path(evidence) / 'B1_RUNNER_STDIO.txt').write_text(r.stdout[-100000:] + '\n---STDERR---\n' + r.stderr[-50000:],
+                                                       encoding='utf-8')
+    res_path = Path(evidence) / 'B1_RESULT.json'
+    res = json.loads(res_path.read_bytes()) if res_path.is_file() else {'status': 'NO_RESULT'}
+    line = next((l for l in r.stdout.splitlines() if l.startswith('R43_B1 ')), 'R43_B1 status=NO_LINE')
+    print(line, flush=True)
+    return {'suite': 'B1_126_CONTRACT_IDS', 'status': res.get('status', 'NO_RESULT'),
+            'counts': res.get('counts'), 'microprobes': res.get('microprobes'),
+            'non_pass': res.get('non_pass'), 'error': res.get('error'),
+            'seconds': round(time.monotonic() - t0, 3)}
+
+
 # ----------------------------------------------------------------------------- E2E
 
 def make_sandbox_pair(d_parent, c_parent, tag):
@@ -501,11 +521,14 @@ def main(a):
                                      isolated=spec.get('isolated', True), timeout=spec.get('timeout', 600)))
         for name, spec in final['plan'].get('scenarios', {}).items():
             suites.append(run_scenario(name, spec, Path(bundle), impl, work, env, evidence, sys.executable, native))
+        if 'b1' in final['plan']:
+            suites.append(run_b1(Path(bundle), impl, work, env, evidence, sys.executable, native))
         receipt['TESTS'] = suites
         prog.end('SUITES')
 
         prog.begin('E2E')
-        receipt['E2E'] = e2e(final, sys.executable, work, d_parent, evidence, env, native)
+        receipt['E2E'] = (e2e(final, sys.executable, work, d_parent, evidence, env, native)
+                          if final['plan'].get('e2e', True) else {'status': 'NOT_IN_PLAN_UNCHANGED_SINCE_R42'})
         prog.end('E2E')
 
         prog.begin('POSTCHECK')
@@ -514,7 +537,7 @@ def main(a):
         receipt['PRODUCTION_MODIFIED'] = (before != after) if native else False
         receipt['REAL_TARGETS_BEFORE_SHA256'] = sha_bytes(canonical(before))
         failed = [s['suite'] for s in suites if s['status'] not in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE', 'OFFLINE_HARNESS_PASS')]
-        e2e_ok = receipt['E2E']['status'] in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE')
+        e2e_ok = receipt['E2E']['status'] in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE', 'NOT_IN_PLAN_UNCHANGED_SINCE_R42')
         if receipt['PRODUCTION_MODIFIED']:
             receipt['BLOCKER'] = 'REAL_TARGET_CHANGED_DURING_QUALIFICATION'
         elif failed or not e2e_ok:

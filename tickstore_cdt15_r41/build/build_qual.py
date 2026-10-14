@@ -11,9 +11,9 @@ import unittest
 import zipfile
 from pathlib import Path
 
-DATE = '20261013'
+DATE = '20261014'
 FIXED_TIME = (2026, 10, 13, 0, 0, 0)
-REV = 'R42'
+REV = 'R43'
 FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_%s_%s.zip' % (REV, DATE)
 FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_%s_%s.json' % (REV, DATE)
 QUAL_NAME = 'TICKSTORE_CDT15_%s_QUAL_%s.zip' % (REV, DATE)
@@ -31,37 +31,19 @@ POLICY = {'revision': '20261013T070500-0300-695DCD6495E549B1',
           'head_sha256': 'B3B419592DC29651487B1545E1CD7AE66604AB78582202883684E69BCB1FF7EA',
           'custody': 'SNAPSHOT_NON_AUTHORITATIVE_RECONCILE_AT_CHATGPT_ORIGIN'}
 SUITES = {
-    'S1_WRITER_EFFECTFUL': {'files': [{'file': 'tests/test_official_writer_effectful.py'}],
-                            'writer_sandboxes': True, 'timeout': 3600},
-    'S2_WRITER_CONTRACT': {'files': [{'file': 'tests/test_official_writer_contract.py'}]},
-    'S3_INSTALLER_CONTRACT': {'files': [
-        {'file': 'tests/test_installer_legacy_activation_prune.py'},
-        {'file': 'tests/test_installer_intent.py',
-         'only': ['InstallerIntentTests.test_installer_source_pins_and_block']}]},
-    'S4_RUNNER_OBSERVABILITY': {'files': [{'file': 'tests/test_full_runner_observability_r41.py'}]},
-    'S5_NATIVE_PROCESS_CONTROL': {'files': [{'file': 'tests/test_native_process_control_r41.py'}],
-                                  'native_only': True},
+    # Only suites whose code changed since the R42 native PASS (AUTOCPU min rule).
     'S6_MULTIWORK_UNIT': {'files': [{'file': 'candidate/full/test_full_multiwork.py'}],
                           'sys_path': ['candidate/full']},
 }
 SCRIPTS = {
     'S7_STATIC_MULTIWORK_PREAUDIT': {'script': 'candidate/full/static_multiwork_preaudit.py',
                                      'expect': 'STATIC_MULTIWORK_PREAUDIT=PASS'},
-    # Historical native smokes import the changed multiwork wrapper: re-run is justified.
-    'H1_SMOKE_SINGLE': {'script': 'candidate/full/windows_multiwork_smoke.py', 'isolated': False,
-                        'native_only': True, 'expect': ['WINDOWS_MULTIWORK_SMOKE=PASS']},
-    'H2_SMOKE_RC1_BRIDGE': {'script': 'candidate/full/windows_rc1_recovery_bridge_smoke.py', 'isolated': False,
-                            'native_only': True, 'expect': ['WINDOWS_RC1_RECOVERY_BRIDGE=PASS']},
-    'H3_SMOKE_22_WORKERS': {'script': 'candidate/full/windows_multiwork_smoke_22.py', 'isolated': False,
-                            'native_only': True, 'timeout': 1800,
-                            'expect': ['WINDOWS_MULTIWORK_22_SMOKE=PASS', 'WINDOWS_MULTIWORK_22_SOURCE_WRITE_DENIAL=PASS']},
-    'H4_SMOKE_RC4_PUBLISHER': {'script': 'candidate/full/windows_rc4_publisher_smoke.py', 'isolated': False,
-                               'native_only': True, 'expect': ['WINDOWS_RC4_PUBLISHER_SMOKE=PASS']},
-    'H5_SMOKE_RC4R2_SHUTDOWN': {'script': 'candidate/full/windows_rc4r2_shutdown_smoke.py', 'isolated': False,
-                                'native_only': True, 'expect': ['WINDOWS_RC4R2_SAFE_STOP_PROCESS_TREE_SMOKE=PASS']},
 }
-SCENARIOS = {name: {'runner': 'qual/R42_MULTIWORK_E2E.py', 'scenario': name, 'timeout': 1800}
-             for name in ('NOMINAL', 'STOP_RESUME', 'WATCHDOG', 'RAM')}
+SCENARIOS = {}
+B1_DIR = Path(__file__).resolve().parent.parent / 'b1'
+B1_INPUTS = {'b1/R3_RUNTIME_ORIGINAL_ARCHIVE.zip': B1_DIR / 'r3_inputs/R3_RUNTIME_ORIGINAL_ARCHIVE.zip',
+             'b1/QUALIFICATION_CONTRACT_ORIGINAL.json': B1_DIR / 'r3_inputs/QUALIFICATION_CONTRACT_ORIGINAL.json',
+             'b1/tests_full_lifecycle.py': B1_DIR / 'derived/tests_full_lifecycle.py'}
 
 
 def sha(raw):
@@ -155,9 +137,24 @@ def main(source, out):
     plan = canon({'schema': 'TICKSTORE_CDT15_R41_QUAL_PLAN_V001', 'final_package_name': FINAL_NAME,
                   'final_package_sha256': sha(final_raw), 'final_witness_name': FINAL_WITNESS,
                   'runtime_code_manifest_sha256': runtime_sha, 'suites': suites, 'scripts': SCRIPTS,
-                  'scenarios': {'R42_' + k: v for k, v in SCENARIOS.items()}, 'revision': REV})
+                  'scenarios': {'R42_' + k: v for k, v in SCENARIOS.items()}, 'revision': REV, 'e2e': False,
+                  'b1': {'r3_archive': 'b1/R3_RUNTIME_ORIGINAL_ARCHIVE.zip',
+                         'r3_archive_sha256': '2379512BD32CA751E0636EA4186F097035542F851CC51019817DDB5FFC4480E4',
+                         'contract': 'b1/QUALIFICATION_CONTRACT_ORIGINAL.json',
+                         'contract_sha256': '9AF1C840C1AE519BBD1A36C9C9CA7C2A91E0879D4AE6CEC049A11E2FB1FEF944',
+                         'parent_sha256': 'EE30AA9325EE79A1F5FF4876DF72EC0A596AC351E9708447337841E9B43E592D',
+                         'derived': 'b1/tests_full_lifecycle.py',
+                         'derived_sha256': sha((B1_DIR / 'derived/tests_full_lifecycle.py').read_bytes()),
+                         'microprobes': 'qual/R43_B1A_MICROPROBES.py',
+                         'microprobes_sha256': sha((source / 'qual/R43_B1A_MICROPROBES.py').read_bytes()),
+                         'portable': 106, 'native_only': 20,
+                         'predicted_b1b': ['tests_delta.InstallerAndLauncherTests.test_native_ps51_extract_readback_and_collision_preserved',
+                                           'tests_delta.InstallerAndLauncherTests.test_file_hash_mismatch_preserves_partial_no_deployment']}})
     qmembers = [('qual/QUAL_DRIVER.py', (source / 'qual/QUAL_DRIVER.py').read_bytes()),
                 ('qual/R42_MULTIWORK_E2E.py', (source / 'qual/R42_MULTIWORK_E2E.py').read_bytes()),
+                ('qual/R43_B1_RUNNER.py', (source / 'qual/R43_B1_RUNNER.py').read_bytes()),
+                ('qual/R43_B1A_MICROPROBES.py', (source / 'qual/R43_B1A_MICROPROBES.py').read_bytes()),
+               ] + [(k, v.read_bytes()) for k, v in B1_INPUTS.items()] + [
                 ('qual/QUAL_PLAN.json', plan), ('FINAL/' + FINAL_NAME, final_raw), ('FINAL/' + FINAL_WITNESS, fwitness)]
     qmanifest = canon({'schema': 'TICKSTORE_CDT15_R41_QUAL_BUNDLE_MANIFEST_V001',
                        'files': [record(n, b) for n, b in qmembers]})

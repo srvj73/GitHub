@@ -1,20 +1,20 @@
-# TICKSTORE CDT15 R42 - Windows sandbox qualification bootstrap (Windows PowerShell 5.1).
+# TICKSTORE CDT15 R43 - Windows sandbox qualification bootstrap (Windows PowerShell 5.1).
 # Run (no cd needed):
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R42_QUAL.ps1"
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R43_QUAL.ps1"
 # Effects: creates only run-owned folders
-#   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R42_QUAL_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
-#   %LOCALAPPDATA%\TICKSTORE_QUAL_R42\R42_QUAL_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
-#   D:\TICKSTORE_QUALIFICATION_SANDBOX\R42_QUAL_<timestamp>_<PID>\                (D: sandboxes)
+#   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R43_QUAL_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
+#   %LOCALAPPDATA%\TICKSTORE_QUAL_R43\R43_QUAL_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
+#   D:\TICKSTORE_QUALIFICATION_SANDBOX\R43_QUAL_<timestamp>_<PID>\                (D: sandboxes)
 # It never writes D:\Base CSV, %LOCALAPPDATA%\TICKSTORE, MENU.py, the BAT, ACTIVE_DEPLOYMENT or STATE.
 [CmdletBinding()]
 param()
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
-$ZipPattern = 'TICKSTORE_CDT15_R42_QUAL_*.zip'
-$ExpectedZipName = 'TICKSTORE_CDT15_R42_QUAL_20261013.zip'
-$ExpectedZipSha = 'C35FD6A5ED5FDD46ECD8B6FBEA5AC3D85D7C3D0F656F52FEAA5699C682F262B5'
-$ExpectedZipBytes = 1614927
-$ExpectedQualManifestSha = 'C90DE20ADE32E2C5A4F4B0289FB7F86942C4BC472C61DCC2C1D42913B76883EB'
+$ZipPattern = 'TICKSTORE_CDT15_R43_QUAL_*.zip'
+$ExpectedZipName = 'TICKSTORE_CDT15_R43_QUAL_20261014.zip'
+$ExpectedZipSha = '2B6544136806D37EF528A2D654B45EB36841BF2FE8AE42968743A31E1FB963BD'
+$ExpectedZipBytes = 3236070
+$ExpectedQualManifestSha = 'DE862665138459145DDC446BA1B7FE39DD0F16795327C826FEA632C4F2940CBE'
 $Downloads = 'C:\Users\silvi\OneDrive\Downloads'
 $LogRoot = 'C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS'
 $Python = 'C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'
@@ -107,7 +107,7 @@ public static class R41Reparse {
     }
 }
 '@
-    $runName = 'R42_QUAL_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
+    $runName = 'R43_QUAL_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
     [IO.Directory]::CreateDirectory($LogRoot) | Out-Null
     NoReparseBelow $LogRoot @()
     $script:RunDir = Join-Path $LogRoot $runName
@@ -152,7 +152,7 @@ public static class R41Reparse {
     Log ('ZIP_SELECTED_PRIVATE_COPY=' + $zipCopy + ' IDENTICAL_COPIES=' + $matched.Count)
 
     # 2. Extract into a fresh run-owned, non-synced folder; every member re-verified.
-    $work = Join-Path (Join-Path $app 'TICKSTORE_QUAL_R42') $runName
+    $work = Join-Path (Join-Path $app 'TICKSTORE_QUAL_R43') $runName
     NoReparseBelow $app @()
     Require (-not [IO.Directory]::Exists($work)) 'WORK_DIR_COLLISION'
     [IO.Directory]::CreateDirectory($work) | Out-Null

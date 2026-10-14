@@ -1,0 +1,891 @@
+{
+  "schema": "TICKSTORE_R41_B1_126_TESTS_AST_SOURCE_RESOLUTION_V001",
+  "required": 126,
+  "direct": 114,
+  "inherited": 12,
+  "missing": [],
+  "ids": [
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_attestation_signature_mismatch",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.D4ClosureProofTests"
+    },
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_chunk_mirror_mismatch",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.D4ClosureProofTests"
+    },
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_complete_checkpoint_readback_without_mutation",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.D4ClosureProofTests"
+    },
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_incomplete_checkpoint",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.D4ClosureProofTests"
+    },
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_missing_immutable_receipt",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.D4ClosureProofTests"
+    },
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_signed_semantic_divergence",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.D4ClosureProofTests"
+    },
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_signed_wrong_shadow_cannot_self_attest",
+      "source_module": "tests_stage_closure",
+      "source_path": "engineering/tests_stage_closure.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_wrong_run_with_valid_signature",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.D4ClosureProofTests"
+    },
+    {
+      "id": "tests_stage_closure.CheckpointProof.test_wrong_signature",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.D4ClosureProofTests"
+    },
+    {
+      "id": "tests_stage_closure.JournalProof.test_current_finished_attempt_exact_bytes",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.ClosedStageEvidenceTests"
+    },
+    {
+      "id": "tests_stage_closure.JournalProof.test_finish_explicit_foreign_run_rejected",
+      "source_module": "tests_stage_closure",
+      "source_path": "engineering/tests_stage_closure.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_stage_closure.JournalProof.test_finished_without_started_blocks",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.ClosedStageEvidenceTests"
+    },
+    {
+      "id": "tests_stage_closure.JournalProof.test_latest_started_cannot_reuse_previous_pass",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.ClosedStageEvidenceTests"
+    },
+    {
+      "id": "tests_stage_closure.JournalProof.test_result_hash_drift_blocks",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "inherited",
+      "inherits_from": "tests_delta.ClosedStageEvidenceTests"
+    },
+    {
+      "id": "tests_stage_closure.PublicationProof.test_evidence_wrong_hash_blocks_before_any_write",
+      "source_module": "tests_stage_closure",
+      "source_path": "engineering/tests_stage_closure.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_stage_closure.PublicationProof.test_preexisting_chain_preserved",
+      "source_module": "tests_stage_closure",
+      "source_path": "engineering/tests_stage_closure.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_stage_closure.PublicationProof.test_result_and_snapshots_retained_through_chain_commit",
+      "source_module": "tests_stage_closure",
+      "source_path": "engineering/tests_stage_closure.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_stage_closure.PublicationProof.test_result_drift_blocks_chain_publication",
+      "source_module": "tests_stage_closure",
+      "source_path": "engineering/tests_stage_closure.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_close_before_h6_blocks",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_close_cannot_mutate_state",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_cooperative_stop_keeps_g3_and_exact_instance",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_engine_zero_without_reconciliation_cannot_advance",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_failed_heartbeat_blocks_pass_commit",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_foreign_reconciliation_blocks",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_full_requires_h6_and_final_receipt",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_g6_stale_lock_blocks_without_legacy_launch",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_g7_does_not_publish_full_complete_before_h6",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_h2_counts_mismatch_blocks_h3",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_h2_independent_failure_blocks_h3",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_legacy_g5_engine_cannot_run",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_live_process_blocks_g6",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_post_h6_closure_retry_does_not_rerun_full",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_readmission_router_uses_bounded_lifecycle",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_stage_router_uses_bounded_full_lifecycle",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.FullLifecycle.test_unproven_interrupt_is_not_safe_stop",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_completed_node_missing_attempt_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_foreign_finish_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_fresh_stage_accepts_closed_predecessor",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_journal_pass_state_gap_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_malformed_start_identity_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_nested_started_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_open_started_blocks_replay",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_safe_stop_current_node_accepts",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_safe_stop_status_gap_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_unknown_status_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.StageHistory.test_unpaired_finish_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.HeartbeatProof.test_flush_failure_propagates_and_thread_closes",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.HeartbeatProof.test_identity_cannot_be_overwritten",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.HeartbeatProof.test_invalid_committed_rejected",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.HeartbeatProof.test_normalization_eta_unknown",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.HeartbeatProof.test_pipeline_eta_and_cap",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.HeartbeatProof.test_shutdown_keeps_emitting_until_explicit_close",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.EntryRouting.test_compatibility_calls_full_lifecycle_not_engine",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.EntryRouting.test_limit_drift_blocks_route",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.EntryRouting.test_root_drift_blocks_route",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_count_substitution_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_duplicate_required_proof_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_duplicate_test_ids_block",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_each_bad_test_status_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_exact_bound_contract_accepts_fixture",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_linux_cannot_be_promoted",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_missing_physical_baseline_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_missing_target_proof_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_recounted_baseline_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_unhashed_target_evidence_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.QualificationContract.test_wrong_final_bytes_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.InstancePreparation.test_changed_root_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.InstancePreparation.test_manifest_drift_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.InstancePreparation.test_policy_source_drift_blocks",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.InstancePreparation.test_preparation_never_grants_authority",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_resume_delta.InstancePreparation.test_resource_booleans_rejected",
+      "source_module": "tests_resume_delta",
+      "source_path": "engineering/tests_resume_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_authority_publication_collision_preserves_concurrent_winner",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_code_binding_tamper_blocks",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_each_b07_check_required_before_any_write",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_existing_run_never_becomes_a_new_successor",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_frozen_engine_gate_selector_accepts_compiled_descriptor",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_incomplete_candidate_blocks_before_any_write",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_injected_flush_failure_preserves_evidence_and_never_publishes",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_locator_wrong_descriptor_and_changed_generation_block",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_missing_independent_review_blocks_before_any_write",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_missing_windows_qualification_cannot_be_hidden_by_test_totals",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_native_locator_negative_blocks_before_creating_files",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_orphan_checkpoint_blocks_first_admission",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_positive_fixture_materializes_bound_identity_without_state_or_checkpoint",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_reparse_resume_root_rejected",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_resume_commit_binds_exact_file_set",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_resume_commit_detects_missing_or_changed_support",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_review_binding_drift_blocks",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_skipped_windows_test_blocks_completeness",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_state_drift_at_publish_preserves_support_without_authority",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_state_drift_before_first_write_blocks",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_support_swap_is_denied_or_detected_before_publication",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_first_admission_transaction.TransactionTests.test_v37_policy_cannot_release_v38_instance",
+      "source_module": "test_first_admission_transaction",
+      "source_path": "engineering/test_first_admission_transaction.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_entry_accepts_complete_commit_and_rejects_state_replacement",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_entry_rejects_post_publication_gate_evidence_drift",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_final_code_manifest_verifies_actual_runtime",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_historical_v37_cannot_be_current_policy",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_manifest_missing_core_component_rejected",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_materialized_contract_reaches_actual_frozen_runtime_boundary",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_review_pack_must_contain_exact_final_code",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_stale_review_pack_is_rejected_even_when_wrapper_is_unchanged",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "test_bootstrap_contract.BootstrapContract.test_v38_technical_policy_validates_without_issuer_or_owner_approval",
+      "source_module": "test_bootstrap_contract",
+      "source_path": "engineering/test_bootstrap_contract.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_full_lifecycle.Readmission.test_refresh_preserves_instance_predecessor_and_prior_receipt",
+      "source_module": "tests_full_lifecycle",
+      "source_path": "engineering/tests_full_lifecycle.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.ChainTests.test_path_escape_blocks",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.ChainTests.test_legacy_admission_rejected_before_any_data_access",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.ChainTests.test_missing_chain_rejected_before_any_data_access",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_native_delta.NativeDelta.test_coordinator_abrupt_exit_contains_native_child",
+      "source_module": "tests_native_delta",
+      "source_path": "engineering/tests_native_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_native_delta.NativeDelta.test_dpapi_key_roundtrip_and_tamper_rejection",
+      "source_module": "tests_native_delta",
+      "source_path": "engineering/tests_native_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_native_delta.NativeDelta.test_four_workers_real_ntfs_zstd_deterministic_replay",
+      "source_module": "tests_native_delta",
+      "source_path": "engineering/tests_native_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_native_delta.NativeDelta.test_heartbeat_reparse_destination_cannot_modify_target",
+      "source_module": "tests_native_delta",
+      "source_path": "engineering/tests_native_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.NativeJobTests.test_admitted_child_executes",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.NativeJobTests.test_job_close_contains_survivor",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.NativeResumeTests.test_named_stop_then_resume_with_different_worker_count",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.InstallerAndLauncherTests.test_file_hash_mismatch_preserves_partial_no_deployment",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.InstallerAndLauncherTests.test_native_ps51_extract_readback_and_collision_preserved",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.InstallerAndLauncherTests.test_readonly_launcher_missing_chain_never_dispatches_d4",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.InstallerAndLauncherTests.test_zip_hash_mismatch_prevents_extraction",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.InstallerAndLauncherTests.test_zip_path_escape_rejected_before_extraction",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.ResourceAndNamespaceTests.test_native_job_memory_contains_coordinator_and_child",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.ResourceAndNamespaceTests.test_launch_drain_stop_controls",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.ResourceAndNamespaceTests.test_namespace_reuse_and_history_preserved",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.ResourceAndNamespaceTests.test_auto_cpu_zero_one_n_and_invalid_request",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.ResourceAndNamespaceTests.test_resource_stop_uses_checkpoint_cleanup",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.StageGuardTests.test_state_constructor_does_not_rewrite",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.StageGuardTests.test_single_stage_commit_and_native_readback",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    },
+    {
+      "id": "tests_delta.StageGuardTests.test_cannot_skip_to_full",
+      "source_module": "tests_delta",
+      "source_path": "cdt15/tests_delta.py",
+      "method_resolution": "direct",
+      "inherits_from": null
+    }
+  ]
+}

@@ -49,7 +49,7 @@
  },
  "blocker": {
   "id": "R42-B1A",
-  "status": "STOP_AWAITING_ORIGIN_DECISION",
+  "status": "ORIGIN_AUTHORIZED_NARROW_FIXTURE_ADAPTATION_IMPLEMENTED_R43",
   "ids": [
    "tests_full_lifecycle.FullLifecycle.test_close_cannot_mutate_state",
    "tests_full_lifecycle.FullLifecycle.test_full_requires_h6_and_final_receipt",
@@ -67,7 +67,21 @@
    ],
    "r3_module_sha256": "EE30AA9325EE79A1F5FF4876DF72EC0A596AC351E9708447337841E9B43E592D"
   },
-  "decision_needed": "Origin to accept or reject the fixture patch (new module hash) before B1 Windows execution of the 126 IDs. No R3 source was modified."
+  "decision_needed": "Origin to accept or reject the fixture patch (new module hash) before B1 Windows execution of the 126 IDs. No R3 source was modified.",
+  "origin_decision": {
+   "zip_sha256": "FA234C7D85927482BD7254CCA5EE12987CD269F0BD986BD0A3AB4FE5F0DBE7FB",
+   "decision_md_sha256": "914B9A0DA95F09D010B37824994125499D30269A76A37F15E84732847394D081",
+   "receipt_sha256": "60B5107A55EE54B0991FDE1B6313073384FCD3F95C9BA743CD6E12F9795EE0BB"
+  },
+  "implemented": {
+   "parent_sha256": "EE30AA9325EE79A1F5FF4876DF72EC0A596AC351E9708447337841E9B43E592D",
+   "derived_file": "b1/derived/tests_full_lifecycle.py",
+   "derived_sha256": "29981D1535AC295D6465E2734234DF834B31B58CD4A03F2414D6CFE43A2D0286",
+   "patch_file": "b1/R43_B1A_tests_full_lifecycle.patch",
+   "patch_sha256": "3F9074926021F219BE459D3DB9C9B65145FFC64BBDE6D39252BB324D87943E1C",
+   "scope_check": "two hunks: setUp fixture rec/h2 data; test_h2_counts_mismatch stimulus deep.rows -> reconciliation.rows=certified-1. No assertion, ID, name or message changed. R3 archive and original module untouched.",
+   "microprobes": "qual/R43_B1A_MICROPROBES.py a..e; offline harness PASS_5_OF_5 (not evidence)"
+  }
  },
  "ids": [
   {
@@ -1330,5 +1344,24 @@
    "diag_linux_current_with_proposed_patch": "NOT_IN_PORTABLE_SELECTION",
    "windows_on_current_bytes": "NOT_EXECUTED"
   }
- ]
+ ],
+ "blocker_b1b": {
+  "id": "R43-B1B",
+  "status": "PREDICTED_BY_STATIC_ANALYSIS_PENDING_NATIVE_CONFIRMATION_AND_ORIGIN_DECISION",
+  "ids": [
+   "tests_delta.InstallerAndLauncherTests.test_native_ps51_extract_readback_and_collision_preserved",
+   "tests_delta.InstallerAndLauncherTests.test_file_hash_mismatch_preserves_partial_no_deployment"
+  ],
+  "root_cause": "Since R40 the installer requires implementation_v001/candidate/menu/MENU.py in the FINAL manifest before any write (INSTALL_INTENT_MENU_MANIFEST_CARDINALITY). The R3 fixture package contains only RUN_TICKSTORE_FULL.ps1, so install exits 2 before creating the target; the two tests expect success / a partial target with INSTALL_READBACK.",
+  "introduced_by": "R3->R40 installer intent delta (pre-existing in baseline 26F783A0); not by R41-R43",
+  "r3_module": "cdt15/tests_delta.py SHA-256 67B41A04787A2BEB3CB1CA7AE1CF79286E034F81B50ADEAC4C536956972FAD1D (not modified)",
+  "no_change_without_origin_decision": true
+ },
+ "r43_autocpu_regression": {
+  "id": "R43-F2",
+  "introduced_by": "R41 (engineer)",
+  "test": "tests_delta.ResourceAndNamespaceTests.test_auto_cpu_zero_one_n_and_invalid_request",
+  "cause": "available_logical_cpus used os.process_cpu_count, ignoring the os.cpu_count bound the historical contract test simulates; on a 24-CPU host AUTO would exceed the simulated budget.",
+  "fix": "available_logical_cpus = min(os.cpu_count, process probe); regression test test_r42_autocpu_never_exceeds_system_count"
+ }
 }
