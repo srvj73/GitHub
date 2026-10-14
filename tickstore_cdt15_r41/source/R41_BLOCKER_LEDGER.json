@@ -29,7 +29,7 @@
       "evidence": "candidate/control/QUALIFICATION_CONTRACT.json required_tests referencia tests_stage_closure, tests_full_lifecycle, tests_resume_delta, test_first_admission_transaction, test_bootstrap_contract, tests_delta, tests_native_delta; nenhum desses modulos existe no pacote 26F783A0 (grep confirmado).",
       "effect": "FULL_QUALIFICATION_CONTRACT.validate exige exatamente esses IDs nativos sobre os bytes finais; G5 nao pode ser satisfeito com a base entregue.",
       "needed_from_origin": "Fornecer o arquivo historico da linha de base (archive_sha256 DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8) ou autorizar re-derivacao do contrato de qualificacao para a arvore atual.",
-      "status": "ORIGIN_SUPPLIED_SOURCES_R42_B1A_STOP_AWAITING_DECISION",
+      "status": "R43_NATIVE_122_OF_126_B1B_AWAITING_ORIGIN_E1_RUN_ELEVATED",
       "reconciliation": "b1/R42_B1_RECONCILIATION.json"
     },
     {
@@ -132,5 +132,14 @@
       "return_zip_physically_received": false
     }
   },
-  "r41_return_zip_physically_received": false
+  "r41_return_zip_physically_received": false,
+  "r43": {
+    "native_run": "R43_QUAL_20261013_215725_632_24152",
+    "b1": "122/126",
+    "blockers": [
+      "R43-B1B (origin decision)",
+      "R43-E1 (run elevated)"
+    ],
+    "reconciliation": "b1/R42_B1_RECONCILIATION.json"
+  }
 }

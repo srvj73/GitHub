@@ -1347,7 +1347,7 @@
  ],
  "blocker_b1b": {
   "id": "R43-B1B",
-  "status": "PREDICTED_BY_STATIC_ANALYSIS_PENDING_NATIVE_CONFIRMATION_AND_ORIGIN_DECISION",
+  "status": "CONFIRMED_NATIVE_R43_AWAITING_ORIGIN_DECISION",
   "ids": [
    "tests_delta.InstallerAndLauncherTests.test_native_ps51_extract_readback_and_collision_preserved",
    "tests_delta.InstallerAndLauncherTests.test_file_hash_mismatch_preserves_partial_no_deployment"
@@ -1355,7 +1355,17 @@
   "root_cause": "Since R40 the installer requires implementation_v001/candidate/menu/MENU.py in the FINAL manifest before any write (INSTALL_INTENT_MENU_MANIFEST_CARDINALITY). The R3 fixture package contains only RUN_TICKSTORE_FULL.ps1, so install exits 2 before creating the target; the two tests expect success / a partial target with INSTALL_READBACK.",
   "introduced_by": "R3->R40 installer intent delta (pre-existing in baseline 26F783A0); not by R41-R43",
   "r3_module": "cdt15/tests_delta.py SHA-256 67B41A04787A2BEB3CB1CA7AE1CF79286E034F81B50ADEAC4C536956972FAD1D (not modified)",
-  "no_change_without_origin_decision": true
+  "no_change_without_origin_decision": true,
+  "proposed_minimal_correction": {
+   "file": "b1/PROPOSED_R43_B1B_tests_delta.patch",
+   "patch_sha256": "84E32FA3BA669288D16B7FF9C833A9E4A01C2D53758BD9DCDB79775FCCDAFA48",
+   "parent_sha256": "67B41A04787A2BEB3CB1CA7AE1CF79286E034F81B50ADEAC4C536956972FAD1D",
+   "derived_file": "b1/proposed_b1b/tests_delta.py",
+   "derived_sha256": "2E95CADE28AA14A51D9DD30ECD78C045D717906AAE6AD6E2091C188ADC985089",
+   "scope": "InstallerAndLauncherTests.package() fixture only: add MENU.py member (payload + manifest record + zip entry). No assertion, ID, stimulus or product change; CRLF bytes preserved.",
+   "expected_effect": "both IDs reach their original assertions (install success+collision; partial target + INSTALL_READBACK). Escape/hash-mismatch tests still block at MEMBER_SEGMENT/PACKAGE_SHA256 before the MENU check.",
+   "validation": "compiles; native proof requires owner Windows run after origin decision"
+  }
  },
  "r43_autocpu_regression": {
   "id": "R43-F2",
@@ -1363,5 +1373,29 @@
   "test": "tests_delta.ResourceAndNamespaceTests.test_auto_cpu_zero_one_n_and_invalid_request",
   "cause": "available_logical_cpus used os.process_cpu_count, ignoring the os.cpu_count bound the historical contract test simulates; on a 24-CPU host AUTO would exceed the simulated budget.",
   "fix": "available_logical_cpus = min(os.cpu_count, process probe); regression test test_r42_autocpu_never_exceeds_system_count"
+ },
+ "r43_native_run": {
+  "run": "R43_QUAL_20261013_215725_632_24152",
+  "return_zip_sha256": "6B7DA7E232FB05431AD0238A3FADB173F6B1C8197485F0973D40BE1F4279D38C",
+  "return_zip_file": "evidence/return_zips/QUAL_RETURN_R43_QUAL_20261013_215725_632_24152.zip",
+  "final_package_sha256": "2D332928BFE7E907DB85252F6A40558549DDA2D379E3F95D8A70E27FB276ABCF",
+  "package_manifest_sha256": "C66DBB64ADF9CC28B550261EFE3F77ED9D67BEB2F7C95BA567E65256D62A25AB",
+  "classification": "R43_WINDOWS_SANDBOX_QUALIFICATION_FAIL",
+  "b1": "122/126 PASS on current bytes, native Windows, tested_code_unchanged, microprobes PASS_5_OF_5",
+  "production_modified": false,
+  "non_pass": {
+   "tests_delta.InstallerAndLauncherTests.test_native_ps51_extract_readback_and_collision_preserved": "FAIL INSTALL_INTENT_MENU_MANIFEST_CARDINALITY (R43-B1B, predicted, confirmed)",
+   "tests_delta.InstallerAndLauncherTests.test_file_hash_mismatch_preserves_partial_no_deployment": "FAIL INSTALL_INTENT_MENU_MANIFEST_CARDINALITY (R43-B1B, predicted, confirmed)",
+   "test_first_admission_transaction.TransactionTests.test_reparse_resume_root_rejected": "ERROR WinError 1314 symlink privilege absent in fixture setup (R43-E1, environmental); historical V38 transaction.log shows ok",
+   "tests_native_delta.NativeDelta.test_heartbeat_reparse_destination_cannot_modify_target": "ERROR WinError 1314 symlink privilege absent in fixture setup (R43-E1, environmental)"
+  },
+  "autocpu_regression_R43_F2": "test_auto_cpu_zero_one_n_and_invalid_request PASS natively after fix"
+ },
+ "r43_e1": {
+  "id": "R43-E1",
+  "class": "ENVIRONMENT_NOT_PRODUCT",
+  "cause": "Non-elevated PowerShell without Developer Mode lacks SeCreateSymbolicLinkPrivilege; os.symlink in the test fixture fails before the product guard is exercised.",
+  "remediation": "Run the next qualification from an elevated (Administrator) Windows PowerShell 5.1; no test change.",
+  "origin_decision_needed": false
  }
 }

@@ -1,0 +1,20 @@
+--- /tmp/claude-0/-home-user-GitHub/8d489fba-35fb-5a2f-80ae-41135484a8dd/scratchpad/origin/x/TEST_MODULES_R3/cdt15/tests_delta.py
++++ b1/proposed_b1b/tests_delta.py
+@@ -310,11 +310,15 @@
+         from D4_FIRST_ADMISSION_PREP import canonical, sha
+         name = member or 'implementation_v001/candidate/control/RUN_TICKSTORE_FULL.ps1'
+         payload = b'# ISOLATED INSTALLER FIXTURE; NOT A RUNNER\n'
++        # R43-B1B: since R40 the installer requires the MENU member before any write.
++        menu_name = 'implementation_v001/candidate/menu/MENU.py'
++        menu_payload = b'# ISOLATED INSTALLER FIXTURE MENU; NOT A MENU\n'
+         manifest = canonical(dict(schema='TICKSTORE_FINAL_PACKAGE_MANIFEST_V001',
+-                    files=[dict(path=name, bytes=len(payload), sha256='0'*64 if corrupt_file_hash else sha(payload))]))
++                    files=[dict(path=menu_name, bytes=len(menu_payload), sha256=sha(menu_payload)),
++                           dict(path=name, bytes=len(payload), sha256='0'*64 if corrupt_file_hash else sha(payload))]))
+         archive = self.root/'fixture.zip'
+         with zipfile.ZipFile(archive, 'w') as z:
+-            z.writestr(name, payload); z.writestr('PACKAGE_MANIFEST.json', manifest)
++            z.writestr(menu_name, menu_payload); z.writestr(name, payload); z.writestr('PACKAGE_MANIFEST.json', manifest)
+         witness = self.root/'witness.json'
+         witness.write_bytes(canonical(dict(schema='TICKSTORE_FINAL_PACKAGE_WITNESS_V001',
+             package_name=archive.name, package_sha256=sha(archive.read_bytes()), manifest_sha256=sha(manifest))))
