@@ -1,6 +1,8 @@
 # TICKSTORE CDT15 @@REV@@ - Windows sandbox qualification bootstrap (Windows PowerShell 5.1).
 # Run (no cd needed):
 #   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\@@BOOTSTRAP@@"
+# Requires Administrator (symlink tests). When started without elevation it opens a new
+# elevated window of itself (UAC prompt) and the non-elevated run ends with exit code 3.
 # Effects: creates only run-owned folders
 #   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\@@REV@@_QUAL_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
 #   %LOCALAPPDATA%\TICKSTORE_QUAL_@@REV@@\@@REV@@_QUAL_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
@@ -122,6 +124,16 @@ public static class R41Reparse {
     Require ($app -cmatch '^[A-Za-z]:\\[^%]+$' -and -not $app.EndsWith('\')) 'LOCALAPPDATA_INVALID_OR_UNEXPANDED'
     Require ([IO.Path]::GetFullPath($app) -ceq $app) 'LOCALAPPDATA_NOT_CANONICAL'
     Log ('POWERSHELL=' + $PSVersionTable.PSVersion.ToString() + ' LOCALAPPDATA=' + $app)
+    $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    Log ('ELEVATED=' + $(if ($isAdmin) { 'YES' } else { 'NO' }))
+    if (-not $isAdmin) {
+        Require ([IO.File]::Exists($PSCommandPath)) 'SCRIPT_PATH_UNKNOWN_FOR_ELEVATION'
+        Log 'ELEVATION_REQUIRED: abrindo uma nova janela do PowerShell como Administrador (confirme o UAC).'
+        $argList = '-NoProfile -ExecutionPolicy Bypass -NoExit -File "' + $PSCommandPath + '"'
+        Start-Process -FilePath 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Verb RunAs -ArgumentList $argList | Out-Null
+        throw 'ELEVATED_WINDOW_STARTED'
+    }
 
     # 1. Locate eligible ZIPs in this script's folder and in Downloads (no cwd use).
     $dirs = @($PSScriptRoot, $Downloads) | ForEach-Object { [IO.Path]::GetFullPath($_) } | Select-Object -Unique
@@ -190,10 +202,16 @@ public static class R41Reparse {
     if ($null -eq $exitCode) { $exitCode = 2 }
     Log ('QUAL_BOOTSTRAP_DRIVER_EXIT=' + $exitCode)
 } catch {
+  if ($_.Exception.Message -ceq 'ELEVATED_WINDOW_STARTED') {
+    Log 'DELEGATED_TO_ELEVATED_WINDOW=YES: acompanhe a nova janela (Administrador). Ela grava outra pasta RUN em TICKSTORE_RUNS.'
+    Log 'PRODUCTION_MODIFIED=NO; FULL_STARTED=NO'
+    $exitCode = 3
+  } else {
     Log ('QUAL_BOOTSTRAP_BLOCKED=' + $_.Exception.Message)
     Log 'PRODUCTION_MODIFIED=NO (bootstrap writes only run-owned folders); FULL_STARTED=NO'
     $exitCode = 2
+  }
 }
 if ($script:RunDir -ne '') { Log ('RUN_LOG=' + (Join-Path $script:RunDir 'RUN_LOG.txt')) }
-Log 'Devolva ao engenheiro: o arquivo RETURN_ZIP indicado acima (ou RUN_LOG.txt se nao houver RETURN_ZIP).'
+if ($exitCode -ne 3) { Log 'Devolva ao engenheiro: o arquivo RETURN_ZIP indicado acima (ou RUN_LOG.txt se nao houver RETURN_ZIP).' }
 exit $exitCode

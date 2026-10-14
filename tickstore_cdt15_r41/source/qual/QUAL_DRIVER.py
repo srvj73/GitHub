@@ -1,18 +1,19 @@
-"""TICKSTORE CDT15 R41 Windows qualification driver (sandbox only; no production effect).
+"""TICKSTORE CDT15 R44 Windows qualification driver (sandbox only; no production effect).
 
-Launched by RUN_TICKSTORE_CDT15_R41_QUAL.ps1 after the outer ZIP was located,
+Launched by RUN_TICKSTORE_CDT15_R44_QUAL.ps1 (elevated) after the outer ZIP was located,
 privately copied, hash-verified and extracted.  This driver:
 
-1. pins identity (Python, OS, volumes, resources) and snapshots the REAL targets
-   read-only (MENU, BAT, ACTIVE, MENU_TRANSACTION, writer lock);
+1. pins identity (Python, OS, volumes, resources, elevation, symlink privilege) and
+   snapshots the REAL targets read-only (MENU, BAT, ACTIVE, MENU_TRANSACTION, writer lock);
 2. verifies the inner FINAL package (witness, ZIP SHA, CRC, manifest, closed set)
-   and extracts it; every test runs from those exact packaged bytes;
-3. runs the affected/new suites in isolated child interpreters with exact
-   cardinality and zero failure/error/skip;
-4. runs the native PS 5.1 installer -> installed writer E2E in disposable D:/C:
-   sandboxes, including abrupt crash and recovery by a new process;
-5. re-snapshots the real targets (PRODUCTION_MODIFIED must be False), writes an
-   immutable receipt and a small RETURN ZIP.  It never launches a successor.
+   and extracts it; every test and proof runs from those exact packaged bytes;
+3. runs the planned suites in isolated child interpreters with exact cardinality and
+   zero failure/error/skip, then the 126 contract IDs (B1A + B1B approved overlays);
+4. runs the packaged typed G5 proof runners (candidate/g5proof) in disposable sandboxes,
+   plus POWERLOSS_EMULATED reported separately (never the physical power-loss proof);
+5. re-verifies the extracted FINAL bytes, re-snapshots the real targets
+   (PRODUCTION_MODIFIED must be False), writes an immutable receipt and a closed RETURN
+   ZIP with a recursive RETURN_MANIFEST and readback.  It never launches a successor.
 """
 from __future__ import annotations
 
@@ -35,7 +36,9 @@ import uuid
 import zipfile
 from pathlib import Path
 
-DRIVER_SCHEMA = 'TICKSTORE_CDT15_WINDOWS_QUALIFICATION_RECEIPT_V002'
+DRIVER_SCHEMA = 'TICKSTORE_CDT15_WINDOWS_QUALIFICATION_RECEIPT_V003'
+RETURN_MANIFEST_SCHEMA = 'TICKSTORE_CDT15_RETURN_MANIFEST_V001'
+PROOF_RUNNER_REL = 'candidate/g5proof/G5_PROOF_RUNNERS.py'
 RESULT_CONTEXT = 'ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compress\u00e3o De Ticks 15'
 REAL_MENU = r'D:\Base CSV\Scripts\Biblioteca\MENU.py'
 REAL_BAT = 'D:\\Base CSV\\Manuten\u00e7\u00e3o Base de Dados.bat'
@@ -311,7 +314,7 @@ def run_scenario(name, spec, bundle, impl, work, env, evidence, python, native):
 
 
 def run_b1(bundle, impl, work, env, evidence, python, native):
-    args = [python, '-I', '-X', 'utf8', '-B', str(bundle / 'qual/R43_B1_RUNNER.py'), '--bundle', str(bundle),
+    args = [python, '-I', '-X', 'utf8', '-B', str(bundle / 'qual/R44_B1_RUNNER.py'), '--bundle', str(bundle),
             '--impl', str(impl), '--work', str(work), '--evidence', str(evidence),
             '--plan', str(bundle / 'qual/QUAL_PLAN.json')]
     if not native:
@@ -322,7 +325,7 @@ def run_b1(bundle, impl, work, env, evidence, python, native):
                                                        encoding='utf-8')
     res_path = Path(evidence) / 'B1_RESULT.json'
     res = json.loads(res_path.read_bytes()) if res_path.is_file() else {'status': 'NO_RESULT'}
-    line = next((l for l in r.stdout.splitlines() if l.startswith('R43_B1 ')), 'R43_B1 status=NO_LINE')
+    line = next((l for l in r.stdout.splitlines() if l.startswith('R44_B1 ')), 'R44_B1 status=NO_LINE')
     print(line, flush=True)
     return {'suite': 'B1_126_CONTRACT_IDS', 'status': res.get('status', 'NO_RESULT'),
             'counts': res.get('counts'), 'microprobes': res.get('microprobes'),
@@ -330,125 +333,75 @@ def run_b1(bundle, impl, work, env, evidence, python, native):
             'seconds': round(time.monotonic() - t0, 3)}
 
 
-# ----------------------------------------------------------------------------- E2E
+# ----------------------------------------------------------------------------- G5 proofs
 
-def make_sandbox_pair(d_parent, c_parent, tag):
-    d = Path(d_parent) / (SANDBOX_PREFIX + 'D_' + tag)
-    c = Path(c_parent) / (SANDBOX_PREFIX + 'C_' + tag)
-    for root in (d, c):
-        root.mkdir(parents=True)
-        (root / 'SANDBOX_ONLY.txt').write_bytes(SENTINEL)
-    m = d / 'Base CSV/Scripts/Biblioteca/MENU.py'; m.parent.mkdir(parents=True); m.write_bytes(FIXTURE_MENU)
-    (d / 'Base CSV' / 'Manuten\u00e7\u00e3o Base de Dados.bat').write_bytes(FIXTURE_BAT)
-    (c / 'TICKSTORE/Candidates').mkdir(parents=True)
-    return d, c
-
-
-def powershell(args, evidence, label, env):
-    r = subprocess.run([PS, '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File'] + args,
-                       capture_output=True, text=True, timeout=900, env=env)
-    (Path(evidence) / ('E2E_' + label + '.txt')).write_text(r.stdout + '\n---STDERR---\n' + r.stderr, encoding='utf-8')
-    return r
-
-
-def writer(python, installed, final, d, c, mode, env, *extra):
-    args = [python, '-I', '-X', 'utf8', '-B', str(Path(installed) / WRITER_REL), '--mode', mode,
-            '--d-root', str(d), '--c-root', str(c),
-            '--menu-before-sha256', sha_bytes(FIXTURE_MENU), '--bat-sha256', sha_bytes(FIXTURE_BAT)]
-    if mode == 'qualification-publish':
-        args += ['--installed-root', str(installed), '--package-sha256', final['witness']['package_sha256'],
-                 '--witness-sha256', final['witness_sha256']]
-    return subprocess.run(args + list(extra), capture_output=True, text=True, timeout=300, env=env)
-
-
-def menu_consumer(installed):
-    paths = types.ModuleType('paths')
-    paths.PATHS = types.SimpleNamespace(BIBLIOTECA_ROOT=Path(installed), BASE_ROOT=Path(installed))
-    orq = types.ModuleType('GERAR_BASE_COMPLETA'); orq.ETAPAS = []
-    sys.modules['paths'] = paths; sys.modules['GERAR_BASE_COMPLETA'] = orq
-    spec = importlib.util.spec_from_file_location('installed_menu_r41', Path(installed) / MENU_REL)
-    mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
-    return mod
-
-
-def e2e(final, python, work, d_parent, evidence, env, native):
-    checks = {}
-    installer = str(Path(final['extract']) / INSTALLER_REL)
-    tag = uuid.uuid4().hex[:10].upper()
-    d, c = make_sandbox_pair(Path(d_parent) / 'E2E', Path(work) / 'E2E_C', tag)
-    root = c / 'TICKSTORE/Candidates'
-    pkg = final['witness']['package_sha256']
-    installed = root / pkg
+def run_proof(name, spec, final, impl, work, d_parent, evidence, env, python, run_id, native):
+    root = Path(d_parent if spec.get('volume') == 'D' else work) / ('PROOF_' + name)
+    args = [python, '-I', '-X', 'utf8', '-B', str(Path(impl) / PROOF_RUNNER_REL), '--proof', name,
+            '--work', str(root), '--evidence', str(evidence), '--run-id', run_id,
+            '--final-zip-sha256', final['witness']['package_sha256'],
+            '--code-manifest-sha256', final['plan']['runtime_code_manifest_sha256'],
+            '--final-extract', str(final['extract']), '--witness', final['witness_path'],
+            '--d-parent', str(Path(d_parent) / 'PS51_D'), '--local-appdata', os.environ.get('LOCALAPPDATA', '')]
     if not native:
-        return {'status': 'NOT_NATIVE_SKIPPED_OFFLINE', 'checks': {}}
-    # E1/E2: argument gates fail before any witness read or write.
-    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root), '-ActivateMenu'],
-                   evidence, 'E1_ACTIVATE_WITHOUT_CHAIN', env)
-    checks['E1_ACTIVATE_WITHOUT_CHAIN_BLOCKS'] = (r.returncode == 2 and
-        'MENU_ACTIVATION_REQUIRES_RELEASE_CHAIN_THROUGH_B07' in r.stdout and not installed.exists())
-    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root),
-                    '-ChainFile', 'X', '-ChainSha256', 'A' * 64, '-B06Sha256', 'B' * 64],
-                   evidence, 'E2_CHAIN_WITHOUT_ACTIVATE', env)
-    checks['E2_CHAIN_WITHOUT_ACTIVATE_BLOCKS'] = (r.returncode == 2 and
-        'CHAIN_ARGUMENTS_ONLY_WITH_ACTIVATE_MENU' in r.stdout and not installed.exists())
-    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root), '-ActivateMenu',
-                    '-ChainFile', 'X', '-ChainSha256', 'A' * 64, '-B06Sha256', 'B' * 64],
-                   evidence, 'E2B_ACTIVATE_SANDBOX_ROOT', env)
-    checks['E2B_ACTIVATE_REQUIRES_OFFICIAL_ROOT'] = (r.returncode == 2 and
-        'MENU_ACTIVATION_REQUIRES_OFFICIAL_INSTALL_ROOT' in r.stdout and not installed.exists())
-    # E3: native PS 5.1 inactive install into the sandbox Candidates root.
-    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root)],
-                   evidence, 'E3_INACTIVE_INSTALL', env)
-    man = json.loads((Path(final['extract']) / 'PACKAGE_MANIFEST.json').read_bytes())
-    readback = installed.is_dir() and all(
-        (installed / f['path']).is_file() and sha_file(installed / f['path']) == f['sha256'] for f in man['files'])
-    checks['E3_PS51_INACTIVE_INSTALL_READBACK'] = (r.returncode == 0 and 'INSTALLATION=PASS_READBACK' in r.stdout
-        and 'MENU_ACTIVATION=NOT_REQUESTED_INACTIVE_INSTALL_ONLY' in r.stdout and readback)
-    before = {p.relative_to(installed).as_posix(): sha_file(p) for p in installed.rglob('*') if p.is_file()}
-    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root)],
-                   evidence, 'E4_REINSTALL', env)
-    after = {p.relative_to(installed).as_posix(): sha_file(p) for p in installed.rglob('*') if p.is_file()}
-    checks['E4_REINSTALL_REFUSED_UNCHANGED'] = (r.returncode == 2 and
-        'INSTALLATION_ALREADY_EXISTS_VERIFY_EXISTING' in r.stdout and before == after)
-    # E5: installed writer bytes publish in the cross-volume sandbox; installed MENU consumes.
-    r = writer(python, installed, final, d, c, 'qualification-publish', env)
-    (Path(evidence) / 'E2E_E5_WRITER_PUBLISH.txt').write_text(r.stdout + r.stderr, encoding='utf-8')
-    menu = d / 'Base CSV/Scripts/Biblioteca/MENU.py'; active = c / 'TICKSTORE/ACTIVE_DEPLOYMENT.json'
-    consumer_ok = False
-    if r.returncode == 0:
-        try:
-            dep = menu_consumer(installed)._tickstore_committed_deployment(active, menu)
-            consumer_ok = dep.get('package_sha256') == pkg and dep.get('installation_root') == str(installed)
-        except Exception as exc:  # recorded, not hidden
-            (Path(evidence) / 'E2E_E5_CONSUMER_ERROR.txt').write_text(repr(exc), encoding='utf-8')
-    checks['E5_INSTALLED_WRITER_COMMITS_CROSS_VOLUME'] = (r.returncode == 0 and
-        'MENU_WRITER_STATUS=COMMITTED' in r.stdout and menu.read_bytes() == (installed / MENU_REL).read_bytes())
-    checks['E5_INSTALLED_MENU_CONSUMER_ACCEPTS_COMMITTED'] = consumer_ok
-    checks['E5_CROSS_VOLUME'] = (os.path.splitdrive(str(d))[0].upper() != os.path.splitdrive(str(c))[0].upper())
-    # E6: abrupt death of the installed writer, recovery by a new process, archive, retry.
-    tag2 = uuid.uuid4().hex[:10].upper()
-    d2, c2 = make_sandbox_pair(Path(d_parent) / 'E2E', Path(work) / 'E2E_C', tag2)
-    root2 = c2 / 'TICKSTORE/Candidates'; installed2 = root2 / pkg
-    r = powershell([installer, '-WitnessPath', final['witness_path'], '-InstallRoot', str(root2)],
-                   evidence, 'E6_INSTALL', env)
-    steps = [r.returncode == 0]
-    r = writer(python, installed2, final, d2, c2, 'qualification-publish', env, '--inject', 'AFTER_ACTIVE_MOVE_BEFORE_JOURNAL')
-    steps.append(r.returncode == 77)
-    r = writer(python, installed2, final, d2, c2, 'qualification-recover', env)
-    steps.append(r.returncode == 0 and 'MENU_WRITER_STATUS=ROLLED_BACK' in r.stdout)
-    menu2 = d2 / 'Base CSV/Scripts/Biblioteca/MENU.py'
-    steps.append(menu2.read_bytes() == FIXTURE_MENU and not (c2 / 'TICKSTORE/ACTIVE_DEPLOYMENT.json').exists())
-    r = writer(python, installed2, final, d2, c2, 'qualification-archive', env)
-    steps.append(r.returncode == 0)
-    r = writer(python, installed2, final, d2, c2, 'qualification-publish', env)
-    steps.append(r.returncode == 0 and 'MENU_WRITER_STATUS=COMMITTED' in r.stdout)
-    (Path(evidence) / 'E2E_E6_STEPS.json').write_text(json.dumps(steps), encoding='utf-8')
-    checks['E6_CRASH_NEW_PROCESS_RECOVERY_ARCHIVE_RETRY'] = all(steps) and len(steps) == 6
-    status = 'PASS' if all(checks.values()) else 'FAIL'
-    print('QUAL_E2E=%s %s' % (status, ' '.join('%s=%s' % (k, 'PASS' if v else 'FAIL') for k, v in checks.items())),
-          flush=True)
-    return {'status': status, 'checks': {k: bool(v) for k, v in checks.items()},
-            'sandboxes': [str(d), str(c), str(d2), str(c2)]}
+        args.append('--offline')
+    t0 = time.monotonic()
+    try:
+        r = subprocess.run(args, env=env, capture_output=True, text=True, timeout=spec.get('timeout', 3600))
+        stdout, stderr, rc = r.stdout, r.stderr, r.returncode
+    except subprocess.TimeoutExpired as exc:
+        stdout, stderr, rc = str(exc.stdout or ''), 'TIMEOUT', 124
+    (Path(evidence) / ('PROOF_' + name + '_STDIO.txt')).write_text(
+        stdout[-200000:] + '\n---STDERR---\n' + stderr[-50000:], encoding='utf-8')
+    rec = Path(evidence) / 'PROOFS' / name / 'PROOF_RECEIPT.json'
+    res = json.loads(rec.read_bytes()) if rec.is_file() else {'status': 'NO_RECEIPT'}
+    for line in stdout.splitlines():
+        if line.startswith('G5_PROOF'):
+            print(line, flush=True)
+    return {'proof': name, 'status': res.get('status'), 'exit': rc, 'checks': res.get('checks', {}),
+            'error': res.get('error'), 'seconds': round(time.monotonic() - t0, 3),
+            'receipt_sha256': sha_file(rec) if rec.is_file() else None}
+
+
+def symlink_probe(work):
+    """Elevated qualification needs SeCreateSymbolicLinkPrivilege (R43-E1, WinError 1314)."""
+    d = Path(work) / 'SYMLINK_PROBE'; d.mkdir()
+    (d / 'target.txt').write_bytes(b'x'); (d / 'target_dir').mkdir()
+    try:
+        os.symlink(d / 'target.txt', d / 'file_link')
+        os.symlink(d / 'target_dir', d / 'dir_link', target_is_directory=True)
+        ok = os.path.islink(d / 'file_link') and os.path.islink(d / 'dir_link')
+        return 'PASS' if ok else 'FAIL_NOT_LINK'
+    except OSError as exc:
+        return 'FAIL:%s:%s' % (getattr(exc, 'winerror', None), exc.errno)
+
+
+def write_return_zip(run_dir, evidence, rpath):
+    """Closed RETURN ZIP: receipt, RUN_LOG, EVIDENCE/** and an exact member manifest; readback."""
+    sys.stdout.flush()
+    members = [(rpath.name, rpath.read_bytes()), ('RUN_LOG.txt', (run_dir / 'RUN_LOG.txt').read_bytes())]
+    for p in sorted(evidence.rglob('*')):
+        if p.is_file():
+            members.append(('EVIDENCE/' + p.relative_to(evidence).as_posix(), p.read_bytes()))
+    names = [n for n, _ in members]
+    require(len(names) == len(set(names)), 'RETURN_DUPLICATE_MEMBER')
+    man = canonical({'schema': RETURN_MANIFEST_SCHEMA, 'run_id': run_dir.name,
+                     'files': [{'path': n, 'bytes': len(b), 'sha256': sha_bytes(b)} for n, b in members]})
+    ret = run_dir / ('QUAL_RETURN_' + run_dir.name + '.zip')
+    with zipfile.ZipFile(ret, 'x', zipfile.ZIP_DEFLATED) as z:
+        for n, b in members:
+            z.writestr(n, b)
+        z.writestr('RETURN_MANIFEST.json', man)
+    with zipfile.ZipFile(ret) as z:
+        require(z.testzip() is None, 'RETURN_READBACK_CRC')
+        listed = json.loads(z.read('RETURN_MANIFEST.json'))['files']
+        require({f['path'] for f in listed} == set(z.namelist()) - {'RETURN_MANIFEST.json'}, 'RETURN_READBACK_SET')
+        for f in listed:
+            raw = z.read(f['path'])
+            require(len(raw) == f['bytes'] and sha_bytes(raw) == f['sha256'], 'RETURN_READBACK_MEMBER:' + f['path'])
+    rsha = sha_file(ret)
+    (run_dir / ('QUAL_RETURN_' + run_dir.name + '.zip.sha256.txt')).write_text(rsha + '  ' + ret.name + '\n', encoding='ascii')
+    return ret, rsha, len(listed) + 1
 
 
 # ----------------------------------------------------------------------------- main
@@ -458,10 +411,12 @@ def main(a):
     evidence = run_dir / 'EVIDENCE'; evidence.mkdir(parents=False, exist_ok=False)
     sys.stdout = Tee(sys.stdout, run_dir / 'RUN_LOG.txt'); sys.stderr = Tee(sys.stderr, run_dir / 'RUN_LOG.txt')
     native = os.name == 'nt' and not a.offline_preflight
-    receipt = dict(schema=DRIVER_SCHEMA, RESULT_CONTEXT=RESULT_CONTEXT, mode='NATIVE_WINDOWS' if native else 'OFFLINE_PREFLIGHT',
+    receipt = dict(schema=DRIVER_SCHEMA, RESULT_CONTEXT=RESULT_CONTEXT, RUN_ID=run_dir.name,
+                   mode='NATIVE_WINDOWS' if native else 'OFFLINE_PREFLIGHT',
                    PRODUCTION_MODIFIED=None, FULL_STARTED=False, B06='NOT_STARTED', G4='INCOMPLETE',
-                   G5='NOT_PROVEN', BLOCKER=None, started_unix_ns=time.time_ns())
-    steps = [('IDENTITY', 2), ('FINAL_PACKAGE', 3), ('SUITES', 70), ('E2E', 20), ('POSTCHECK', 2), ('RETURN', 3)]
+                   G5='NOT_PROVEN', B07='NOT_STARTED', GATE_VERDICT_ISSUED=False, BLOCKER=None,
+                   started_unix_ns=time.time_ns())
+    steps = [('IDENTITY', 2), ('FINAL_PACKAGE', 3), ('SUITES', 30), ('PROOFS', 60), ('POSTCHECK', 2), ('RETURN', 3)]
     prog = Progress(steps)
     code = 2
     try:
@@ -477,10 +432,17 @@ def main(a):
             for k, v in vols.items():
                 require(v['filesystem'] == 'NTFS', 'VOLUME_NOT_NTFS:' + k)
                 require(v['free_bytes'] >= 4 * 1024**3, 'VOLUME_FREE_SPACE_BELOW_4GIB:' + k)  # core free_space_gate needs 2.5 GiB
+        elevated = bool(ctypes.windll.shell32.IsUserAnAdmin()) if native else False
+        symlink = symlink_probe(work) if native else 'NOT_NATIVE'
         cpu_avail = getattr(os, 'process_cpu_count', os.cpu_count)()
         receipt['PRECHECK'] = dict(python=sys.version, python_sha256=sha_file(sys.executable),
                                    platform=platform.platform(), cpu_logical=os.cpu_count(), cpu_available=cpu_avail,
-                                   volumes=vols, powershell=a.ps_version, local_appdata=app)
+                                   volumes=vols, powershell=a.ps_version, local_appdata=app,
+                                   elevated=elevated, symlink_privilege=symlink)
+        print('QUAL_PRECHECK ELEVATED=%s SYMLINK_PRIVILEGE=%s' % ('YES' if elevated else 'NO', symlink), flush=True)
+        if native:
+            require(elevated, 'ELEVATION_REQUIRED_RUN_AS_ADMINISTRATOR')
+            require(symlink == 'PASS', 'SYMLINK_PRIVILEGE_REQUIRED:' + symlink)
         before = snapshot_real_targets(app) if native else {}
         (evidence / 'REAL_TARGETS_BEFORE.json').write_bytes(canonical(before))
         qman, qsha = verify_closed_manifest(bundle, 'QUAL_MANIFEST.json', 'TICKSTORE_CDT15_R41_QUAL_BUNDLE_MANIFEST_V001')
@@ -505,50 +467,53 @@ def main(a):
         d_parent = Path(a.d_parent) / run_dir.name if native else work / 'D_PARENT'
         suites = []
         for name, spec in final['plan']['suites'].items():
-            senv = dict(env)
-            if spec.get('writer_sandboxes'):
-                senv['TICKSTORE_QUAL_D_PARENT'] = str(d_parent / name)
-                senv['TICKSTORE_QUAL_C_PARENT'] = str(work / ('C_' + name))
-                if not native:
-                    senv.pop('TICKSTORE_QUAL_D_PARENT'); senv.pop('TICKSTORE_QUAL_C_PARENT')
             if spec.get('native_only') and not native:
                 suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
-            suites.append(run_suite(name, spec, impl, senv, evidence, sys.executable))
+            suites.append(run_suite(name, spec, impl, env, evidence, sys.executable))
         for name, spec in final['plan']['scripts'].items():
             if spec.get('native_only') and not native:
                 suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
             suites.append(run_script(name, spec['script'], impl, env, evidence, sys.executable, spec['expect'],
                                      isolated=spec.get('isolated', True), timeout=spec.get('timeout', 600)))
-        for name, spec in final['plan'].get('scenarios', {}).items():
-            suites.append(run_scenario(name, spec, Path(bundle), impl, work, env, evidence, sys.executable, native))
         if 'b1' in final['plan']:
             suites.append(run_b1(Path(bundle), impl, work, env, evidence, sys.executable, native))
         receipt['TESTS'] = suites
         prog.end('SUITES')
 
-        prog.begin('E2E')
-        receipt['E2E'] = (e2e(final, sys.executable, work, d_parent, evidence, env, native)
-                          if final['plan'].get('e2e', True) else {'status': 'NOT_IN_PLAN_UNCHANGED_SINCE_R42'})
-        prog.end('E2E')
+        prog.begin('PROOFS')
+        proofs = []
+        for name, spec in final['plan'].get('proofs', {}).items():
+            proofs.append(run_proof(name, spec, final, impl, work, d_parent, evidence, env, sys.executable,
+                                    run_dir.name, native))
+        receipt['PROOFS'] = proofs
+        # Nothing may have modified the extracted FINAL bytes the tests and proofs ran from.
+        verify_closed_manifest(final['extract'], 'PACKAGE_MANIFEST.json', 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001')
+        receipt['FINAL_EXTRACT_UNCHANGED_AFTER_RUN'] = 'PASS'
+        prog.end('PROOFS')
 
         prog.begin('POSTCHECK')
         after = snapshot_real_targets(app) if native else {}
         (evidence / 'REAL_TARGETS_AFTER.json').write_bytes(canonical(after))
         receipt['PRODUCTION_MODIFIED'] = (before != after) if native else False
         receipt['REAL_TARGETS_BEFORE_SHA256'] = sha_bytes(canonical(before))
-        failed = [s['suite'] for s in suites if s['status'] not in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE', 'OFFLINE_HARNESS_PASS')]
-        e2e_ok = receipt['E2E']['status'] in ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE', 'NOT_IN_PLAN_UNCHANGED_SINCE_R42')
+        ok_status = ('PASS', 'NOT_NATIVE_SKIPPED_OFFLINE', 'OFFLINE_HARNESS_PASS', 'OFFLINE_HARNESS_ONLY')
+        failed = [s['suite'] for s in suites if s['status'] not in ok_status]
+        failed += ['PROOF_' + p['proof'] for p in proofs if p['proof'] != 'POWERLOSS_EMULATED' and p['status'] not in ok_status]
+        emu = [p for p in proofs if p['proof'] == 'POWERLOSS_EMULATED']
+        receipt['POWERLOSS_EMULATED'] = {'status': emu[0]['status'] if emu else 'NOT_RUN',
+                                         'counts_as': 'NOT_CHECKPOINT_POWERLOSS_RECOVERY'}
         if receipt['PRODUCTION_MODIFIED']:
             receipt['BLOCKER'] = 'REAL_TARGET_CHANGED_DURING_QUALIFICATION'
-        elif failed or not e2e_ok:
-            receipt['BLOCKER'] = 'QUALIFICATION_FAIL:' + ','.join(failed + ([] if e2e_ok else ['E2E']))
+        elif failed:
+            receipt['BLOCKER'] = 'QUALIFICATION_FAIL:' + ','.join(failed)
         passed = receipt['BLOCKER'] is None
-        rev = final['plan'].get('revision', 'R41')
+        rev = final['plan'].get('revision', 'R44')
         receipt['REVISION'] = rev
         receipt['CLASSIFICATION'] = ((rev + '_WINDOWS_SANDBOX_QUALIFICATION_PASS' if native else 'OFFLINE_PREFLIGHT_ONLY')
                                      if passed else rev + '_WINDOWS_SANDBOX_QUALIFICATION_FAIL')
-        receipt['SCOPE'] = ('Native PS5.1/Python 3.14.7 sandbox evidence for the ' + rev + ' delta only. Not G4/G5/B06/B07, '
-                            'not production admission, not power-loss durability (process death only).')
+        receipt['SCOPE'] = ('Native elevated PS5.1/Python 3.14.7 sandbox evidence for ' + rev + ' only: 126 contract IDs '
+                            'and typed G5 target-proof candidates. Not a G5/B06/B07 verdict, not production, '
+                            'not physical power-loss evidence (POWERLOSS_EMULATED is process death only).')
         code = 0 if passed else 2
         prog.end('POSTCHECK')
     except KeyboardInterrupt:
@@ -564,31 +529,27 @@ def main(a):
     receipt['finished_unix_ns'] = time.time_ns()
     rpath = run_dir / 'QUAL_RECEIPT.json'
     rpath.write_bytes(canonical(receipt))
-    ret = run_dir / ('QUAL_RETURN_' + run_dir.name + '.zip')
-    with zipfile.ZipFile(ret, 'x', zipfile.ZIP_DEFLATED) as z:
-        z.write(rpath, rpath.name)
-        # Recursive: harness RESULT.json/TESTS.log and native artifacts live in subfolders.
-        for p in sorted(evidence.rglob('*')):
-            if p.is_file():
-                z.write(p, 'EVIDENCE/' + p.relative_to(evidence).as_posix())
-        sys.stdout.flush()
-        z.write(run_dir / 'RUN_LOG.txt', 'RUN_LOG.txt')
-    rsha = sha_file(ret)
-    prog.end('RETURN')
-    print('')
     print('RESULT_CONTEXT=' + RESULT_CONTEXT)
     print('SOURCE_SHA256=' + str(receipt.get('SOURCE_SHA256')))
     print('MANIFEST=' + str(receipt.get('MANIFEST')))
     print('TESTS=' + ' '.join('%s:%s' % (s['suite'], s['status']) for s in receipt.get('TESTS', [])))
-    print('E2E=' + str(receipt.get('E2E', {}).get('status')))
+    print('PROOFS=' + ' '.join('%s:%s' % (p['proof'], p['status']) for p in receipt.get('PROOFS', [])))
     print('PRECHECK=' + ('PASS' if 'PRECHECK' in receipt else 'NOT_REACHED'))
     print('EXIT_CODE=' + str(code))
-    print('RETURN_ZIP=' + str(ret))
-    print('RETURN_SHA256=' + rsha)
     print('PRODUCTION_MODIFIED=' + str(receipt['PRODUCTION_MODIFIED']).upper())
     print('FULL_STARTED=NO')
+    print('GATE_VERDICT_ISSUED=NO')
     print('BLOCKER=' + str(receipt['BLOCKER']))
     print('CLASSIFICATION=' + str(receipt.get('CLASSIFICATION')))
+    try:
+        ret, rsha, count = write_return_zip(run_dir, evidence, rpath)
+        prog.end('RETURN')
+        print('RETURN_ZIP=' + str(ret))
+        print('RETURN_SHA256=' + rsha)
+        print('RETURN_MEMBERS=%d RETURN_READBACK=PASS' % count)
+    except BaseException as exc:
+        print('RETURN_ZIP_BLOCKED=' + type(exc).__name__ + ':' + str(exc))
+        code = 2
     print('RESULT_RETURN_TO=' + RESULT_CONTEXT)
     return code
 

@@ -1,0 +1,175 @@
+"""Isolated transaction/gate fixtures. No productive authority, audit or D4 run."""
+import copy, importlib.util,json,os,tempfile,unittest
+from pathlib import Path
+from unittest.mock import patch
+ROOT=Path(__file__).resolve().parent.parent/'cdt15/work';C=Path(os.environ.get('TICKSTORE_TEST_CANDIDATE',str(ROOT/'implementation_v001/candidate')))
+def load(name,path):
+ spec=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
+T=load('transaction',C/'control/D4_FIRST_ADMISSION_TRANSACTION.py')
+P=load('preparation',C/'control/D4_FIRST_ADMISSION_PREP.py')
+E=load('entry',C/'adapter/runtime_locator_orchestrator_entry.py')
+A=load('adapter',C/'adapter/runtime_locator_adapter.py')
+class TransactionTests(unittest.TestCase):
+ def setUp(self):
+  self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name);self.rr=self.root/'resume';self.rr.mkdir()
+  self.binding=json.loads((C/'adapter/RUNTIME_LOCATOR_ADAPTER_BINDING.json').read_bytes())
+  self.cfg=json.loads((C/'recovery/config/STAGE_A_SEALED_VALUES_V001.json').read_bytes())
+  self.roots={k:str(self.root/k) for k in ('dest','scratch','recovery')}
+  self.gen={'snapshot_id':self.binding['target_snapshot_id'],'snapshot_set_id':'160a587a-e57f-4c83-ba36-92193537a8b1',
+    'provider_id':'b5946137-7b9f-4925-af80-51abd60b20d5','volume_identity':self.binding['expected_volume_identity'],
+    'device_object':r'\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy15','purpose':'CANARY_ADMISSION'}
+  self.inv={str(i):{'namespace':'FIXTURE_ONLY','journal':{},'partial':{},'contract':{}} for i in range(1399)}
+  orch=P.library((C/'recovery/modules/orchestrator.py').read_bytes(),'transaction_fixture_orch')
+  d=P.technical_descriptor(orch,self.cfg,self.roots,{k:{'volume':1,'file_id':k} for k in self.roots},{},self.gen,self.inv,'00000000-0000-0000-0000-000000000001')
+  self.gate=d['legacy_format']
+  self.loc={'schema':'TICKSTORE_G_CA_OBSERVATION_V002','status':'OBSERVED_NOT_ADMITTED','historical_generation':self.gen,
+    'generation':self.gen,'technical_descriptor_sha256':T.sha(T.canon(self.gate)),'shadow_root_open':True,
+    'shadow_scratch_open':True,'snapshot_state':12,'attributes':25,'original_volume_guid':self.binding['expected_volume_guid']}
+  self.artifacts={k:'A'*64 for k in ('final_code_manifest_sha256','review_pack_sha256','base_release_sha256','successor_release_sha256',
+    'successor_candidate_sha256','effectful_wrapper_sha256','review_verdict_sha256','artifact_base_master_sha256')}
+  self.artifacts['successor_release_sha256']=P.RELEASE_SHA
+  self.review=dict(T.REVIEW_CHECKS)
+  for field,key in [('REVIEW_PACK_SHA256','review_pack_sha256'),('BASE_RELEASE_SHA256','base_release_sha256'),('SUCCESSOR_RELEASE_SHA256','successor_release_sha256'),('SUCCESSOR_CANDIDATE_SHA256','successor_candidate_sha256'),('EFFECTFUL_WRAPPER_SHA256','effectful_wrapper_sha256')]:self.review[field]=self.artifacts[key]
+  self.contract={'schema':'TICKSTORE_QUALIFICATION_CONTRACT_V001',
+    'baseline':dict(status='PASS_HISTORICAL_BYTES_ONLY',archive_sha256='C'*64,run_sha256='D'*64,tests_sha256='E'*64,code_manifest_sha256='F'*64),
+    'required_tests':['fixture-only'], 'required_target_proofs':['fixture-proof']}
+  self.delta=dict(schema='TICKSTORE_CDT15_DELTA_QUALIFICATION_V001',platform='WINDOWS_NTFS_PS51',native_windows=True,
+    code_manifest_sha256='A'*64,tested_code_equals_packaged_code='PASS',production_execution=False,success=True,
+    tests=[dict(id='fixture-only',status='PASS')],target_proofs={'fixture-proof':dict(status='PASS',evidence=[dict(path='fixture-only',sha256='B'*64)])})
+  self.artifacts.update(qualification_contract=self.contract,qualification_validator_sha256=T.sha((C/'control/FULL_QUALIFICATION_CONTRACT.py').read_bytes()))
+  self.complete={'schema':'TICKSTORE_ENGINEERING_COMPLETENESS_V002','status':'COMPLETE','known_blockers':[],
+    'integration_implemented':True,'windows_qualification':'PASS','code_manifest_sha256':'A'*64,
+    'baseline':self.contract['baseline'],'baseline_results_counted_as_delta':False,
+    'baseline_archive_evidence':dict(path='fixture-only',sha256='C'*64),
+    'delta_test_totals':dict(run=1,failures=0,errors=0,skips=0),'delta_qualification':self.delta,
+    'scope':'UNIT_FIXTURE_ONLY_NOT_AUDIT_EVIDENCE'}
+  self.b07={'schema':'TICKSTORE_B07_TECHNICAL_RECEIPT_V001','status':'PASS','platform':'WINDOWS_NTFS_PS51',
+    'code_manifest_sha256':'A'*64,'review_verdict_sha256':'A'*64,'checks':dict.fromkeys(T.B07_CHECKS,'PASS'),
+    'scope':'UNIT_FIXTURE_ONLY_NOT_AUDIT_EVIDENCE'}
+  self.policy={'schema':'TICKSTORE_D4_POLICY_ADMISSION_RECEIPT_V001','status':'PASS','project':'PEGASUS_TICKSTORE',
+    'thread':'Compressão De Ticks 7','effect_scope':'D4_ONLY','active_master_sha256':T.POLICY_MASTER,'active_head_sha256':T.POLICY_HEAD,
+    'active_revision_id':T.POLICY_REVISION,'policy_source_cardinality':'PASS_1_MASTER_PLUS_1_HEAD','policy_head_state':'FROZEN',
+    'material_delta_reconciled':'YES','material_delta_blocks_execution':'NO'}
+  for key in ('artifact_base_master_sha256','review_pack_sha256','review_verdict_sha256','effectful_wrapper_sha256'):self.policy[key]=self.artifacts[key]
+  self.pin={'sha256':'B'*64,'identity':[1,2,3,4]};self.run_id='1'*32
+  self.files={name:(C/'adapter'/name).read_bytes() for name in ('runtime_locator_adapter.py','runtime_locator_orchestrator_entry.py',
+   'runtime_locator_inline_entry.py','INLINE_ROOT_LOADER_V004_R1R1_ADAPTER.ps1','Launch-TickstoreBundle-Adapter.ps1')}
+  self.checks=0
+  if os.name=="nt":self.native_store=P.library((C/"recovery/engine/tickstore_publisher_recovery_v004_release.py").read_bytes(),"transaction_native_store").Win32Store()
+ def revalidate(self):self.checks+=1
+ def call(self):
+  return T.materialize(self.rr,self.run_id,self.gate,self.binding,self.loc,self.artifacts,'C'*64,'FIXTURE_NOT_DPAPI',self.pin,
+    self.review,self.b07,self.complete,self.policy,self.revalidate,A.validate_locator_receipt,self.files,
+    directory_guard=(lambda p:self.native_store.open(p,directory=True)) if os.name=="nt" else None,
+    file_guard=self.native_store.open if os.name=="nt" else None)
+ def test_positive_fixture_materializes_bound_identity_without_state_or_checkpoint(self):
+  r=self.call();ra=json.loads(Path(r['authority_path']).read_bytes());self.assertEqual(ra['run_id'],self.run_id)
+  self.assertEqual(T.sha(Path(r['authority_path']).read_bytes()),r['authority_sha256'])
+  self.assertFalse((self.rr/'checkpoint').exists());self.assertEqual(self.checks,2)
+  self.assertEqual(ra['owner_gate_sha256'],self.loc['technical_descriptor_sha256'])
+  binding=json.loads(Path(ra['adapter_binding_path']).read_bytes());self.assertEqual(binding['owner_gate_sha256'],ra['owner_gate_sha256'])
+ def test_incomplete_candidate_blocks_before_any_write(self):
+  for change in ({'status':'NOT_PROVEN'},{'integration_implemented':False},{'windows_qualification':'PENDING'},{'known_blockers':['OPEN_IDENTITY_DRIFT']}):
+   original=dict(self.complete);self.complete.update(change)
+   with self.subTest(change=change),self.assertRaises(T.Blocked):self.call()
+   self.assertEqual(list(self.rr.iterdir()),[]);self.complete=original
+ def test_each_b07_check_required_before_any_write(self):
+  for key in T.B07_CHECKS:
+   self.b07['checks'][key]='UNKNOWN'
+   with self.subTest(key=key),self.assertRaisesRegex(T.Blocked,'B07_CHECKS'):self.call()
+   self.assertEqual(list(self.rr.iterdir()),[]);self.b07['checks'][key]='PASS'
+ def test_review_binding_drift_blocks(self):
+  self.review['EFFECTFUL_WRAPPER_SHA256']='0'*64
+  with self.assertRaisesRegex(T.Blocked,'REVIEW_BINDING'):self.call()
+  self.assertEqual(list(self.rr.iterdir()),[])
+ def test_v37_policy_cannot_release_v38_instance(self):
+  self.policy['active_master_sha256']=P.MASTER_SHA
+  with self.assertRaisesRegex(T.Blocked,'POLICY_active_master'):self.call()
+ def test_locator_wrong_descriptor_and_changed_generation_block(self):
+  self.loc['technical_descriptor_sha256']='0'*64
+  with self.assertRaisesRegex(T.Blocked,'LOCATOR_DESCRIPTOR'):self.call()
+  self.loc['technical_descriptor_sha256']=T.sha(T.canon(self.gate));self.loc['historical_generation']=dict(self.gen,purpose='OTHER')
+  with self.assertRaisesRegex(T.Blocked,'GENERATION_DESCRIPTOR'):self.call()
+ def test_native_locator_negative_blocks_before_creating_files(self):
+  self.loc['attributes']=29
+  with self.assertRaisesRegex(RuntimeError,'CLIENT_ACCESSIBLE'):self.call()
+  self.assertEqual(list(self.rr.iterdir()),[])
+ def test_code_binding_tamper_blocks(self):
+  self.files['runtime_locator_adapter.py']+=b'\n# changed'
+  with self.assertRaisesRegex(T.Blocked,'ADAPTER_COMPONENT_SHA'):self.call()
+  self.assertEqual(list(self.rr.iterdir()),[])
+ def test_state_drift_before_first_write_blocks(self):
+  self.revalidate=lambda:(_ for _ in ()).throw(RuntimeError('STATE_DRIFT'))
+  with self.assertRaisesRegex(RuntimeError,'STATE_DRIFT'):self.call()
+  self.assertEqual(list(self.rr.iterdir()),[])
+ def test_state_drift_at_publish_preserves_support_without_authority(self):
+  def check():
+   self.checks+=1
+   if self.checks==2:raise RuntimeError('STATE_DRIFT')
+  self.revalidate=check
+  with self.assertRaisesRegex(RuntimeError,'STATE_DRIFT'):self.call()
+  self.assertTrue(list(self.rr.glob('admission.*')));self.assertFalse((self.rr/'authority/RUN_AUTHORITY.json').exists())
+  with self.assertRaisesRegex(T.Blocked,'INTERRUPTED_ADMISSION'):T.require_clean_first_admission(self.rr)
+ def test_injected_flush_failure_preserves_evidence_and_never_publishes(self):
+  with patch.object(T.os,'fsync',side_effect=OSError('FIXTURE_FLUSH_FAILURE')),self.assertRaisesRegex(OSError,'FIXTURE_FLUSH_FAILURE'):self.call()
+  self.assertFalse((self.rr/'authority/RUN_AUTHORITY.json').exists())
+  self.assertTrue(list(self.rr.glob('admission.*')))
+ def test_authority_publication_collision_preserves_concurrent_winner(self):
+  real=T.publish_authority
+  def collision(src,dst):
+   dst.write_bytes(b'concurrent winner');return real(src,dst)
+  with patch.object(T,'publish_authority',collision),self.assertRaises(OSError):self.call()
+  self.assertEqual((self.rr/'authority/RUN_AUTHORITY.json').read_bytes(),b'concurrent winner')
+ def test_existing_run_never_becomes_a_new_successor(self):
+  first=self.call();old=Path(first['authority_path']).read_bytes();self.run_id='2'*32
+  with self.assertRaisesRegex(T.Blocked,'EXISTING_RUN'):self.call()
+  self.assertEqual(Path(first['authority_path']).read_bytes(),old)
+ def test_orphan_checkpoint_blocks_first_admission(self):
+  p=self.rr/'checkpoint';p.mkdir();(p/'CHECKPOINT.json').write_bytes(b'old')
+  with self.assertRaisesRegex(T.Blocked,'DIRECTORY_NOT_EMPTY'):self.call()
+  self.assertEqual((p/'CHECKPOINT.json').read_bytes(),b'old')
+ def test_reparse_resume_root_rejected(self):
+  link=self.root/'link';link.symlink_to(self.rr,target_is_directory=True);self.rr=link
+  if os.name == 'nt':
+   # Windows native Win32Store raises its own Blocked('REPARSE_REJECTED')
+   # before reaching the transaction's Python-level LINK_OR_REPARSE guard.
+   # Both are legitimate fail-closed outcomes; demand the exact native code.
+   with self.assertRaisesRegex(Exception, r'^REPARSE_REJECTED$') as caught:
+    self.call()
+   self.assertEqual(type(caught.exception).__name__, 'Blocked')
+  else:
+   with self.assertRaisesRegex(T.Blocked, 'LINK_OR_REPARSE'):
+    self.call()
+  self.assertFalse((self.rr/'authority').exists())
+  self.assertFalse((self.rr/'checkpoint').exists())
+ def test_resume_commit_detects_missing_or_changed_support(self):
+  r=self.call();ra=json.loads(Path(r['authority_path']).read_bytes());p=Path(ra['owner_gate_path']);p.write_bytes(b'changed')
+  with self.assertRaisesRegex(RuntimeError,'SUPPORT_SHA'):E.validate_first_admission_commit(ra,b'fixture')
+ def test_resume_commit_binds_exact_file_set(self):
+  r=self.call();ra=json.loads(Path(r['authority_path']).read_bytes());p=Path(ra['first_admission_manifest_path'])
+  m=json.loads(p.read_bytes());del m['files']['runtime_locator_adapter.py'];p.write_bytes(T.canon(m));ra['first_admission_manifest_sha256']=T.sha(p.read_bytes())
+  with self.assertRaisesRegex(RuntimeError,'COMMIT_CONTRACT'):E.validate_first_admission_commit(ra,b'fixture')
+ def test_frozen_engine_gate_selector_accepts_compiled_descriptor(self):
+  r=self.call();ra=json.loads(Path(r['authority_path']).read_bytes());binding=json.loads(Path(ra['adapter_binding_path']).read_bytes())
+  requested=dict(self.gate,release_id='CERTIFY_SCRATCH_fixture_new_attempt_label')
+  self.assertEqual(A.select_admitted_gate(requested,binding,ra),self.gate)
+ def test_missing_windows_qualification_cannot_be_hidden_by_test_totals(self):
+  self.complete['windows_qualification']='NOT_EXECUTED'
+  with self.assertRaisesRegex(T.Blocked,'WINDOWS_OR_INTEGRATION_INCOMPLETE'):self.call()
+ def test_skipped_windows_test_blocks_completeness(self):
+  self.complete['delta_test_totals']['skips']=1
+  with self.assertRaisesRegex(T.Blocked,'DELTA_TOTALS_PARITY'):self.call()
+ def test_support_swap_is_denied_or_detected_before_publication(self):
+  def check():
+   self.checks+=1
+   if self.checks==2:
+    p=next(self.rr.glob('admission.*'))/'TECHNICAL_EXECUTION_DESCRIPTOR.json';q=self.root/'same';q.write_bytes(p.read_bytes())
+    os.replace(q,p)
+  self.revalidate=check
+  with self.assertRaises((OSError,T.Blocked)):self.call()
+  self.assertFalse((self.rr/'authority/RUN_AUTHORITY.json').exists())
+ def test_missing_independent_review_blocks_before_any_write(self):
+  self.review['INDEPENDENT_REVIEW']='NO'
+  with self.assertRaisesRegex(T.Blocked,'REVIEW_INDEPENDENT_REVIEW'):self.call()
+  self.assertEqual(list(self.rr.iterdir()),[])
+if __name__=='__main__':unittest.main(verbosity=2)

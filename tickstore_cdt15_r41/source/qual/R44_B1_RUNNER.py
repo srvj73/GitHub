@@ -1,9 +1,10 @@
-"""R43 B1: the 126 contract IDs on the CURRENT candidate bytes (Windows native selection).
+"""R44 B1: the 126 contract IDs on the CURRENT candidate bytes (Windows native selection).
 
-Inputs are hash-bound: the origin R3 archive (unchanged), the origin-authorized derived
-tests_full_lifecycle.py (parent EE30AA93..., derived hash from the plan), the original
-126-ID contract, and the extracted FINAL candidate with its runtime manifest.
-Historical PASS is never inherited: every ID is executed here on the current bytes.
+Inputs are hash-bound: the origin R3 archive (unchanged), the two origin-approved derived
+test files (B1A tests_full_lifecycle.py, parent EE30AA93...; B1B tests_delta.py, parent
+67B41A04..., approved patch 84E32FA3...), the original 126-ID contract, and the extracted
+FINAL candidate with its runtime manifest.  Historical PASS is never inherited: every ID
+is executed here on the current bytes.  Requires an elevated process (symlink tests).
 """
 from __future__ import annotations
 
@@ -35,7 +36,7 @@ def main():
     a = ap.parse_args()
     bundle, impl, work, ev = Path(a.bundle), Path(a.impl), Path(a.work), Path(a.evidence)
     spec = json.loads(Path(a.plan).read_bytes())['b1']
-    out = {'schema': 'TICKSTORE_CDT15_R43_B1_RESULT_V001', 'mode': 'OFFLINE_HARNESS_CHECK' if a.offline else 'NATIVE_WINDOWS',
+    out = {'schema': 'TICKSTORE_CDT15_R44_B1_RESULT_V001', 'mode': 'OFFLINE_HARNESS_CHECK' if a.offline else 'NATIVE_WINDOWS',
            'baseline_results_counted_as_delta': False, 'production_execution': False}
     try:
         r3zip = bundle / spec['r3_archive']
@@ -51,18 +52,20 @@ def main():
         with zipfile.ZipFile(r3zip) as z:
             require(z.testzip() is None, 'R3_ARCHIVE_CRC')
             z.extractall(tree)
-        target = tree / 'engineering/tests_full_lifecycle.py'
-        require(sha(target) == spec['parent_sha256'], 'R3_PARENT_TEST_SHA256')
-        derived = bundle / spec['derived']
-        require(sha(derived) == spec['derived_sha256'], 'DERIVED_TEST_SHA256')
-        # The extracted R3 copy is a disposable working tree; the R3 archive itself is untouched.
-        target.write_bytes(derived.read_bytes())
-        require(sha(target) == spec['derived_sha256'], 'DERIVED_OVERLAY_READBACK')
+        out['derived'] = {}
+        for ov in spec['overlays']:
+            target = tree / ov['target']
+            require(sha(target) == ov['parent_sha256'], 'R3_PARENT_TEST_SHA256:' + ov['target'])
+            derived = bundle / ov['derived']
+            require(sha(derived) == ov['derived_sha256'], 'DERIVED_TEST_SHA256:' + ov['target'])
+            # The extracted R3 copy is a disposable working tree; the R3 archive itself is untouched.
+            target.write_bytes(derived.read_bytes())
+            require(sha(target) == ov['derived_sha256'], 'DERIVED_OVERLAY_READBACK:' + ov['target'])
+            out['derived'][ov['target']] = {'parent_sha256': ov['parent_sha256'], 'derived_sha256': ov['derived_sha256']}
         probes = bundle / spec['microprobes']
         require(sha(probes) == spec['microprobes_sha256'], 'MICROPROBES_SHA256')
         (tree / 'engineering/R43_B1A_MICROPROBES.py').write_bytes(probes.read_bytes())
-        out.update(r3_archive_sha256=spec['r3_archive_sha256'], parent_sha256=spec['parent_sha256'],
-                   derived_sha256=spec['derived_sha256'], contract_sha256=spec['contract_sha256'])
+        out.update(r3_archive_sha256=spec['r3_archive_sha256'], contract_sha256=spec['contract_sha256'])
 
         cand = impl / 'candidate'
         env = dict(os.environ, TICKSTORE_TEST_CANDIDATE=str(cand),
@@ -92,7 +95,6 @@ def main():
         out['tests'] = [{'id': i, 'status': statuses.get(i, 'NOT_SELECTED_OFFLINE' if a.offline else 'NOT_RUN')}
                         for i in contract]
         out['non_pass'] = [t for t in out['tests'] if t['status'] != 'PASS']
-        out['predicted_r43_b1b'] = spec['predicted_b1b']
 
         pr = subprocess.run([sys.executable, '-B', '-c',
                              'import sys,unittest;sys.path[:0]=[sys.argv[1],sys.argv[2]];'
@@ -117,7 +119,7 @@ def main():
     (ev / 'B1_RESULT.json').write_text(json.dumps(out, indent=1, sort_keys=True), encoding='utf-8')
     np = ' '.join(t['id'].split('.')[-1] + '=' + t['status'] for t in out.get('non_pass', [])
                   if t['status'] != 'NOT_SELECTED_OFFLINE')
-    print('R43_B1 status=%s pass=%s/%s microprobes=%s %s' % (out['status'], out.get('counts', {}).get('pass'),
+    print('R44_B1 status=%s pass=%s/%s microprobes=%s %s' % (out['status'], out.get('counts', {}).get('pass'),
           out.get('counts', {}).get('expected_executed'), out.get('microprobes'), ('NON_PASS: ' + np) if np else ''),
           flush=True)
     return 0 if out['status'] in ('PASS', 'OFFLINE_HARNESS_PASS') else 2

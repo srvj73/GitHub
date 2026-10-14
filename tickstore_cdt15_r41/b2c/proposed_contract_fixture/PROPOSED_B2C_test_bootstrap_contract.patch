@@ -1,0 +1,36 @@
+--- test_bootstrap_contract.py.orig	2026-10-14 02:04:38.471247512 +0000
++++ test_bootstrap_contract.py	2026-10-14 02:06:17.773317143 +0000
+@@ -14,10 +14,31 @@
+ class BootstrapContract(unittest.TestCase):
+  def setUp(self):
+   self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name)
++ # R44-B2C derivation: the policy is a hash-bound current capture plus an origin reconciliation
++ # record (unit fixture here); V37/V38 are historical and must never validate as current.
++ def capture_fixture(self,source,suffix=b''):
++  import datetime as dt,hashlib
++  cap=load('policy_capture_contract',C/'control/POLICY_CAPTURE_BINDING.py');d=self.root/'policy';d.mkdir()
++  master=(source/cap.MASTER).read_bytes()+suffix;h=lambda b:hashlib.sha256(b).hexdigest().upper()
++  head=json.loads((source/cap.HEAD).read_bytes());head['master_sha256']=h(master)
++  head['revision_id']=head['revision_id'][:21]+h(master)[:16];head.setdefault('active_master_cardinality','EXACTLY_ONE')
++  (d/cap.MASTER).write_bytes(master);(d/cap.HEAD).write_text(json.dumps(head),encoding='utf-8')
++  now=dt.datetime.now(dt.timezone.utc)
++  rec={'schema':cap.RECONCILIATION_SCHEMA,'issuer':'CHATGPT_ORIGIN','status':'CURRENT_AT_ORIGIN','policy_master_sha256':h(master),
++   'policy_head_sha256':h((d/cap.HEAD).read_bytes()),'policy_revision':head['revision_id'],'live_cardinality':{'master':1,'head':1},
++   'live_state':'FROZEN','capture_operational_authority':False,'administrative_owner_gate_required':False,'scope':['D4_FIRST_ADMISSION'],
++   'routing_project':'FIXTURE_PROJECT','routing_thread':'FIXTURE_THREAD','reconciled_at':(now-dt.timedelta(hours=1)).isoformat(),
++   'valid_until':(now+dt.timedelta(hours=1)).isoformat(),'fixture':'UNIT_FIXTURE_NOT_ORIGIN_EVIDENCE'}
++  rp=self.root/'RECONCILIATION.json';rp.write_text(json.dumps(rec),encoding='utf-8')
++  return cap,d,rp,h(rp.read_bytes())
+  def test_v38_technical_policy_validates_without_issuer_or_owner_approval(self):
+-  with P.Reads() as r:B.policy_v38(r,ROOT/'revision_v38/policy',ROOT/'revision_v38/ORIGIN_WITNESS_V38.json',T);r.revalidate()
++  cap,d,rp,rs=self.capture_fixture(ROOT/'revision_v38/policy',b'\n<!-- synthetic current revision fixture -->\n')
++  with P.Reads() as r:
++   c=B.policy_current(r,d,rp,rs,cap);r.revalidate()
++  self.assertIs(c['administrative_owner_gate_required'],False);self.assertIs(c['capture_operational_authority'],False)
+  def test_historical_v37_cannot_be_current_policy(self):
+-  with P.Reads() as r,self.assertRaisesRegex(RuntimeError,'SHA_MISMATCH'):B.policy_v38(r,ROOT/'policy',ROOT/'work_implementation/ORIGIN_CAPTURE.json',T)
++  cap,d,rp,rs=self.capture_fixture(ROOT/'policy')
++  with P.Reads() as r,self.assertRaisesRegex(RuntimeError,'POLICY_HISTORICAL_NOT_CURRENT:V37'):B.policy_current(r,d,rp,rs,cap)
+  def test_final_code_manifest_verifies_actual_runtime(self):
+   p=Path(os.environ.get('TICKSTORE_TEST_MANIFEST',str(Path(__file__).with_name('FINAL_RUNTIME_CODE_MANIFEST.json'))))
+   trace={'phase':'READ_CODE_SET','last_requested_path':None,'completed_reads':0}

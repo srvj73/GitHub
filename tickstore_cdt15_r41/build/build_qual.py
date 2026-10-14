@@ -13,7 +13,7 @@ from pathlib import Path
 
 DATE = '20261014'
 FIXED_TIME = (2026, 10, 13, 0, 0, 0)
-REV = 'R43'
+REV = 'R44'
 FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_%s_%s.zip' % (REV, DATE)
 FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_%s_%s.json' % (REV, DATE)
 QUAL_NAME = 'TICKSTORE_CDT15_%s_QUAL_%s.zip' % (REV, DATE)
@@ -31,19 +31,25 @@ POLICY = {'revision': '20261013T070500-0300-695DCD6495E549B1',
           'head_sha256': 'B3B419592DC29651487B1545E1CD7AE66604AB78582202883684E69BCB1FF7EA',
           'custody': 'SNAPSHOT_NON_AUTHORITATIVE_RECONCILE_AT_CHATGPT_ORIGIN'}
 SUITES = {
-    # Only suites whose code changed since the R42 native PASS (AUTOCPU min rule).
-    'S6_MULTIWORK_UNIT': {'files': [{'file': 'candidate/full/test_full_multiwork.py'}],
-                          'sys_path': ['candidate/full']},
+    # B2-G5-01 producer/consumer controls and the runner/consumer contract (new in R44).
+    'S8_G5_EVIDENCE_BUILDER': {'files': [{'file': 'tests/test_g5_evidence_builder.py'}], 'sys_path': ['tests']},
+    'S9_G5_PROOF_RUNNER_CONTRACT': {'files': [{'file': 'tests/test_g5_proof_runner_contract.py'}], 'sys_path': ['tests']},
 }
-SCRIPTS = {
-    'S7_STATIC_MULTIWORK_PREAUDIT': {'script': 'candidate/full/static_multiwork_preaudit.py',
-                                     'expect': 'STATIC_MULTIWORK_PREAUDIT=PASS'},
+SCRIPTS = {}
+PROOFS = {
+    # Order matters only for readability of the log; every proof uses its own sandbox.
+    'PROCESS_TREE_CRASH_CONTAINMENT': {'timeout': 600},
+    'STAGE_B_FULL_CHAIN_NATIVE': {'timeout': 1800},
+    'D4_CLOSURE_NATIVE_1399': {'timeout': 3600, 'volume': 'D'},
+    'PS51_INSTALL_MENU': {'timeout': 3600},
+    'SAFE_STOP_RESUME_ROW_GROUP': {'timeout': 5400, 'volume': 'D'},
+    'POWERLOSS_EMULATED': {'timeout': 7200, 'volume': 'D'},
 }
-SCENARIOS = {}
 B1_DIR = Path(__file__).resolve().parent.parent / 'b1'
 B1_INPUTS = {'b1/R3_RUNTIME_ORIGINAL_ARCHIVE.zip': B1_DIR / 'r3_inputs/R3_RUNTIME_ORIGINAL_ARCHIVE.zip',
              'b1/QUALIFICATION_CONTRACT_ORIGINAL.json': B1_DIR / 'r3_inputs/QUALIFICATION_CONTRACT_ORIGINAL.json',
-             'b1/tests_full_lifecycle.py': B1_DIR / 'derived/tests_full_lifecycle.py'}
+             'b1/tests_full_lifecycle.py': B1_DIR / 'derived/tests_full_lifecycle.py',
+             'b1/tests_delta.py': B1_DIR / 'derived/tests_delta.py'}
 
 
 def sha(raw):
@@ -137,22 +143,25 @@ def main(source, out):
     plan = canon({'schema': 'TICKSTORE_CDT15_R41_QUAL_PLAN_V001', 'final_package_name': FINAL_NAME,
                   'final_package_sha256': sha(final_raw), 'final_witness_name': FINAL_WITNESS,
                   'runtime_code_manifest_sha256': runtime_sha, 'suites': suites, 'scripts': SCRIPTS,
-                  'scenarios': {'R42_' + k: v for k, v in SCENARIOS.items()}, 'revision': REV, 'e2e': False,
+                  'proofs': PROOFS, 'revision': REV,
                   'b1': {'r3_archive': 'b1/R3_RUNTIME_ORIGINAL_ARCHIVE.zip',
                          'r3_archive_sha256': '2379512BD32CA751E0636EA4186F097035542F851CC51019817DDB5FFC4480E4',
                          'contract': 'b1/QUALIFICATION_CONTRACT_ORIGINAL.json',
                          'contract_sha256': '9AF1C840C1AE519BBD1A36C9C9CA7C2A91E0879D4AE6CEC049A11E2FB1FEF944',
-                         'parent_sha256': 'EE30AA9325EE79A1F5FF4876DF72EC0A596AC351E9708447337841E9B43E592D',
-                         'derived': 'b1/tests_full_lifecycle.py',
-                         'derived_sha256': sha((B1_DIR / 'derived/tests_full_lifecycle.py').read_bytes()),
+                         'overlays': [
+                             {'target': 'engineering/tests_full_lifecycle.py', 'approval': 'R43_B1A_ORIGIN_APPROVED',
+                              'parent_sha256': 'EE30AA9325EE79A1F5FF4876DF72EC0A596AC351E9708447337841E9B43E592D',
+                              'derived': 'b1/tests_full_lifecycle.py',
+                              'derived_sha256': sha((B1_DIR / 'derived/tests_full_lifecycle.py').read_bytes())},
+                             {'target': 'cdt15/tests_delta.py', 'approval': 'R43_B1B_ORIGIN_APPROVED_PATCH_84E32FA3',
+                              'parent_sha256': '67B41A04787A2BEB3CB1CA7AE1CF79286E034F81B50ADEAC4C536956972FAD1D',
+                              'derived': 'b1/tests_delta.py',
+                              'derived_sha256': sha((B1_DIR / 'derived/tests_delta.py').read_bytes())}],
                          'microprobes': 'qual/R43_B1A_MICROPROBES.py',
                          'microprobes_sha256': sha((source / 'qual/R43_B1A_MICROPROBES.py').read_bytes()),
-                         'portable': 106, 'native_only': 20,
-                         'predicted_b1b': ['tests_delta.InstallerAndLauncherTests.test_native_ps51_extract_readback_and_collision_preserved',
-                                           'tests_delta.InstallerAndLauncherTests.test_file_hash_mismatch_preserves_partial_no_deployment']}})
+                         'portable': 106, 'native_only': 20}})
     qmembers = [('qual/QUAL_DRIVER.py', (source / 'qual/QUAL_DRIVER.py').read_bytes()),
-                ('qual/R42_MULTIWORK_E2E.py', (source / 'qual/R42_MULTIWORK_E2E.py').read_bytes()),
-                ('qual/R43_B1_RUNNER.py', (source / 'qual/R43_B1_RUNNER.py').read_bytes()),
+                ('qual/R44_B1_RUNNER.py', (source / 'qual/R44_B1_RUNNER.py').read_bytes()),
                 ('qual/R43_B1A_MICROPROBES.py', (source / 'qual/R43_B1A_MICROPROBES.py').read_bytes()),
                ] + [(k, v.read_bytes()) for k, v in B1_INPUTS.items()] + [
                 ('qual/QUAL_PLAN.json', plan), ('FINAL/' + FINAL_NAME, final_raw), ('FINAL/' + FINAL_WITNESS, fwitness)]
@@ -181,11 +190,13 @@ def main(source, out):
                      'source_manifest_sha256': sha((source / 'SOURCE_MANIFEST.json').read_bytes()),
                      'policy': POLICY, **BASELINE,
                      'expected_tests': {k: v['expected'] for k, v in suites.items()},
-                     'scripts': sorted(SCRIPTS), 'scenarios': sorted(SCENARIOS),
+                     'scripts': sorted(SCRIPTS), 'proofs': sorted(PROOFS), 'b1_contract_ids': 126,
+                     'elevation_required': True,
                      'invocation': 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File '
                                    '"C:\\Users\\silvi\\OneDrive\\Downloads\\' + BOOTSTRAP + '"',
                      'production_modified': False, 'full_started': False, 'b06_formal_audit': False,
-                     'G4': 'INCOMPLETE', 'G5': 'NOT_PROVEN', 'B06': 'NOT_STARTED'})
+                     'G4': 'INCOMPLETE', 'G5': 'NOT_PROVEN', 'B06': 'NOT_STARTED', 'B07': 'NOT_STARTED',
+                     'gate_verdict_issued': False})
     (out / QUAL_WITNESS).write_bytes(witness)
     for name in (QUAL_NAME, BOOTSTRAP, QUAL_WITNESS, FINAL_NAME, FINAL_WITNESS):
         print('%s %s %d' % (sha((out / name).read_bytes()), name, (out / name).stat().st_size))

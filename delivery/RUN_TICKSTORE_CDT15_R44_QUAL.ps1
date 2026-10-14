@@ -1,20 +1,22 @@
-# TICKSTORE CDT15 R43 - Windows sandbox qualification bootstrap (Windows PowerShell 5.1).
+# TICKSTORE CDT15 R44 - Windows sandbox qualification bootstrap (Windows PowerShell 5.1).
 # Run (no cd needed):
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R43_QUAL.ps1"
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Users\silvi\OneDrive\Downloads\RUN_TICKSTORE_CDT15_R44_QUAL.ps1"
+# Requires Administrator (symlink tests). When started without elevation it opens a new
+# elevated window of itself (UAC prompt) and the non-elevated run ends with exit code 3.
 # Effects: creates only run-owned folders
-#   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R43_QUAL_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
-#   %LOCALAPPDATA%\TICKSTORE_QUAL_R43\R43_QUAL_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
-#   D:\TICKSTORE_QUALIFICATION_SANDBOX\R43_QUAL_<timestamp>_<PID>\                (D: sandboxes)
+#   C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\R44_QUAL_<timestamp>_<PID>\   (log, receipt, RETURN ZIP)
+#   %LOCALAPPDATA%\TICKSTORE_QUAL_R44\R44_QUAL_<timestamp>_<PID>\                 (extracted code, C: sandboxes)
+#   D:\TICKSTORE_QUALIFICATION_SANDBOX\R44_QUAL_<timestamp>_<PID>\                (D: sandboxes)
 # It never writes D:\Base CSV, %LOCALAPPDATA%\TICKSTORE, MENU.py, the BAT, ACTIVE_DEPLOYMENT or STATE.
 [CmdletBinding()]
 param()
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
-$ZipPattern = 'TICKSTORE_CDT15_R43_QUAL_*.zip'
-$ExpectedZipName = 'TICKSTORE_CDT15_R43_QUAL_20261014.zip'
-$ExpectedZipSha = '2B6544136806D37EF528A2D654B45EB36841BF2FE8AE42968743A31E1FB963BD'
-$ExpectedZipBytes = 3236070
-$ExpectedQualManifestSha = 'DE862665138459145DDC446BA1B7FE39DD0F16795327C826FEA632C4F2940CBE'
+$ZipPattern = 'TICKSTORE_CDT15_R44_QUAL_*.zip'
+$ExpectedZipName = 'TICKSTORE_CDT15_R44_QUAL_20261014.zip'
+$ExpectedZipSha = '0C369ACD9CAC3E25CF348A4BDE87006CB5676A8A9EEE52AFF16A961CFF5EDB06'
+$ExpectedZipBytes = 3314999
+$ExpectedQualManifestSha = '9569C3CCBAAFD289EAD2E347EEE1BA23A86A2CBC71BACC6DC59A3221E7C58C2F'
 $Downloads = 'C:\Users\silvi\OneDrive\Downloads'
 $LogRoot = 'C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS'
 $Python = 'C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'
@@ -107,7 +109,7 @@ public static class R41Reparse {
     }
 }
 '@
-    $runName = 'R43_QUAL_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
+    $runName = 'R44_QUAL_' + (Get-Date).ToString('yyyyMMdd_HHmmss_fff') + '_' + $PID
     [IO.Directory]::CreateDirectory($LogRoot) | Out-Null
     NoReparseBelow $LogRoot @()
     $script:RunDir = Join-Path $LogRoot $runName
@@ -122,6 +124,16 @@ public static class R41Reparse {
     Require ($app -cmatch '^[A-Za-z]:\\[^%]+$' -and -not $app.EndsWith('\')) 'LOCALAPPDATA_INVALID_OR_UNEXPANDED'
     Require ([IO.Path]::GetFullPath($app) -ceq $app) 'LOCALAPPDATA_NOT_CANONICAL'
     Log ('POWERSHELL=' + $PSVersionTable.PSVersion.ToString() + ' LOCALAPPDATA=' + $app)
+    $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+    $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    Log ('ELEVATED=' + $(if ($isAdmin) { 'YES' } else { 'NO' }))
+    if (-not $isAdmin) {
+        Require ([IO.File]::Exists($PSCommandPath)) 'SCRIPT_PATH_UNKNOWN_FOR_ELEVATION'
+        Log 'ELEVATION_REQUIRED: abrindo uma nova janela do PowerShell como Administrador (confirme o UAC).'
+        $argList = '-NoProfile -ExecutionPolicy Bypass -NoExit -File "' + $PSCommandPath + '"'
+        Start-Process -FilePath 'C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe' -Verb RunAs -ArgumentList $argList | Out-Null
+        throw 'ELEVATED_WINDOW_STARTED'
+    }
 
     # 1. Locate eligible ZIPs in this script's folder and in Downloads (no cwd use).
     $dirs = @($PSScriptRoot, $Downloads) | ForEach-Object { [IO.Path]::GetFullPath($_) } | Select-Object -Unique
@@ -152,7 +164,7 @@ public static class R41Reparse {
     Log ('ZIP_SELECTED_PRIVATE_COPY=' + $zipCopy + ' IDENTICAL_COPIES=' + $matched.Count)
 
     # 2. Extract into a fresh run-owned, non-synced folder; every member re-verified.
-    $work = Join-Path (Join-Path $app 'TICKSTORE_QUAL_R43') $runName
+    $work = Join-Path (Join-Path $app 'TICKSTORE_QUAL_R44') $runName
     NoReparseBelow $app @()
     Require (-not [IO.Directory]::Exists($work)) 'WORK_DIR_COLLISION'
     [IO.Directory]::CreateDirectory($work) | Out-Null
@@ -190,10 +202,16 @@ public static class R41Reparse {
     if ($null -eq $exitCode) { $exitCode = 2 }
     Log ('QUAL_BOOTSTRAP_DRIVER_EXIT=' + $exitCode)
 } catch {
+  if ($_.Exception.Message -ceq 'ELEVATED_WINDOW_STARTED') {
+    Log 'DELEGATED_TO_ELEVATED_WINDOW=YES: acompanhe a nova janela (Administrador). Ela grava outra pasta RUN em TICKSTORE_RUNS.'
+    Log 'PRODUCTION_MODIFIED=NO; FULL_STARTED=NO'
+    $exitCode = 3
+  } else {
     Log ('QUAL_BOOTSTRAP_BLOCKED=' + $_.Exception.Message)
     Log 'PRODUCTION_MODIFIED=NO (bootstrap writes only run-owned folders); FULL_STARTED=NO'
     $exitCode = 2
+  }
 }
 if ($script:RunDir -ne '') { Log ('RUN_LOG=' + (Join-Path $script:RunDir 'RUN_LOG.txt')) }
-Log 'Devolva ao engenheiro: o arquivo RETURN_ZIP indicado acima (ou RUN_LOG.txt se nao houver RETURN_ZIP).'
+if ($exitCode -ne 3) { Log 'Devolva ao engenheiro: o arquivo RETURN_ZIP indicado acima (ou RUN_LOG.txt se nao houver RETURN_ZIP).' }
 exit $exitCode

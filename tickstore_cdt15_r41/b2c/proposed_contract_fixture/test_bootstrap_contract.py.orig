@@ -1,0 +1,100 @@
+"""Bootstrap boundaries/actual ABI consumers in fixtures; no runtime dispatch."""
+import copy,importlib.util,io,json,os,tempfile,unittest,zipfile
+from pathlib import Path
+from unittest.mock import patch
+ROOT=Path(__file__).resolve().parent.parent/'cdt15/work';C=Path(os.environ.get('TICKSTORE_TEST_CANDIDATE',str(ROOT/'implementation_v001/candidate')))
+def load(name,path):
+ s=importlib.util.spec_from_file_location(name,path);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);return m
+B=load('bootstrap_contract',C/'control/D4_FIRST_ADMISSION_BOOTSTRAP.py')
+P=load('prep_contract',C/'control/D4_FIRST_ADMISSION_PREP.py')
+T=load('transaction_contract',C/'control/D4_FIRST_ADMISSION_TRANSACTION.py')
+E=load('entry_contract',C/'adapter/runtime_locator_orchestrator_entry.py')
+A=load('adapter_contract',C/'adapter/runtime_locator_adapter.py')
+Fixtures=load('transaction_fixtures',Path(__file__).with_name('test_first_admission_transaction.py'))
+class BootstrapContract(unittest.TestCase):
+ def setUp(self):
+  self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup);self.root=Path(self.tmp.name)
+ def test_v38_technical_policy_validates_without_issuer_or_owner_approval(self):
+  with P.Reads() as r:B.policy_v38(r,ROOT/'revision_v38/policy',ROOT/'revision_v38/ORIGIN_WITNESS_V38.json',T);r.revalidate()
+ def test_historical_v37_cannot_be_current_policy(self):
+  with P.Reads() as r,self.assertRaisesRegex(RuntimeError,'SHA_MISMATCH'):B.policy_v38(r,ROOT/'policy',ROOT/'work_implementation/ORIGIN_CAPTURE.json',T)
+ def test_final_code_manifest_verifies_actual_runtime(self):
+  p=Path(os.environ.get('TICKSTORE_TEST_MANIFEST',str(Path(__file__).with_name('FINAL_RUNTIME_CODE_MANIFEST.json'))))
+  trace={'phase':'READ_CODE_SET','last_requested_path':None,'completed_reads':0}
+  class TracedReads(P.Reads):
+   def read(self,path,expected=None):
+    trace['last_requested_path']=str(path)
+    raw=super().read(path,expected);trace['completed_reads']+=1;return raw
+  try:
+   with TracedReads() as r:
+    B.read_code_set(r,p,P.sha(p.read_bytes()),C)
+    trace['phase']='REVALIDATE';r.revalidate()
+  except BaseException as exc:
+   trace['exception']=type(exc).__name__+': '+str(exc)
+   if os.environ.get('TICKSTORE_NATIVE_ARTIFACTS'):
+    output=Path(os.environ['TICKSTORE_NATIVE_ARTIFACTS']);output.mkdir(parents=True,exist_ok=True)
+    (output/'MANIFEST_READ_DIAGNOSTIC.json').write_text(json.dumps(trace,indent=2),encoding='utf-8')
+   raise
+ def test_manifest_missing_core_component_rejected(self):
+  p=self.root/'manifest';p.write_bytes(P.canonical({'schema':'TICKSTORE_FINAL_RUNTIME_CODE_MANIFEST_V001','files':[]}))
+  with P.Reads() as r,self.assertRaisesRegex(RuntimeError,'INCOMPLETE'):B.read_code_set(r,p,P.sha(p.read_bytes()),C)
+ def test_review_pack_must_contain_exact_final_code(self):
+  raw=(Path(os.environ.get('TICKSTORE_TEST_MANIFEST',str(Path(__file__).with_name('FINAL_RUNTIME_CODE_MANIFEST.json'))))).read_bytes();p=self.root/'review.zip'
+  with zipfile.ZipFile(p,'w') as z:
+   z.writestr('revision_v38/FINAL_RUNTIME_CODE_MANIFEST.json',raw)
+   for row in json.loads(raw)['files']:z.writestr('implementation_v001/candidate/'+row['path'],(C/row['path']).read_bytes())
+  with P.Reads() as r:B.validate_review_payload(r,p,raw)
+ def test_stale_review_pack_is_rejected_even_when_wrapper_is_unchanged(self):
+  raw=(Path(os.environ.get('TICKSTORE_TEST_MANIFEST',str(Path(__file__).with_name('FINAL_RUNTIME_CODE_MANIFEST.json'))))).read_bytes();p=self.root/'review.zip'
+  with zipfile.ZipFile(p,'w') as z:z.writestr('revision_v38/FINAL_RUNTIME_CODE_MANIFEST.json',b'old manifest')
+  with P.Reads() as r,self.assertRaisesRegex(RuntimeError,'REVIEW_FINAL_CODE_MANIFEST'):B.validate_review_payload(r,p,raw)
+ def fixture(self):
+  f=Fixtures.TransactionTests();f.setUp();self.addCleanup(f.doCleanups)
+  # Each physical gate artifact is confined to this unique temporary directory.
+  fields=[('engine_path','successor_release_sha256'),('candidate_path','successor_candidate_sha256'),
+    ('config_path','config_sha256'),('code_manifest_path','code_manifest_sha256'),('package_manifest_path','package_manifest_sha256'),
+    ('package_zip_path','package_zip_sha256'),('review_pack_path','review_pack_sha256'),('review_verdict_path','review_verdict_sha256'),
+    ('policy_admission_receipt_path','policy_admission_receipt_sha256'),('effectful_wrapper_path','effectful_wrapper_sha256'),
+    ('b07_receipt_path','b07_receipt_sha256'),('completeness_path','completeness_sha256'),('final_code_manifest_path','final_code_manifest_sha256'),
+    ('policy_master_path','policy_master_sha256'),('policy_head_path','policy_head_sha256'),('origin_witness_path','origin_witness_sha256')]
+  release=(C/'recovery/engine/tickstore_publisher_recovery_v004_release.py').read_bytes()
+  for pk,hk in fields:
+   p=f.root/pk;p.write_bytes(release if pk=='engine_path' else b'UNIT_FIXTURE_ONLY');f.artifacts[pk]=str(p);f.artifacts[hk]=T.sha(p.read_bytes())
+  for field,key in [('REVIEW_PACK_SHA256','review_pack_sha256'),('BASE_RELEASE_SHA256','base_release_sha256'),('SUCCESSOR_RELEASE_SHA256','successor_release_sha256'),('SUCCESSOR_CANDIDATE_SHA256','successor_candidate_sha256'),('EFFECTFUL_WRAPPER_SHA256','effectful_wrapper_sha256')]:f.review[field]=f.artifacts[key]
+  p=Path(f.artifacts['review_verdict_path']);p.write_text('TICKSTORE_D4_RESUMABLE_CODE_DELTA_REVIEW_V002R22\n'+'\n'.join(k+'='+v for k,v in f.review.items())+'\n',encoding='ascii');f.artifacts['review_verdict_sha256']=T.sha(p.read_bytes())
+  for key in ('artifact_base_master_sha256','review_pack_sha256','review_verdict_sha256','effectful_wrapper_sha256'):f.policy[key]=f.artifacts[key]
+  p=Path(f.artifacts['policy_admission_receipt_path']);p.write_bytes(T.canon(f.policy));f.artifacts['policy_admission_receipt_sha256']=T.sha(p.read_bytes())
+  f.complete['code_manifest_sha256']=f.artifacts['final_code_manifest_sha256'];f.b07['code_manifest_sha256']=f.artifacts['final_code_manifest_sha256'];f.b07['review_verdict_sha256']=f.artifacts['review_verdict_sha256']
+  f.delta['code_manifest_sha256']=f.artifacts['final_code_manifest_sha256']
+  sp=f.root/'STATE.json';state_raw=b'fixture state';sp.write_bytes(state_raw);st=os.lstat(sp);f.pin={'sha256':T.sha(state_raw),'identity':list(E._ident(st))}
+  key=b'K'*32
+  real=f.call
+  # The fixture passes actual key hash to the real materializer, no CLI bypass.
+  result=T.materialize(f.rr,f.run_id,f.gate,f.binding,f.loc,f.artifacts,T.sha(key),'FIXTURE_NOT_DPAPI',f.pin,f.review,f.b07,f.complete,f.policy,
+    f.revalidate,A.validate_locator_receipt,f.files,directory_guard=(lambda p:f.native_store.open(p,directory=True)) if os.name=='nt' else None,
+    file_guard=f.native_store.open if os.name=='nt' else None)
+  ra=json.loads(Path(result['authority_path']).read_bytes())
+  return f,result,ra,sp,state_raw,key,release
+ def test_entry_accepts_complete_commit_and_rejects_state_replacement(self):
+  f,r,ra,sp,raw,key,release=self.fixture();E.validate_first_admission_commit(ra,raw,sp)
+  replacement=f.root/'newstate';replacement.write_bytes(raw);os.replace(replacement,sp)
+  with self.assertRaisesRegex(RuntimeError,'INITIAL_STATE_CHANGED'):E.validate_first_admission_commit(ra,raw,sp)
+ def test_entry_rejects_post_publication_gate_evidence_drift(self):
+  f,r,ra,sp,raw,key,release=self.fixture();Path(ra['b07_receipt_path']).write_bytes(b'changed')
+  with self.assertRaisesRegex(RuntimeError,'GATE_EVIDENCE_SHA'):E.validate_first_admission_commit(ra,raw,sp)
+ def test_materialized_contract_reaches_actual_frozen_runtime_boundary(self):
+  f,r,ra,sp,raw,key,release=self.fixture()
+  ns={'__name__':'frozen_abi_fixture','__file__':ra['engine_path']};exec(compile(release,ra['engine_path'],'exec'),ns)
+  binding=json.loads(Path(ra['adapter_binding_path']).read_bytes());receipt=json.loads(Path(ra['gca_recovery_receipt_path']).read_bytes())
+  A.install_engine_namespace(ns,binding,receipt,ra['generation'])
+  def boundary_only(*args,**kwargs):
+   # Stop precisely before checkpoint/CSV work; this is an ABI test, not D4.
+   raise RuntimeError('FIXTURE_CHECKPOINT_BOUNDARY_REACHED')
+  ns['_d4r_reconcile_checkpoint']=boundary_only
+  anchor={'recovery_source_sha256':P.RELEASE_SHA,'owner_gate_sha256':ra['owner_gate_sha256']}
+  env={'TICKSTORE_D4_RESUME_ENABLE':'1','TICKSTORE_D4_RUN_AUTHORITY':r['authority_path'],
+    'TICKSTORE_D4_RUN_AUTHORITY_SHA256':r['authority_sha256'],'TICKSTORE_D4_RUN_HMAC_KEY_HEX':key.hex()}
+  with patch.dict(os.environ,env),self.assertRaisesRegex(RuntimeError,'FIXTURE_CHECKPOINT_BOUNDARY_REACHED'):
+   ns['_d4r_activate_runtime'](None,anchor,f.gate,ra['generation'],'FIXTURE_SHADOW_NO_OPEN')
+  self.assertFalse((f.rr/'checkpoint/CHECKPOINT.json').exists())
+if __name__=='__main__':unittest.main(verbosity=2)

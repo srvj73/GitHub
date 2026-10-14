@@ -1,0 +1,22 @@
+{
+  "schema": "POLITICA_CANONICA_HEAD",
+  "library_active_folder": "/POLITICA_CANONICA_ATIVA",
+  "master_filename": "POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md",
+  "master_path": "/POLITICA_CANONICA_ATIVA/POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md",
+  "master_sha256": "695DCD6495E549B13B13A73E063EA147CF97354C53940A70647EDFD0A0BC7DF5",
+  "revision_id": "20261013T070500-0300-695DCD6495E549B1",
+  "state": "FROZEN",
+  "numbered_policy_versions": "FORBIDDEN",
+  "default_conversation_role": "CANDIDATE_PRODUCER",
+  "direct_master_update_allowed": false,
+  "candidate_allowed": true,
+  "unfreeze_requires_explicit_user_request": true,
+  "auto_refreeze_after_update": true,
+  "active_master_cardinality": "EXACTLY_ONE",
+  "active_head_cardinality": "EXACTLY_ONE",
+  "project_local_master_copy_required": false,
+  "project_local_copy_operational_authority": false,
+  "previous_master_sha256": "0E330955C1AF6F994C6D4EC871A065308D2208FB892EA077D89696017261F2E4",
+  "update_reason": "INDEPENDENT_AUDIT_ADMISSION_GATES",
+  "updated_at": "2026-10-13T07:05:00-03:00"
+}

@@ -1,0 +1,30 @@
+--- test_first_admission_transaction.py.orig	2026-10-14 02:04:38.470967450 +0000
++++ test_first_admission_transaction.py	2026-10-14 02:06:17.772746200 +0000
+@@ -46,9 +46,16 @@
+   self.b07={'schema':'TICKSTORE_B07_TECHNICAL_RECEIPT_V001','status':'PASS','platform':'WINDOWS_NTFS_PS51',
+     'code_manifest_sha256':'A'*64,'review_verdict_sha256':'A'*64,'checks':dict.fromkeys(T.B07_CHECKS,'PASS'),
+     'scope':'UNIT_FIXTURE_ONLY_NOT_AUDIT_EVIDENCE'}
++  # R44-B2C derivation: the current policy identity is a verified capture (fixture digests), not a literal.
++  self.capture={'schema':'TICKSTORE_VERIFIED_POLICY_CAPTURE_V001','master_sha256':'9'*64,'head_sha256':'8'*64,
++    'revision_id':'FIXTURE_REVISION_NOT_POLICY','reconciliation_sha256':'7'*64,'receipt_project':'PEGASUS_TICKSTORE',
++    'receipt_thread':'Compressão De Ticks 7','routing_project':'FIXTURE','routing_thread':'FIXTURE','valid_until':'FIXTURE',
++    'capture_operational_authority':False,'administrative_owner_gate_required':False}
++  self.artifacts['policy_capture']=self.capture
+   self.policy={'schema':'TICKSTORE_D4_POLICY_ADMISSION_RECEIPT_V001','status':'PASS','project':'PEGASUS_TICKSTORE',
+-    'thread':'Compressão De Ticks 7','effect_scope':'D4_ONLY','active_master_sha256':T.POLICY_MASTER,'active_head_sha256':T.POLICY_HEAD,
+-    'active_revision_id':T.POLICY_REVISION,'policy_source_cardinality':'PASS_1_MASTER_PLUS_1_HEAD','policy_head_state':'FROZEN',
++    'thread':'Compressão De Ticks 7','effect_scope':'D4_ONLY','active_master_sha256':'9'*64,'active_head_sha256':'8'*64,
++    'active_revision_id':'FIXTURE_REVISION_NOT_POLICY','origin_policy_reconciliation_sha256':'7'*64,
++    'policy_source_cardinality':'PASS_1_MASTER_PLUS_1_HEAD','policy_head_state':'FROZEN',
+     'material_delta_reconciled':'YES','material_delta_blocks_execution':'NO'}
+   for key in ('artifact_base_master_sha256','review_pack_sha256','review_verdict_sha256','effectful_wrapper_sha256'):self.policy[key]=self.artifacts[key]
+   self.pin={'sha256':'B'*64,'identity':[1,2,3,4]};self.run_id='1'*32
+@@ -83,7 +90,7 @@
+   with self.assertRaisesRegex(T.Blocked,'REVIEW_BINDING'):self.call()
+   self.assertEqual(list(self.rr.iterdir()),[])
+  def test_v37_policy_cannot_release_v38_instance(self):
+-  self.policy['active_master_sha256']=P.MASTER_SHA
++  self.policy['active_master_sha256']='CADAF9068532EACBF4886CDE3BABE809B075480D8776AF15F3B395C31D9B2CD0'  # historical V37 digest (test data)
+   with self.assertRaisesRegex(T.Blocked,'POLICY_active_master'):self.call()
+  def test_locator_wrong_descriptor_and_changed_generation_block(self):
+   self.loc['technical_descriptor_sha256']='0'*64
