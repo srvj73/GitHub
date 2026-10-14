@@ -1,0 +1,13 @@
+{
+ "schema": "EXTERNAL_WITNESS_TICKSTORE_CDT15_R43_ORIGIN_RETURN_V001",
+ "zip_name": "TICKSTORE_CDT15_R43_RETORNO_ORIGEM_B1_FONTES_20261014.zip",
+ "zip_sha256": "27E112561C72DD4F1C91F9761C23E7C8CA02D85920D52EAE7C17ABAACB18E40A",
+ "zip_bytes": 4848611,
+ "members": 18,
+ "manifest_sha256": "EBBCE9EB14428B26987BAFD173DE9E8AD04A30BD6CBE2E66310BA8FB1415CF6C",
+ "role": "ENGINEER_ONLY",
+ "production_modified": false,
+ "full_started": false,
+ "b06_formal_audit": false,
+ "decision_requested": "R43-B1B"
+}
