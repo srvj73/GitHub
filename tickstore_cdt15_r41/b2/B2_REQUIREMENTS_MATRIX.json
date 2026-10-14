@@ -1,0 +1,42 @@
+{
+ "schema": "TICKSTORE_CDT15_B2_REQUIREMENTS_MATRIX_V001",
+ "role": "ENGINEER_ONLY_PROPOSAL_FOR_ORIGIN_DECISION",
+ "derived_from_consumers": {
+  "completeness": "candidate/control/D4_FIRST_ADMISSION_TRANSACTION.py::validate_gates + FULL_QUALIFICATION_CONTRACT.py::validate (schema TICKSTORE_ENGINEERING_COMPLETENESS_V002, delta TICKSTORE_CDT15_DELTA_QUALIFICATION_V001)",
+  "b07_technical": "D4_FIRST_ADMISSION_TRANSACTION.py::B07_CHECKS (schema TICKSTORE_B07_TECHNICAL_RECEIPT_V001; binds code_manifest_sha256 AND review_verdict_sha256 of B06)",
+  "stage_receipts": "FULL_RELEASE_CHAIN.py::REQUIRED_CHECKS (schema TICKSTORE_STAGE_RECEIPT_V001, stages G5 and B07)"
+ },
+ "g5_completeness": {
+  "implemented": "candidate/control/G5_EVIDENCE_BUILDER.py (+ tests/test_g5_evidence_builder.py 16/16)",
+  "never_emits": "G5 stage PASS; writes only G5_STAGE_RECEIPT_DRAFT with status PENDING_ORIGIN_DECISION",
+  "self_check": "re-validates its own output with the production consumer FULL_QUALIFICATION_CONTRACT.validate",
+  "dry_run_on_R43_native_statuses": "INCOMPLETE; consumer REJECTS (DELTA_ISOLATED_QUALIFICATION); blockers = 4 non-PASS IDs (R43-B1B, R43-E1), 6 target proofs pending mapping, R44-B2C"
+ },
+ "target_proofs": {
+  "PROCESS_TREE_CRASH_CONTAINMENT": {"proposed_evidence": ["tests_native_delta.NativeDelta.test_coordinator_abrupt_exit_contains_native_child (PASS native R43) + its COORDINATOR_CRASH.json artifact", "R41 S5 test_02_job_close_kills_admitted_child_tree", "R42 H5 rc4r2 shutdown smoke"], "feasibility": "AVAILABLE_NATIVE_SANDBOX", "gap": "artifact files not in R43 RETURN (driver defect, fixed); recapture in R44"},
+  "SAFE_STOP_RESUME_ROW_GROUP": {"proposed_evidence": ["tests_delta.NativeResumeTests.test_named_stop_then_resume_with_different_worker_count (PASS native R43)", "R42 STOP_RESUME scenario (resume: REUSED + RESUMED partial day, no duplicate/loss)"], "feasibility": "AVAILABLE_NATIVE_SANDBOX"},
+  "PS51_INSTALL_MENU": {"proposed_evidence": ["R41/R42 E2E E3 (PS5.1 inactive install readback), E5 (installed writer COMMITTED cross-volume, installed MENU consumer accepts), E6 (crash + new-process recovery)"], "feasibility": "AVAILABLE_NATIVE_SANDBOX", "limit": "official MENU activation only after the chain through B07"},
+  "D4_CLOSURE_NATIVE_1399": {"proposed_evidence": ["tests_delta.D4ClosureProofTests + tests_stage_closure.CheckpointProof (12 contract IDs, native R43 PASS)", "NEW R44 runner: D4 closure over a 1399-entry synthetic inventory on NTFS"], "feasibility": "NEEDS_ORIGIN_DEFINITION", "question": "Is the proof a native synthetic 1399-day closure (feasible pre-B06) or the real D4 scratch closure (only possible after B07+D4, i.e. circular for G5)?"},
+  "STAGE_B_FULL_CHAIN_NATIVE": {"proposed_evidence": ["tests/test_stageb_full_physical_closure.py, test_stage_canary_physical_publication.py, test_full_postverify_readback.py, test_canary_receipt_readback.py (historical STAGE_49 native PASS on OLD bytes)", "NEW R44: rerun these natively on current bytes"], "feasibility": "NEEDS_ORIGIN_DEFINITION", "question": "Synthetic native Stage B chain (feasible now) or real E9/F1/F2 (only after canary; circular for G5)?"},
+  "CHECKPOINT_POWERLOSS_RECOVERY": {"proposed_evidence": ["process-death at every protocol point (R41 S1, R42 scenarios)", "FlushFileBuffers + MOVEFILE_WRITE_THROUGH on journal/backup"], "feasibility": "NOT_PROVABLE_BY_SOFTWARE", "options": ["(a) owner physical power-cut test on a sacrificial sandbox with a scripted pre/post checker", "(b) origin accepts process-death + write-through evidence as a declared proxy with residual risk"]}
+ },
+ "b07_technical_checks": {
+  "policyroot_physical_readback": {"evidence_source": "NEW runner: read-only native readback of the PolicyRoot pair (HEAD+MASTER) and origin capture", "dependency": "R44-B2C (current consumer is pinned to V38 policy)"},
+  "policyroot_mutation_denial": {"evidence_source": "NEW runner: write/delete-denying handles held on PolicyRoot during admission; negative control mutation attempt"},
+  "reparse_and_ancestor_controls": {"evidence_source": "test_reparse_resume_root_rejected, heartbeat reparse, writer test_34 (junction) -- needs elevated run (R43-E1)"},
+  "state_cas_and_continuity": {"evidence_source": "tests_delta.StageGuardTests (single_stage_commit, cannot_skip_to_full, state_constructor_does_not_rewrite; missing_state_never_recreated)"},
+  "checkpoint_failure_controls": {"evidence_source": "tests_delta.CheckpointFailureTests (exists, not in 126 contract)"},
+  "concurrent_receipt_controls": {"evidence_source": "tests_delta.StageGuardTests.test_no_receipt_clobber_under_race (exists, not in 126 contract); writer test_22"},
+  "g_ca_native_locator": {"evidence_source": "candidate/adapter/adapter_tests.py + first-admission native locator negative"},
+  "predecessor_process_locks_lease": {"evidence_source": "D4_PREDECESSOR_RECONCILIATION + FullProcessLease native test (R41 S5 test_03)"},
+  "wrapper_safe_stop_exit_propagation": {"evidence_source": "V38 wrapper fixture checks (10) on current 60_EFFECTFUL_WRAPPER_RELEASE.ps1 bytes"},
+  "first_admission_transaction": {"evidence_source": "test_first_admission_transaction.TransactionTests (22 contract IDs)"},
+  "binding_constraint": "B07 receipt must carry review_verdict_sha256 of the independent B06 verdict: B07 runs only after B06 PASS"
+ },
+ "b07_stage_checks_release_chain": ["native_windows", "physical_policy_capture", "state_continuity", "vss_identity", "negative_controls", "process_tree_cleanup"],
+ "new_blockers": {
+  "R44-B2C": "D4 first-admission consumers are pinned to policy V38 (TRANSACTION POLICY_MASTER 5B135DA0..., revision 20261012T070600; PREP MASTER CADAF906...) and the policy receipt consumer requires project PEGASUS_TICKSTORE / thread 'Compressão De Ticks 7'. With the current R40 policy (695DCD64...) D4 admission blocks at V38_POLICY_HEAD_BINDING. Re-pinning policy identity is origin custody: decision required (no change made).",
+  "R44-B2D": "No component writes TICKSTORE_STAGE_RECEIPT_V001 status PASS for G5/B07, by design. Proposal for origin: an origin-issued decision record (schema, stage, decision, bound pack SHA + code manifest SHA) whose SHA-256 is supplied separately, consumed by a materializer that only copies the bound decision into the chain (same pattern as the external B06 digest). Not implemented pending origin acceptance; no Owner Gate revived.",
+  "R43-DRIVER": "RETURN ZIP omitted EVIDENCE subfolders (harness RESULT.json/TESTS.log, native artifacts). Fixed: recursive inclusion."
+ }
+}

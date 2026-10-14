@@ -38,7 +38,7 @@
       "evidence": "FULL_INSTANCE_PREPARE.py declara 'cannot issue G5/B06/B07 receipts'; nenhum outro modulo publica STAGE_G5/STAGE_B07; a cadeia (FULL_RELEASE_CHAIN.STAGES) exige ambos antes de D4.",
       "effect": "Mesmo com B06 independente aprovado, D4 e o FULL permanecem inalcancaveis.",
       "needed_from_origin": "Definicao de custodia: quem emite G5 (congelamento de bytes) e qual runner nativo produz B07 (checks native_windows, physical_policy_capture, state_continuity, vss_identity, negative_controls, process_tree_cleanup).",
-      "status": "ORIGIN_DECIDED_OPUS_BUILDS_G5_B07_EVIDENCE_TOOLS_NOT_STARTED"
+      "status": "G5_EVIDENCE_BUILDER_IMPLEMENTED_B07_MATRIX_PROPOSED_AWAITING_ORIGIN (b2/B2_REQUIREMENTS_MATRIX.json)"
     },
     {
       "id": "R41-B3",
@@ -64,6 +64,24 @@
       "title": "Controles negativos conhecidos de B06 nao reverificados no R41",
       "evidence": "STATE recreation, TOCTOU de configuracao, sobrescrita concorrente de recibos, falha pos-checkpoint: a base contem testes portateis relacionados (186 PASS), mas o R41 nao auditou sua suficiencia.",
       "effect": "Permanece pendente para a fase de completude antes do B06."
+    },
+    {
+      "id": "R44-B2C",
+      "title": "Admissao D4 fixada na politica V38 (e projeto/thread legados)",
+      "status": "AWAITING_ORIGIN_DECISION",
+      "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
+    },
+    {
+      "id": "R44-B2D",
+      "title": "Materializacao do recibo de estagio G5/B07 PASS a partir de decisao da origem",
+      "status": "PROPOSAL_AWAITING_ORIGIN",
+      "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
+    },
+    {
+      "id": "R44-TP",
+      "title": "Definicao das 6 provas-alvo (sinteticas nativas vs reais); powerloss nao provavel por software",
+      "status": "AWAITING_ORIGIN_DECISION",
+      "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
     }
   ],
   "native_windows_qualification": {
@@ -141,5 +159,6 @@
       "R43-E1 (run elevated)"
     ],
     "reconciliation": "b1/R42_B1_RECONCILIATION.json"
-  }
+  },
+  "driver_fix": "R43 RETURN ZIP omitted EVIDENCE subfolders; QUAL_DRIVER now includes them recursively"
 }

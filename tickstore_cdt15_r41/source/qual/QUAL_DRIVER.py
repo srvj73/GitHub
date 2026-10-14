@@ -567,8 +567,10 @@ def main(a):
     ret = run_dir / ('QUAL_RETURN_' + run_dir.name + '.zip')
     with zipfile.ZipFile(ret, 'x', zipfile.ZIP_DEFLATED) as z:
         z.write(rpath, rpath.name)
-        for p in sorted(evidence.iterdir()):
-            z.write(p, 'EVIDENCE/' + p.name)
+        # Recursive: harness RESULT.json/TESTS.log and native artifacts live in subfolders.
+        for p in sorted(evidence.rglob('*')):
+            if p.is_file():
+                z.write(p, 'EVIDENCE/' + p.relative_to(evidence).as_posix())
         sys.stdout.flush()
         z.write(run_dir / 'RUN_LOG.txt', 'RUN_LOG.txt')
     rsha = sha_file(ret)
