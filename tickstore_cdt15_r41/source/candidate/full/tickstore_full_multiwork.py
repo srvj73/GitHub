@@ -145,29 +145,6 @@ def stable_json_bytes(obj) -> bytes:
     return json.dumps(obj, sort_keys=True, separators=(",", ":")).encode("utf-8")
 
 
-def _strict_gate_sha(value: str) -> str:
-    value = str(value or "").strip().upper()
-    if len(value) != 64 or any(c not in "0123456789ABCDEF" for c in value):
-        raise MultiworkBlocked("MULTIWORK_GATE_SHA256_INVALID")
-    return value
-
-
-def _read_json_bytes(path: Path, expected_sha: str):
-    raw = core.secure_read_all(Path(path))
-    actual = hashlib.sha256(raw).hexdigest().upper()
-    if actual != expected_sha:
-        raise MultiworkBlocked("MULTIWORK_GATE_DIGEST_MISMATCH")
-    try:
-        obj = json.loads(raw.decode("utf-8"), object_pairs_hook=_reject_duplicate_pairs)
-    except MultiworkBlocked:
-        raise
-    except Exception as exc:
-        raise MultiworkBlocked("MULTIWORK_GATE_JSON_INVALID") from exc
-    if not isinstance(obj, dict):
-        raise MultiworkBlocked("MULTIWORK_GATE_NOT_OBJECT")
-    return obj
-
-
 def _reject_duplicate_pairs(pairs):
     out = {}
     for key, value in pairs:
@@ -285,55 +262,6 @@ def choose_workers(requested: str, month_count: int, max_workers: int, ram_targe
 
 def _norm(path: Path):
     return core._norm_binding_path(Path(path))
-
-
-def validate_multiwork_gate(path: Path, sha256: str, *, core_gate_sha256: str,
-                            source_root: Path, dest_root: Path, scratch_root: Path,
-                            workers: int, max_workers: int, ram_target_percent: int):
-    sha256 = _strict_gate_sha(sha256)
-    obj = _read_json_bytes(Path(path), sha256)
-    expected_fields = {
-        "schema", "authorized", "wrapper_schema", "wrapper_sha256",
-        "core_runner_sha256", "core_owner_gate_sha256",
-        "source_root", "dest_root", "scratch_root",
-        "source_volume", "dest_volume", "scratch_volume",
-        "workers_max", "ram_target_percent_max",
-    }
-    if set(obj) != expected_fields:
-        raise MultiworkBlocked("MULTIWORK_GATE_FIELD_SET_MISMATCH")
-    if obj["schema"] != MULTIWORK_GATE_SCHEMA:
-        raise MultiworkBlocked("MULTIWORK_GATE_SCHEMA_MISMATCH")
-    if obj["authorized"] is not True:
-        raise MultiworkBlocked("MULTIWORK_GATE_NOT_AUTHORIZED")
-    if obj["wrapper_schema"] != WRAPPER_SCHEMA:
-        raise MultiworkBlocked("MULTIWORK_GATE_WRAPPER_SCHEMA_MISMATCH")
-    if str(obj["wrapper_sha256"]).upper() != wrapper_sha256():
-        raise MultiworkBlocked("MULTIWORK_GATE_WRAPPER_SHA_MISMATCH")
-    core_ids = core.file_ids(Path(core.__file__).resolve().parent)
-    if str(obj["core_runner_sha256"]).upper() != core_ids["runner_sha256"].upper():
-        raise MultiworkBlocked("MULTIWORK_GATE_CORE_RUNNER_SHA_MISMATCH")
-    if str(obj["core_owner_gate_sha256"]).upper() != str(core_gate_sha256).upper():
-        raise MultiworkBlocked("MULTIWORK_GATE_CORE_GATE_SHA_MISMATCH")
-
-    roots = {
-        "source_root": Path(source_root),
-        "dest_root": Path(dest_root),
-        "scratch_root": Path(scratch_root),
-    }
-    for key, value in roots.items():
-        if str(obj[key]) != _norm(value):
-            raise MultiworkBlocked("MULTIWORK_GATE_PATH_MISMATCH:" + key)
-        expected_vol = core.windows_volume_identity(value)
-        if obj[key.replace("_root", "_volume")] != expected_vol:
-            raise MultiworkBlocked("MULTIWORK_GATE_VOLUME_MISMATCH:" + key)
-
-    if int(obj["workers_max"]) < workers:
-        raise MultiworkBlocked("MULTIWORK_GATE_WORKERS_EXCEEDED")
-    if int(obj["workers_max"]) > int(max_workers):
-        raise MultiworkBlocked("MULTIWORK_GATE_MAX_WORKERS_POLICY_MISMATCH")
-    if int(obj["ram_target_percent_max"]) < int(ram_target_percent):
-        raise MultiworkBlocked("MULTIWORK_GATE_RAM_TARGET_EXCEEDED")
-    return obj
 
 
 class ParentMonthPin:
@@ -1322,7 +1250,8 @@ def execute_multiwork(source_root: Path, dest_root: Path, scratch_root: Path,
                       multiwork_gate_file=None, multiwork_gate_sha256=None,
                       workers_requested="AUTO", max_workers=DEFAULT_MAX_WORKERS,
                       ram_target_percent=DEFAULT_RAM_TARGET_PERCENT, *,
-                      chain_file=None, chain_sha256=None, b06_sha256=None):
+                      chain_file=None, chain_sha256=None, b06_sha256=None,
+                      policy_reconciliation=None, policy_reconciliation_sha256=None, log_file=None):
     # Old administrative gates cannot admit this changed candidate.
     if any(x is not None for x in (core_gate_file, core_gate_sha256,
                                    multiwork_gate_file, multiwork_gate_sha256)):
@@ -1346,9 +1275,17 @@ def execute_multiwork(source_root: Path, dest_root: Path, scratch_root: Path,
             raise MultiworkBlocked('ENTRYPOINT_RESOURCE_DRIFT')
         admission.revalidate()
     import FULL_RUNNER
-    return FULL_RUNNER.main(['--stage', 'FULL', '--chain-file', str(chain_file),
-        '--chain-sha256', chain_sha256, '--b06-sha256', b06_sha256,
-        '--workers', str(workers_requested)])
+    argv = ['--stage', 'FULL', '--chain-file', str(chain_file),
+            '--chain-sha256', chain_sha256, '--b06-sha256', b06_sha256,
+            '--workers', str(workers_requested)]
+    # R45 G5: the FULL continuation needs the CURRENT origin policy reconciliation (record + digest
+    # supplied separately); without it FULL_RUNNER blocks, as through the menu.
+    if policy_reconciliation or policy_reconciliation_sha256:
+        argv += ['--policy-reconciliation', str(policy_reconciliation or ''),
+                 '--policy-reconciliation-sha256', str(policy_reconciliation_sha256 or '')]
+    if log_file:
+        argv += ['--log-file', str(log_file)]
+    return FULL_RUNNER.main(argv)
 
 
 def _execute_admitted_multiwork(source_root, dest_root, scratch_root, ledger_zip,
@@ -1899,6 +1836,9 @@ def main():
     ap.add_argument("--workers", default="AUTO")
     ap.add_argument("--max-workers", type=int, default=DEFAULT_MAX_WORKERS)
     ap.add_argument("--ram-target-percent", type=int, default=DEFAULT_RAM_TARGET_PERCENT)
+    ap.add_argument("--policy-reconciliation", default="")
+    ap.add_argument("--policy-reconciliation-sha256", default="")
+    ap.add_argument("--log-file", default="")
     args = ap.parse_args()
 
     return execute_multiwork(
@@ -1906,13 +1846,16 @@ def main():
         workers_requested=args.workers, max_workers=args.max_workers,
         ram_target_percent=args.ram_target_percent,
         chain_file=Path(args.chain_file), chain_sha256=args.chain_sha256,
-        b06_sha256=args.b06_sha256,
+        b06_sha256=args.b06_sha256, policy_reconciliation=args.policy_reconciliation,
+        policy_reconciliation_sha256=args.policy_reconciliation_sha256, log_file=args.log_file or None,
     )
 
 
 if __name__ == "__main__":
     try:
-        raise SystemExit(main())
+        sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "control"))
+        from RUN_LOG_FIXED import run_with_fixed_log
+        raise SystemExit(run_with_fixed_log("MULTIWORK_COMPAT", main))
     except KeyboardInterrupt:
         # execute_multiwork emits YES only after a verified process-tree shutdown.
         print("INTERRUPTED=YES", flush=True)

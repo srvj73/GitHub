@@ -44,6 +44,27 @@ def d4_command(instance, candidate, *, resume=False, policy_reconciliation='', p
     return command
 
 
+def run_wrapper_cooperatively(command):
+    """Run the D4 wrapper and return ITS outcome, also across Ctrl+C (R45 G7).
+
+    The wrapper shares this console, so Ctrl+C reaches it directly and drives its own durable
+    SAFE_STOP (STOP file, child result).  If this parent also took the KeyboardInterrupt,
+    subprocess.call() would kill the wrapper 0.25 s later and cut that path; so the parent
+    ignores SIGINT only while the wrapper runs (the CRT-level ignore is not inherited by the
+    child) and restores its handler afterwards.
+    """
+    import signal
+    import threading
+    previous = None
+    if threading.current_thread() is threading.main_thread():
+        previous = signal.signal(signal.SIGINT, signal.SIG_IGN)
+    try:
+        return subprocess.call(command)
+    finally:
+        if previous is not None:
+            signal.signal(signal.SIGINT, previous)
+
+
 class _Tee:
     """Mirror console output into the run-owned RUN_LOG.txt (append, flushed per write)."""
     def __init__(self, stream, log):
@@ -168,7 +189,7 @@ def run(a):
                                  policy_reconciliation_sha256=a.policy_reconciliation_sha256)
             admission.revalidate()
             # Existing qualified wrapper owns DPAPI/HMAC, first admission and D4_ONLY dispatch.
-            code = subprocess.call(command)
+            code = run_wrapper_cooperatively(command)
             if code == 0:
                 close_d4(admission)
             return code
@@ -222,4 +243,5 @@ def _main(a):
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    from RUN_LOG_FIXED import run_with_fixed_log
+    raise SystemExit(run_with_fixed_log('FULL_RUNNER', main))

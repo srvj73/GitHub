@@ -16,6 +16,11 @@ D4_FIRST_ADMISSION_TRANSACTION.validate_gates) exclusively from:
 Each of the 10 B07 checks needs its own typed check receipt (EVIDENCE/B07/<CHECK>/CHECK_RECEIPT.json)
 from the packaged runner function, with exactly its required test IDs (each once, PASS) and
 required native probes (PASS) and non-empty artifacts.  Anything missing -> status NOT_PASS.
+Every check receipt must also declare the exact test tree it ran (R45 G3): the origin R3 archive and
+the four origin-approved derived test files (pinned below), plus the packaged test modules, whose
+digests must equal the FINAL ZIP members; and the same B06 stage-receipt guard digest.  The
+first_admission_transaction ID set is derived from the frozen QUALIFICATION_CONTRACT inside the
+FINAL ZIP, never supplied by the caller.
 produced_after_independent_b06 is derived from the verdict actually verified here (R45 B07-ORDER-01):
 True only when the B06 verdict file exists, matches its separately supplied digest and states an
 independent PASS with no critical/major findings; never asserted unconditionally.
@@ -58,7 +63,7 @@ CHECKS = {
         'probes': []},
     'concurrent_receipt_controls': {
         'tests': [SG + 'test_no_receipt_clobber_under_race',
-                  'test_official_writer_effectful.EffectfulWriter.test_22_two_simultaneous_writer_processes_one_winner'],
+                  'test_official_writer_effectful.Concurrency.test_22_two_simultaneous_writer_processes_one_winner'],
         'probes': []},
     'g_ca_native_locator': {
         'tests': [TX + 'test_native_locator_negative_blocks_before_creating_files',
@@ -75,6 +80,28 @@ CHECKS = {
     'first_admission_transaction': {'tests': ['ALL:' + TX.rstrip('.')], 'probes': []},
 }
 B07_CHECKS = tuple(CHECKS)
+FINAL_ROOT = 'implementation_v001/'
+CONTRACT_MEMBER = FINAL_ROOT + 'candidate/control/QUALIFICATION_CONTRACT.json'
+TX_EXPECTED = 22
+# Origin R3 archive and origin-approved derived test files (R43 B1A/B1B, R44 B2C fixtures).
+TEST_TREE = {
+    'r3_archive_sha256': '2379512BD32CA751E0636EA4186F097035542F851CC51019817DDB5FFC4480E4',
+    'overlays': {
+        'engineering/tests_full_lifecycle.py': {
+            'parent_sha256': 'EE30AA9325EE79A1F5FF4876DF72EC0A596AC351E9708447337841E9B43E592D',
+            'derived_sha256': '29981D1535AC295D6465E2734234DF834B31B58CD4A03F2414D6CFE43A2D0286'},
+        'cdt15/tests_delta.py': {
+            'parent_sha256': '67B41A04787A2BEB3CB1CA7AE1CF79286E034F81B50ADEAC4C536956972FAD1D',
+            'derived_sha256': '2E95CADE28AA14A51D9DD30ECD78C045D717906AAE6AD6E2091C188ADC985089'},
+        'engineering/test_first_admission_transaction.py': {
+            'parent_sha256': '993F323F761A40C1BE32301B17A57D73CE6C7E633657D538507E42F5339E4C9C',
+            'derived_sha256': 'E74F37015B55FBA5A139A225A4FC4BCFA0EC1747FA9B8F8982C4340A69A73E29'},
+        'engineering/test_bootstrap_contract.py': {
+            'parent_sha256': 'AC22516AB7EEF28BDC380352C5E6AB73CC035942B8A3BB4F905771055AAA89ED',
+            'derived_sha256': '40B396FC30656CFDDA0ACA16BE19ED5CB653CF2C4ED7FB36CC6AC26874295A24'},
+    },
+}
+PACKAGED_TEST_MODULES = ('tests/test_official_writer_effectful.py', 'tests/test_native_process_control_r41.py')
 
 
 def _sha(raw):
@@ -121,7 +148,28 @@ def verify_policy(policy_root, reconciliation, reconciliation_sha256, now=None):
     return mod.verify_policy(policy_root, reconciliation, reconciliation_sha256, now=now)
 
 
-def check_findings(name, receipt, member, rfiles, code_index, final_sha, code_sha, run_id, all_tx_ids=None):
+def transaction_ids(final_files):
+    """The 22 TransactionTests IDs of the frozen contract packaged in the FINAL ZIP."""
+    try:
+        contract = json.loads(final_files[CONTRACT_MEMBER])['required_tests']
+    except (KeyError, TypeError, ValueError):
+        return [], ['FINAL_CONTRACT_UNREADABLE']
+    ids = sorted(t for t in contract if isinstance(t, str) and t.startswith(TX))
+    return ids, ([] if len(ids) == TX_EXPECTED == len(set(ids)) else ['FINAL_CONTRACT_TRANSACTION_IDS'])
+
+
+def expected_test_tree(final_files):
+    packaged = {}
+    for rel in PACKAGED_TEST_MODULES:
+        body = final_files.get(FINAL_ROOT + rel)
+        packaged[rel] = _sha(body) if body is not None else None
+    return {'r3_archive_sha256': TEST_TREE['r3_archive_sha256'],
+            'overlays': {k: v['derived_sha256'] for k, v in TEST_TREE['overlays'].items()},
+            'packaged_tests': packaged}
+
+
+def check_findings(name, receipt, member, rfiles, code_index, final_sha, code_sha, run_id, all_tx_ids=None,
+                   test_tree=None):
     spec = CHECKS[name]
     f = []
     if not isinstance(receipt, dict):
@@ -147,6 +195,11 @@ def check_findings(name, receipt, member, rfiles, code_index, final_sha, code_sh
     probes = receipt.get('probes') if isinstance(receipt.get('probes'), dict) else {}
     if set(probes) != set(spec['probes']) or not all(v == 'PASS' for v in probes.values()):
         f.append(name + ':RECEIPT_PROBES')
+    if test_tree is None or None in test_tree['packaged_tests'].values() or receipt.get('test_tree') != test_tree:
+        f.append(name + ':RECEIPT_TEST_TREE')
+    guard = receipt.get('b06_guard') if isinstance(receipt.get('b06_guard'), dict) else {}
+    if not isinstance(guard.get('b06_sha256'), str) or len(guard['b06_sha256']) != 64:
+        f.append(name + ':RECEIPT_B06_GUARD')
     arts = receipt.get('artifacts')
     if not isinstance(arts, list) or not arts:
         f.append(name + ':RECEIPT_NO_ARTIFACTS')
@@ -160,16 +213,21 @@ def check_findings(name, receipt, member, rfiles, code_index, final_sha, code_sh
 
 
 def build(*, return_zip, final_zip, b06_verdict, b06_verdict_sha256, policy_root, policy_reconciliation,
-          policy_reconciliation_sha256, out_path, transaction_test_ids, now=None):
+          policy_reconciliation_sha256, out_path, now=None):
     """Write the B07 technical receipt (no-clobber); status PASS only when every finding list is empty."""
     q = load_consumer()
     rraw, fraw = Path(return_zip).read_bytes(), Path(final_zip).read_bytes()
     vpath = Path(b06_verdict)
     vraw = vpath.read_bytes() if vpath.is_file() and not vpath.is_symlink() else None
     final_sha = _sha(fraw)
-    code_raw = q['_zip_members'](fraw, 'FINAL')[1].get('implementation_v001/RUNTIME_CODE_MANIFEST.json', b'')
+    final_files = q['_zip_members'](fraw, 'FINAL')[1]
+    code_raw = final_files.get('implementation_v001/RUNTIME_CODE_MANIFEST.json', b'')
     code_sha = _sha(code_raw)
     findings, code_index = q['final_zip_findings'](fraw, code_sha)
+    transaction_test_ids, tf = transaction_ids(final_files)
+    findings += tf
+    tree = expected_test_tree(final_files)
+    guards = set()
     rf, rfiles = _return_generic(q, rraw)
     findings += rf
     try:
@@ -193,10 +251,14 @@ def build(*, return_zip, final_zip, b06_verdict, b06_verdict_sha256, policy_root
         except ValueError:
             rec = None
         cf = check_findings(name, rec, member, rfiles, code_index, final_sha, code_sha, qr.get('RUN_ID'),
-                            all_tx_ids=transaction_test_ids)
+                            all_tx_ids=transaction_test_ids, test_tree=tree)
+        if isinstance(rec, dict) and isinstance(rec.get('b06_guard'), dict):
+            guards.add(str(rec['b06_guard'].get('b06_sha256')))
         checks[name] = 'PASS' if not cf else 'NOT_PASS'
         findings += cf
         evidence.append({'check': name, 'return_zip_member': member, 'sha256': _sha(body)})
+    if len(guards) != 1:
+        findings.append('B06_GUARD_NOT_UNIQUE_ACROSS_CHECKS')
     status = 'PASS' if not findings else 'NOT_PASS'
     receipt = {'schema': RECEIPT_SCHEMA, 'status': status, 'platform': 'WINDOWS_NTFS_PS51' if not any(
                    x.startswith(('QUAL_PRECHECK', 'QUAL_RECEIPT_NOT_NATIVE')) for x in findings) else 'NOT_PROVEN',
@@ -209,6 +271,8 @@ def build(*, return_zip, final_zip, b06_verdict, b06_verdict_sha256, policy_root
                               verified_by='POLICY_CAPTURE_BINDING.verify_capture' if capture else 'NOT_VERIFIED',
                               read_mode=read_mode),
                'b06_independent_verdict': 'VERIFIED_PASS' if b06_verified else 'NOT_VERIFIED',
+               'b06_stage_receipt_sha256': next(iter(guards)) if len(guards) == 1 else None,
+               'test_tree': tree, 'transaction_test_ids': len(transaction_test_ids),
                'produced_after_independent_b06': b06_verified, 'gate_verdict_issued': False,
                'stage_receipt_requires_origin_decision': 'R44-B2D ORIGIN_DECISION_BINDER'}
     raw = _canonical(receipt)

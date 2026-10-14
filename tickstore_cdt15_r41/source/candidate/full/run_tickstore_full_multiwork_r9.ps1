@@ -10,6 +10,8 @@ param(
     [string]$Workers = 'AUTO',
     [int]$MaxWorkers = 22,
     [int]$RamTargetPercent = 60,
+    [string]$PolicyReconciliation = '',
+    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$PolicyReconciliationSha256 = '',
     [string]$PythonPath = 'C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'
 )
 $ErrorActionPreference = 'Stop'
@@ -27,7 +29,8 @@ if ([Diagnostics.FileVersionInfo]::GetVersionInfo($PythonPath).ProductVersion -n
     --source-root $SourceRoot --dest-root $DestRoot --scratch-root $ScratchRoot `
     --ledger-zip $LedgerZip `
     --chain-file $ChainFile --chain-sha256 $ChainSha256 --b06-sha256 $B06Sha256 `
-    --workers $Workers --max-workers $MaxWorkers --ram-target-percent $RamTargetPercent
+    --workers $Workers --max-workers $MaxWorkers --ram-target-percent $RamTargetPercent `
+    --policy-reconciliation $PolicyReconciliation --policy-reconciliation-sha256 $PolicyReconciliationSha256
 $code = $LASTEXITCODE
 if ($code -eq 0) { Write-Host 'TICKSTORE_MULTIWORK_LAUNCHER_RETURN=PASS' }
 else { Write-Host ('TICKSTORE_MULTIWORK_LAUNCHER_RETURN=NONZERO EXIT_CODE=' + $code) }

@@ -48,11 +48,12 @@ class TestFullMultiworkHelpers(unittest.TestCase):
             with self.assertRaisesRegex(m.MultiworkBlocked,'WORKER_COUNT_EXCEEDS_RAM_BUDGET'):
                 m.choose_workers('22',75,22,60)
 
-    def test_gate_sha_strict(self):
-        self.assertEqual(m._strict_gate_sha('a'*64),'A'*64)
-        for value in ('', 'A'*63, 'G'*64):
-            with self.assertRaises(m.MultiworkBlocked):
-                m._strict_gate_sha(value)
+    def test_legacy_multiwork_owner_gate_validator_removed(self):
+        # R45 G12: the administrative multiwork owner gate is revoked; its validator no longer exists.
+        for name in ('validate_multiwork_gate', '_strict_gate_sha', '_read_json_bytes'):
+            self.assertFalse(hasattr(m, name), name)
+        with self.assertRaisesRegex(m.MultiworkBlocked, 'LEGACY_ADMINISTRATIVE_OWNER_GATE_REVOKED'):
+            m.execute_multiwork(Path('S'), Path('D'), Path('X'), Path('L'), multiwork_gate_file='g')
 
     def test_duplicate_json_keys_rejected(self):
         with self.assertRaises(m.MultiworkBlocked):

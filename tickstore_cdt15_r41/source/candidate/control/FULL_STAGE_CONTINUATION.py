@@ -396,10 +396,16 @@ def main(argv=None):
     ap.add_argument('--stage', choices=(*RANGES, 'FULL_READMIT'), required=True)
     ap.add_argument('--close-only', action='store_true')
     for name in ('chain-file', 'chain-sha256', 'b06-sha256'): ap.add_argument('--' + name, required=True)
+    # R45 G5: same inputs as FULL_RUNNER, so this direct entry is usable (current origin policy
+    # reconciliation, worker request); the launcher route remains RUN_TICKSTORE_FULL.ps1.
+    ap.add_argument('--policy-reconciliation', default='')
+    ap.add_argument('--policy-reconciliation-sha256', default='')
+    ap.add_argument('--workers', default='AUTO')
     try: return run(ap.parse_args(argv))
     except (RuntimeError, OSError, KeyError, ValueError, TypeError) as exc:
         print('CONTINUATION_BLOCKED=' + str(exc), flush=True); return 2
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    from RUN_LOG_FIXED import run_with_fixed_log
+    raise SystemExit(run_with_fixed_log('STAGE_CONTINUATION', main))

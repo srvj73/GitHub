@@ -180,6 +180,11 @@ def _tickstore_committed_deployment(active_path: Path, menu_path: Path) -> dict:
     return deploy
 
 
+TICKSTORE_STAGES = ('Check', 'Monitor', 'D4', 'D4Close', 'D5', 'CANARY', 'FULL_PREP', 'FULL_ADMIT',
+                    'FULL_READMIT', 'FULL', 'Stop')
+TICKSTORE_POLICY_STAGES = ('D4', 'D5', 'CANARY', 'FULL_PREP', 'FULL_ADMIT', 'FULL_READMIT', 'FULL')
+
+
 def rodar_tickstore_full(base: Path) -> int:
     try:
         receipt_path = Path(os.environ['LOCALAPPDATA'])/'TICKSTORE/ACTIVE_DEPLOYMENT.json'
@@ -193,9 +198,9 @@ def rodar_tickstore_full(base: Path) -> int:
         _reject_deployment_reparse(launcher)
         if hashlib.sha256(launcher.read_bytes()).hexdigest().upper() != deploy['launcher_sha256']:
             raise ValueError('DEPLOYMENT_LAUNCHER_DRIFT')
-        print('TICKSTORE: Check / D4 / D4Close / D5 / CANARY / FULL_PREP / FULL_ADMIT / FULL_READMIT / FULL / Stop')
+        print('TICKSTORE: Check / Monitor / D4 / D4Close / D5 / CANARY / FULL_PREP / FULL_ADMIT / FULL_READMIT / FULL / Stop')
         stage = input('Etapa [Check]: ').strip() or 'Check'
-        if stage not in ('Check','D4','D4Close','D5','CANARY','FULL_PREP','FULL_ADMIT','FULL_READMIT','FULL','Stop'):
+        if stage not in TICKSTORE_STAGES:
             raise ValueError('ETAPA_INVALIDA')
         chain = input('Arquivo EXECUTION_CHAIN.json: ').strip()
         chain_sha = input('SHA-256 da cadeia: ').strip().upper()
@@ -205,6 +210,14 @@ def rodar_tickstore_full(base: Path) -> int:
         shell = Path(os.environ['SystemRoot'])/'System32/WindowsPowerShell/v1.0/powershell.exe'
         cmd = [str(shell), '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(launcher),
                '-Stage', stage, '-ChainFile', chain, '-ChainSha256', chain_sha, '-B06Sha256', b06_sha]
+        if stage in TICKSTORE_POLICY_STAGES:
+            # R44-B2C: every effectful stage needs the CURRENT origin reconciliation; its SHA-256
+            # is typed separately (never read from the record itself).
+            reconciliation = input('Arquivo de reconciliacao de politica da origem: ').strip()
+            reconciliation_sha = input('SHA-256 da reconciliacao (fornecido separadamente): ').strip().upper()
+            if not reconciliation or not re.fullmatch(r'[0-9A-F]{64}', reconciliation_sha):
+                raise ValueError('POLICY_RECONCILIATION_REQUIRED')
+            cmd += ['-PolicyReconciliation', reconciliation, '-PolicyReconciliationSha256', reconciliation_sha]
         if stage == 'D4' and input('Retomar instancia D4 existente? [s/N]: ').strip().lower() == 's':
             cmd.append('-Resume')
         if stage in ('D5','CANARY','FULL_PREP','FULL_ADMIT','FULL') and input('Somente fechar recibo de nos ja concluidos? [s/N]: ').strip().lower() == 's':

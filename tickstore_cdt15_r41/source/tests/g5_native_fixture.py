@@ -62,6 +62,7 @@ class NativeFixture:
         self.drop_manifest_entry = None
         self.empty_code_manifest = False
         self.tamper_final_member = False
+        self.final_extra = {}         # FINAL members outside the candidate root (e.g. packaged tests)
 
     def final_zip(self):
         files = [] if self.empty_code_manifest else [
@@ -72,6 +73,7 @@ class NativeFixture:
         for p, b in self.code.items():
             members['implementation_v001/candidate/' + p] = b + (b'#tampered\n' if self.tamper_final_member
                                                                   and p.endswith('EXAMPLE.py') else b'')
+        members.update(self.final_extra)
         pm = j({'schema': 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001',
                 'files': [{'path': n, 'bytes': len(b), 'sha256': h(b)} for n, b in sorted(members.items())]})
         return zip_bytes(dict({'PACKAGE_MANIFEST.json': pm}, **members)), h(man)

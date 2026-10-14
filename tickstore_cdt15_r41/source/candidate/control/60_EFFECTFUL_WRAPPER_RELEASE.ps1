@@ -48,6 +48,11 @@ if (($FirstAdmission -and $ResumeAdmittedRun) -or (($FirstAdmission -or $ResumeA
 if ($ElevatedChild -or $RuntimeProbe -or $RuntimeProbeChild -or ($ExecuteD4 -and -not ($FirstAdmission -or $ResumeAdmittedRun)) -or ($ResumeAfterSafeStop -and -not $ResumeAdmittedRun)) {
     Write-Host 'BLOCKED|FINAL_B06_B07_AND_INSTANCE_EXECUTION_INTEGRATION_PENDING';exit 2
 }
+# R45 G6: D4 effects run only in an already elevated process (RUN_TICKSTORE_FULL.ps1 elevates before
+# dispatching). Checked before any admission boundary, so a non-elevated call never has an effect.
+if ($ExecuteD4 -and -not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Host 'BLOCKED|ELEVATION_REQUIRED_USE_RUN_TICKSTORE_FULL_PS1';exit 2
+}
 if ($RequestSafeStop -and ($RunAuthoritySha -cnotmatch '^[0-9A-F]{64}$')) {
     Write-Host 'BLOCKED|SAFE_STOP_EXISTING_AUTHORITY_SHA_REQUIRED';exit 2
 }
@@ -444,29 +449,10 @@ try {
     Require ((Get-Sha $Python) -ceq '4942B86A6597E5AEE0128DAA00050ED79BC21F6E709A78EB19CBFEB0C2F39AC9') 'PYTHON_SHA'
 }catch {Write-Host ('FINAL_ERROR='+$_.Exception.Message);Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT='+$ResultProject+' | THREAD='+$ResultThread);exit 2}
 
-if (-not $ElevatedChild -and -not (Is-Admin)){
-    $cwd=(Get-Location).Path;New-Item -ItemType Directory -Path $ResumeRoot -Force|Out-Null
-    $childReceipt=Join-Path $ResumeRoot ('ELEVATED_CHILD_RESULT.' + (Get-Date -Format 'yyyyMMdd_HHmmss_fff') + '.' + $PID + '.json');Require (-not (Test-Path -LiteralPath $childReceipt)) 'ELEVATED_CHILD_RECEIPT_PREEXISTS'
-    foreach ($q in @($PSCommandPath,$cwd,$ReviewVerdictPath,$GcaRecoveryReceiptPath,$PolicyAdmissionReceiptPath,$childReceipt)){Require ($q.IndexOf([char]34) -lt 0) 'ELEVATION_ARG_QUOTE'}
-    $argLine='-NoProfile -ExecutionPolicy Bypass -File '+(Quote-NativeArg $PSCommandPath)+' -ExecuteD4 -ElevatedChild -OriginalCwd '+(Quote-NativeArg $cwd)+' -ReviewVerdictPath '+(Quote-NativeArg $ReviewVerdictPath)+' -GcaRecoveryReceiptPath '+(Quote-NativeArg $GcaRecoveryReceiptPath)+' -PolicyAdmissionReceiptPath '+(Quote-NativeArg $PolicyAdmissionReceiptPath)+' -ChildResultPath '+(Quote-NativeArg $childReceipt)
-    if ($ResumeAfterSafeStop){$argLine+=' -ResumeAfterSafeStop'}
-    foreach($arg in @($AdapterDir,$AdapterBindingSha)){Require ($arg.IndexOf([char]34) -lt 0) 'ELEVATION_ADAPTER_ARG_QUOTE'}
-    $argLine+=' -AdapterDir '+(Quote-NativeArg $AdapterDir)+' -AdapterBindingSha '+(Quote-NativeArg $AdapterBindingSha)
-    foreach($arg in @($AdmittedOwnerGatePath,$AdmittedOwnerGateSha)){Require ($arg.IndexOf([char]34) -lt 0) 'ELEVATION_OWNER_ARG_QUOTE'}
-    $argLine+=' -AdmittedOwnerGatePath '+(Quote-NativeArg $AdmittedOwnerGatePath)+' -AdmittedOwnerGateSha '+(Quote-NativeArg $AdmittedOwnerGateSha)
-    try {$p=Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe') -Verb RunAs -ArgumentList $argLine -Wait -PassThru;$p.Refresh()}catch {Write-Host ('FINAL_ERROR=ELEVATION_START|' + $_.Exception.Message);Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2}
-    $rawDiagnostic=$p.ExitCode;if ($null -eq $rawDiagnostic){Write-Host 'FINAL_ERROR=ELEVATED_CHILD_NATIVE_EXIT_NULL';Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2};$diagnosticExit=[int]$rawDiagnostic
-    Write-Host ('ELEVATED_CHILD_DIAGNOSTIC_EXIT_CODE=' + $diagnosticExit)
-    if (-not (Test-Path -LiteralPath $childReceipt -PathType Leaf)){Write-Host 'FINAL_ERROR=ELEVATED_CHILD_RESULT_MISSING';Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2}
-    $childResult=Read-Json $childReceipt
-    if ([string](Get-Prop $childResult 'schema') -cne 'TICKSTORE_D4_RESUME_EFFECTFUL_V002R22_CHILD_RESULT'){Write-Host 'FINAL_ERROR=ELEVATED_CHILD_RESULT_SCHEMA';Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2}
-    $rawChildExit=Get-Prop $childResult 'exit_code';if ($null -eq $rawChildExit){Write-Host 'FINAL_ERROR=ELEVATED_CHILD_RESULT_EXIT_NULL';Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2};$childExit=[int]$rawChildExit;$childStatus=[string](Get-Prop $childResult 'status')
-    Write-Host ('ELEVATED_CHILD_RECEIPT=' + $childReceipt);Write-Host ('ELEVATED_CHILD_RESULT_STATUS=' + $childStatus);Write-Host ('ELEVATED_CHILD_RESULT_EXIT_CODE=' + $childExit)
-    if ($diagnosticExit -ne $childExit){Write-Host ('FINAL_ERROR=ELEVATED_CHILD_EXIT_MISMATCH|NATIVE='+$diagnosticExit+'|RECEIPT='+$childExit);Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2}
-    if ($childExit -eq 0 -and $childStatus -cne 'PASS'){Write-Host ('FINAL_ERROR=ELEVATED_CHILD_FALSE_PASS_STATUS|STATUS='+$childStatus);Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2}
-    if ($childExit -eq 130 -and $childStatus -cne 'SAFE_STOP_PASS'){Write-Host ('FINAL_ERROR=ELEVATED_CHILD_SAFE_STOP_STATUS|STATUS='+$childStatus);Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2}
-    if ($childExit -ne 0 -and $childExit -ne 130 -and $childStatus -cne 'BLOCKED_OR_FAIL'){Write-Host ('FINAL_ERROR=ELEVATED_CHILD_NONZERO_STATUS|STATUS='+$childStatus);Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2}
-    Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit $childExit
+if (-not (Is-Admin)){
+    # R45 G6: the former self-elevation relaunched a child that the mode guard always blocks; the
+    # early elevation check above makes this unreachable, kept fail-closed as defense in depth.
+    Write-Host 'FINAL_ERROR=ELEVATION_REQUIRED_USE_RUN_TICKSTORE_FULL_PS1';Write-Host ('RESULT_RETURN_TO=ChatGPT | PROJECT=' + $ResultProject + ' | THREAD=' + $ResultThread);exit 2
 }
 if ($ElevatedChild){Require (Is-Admin) 'ELEVATED_CHILD_NOT_ADMIN';if (-not [string]::IsNullOrWhiteSpace($OriginalCwd)){Set-Location -LiteralPath $OriginalCwd}}
 

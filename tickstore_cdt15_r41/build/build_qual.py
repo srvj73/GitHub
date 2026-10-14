@@ -131,6 +131,10 @@ def main(source, out):
     for name, digest in B2C_APPROVED.items():
         assert sha((B2C_FIX / name).read_bytes()) == digest, 'B2C_APPROVED_FIXTURE_DRIFT:' + name
     assert REV not in ('R44', 'R45'), 'R44_AND_R45_FINALS_ARE_FROZEN_NEVER_REBUILT'
+    import re as _re
+    menu_pin = _re.search(r"CANDIDATE_MENU_SHA = '([0-9A-F]{64})'",
+                          (source / 'candidate/control/MENU_OFFICIAL_ADMISSION_READONLY.py').read_text(encoding='utf-8'))
+    assert menu_pin and menu_pin.group(1) == sha((source / 'candidate/menu/MENU.py').read_bytes()), 'CANDIDATE_MENU_PIN_DRIFT'
     out.mkdir(parents=True, exist_ok=True)
     # 1. Runtime code manifest (outside the candidate root: ReleaseChain closed set).
     code = files_under(source / 'candidate')

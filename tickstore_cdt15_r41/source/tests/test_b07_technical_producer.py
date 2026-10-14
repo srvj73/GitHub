@@ -57,6 +57,9 @@ def tearDownModule():
 
 
 TX_IDS = ['test_first_admission_transaction.TransactionTests.test_%02d' % i for i in range(22)]
+B06_RECEIPT_SHA = 'B' * 64
+PACKAGED_TESTS = {'tests/test_official_writer_effectful.py': b'# packaged writer tests (fixture)\n',
+                  'tests/test_native_process_control_r41.py': b'# packaged process tests (fixture)\n'}
 def reconciliation(t, *, master=None, head=None, revision=None, until_hours=24, name='RECONCILIATION.json'):
     hd = json.loads((R40 / 'POLITICA_CANONICA_HEAD.json').read_bytes())
     rec = {'schema': 'TICKSTORE_ORIGIN_POLICY_RECONCILIATION_V001', 'issuer': 'CHATGPT_ORIGIN', 'status': 'CURRENT_AT_ORIGIN',
@@ -81,12 +84,14 @@ FORGED_CAPTURE = {'schema': 'TICKSTORE_VERIFIED_POLICY_CAPTURE_V001', 'master_sh
 class Fixture:
     def __init__(self):
         self.q = FX.load_consumer()
-        self.code = {'control/EXAMPLE.py': b'x\n', 'b07/B07_CHECK_RUNNERS.py': b'# runner (fixture)\n'}
+        self.code = {'control/EXAMPLE.py': b'x\n', 'b07/B07_CHECK_RUNNERS.py': b'# runner (fixture)\n',
+                     'control/QUALIFICATION_CONTRACT.json': json.dumps({'required_tests': TX_IDS + ['other.Test.test_x']}).encode()}
+        self.final_extra = {'implementation_v001/' + k: v for k, v in PACKAGED_TESTS.items()}
         self.over = {}
         self.drop = set()
 
     def make(self, t, tag):
-        fx = FX.NativeFixture(self.q); fx.code = dict(self.code)
+        fx = FX.NativeFixture(self.q); fx.code = dict(self.code); fx.final_extra = dict(self.final_extra)
         final_raw, code_sha = fx.final_zip(); final_sha = h(final_raw)
         run_id = 'B07_RUN_FIXTURE'
         qr = {'schema': 'TICKSTORE_CDT15_WINDOWS_QUALIFICATION_RECEIPT_V003', 'mode': 'NATIVE_WINDOWS', 'RUN_ID': run_id,
@@ -105,7 +110,10 @@ class Fixture:
                    'code_manifest_sha256': code_sha, 'final_zip_sha256': final_sha, 'run_id': run_id,
                    'runner': {'path': P.RUNNER, 'sha256': h(self.code['b07/B07_CHECK_RUNNERS.py'])},
                    'tests': [{'id': i, 'status': 'PASS'} for i in ids], 'probes': dict.fromkeys(spec['probes'], 'PASS'),
-                   'artifacts': [{'member': art, 'sha256': h(body)}]}
+                   'artifacts': [{'member': art, 'sha256': h(body)}], 'b06_guard': {'b06_sha256': B06_RECEIPT_SHA},
+                   'test_tree': {'r3_archive_sha256': P.TEST_TREE['r3_archive_sha256'],
+                                 'overlays': {k: v['derived_sha256'] for k, v in P.TEST_TREE['overlays'].items()},
+                                 'packaged_tests': {k: h(v) for k, v in PACKAGED_TESTS.items()}}}
             rec.update(self.over.get(name, {}))
             members['EVIDENCE/B07/%s/CHECK_RECEIPT.json' % name] = FX.j(rec); members[art] = body
         members['RETURN_MANIFEST.json'] = FX.j({'schema': self.q['RETURN_MANIFEST_SCHEMA'],
@@ -129,7 +137,7 @@ class Producer(unittest.TestCase):
         kw = dict(return_zip=rz, final_zip=fz, b06_verdict=verdict or self.verdict,
                   b06_verdict_sha256=verdict_sha or h(VERDICT), policy_root=policy or self.policy,
                   policy_reconciliation=rec or self.rec, policy_reconciliation_sha256=rec_sha or self.rec_sha,
-                  out_path=self.t / ('B07_%d.json' % self.n), transaction_test_ids=TX_IDS, now=NOW)
+                  out_path=self.t / ('B07_%d.json' % self.n), now=NOW)
         kw.update(extra)
         return P.build(**kw), code_sha
 
@@ -167,6 +175,7 @@ class Producer(unittest.TestCase):
         self.assertEqual(pol['binding_module_sha256'],
                          json.loads((SRC / 'candidate/control/FIRST_ADMISSION_BINDING.json').read_bytes())['policy_capture_binding_sha256'])
         self.assertIs(r['produced_after_independent_b06'], True); self.assertEqual(r['b06_independent_verdict'], 'VERIFIED_PASS')
+        self.assertEqual(r['b06_stage_receipt_sha256'], B06_RECEIPT_SHA); self.assertEqual(r['transaction_test_ids'], 22)
 
     def test_02_b06_verdict_must_be_independent_pass_and_digest_supplied(self):
         r = self.not_pass('B06_VERDICT_SHA256_SUPPLIED_SEPARATELY', verdict_sha='0' * 64)
@@ -220,8 +229,7 @@ class Producer(unittest.TestCase):
     def test_06_no_clobber(self):
         rz, fz, _ = self.fx.make(self.t, 'nc'); out = self.t / 'B07_nc.json'
         kw = dict(return_zip=rz, final_zip=fz, b06_verdict=self.verdict, b06_verdict_sha256=h(VERDICT), policy_root=self.policy,
-                  policy_reconciliation=self.rec, policy_reconciliation_sha256=self.rec_sha, out_path=out,
-                  transaction_test_ids=TX_IDS, now=NOW)
+                  policy_reconciliation=self.rec, policy_reconciliation_sha256=self.rec_sha, out_path=out, now=NOW)
         P.build(**kw)
         with self.assertRaisesRegex(RuntimeError, 'B07_RECEIPT_EXISTS'):
             P.build(**kw)
@@ -231,7 +239,7 @@ class Producer(unittest.TestCase):
         rz, fz, _ = self.fx.make(self.t, 'forged')
         with self.assertRaises(TypeError):
             P.build(return_zip=rz, final_zip=fz, b06_verdict=self.verdict, b06_verdict_sha256=h(VERDICT),
-                    policy_capture=FORGED_CAPTURE, out_path=self.t / 'B07_forged.json', transaction_test_ids=TX_IDS)
+                    policy_capture=FORGED_CAPTURE, out_path=self.t / 'B07_forged.json')
         self.assertFalse((self.t / 'B07_forged.json').exists())
 
     def test_08_fictitious_reconciliation_identities_block(self):
@@ -276,6 +284,54 @@ class Producer(unittest.TestCase):
         if not NATIVE:
             self.assertTrue(any('SHA_MISMATCH' in f for f in findings), findings)
 
+    # ---- R45 G1/G3: test identity and tree binding ----------------------------------------------
+    def test_13_every_check_test_id_names_a_real_test(self):
+        """G1: each fixed ID must resolve to exactly one test in the R3 tree or the packaged tests."""
+        import ast
+        r3 = Path(__file__).resolve().parents[2] / 'b1/r3_inputs/R3_RUNTIME_ORIGINAL_ARCHIVE.zip'
+        sources = {}
+        for rel in ('test_official_writer_effectful.py', 'test_native_process_control_r41.py'):
+            sources[rel[:-3]] = (SRC / 'tests' / rel).read_text(encoding='utf-8')
+        if r3.is_file():
+            with zipfile.ZipFile(r3) as z:
+                for n in z.namelist():
+                    if n.startswith(('engineering/test', 'cdt15/test')) and n.endswith('.py'):
+                        sources.setdefault(Path(n).stem, z.read(n).decode('utf-8'))
+        index = set()
+        for mod, text in sources.items():
+            for c in ast.parse(text).body:
+                if isinstance(c, ast.ClassDef):
+                    index |= {'%s.%s.%s' % (mod, c.name, f.name) for f in c.body if isinstance(f, ast.FunctionDef)}
+        for name, spec in P.CHECKS.items():
+            for t in spec['tests']:
+                if t.startswith('ALL:'):
+                    continue
+                mod = t.split('.')[0]
+                if mod in sources:
+                    self.assertIn(t, index, name)
+        self.assertIn('test_official_writer_effectful.Concurrency.test_22_two_simultaneous_writer_processes_one_winner', index)
+
+    def test_14_test_tree_must_be_the_approved_one(self):
+        tree = {'r3_archive_sha256': '0' * 64, 'overlays': {}, 'packaged_tests': {}}
+        self.fx.over = {'state_cas_and_continuity': {'test_tree': tree}}
+        self.not_pass('state_cas_and_continuity:RECEIPT_TEST_TREE')
+        self.fx.final_extra = {'implementation_v001/tests/test_official_writer_effectful.py': b'# drifted\n',
+                               'implementation_v001/tests/test_native_process_control_r41.py':
+                                   PACKAGED_TESTS['tests/test_native_process_control_r41.py']}
+        self.fx.over = {}
+        self.not_pass('RECEIPT_TEST_TREE')
+
+    def test_15_transaction_ids_come_from_the_packaged_contract(self):
+        self.fx.code['control/QUALIFICATION_CONTRACT.json'] = json.dumps({'required_tests': TX_IDS[:-1]}).encode()
+        self.not_pass('FINAL_CONTRACT_TRANSACTION_IDS')
+
+    def test_16_b06_guard_must_be_present_and_unique(self):
+        self.fx.over = {'g_ca_native_locator': {'b06_guard': {'b06_sha256': 'C' * 64}}}
+        r = self.not_pass('B06_GUARD_NOT_UNIQUE_ACROSS_CHECKS')
+        self.assertIsNone(r['b06_stage_receipt_sha256'])
+        self.fx.over = {'g_ca_native_locator': {'b06_guard': {}}}
+        self.not_pass('g_ca_native_locator:RECEIPT_B06_GUARD')
+
 
 class RunnerGuard(unittest.TestCase):
     def test_10_runner_refuses_off_windows_and_without_b06_chain(self):
@@ -283,7 +339,7 @@ class RunnerGuard(unittest.TestCase):
         args = []
         for k in ('chain-file', 'chain-sha256', 'b06-sha256', 'evidence', 'work', 'run-id', 'final-zip-sha256',
                   'code-manifest-sha256', 'policy-root', 'policy-reconciliation', 'policy-reconciliation-sha256',
-                  'r3-tree', 'tests-dir', 'qual-dir'):
+                  'r3-archive'):
             args += ['--' + k, 'X']
         work = TMP / 'cand'; (work / 'b07').mkdir(parents=True, exist_ok=True)
         shutil.copy2(runner, work / 'b07'); shutil.copytree(TMP / 'control', work / 'control', dirs_exist_ok=True)
@@ -294,6 +350,40 @@ class RunnerGuard(unittest.TestCase):
         src = runner.read_text(encoding='utf-8')
         self.assertIn("until='B06'", src)
         self.assertLess(src.index('require_b06_pass(a.chain_file'), src.index('for name, spec in P.CHECKS.items()'))
+
+    def test_11_test_tree_is_built_from_pinned_archive_and_overlays(self):
+        sys.path.insert(0, str(SRC / 'candidate/b07'))
+        import B07_CHECK_RUNNERS as R
+        parent, derived = b'# parent\n', b'# derived\n'
+        with tempfile.TemporaryDirectory() as t:
+            t = Path(t); arc = t / 'r3.zip'
+            with zipfile.ZipFile(arc, 'w') as z:
+                z.writestr('engineering/test_x.py', parent); z.writestr('cdt15/tests_y.py', b'# y\n')
+            ov = t / 'test_x.py'; ov.write_bytes(derived)
+            spec = {'r3_archive_sha256': h(arc.read_bytes()),
+                    'overlays': {'engineering/test_x.py': {'parent_sha256': h(parent), 'derived_sha256': h(derived)}}}
+            roots, ident = R.build_test_tree(t / 'w1', arc, {'engineering/test_x.py': str(ov)}, spec)
+            self.assertEqual(ident['overlays'], {'engineering/test_x.py': h(derived)})
+            self.assertEqual((roots[0] / 'test_x.py').read_bytes(), derived)
+            self.assertEqual(set(ident['packaged_tests']), set(P.PACKAGED_TEST_MODULES))
+            for bad_spec, overlays, needle in (
+                    (dict(spec, r3_archive_sha256='0' * 64), {'engineering/test_x.py': str(ov)}, 'B07_R3_ARCHIVE_SHA256'),
+                    (spec, {}, 'B07_OVERLAY_SET'),
+                    ({**spec, 'overlays': {'engineering/test_x.py': {'parent_sha256': '0' * 64, 'derived_sha256': h(derived)}}},
+                     {'engineering/test_x.py': str(ov)}, 'B07_OVERLAY_PARENT'),
+                    ({**spec, 'overlays': {'engineering/test_x.py': {'parent_sha256': h(parent), 'derived_sha256': '0' * 64}}},
+                     {'engineering/test_x.py': str(ov)}, 'B07_OVERLAY_DERIVED')):
+                with self.assertRaisesRegex(RuntimeError, needle):
+                    R.build_test_tree(t / ('w_' + needle), arc, overlays, bad_spec)
+            with self.assertRaisesRegex(RuntimeError, 'B07_R3_TREE_EXISTS'):
+                R.build_test_tree(t / 'w1', arc, {'engineering/test_x.py': str(ov)}, spec)
+
+    def test_12_runner_uses_sealed_verifier_and_r44d2(self):
+        src = (SRC / 'candidate/b07/B07_CHECK_RUNNERS.py').read_text(encoding='utf-8')
+        self.assertIn('load_policy_binding(rd, manifest)', src)
+        self.assertNotIn('import POLICY_CAPTURE_BINDING', src)
+        self.assertIn('import R44D2_DROOT_AUDIT', src); self.assertNotIn('import R44D_DROOT_AUDIT', src)
+        self.assertNotIn("'cardinality_1_plus_1_frozen'] = 'PASS'", src)
 
 
 if __name__ == '__main__':

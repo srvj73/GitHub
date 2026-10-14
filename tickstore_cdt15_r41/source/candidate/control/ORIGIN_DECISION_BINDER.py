@@ -243,4 +243,6 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    sys.path.insert(0, str(HERE))
+    from RUN_LOG_FIXED import run_with_fixed_log
+    raise SystemExit(run_with_fixed_log('ORIGIN_DECISION_BINDER', main))

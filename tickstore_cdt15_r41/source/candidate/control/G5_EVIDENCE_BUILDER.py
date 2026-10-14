@@ -326,4 +326,7 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    import sys as _sys
+    _sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from RUN_LOG_FIXED import run_with_fixed_log
+    raise SystemExit(run_with_fixed_log('G5_EVIDENCE_BUILDER', main))

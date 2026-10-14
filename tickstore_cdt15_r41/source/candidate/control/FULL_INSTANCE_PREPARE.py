@@ -121,4 +121,6 @@ def main():
     except (RuntimeError,OSError,KeyError,TypeError,ValueError) as exc:
         print('INSTANCE_PREPARATION_BLOCKED='+str(exc));return 2
 
-if __name__=='__main__':raise SystemExit(main())
+if __name__=='__main__':
+    from RUN_LOG_FIXED import run_with_fixed_log
+    raise SystemExit(run_with_fixed_log('INSTANCE_PREPARE', main))
