@@ -1,0 +1,12 @@
+{
+  "schema": "EXTERNAL_WITNESS_TICKSTORE_CDT15_R44_B2_RETURN_V001",
+  "zip_name": "TICKSTORE_CDT15_R44_B2_RETORNO_ORIGEM_20261014.zip",
+  "zip_sha256": "BF87A341CD0DAFECDA6F11EFDCA6A14E219DD6282271254DB2C6F05B7B5FB22D",
+  "zip_bytes": 2001696,
+  "members": 59,
+  "manifest_sha256": "4C72344BC95E280E01D8CD6C1016C1414A696B9F302AE0905E0051610503595E",
+  "role": "CANDIDATE_PRODUCER",
+  "gate_issued": false,
+  "production_modified": false,
+  "result_return_to": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 15"
+}

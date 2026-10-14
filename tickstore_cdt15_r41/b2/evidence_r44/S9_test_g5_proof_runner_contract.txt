@@ -1,0 +1,8 @@
+test_01_kinds_and_functions_match_consumer (__main__.RunnerConsumerContract.test_01_kinds_and_functions_match_consumer) ... ok
+test_02_check_names_match_consumer_exactly (__main__.RunnerConsumerContract.test_02_check_names_match_consumer_exactly) ... ok
+test_03_offline_receipt_never_satisfies_the_consumer (__main__.RunnerConsumerContract.test_03_offline_receipt_never_satisfies_the_consumer) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.497s
+
+OK

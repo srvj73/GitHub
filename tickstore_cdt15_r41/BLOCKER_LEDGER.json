@@ -1,164 +1,193 @@
 {
-  "schema": "TICKSTORE_CDT15_R41_BLOCKER_LEDGER_V001",
-  "role": "ENGINEER_ONLY",
-  "status": {
-    "CANDIDATE_COMPLETENESS": "NOT_PROVEN",
-    "G4": "INCOMPLETE",
-    "G5": "NOT_PROVEN",
-    "B06": "NOT_STARTED",
-    "B07": "NOT_STARTED",
-    "D4_D5_CANARY_FULL": "NOT_RELEASED",
-    "FULL_STARTED": false,
-    "PRODUCTION_MODIFIED": false
+ "schema": "TICKSTORE_CDT15_R41_BLOCKER_LEDGER_V001",
+ "role": "ENGINEER_ONLY",
+ "status": {
+  "CANDIDATE_COMPLETENESS": "NOT_PROVEN",
+  "G4": "INCOMPLETE",
+  "G5": "NOT_PROVEN",
+  "B06": "NOT_STARTED",
+  "B07": "NOT_STARTED",
+  "D4_D5_CANARY_FULL": "NOT_RELEASED",
+  "FULL_STARTED": false,
+  "PRODUCTION_MODIFIED": false
+ },
+ "closed_in_r41_source_pending_windows": [
+  "OFFICIAL_WRITER_NOT_IMPLEMENTED",
+  "INSTALLER_ACTIVATION_NOT_INTEGRATED_WITH_WRITER",
+  "SAFE_STOP_STAGE_NOT_ELEVATED_CANNOT_OPEN_HIGH_INTEGRITY_GLOBAL_EVENT",
+  "ELEVATED_FULL_WINDOW_HIDDEN_PROGRESS_ETA_CTRL_C_INACCESSIBLE",
+  "NO_FIXED_FOLDER_RUN_LOG_FOR_FULL_LAUNCHER",
+  "NO_READ_ONLY_MONITOR_FOR_HEARTBEAT_ETA_WATCHDOG",
+  "AUTOCPU_USED_SYSTEM_CPU_COUNT_NOT_PROCESS_AVAILABLE",
+  "STALE_TEST_full/test_full_multiwork.py_1_ERROR",
+  "STALE_STATIC_full/static_multiwork_preaudit.py_6_OBSOLETE_CHECKS"
+ ],
+ "open_blockers": [
+  {
+   "id": "R41-B1",
+   "title": "QUALIFICATION_CONTRACT.json exige 126 IDs (contagem 125 anterior foi erro de registro do engenheiro)",
+   "evidence": "candidate/control/QUALIFICATION_CONTRACT.json required_tests referencia tests_stage_closure, tests_full_lifecycle, tests_resume_delta, test_first_admission_transaction, test_bootstrap_contract, tests_delta, tests_native_delta; nenhum desses modulos existe no pacote 26F783A0 (grep confirmado).",
+   "effect": "FULL_QUALIFICATION_CONTRACT.validate exige exatamente esses IDs nativos sobre os bytes finais; G5 nao pode ser satisfeito com a base entregue.",
+   "needed_from_origin": "Fornecer o arquivo historico da linha de base (archive_sha256 DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8) ou autorizar re-derivacao do contrato de qualificacao para a arvore atual.",
+   "status": "R44_RUNNER_READY_126_IDS_B1A_B1B_APPROVED_ELEVATED_AWAITING_WINDOWS_RUN",
+   "reconciliation": "b1/R42_B1_RECONCILIATION.json"
   },
-  "closed_in_r41_source_pending_windows": [
-    "OFFICIAL_WRITER_NOT_IMPLEMENTED",
-    "INSTALLER_ACTIVATION_NOT_INTEGRATED_WITH_WRITER",
-    "SAFE_STOP_STAGE_NOT_ELEVATED_CANNOT_OPEN_HIGH_INTEGRITY_GLOBAL_EVENT",
-    "ELEVATED_FULL_WINDOW_HIDDEN_PROGRESS_ETA_CTRL_C_INACCESSIBLE",
-    "NO_FIXED_FOLDER_RUN_LOG_FOR_FULL_LAUNCHER",
-    "NO_READ_ONLY_MONITOR_FOR_HEARTBEAT_ETA_WATCHDOG",
-    "AUTOCPU_USED_SYSTEM_CPU_COUNT_NOT_PROCESS_AVAILABLE",
-    "STALE_TEST_full/test_full_multiwork.py_1_ERROR",
-    "STALE_STATIC_full/static_multiwork_preaudit.py_6_OBSOLETE_CHECKS"
+  {
+   "id": "R41-B2",
+   "title": "Nao existe produtor tecnico de recibos G5 e B07",
+   "evidence": "FULL_INSTANCE_PREPARE.py declara 'cannot issue G5/B06/B07 receipts'; nenhum outro modulo publica STAGE_G5/STAGE_B07; a cadeia (FULL_RELEASE_CHAIN.STAGES) exige ambos antes de D4.",
+   "effect": "Mesmo com B06 independente aprovado, D4 e o FULL permanecem inalcancaveis.",
+   "needed_from_origin": "Definicao de custodia: quem emite G5 (congelamento de bytes) e qual runner nativo produz B07 (checks native_windows, physical_policy_capture, state_continuity, vss_identity, negative_controls, process_tree_cleanup).",
+   "status": "G5_PRODUCER_CONSUMER_HARDENED_B2D_BINDER_SOURCE_ONLY_B07_RUNNER_PENDING"
+  },
+  {
+   "id": "R41-B3",
+   "title": "Fechamento D4/1399, Stage B E9/F1/F2 e FULL/H1-H6 so sao provaveis nos gates D4..FULL",
+   "evidence": "Executam no orquestrador congelado com STATE/journal reais; dependem de B07.",
+   "effect": "Prova fim a fim permanece pendente; regressões portateis da base (186) seguem PASS."
+  },
+  {
+   "id": "R41-B4",
+   "title": "Durabilidade a queda de energia nao comprovavel por software",
+   "evidence": "Qualificacao cobre morte abrupta de processo em todos os pontos do protocolo; FlushFileBuffers/MOVEFILE_WRITE_THROUGH aplicados.",
+   "effect": "Declarar apenas PROCESS_DEATH_RECOVERY; CHECKPOINT_POWERLOSS_RECOVERY continua NAO PROVADO.",
+   "status": "POWERLOSS_EMULATED_RUNNER_IN_R44_REPORTED_SEPARATELY_PHYSICAL_PROOF_PENDING_ORIGIN_SPECIFICATION"
+  },
+  {
+   "id": "R41-B5",
+   "title": "Smoke nativo do motor multiwork sobre os novos bytes do wrapper",
+   "evidence": "windows_multiwork_smoke_22/rc4 sao historicos; o wrapper mudou (watchdog, AUTOCPU).",
+   "effect": "Proxima prova dirigida (R42) com fixtures sinteticas no formato PTS2G, ou cobertura no CANARY.",
+   "status": "CLOSED_BY_R42_NATIVE_PASS"
+  },
+  {
+   "id": "R41-B6",
+   "title": "Controles negativos conhecidos de B06 nao reverificados no R41",
+   "evidence": "STATE recreation, TOCTOU de configuracao, sobrescrita concorrente de recibos, falha pos-checkpoint: a base contem testes portateis relacionados (186 PASS), mas o R41 nao auditou sua suficiencia.",
+   "effect": "Permanece pendente para a fase de completude antes do B06."
+  },
+  {
+   "id": "R44-B2C",
+   "title": "Admissao D4 fixada na politica V38 (e projeto/thread legados)",
+   "status": "AWAITING_ORIGIN_DECISION",
+   "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
+  },
+  {
+   "id": "R44-B2D",
+   "title": "Materializacao do recibo de estagio G5/B07 PASS a partir de decisao da origem",
+   "status": "PROPOSAL_AWAITING_ORIGIN",
+   "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
+  },
+  {
+   "id": "R44-TP",
+   "title": "Definicao das 6 provas-alvo (sinteticas nativas vs reais); powerloss nao provavel por software",
+   "status": "AWAITING_ORIGIN_DECISION",
+   "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
+  },
+  {
+   "id": "B2-G5-01",
+   "title": "Falso positivo de completude G5 (origem 20261013)",
+   "status": "FIXED_SOURCE_PRODUCER_AND_CONSUMER_NEGATIVE_CONTROLS_PASS_NATIVE_EVIDENCE_PENDING_R44",
+   "evidence": "source/candidate/control/FULL_QUALIFICATION_CONTRACT.py, G5_EVIDENCE_BUILDER.py, tests/test_g5_evidence_builder.py (34), reprodutor adversarial da origem agora INCOMPLETE/REJECTS"
+  },
+  {
+   "id": "R44-B2C",
+   "title": "Pins V37/V38 nos consumidores D4/FULL",
+   "status": "SOURCE_ONLY_DELTA_READY_REQUIRES_ORIGIN_DECISION_ON_CONTRACT_FIXTURE_DERIVATION",
+   "evidence": "b2c/ (overlay, 19 testes, impacto 38/106 IDs portateis sem derivacao; 106/106 com a derivacao proposta)"
+  },
+  {
+   "id": "R44-B2D",
+   "title": "Vinculador de decisao da origem G5/B07",
+   "status": "SOURCE_ONLY_IMPLEMENTED_11_TESTS_NOT_IN_R44_BYTES",
+   "evidence": "b2d/"
+  },
+  {
+   "id": "R44-B07-RUNNER",
+   "title": "Produtor tecnico do recibo B07 (10 checks)",
+   "status": "NOT_STARTED_SOURCE_ONLY_NEXT_EXECUTION_ONLY_AFTER_INDEPENDENT_B06_PASS"
+  },
+  {
+   "id": "R44-LEGACY-GATES",
+   "title": "Caminhos legados FULL_SERIAL/piloto do tickstore_serial_runner consomem gate administrativo (revogado R40)",
+   "status": "REVOKED_IN_B2C_OVERLAY_SOURCE_ONLY"
+  }
+ ],
+ "native_windows_qualification": {
+  "run": "R41_QUAL_20261013_181544_767_29780",
+  "classification": "R41_WINDOWS_SANDBOX_QUALIFICATION_PASS",
+  "qual_zip_sha256": "FCDF2C838F121421C77038C023F76FA9FA104C3FF20212C35C8899D693EE086F",
+  "final_package_sha256": "14C9A90BA2EE0CB86AC09E5FDFFE72AB0EE15C9FB5E90829375A86E139F4A4C4",
+  "package_manifest_sha256": "B6176728B80DBC821BEF31EB504B026B33A178F7E61146A509D39AFCAD195C40",
+  "return_zip_sha256": "EDBA88820C5C3B2509C57E578170F7F47C38E6E6DC67B184D9076C08079F7915",
+  "tests": {
+   "S1_WRITER_EFFECTFUL": "27/27",
+   "S2_WRITER_CONTRACT": "40/40",
+   "S3_INSTALLER_CONTRACT": "12/12",
+   "S4_RUNNER_OBSERVABILITY": "14/14",
+   "S5_NATIVE_PROCESS_CONTROL": "4/4",
+   "S6_MULTIWORK_UNIT": "24/24",
+   "S7_STATIC_MULTIWORK_PREAUDIT": "PASS"
+  },
+  "e2e": "PASS_9_OF_9_CROSS_VOLUME_C_D",
+  "production_modified": false,
+  "full_started": false,
+  "platform": "Windows PowerShell 5.1.26100.9444, Python 3.14.7 pinned, 24 logical CPUs",
+  "scope": "R41 delta in disposable sandboxes; process-death recovery only; not G4/G5/B06/B07",
+  "evidence_file": "evidence/R41_QUAL_20261013_181544_767_29780_RUN_LOG.txt",
+  "prior_failed_runs": [
+   "R41_QUAL_20261013_174923_852_23668 (2 test-code defects, fixed R41R1)",
+   "R41R1/R41R2 bootstrap OneDrive Cloud Files folder check (fixed R41R3)"
+  ]
+ },
+ "closed_in_r41_source_pending_windows_status": "QUALIFIED_NATIVE_SANDBOX_R41R3",
+ "r42": {
+  "scope": "Native end-to-end of the real MULTIWORK coordinator (_execute_admitted_multiwork) on synthetic production-format data, plus re-run of historical native smokes that import the changed wrapper.",
+  "product_fix": {
+   "id": "R42-F1",
+   "file": "candidate/full/tickstore_full_multiwork.py",
+   "function": "_finalize_coordinator_resources",
+   "defect": "publisher_proc None (error before publisher start) raised AttributeError in finally: primary error masked, writer lock/lease/StopEvent/Job not released.",
+   "found_by": "R42 offline harness (STOP_RESUME resume with invalid worker count)",
+   "present_in_baseline": true,
+   "regression_test": "candidate/full/test_full_multiwork.py::test_r42_finalize_without_publisher_keeps_primary_error_and_releases"
+  },
+  "scenarios": [
+   "NOMINAL",
+   "STOP_RESUME",
+   "WATCHDOG",
+   "RAM"
   ],
-  "open_blockers": [
-    {
-      "id": "R41-B1",
-      "title": "QUALIFICATION_CONTRACT.json exige 126 IDs (contagem 125 anterior foi erro de registro do engenheiro)",
-      "evidence": "candidate/control/QUALIFICATION_CONTRACT.json required_tests referencia tests_stage_closure, tests_full_lifecycle, tests_resume_delta, test_first_admission_transaction, test_bootstrap_contract, tests_delta, tests_native_delta; nenhum desses modulos existe no pacote 26F783A0 (grep confirmado).",
-      "effect": "FULL_QUALIFICATION_CONTRACT.validate exige exatamente esses IDs nativos sobre os bytes finais; G5 nao pode ser satisfeito com a base entregue.",
-      "needed_from_origin": "Fornecer o arquivo historico da linha de base (archive_sha256 DC73A8C3819F1B7E0C4C71665C3379F0186A4518849573738746444B48C379F8) ou autorizar re-derivacao do contrato de qualificacao para a arvore atual.",
-      "status": "R43_NATIVE_122_OF_126_B1B_AWAITING_ORIGIN_E1_RUN_ELEVATED",
-      "reconciliation": "b1/R42_B1_RECONCILIATION.json"
-    },
-    {
-      "id": "R41-B2",
-      "title": "Nao existe produtor tecnico de recibos G5 e B07",
-      "evidence": "FULL_INSTANCE_PREPARE.py declara 'cannot issue G5/B06/B07 receipts'; nenhum outro modulo publica STAGE_G5/STAGE_B07; a cadeia (FULL_RELEASE_CHAIN.STAGES) exige ambos antes de D4.",
-      "effect": "Mesmo com B06 independente aprovado, D4 e o FULL permanecem inalcancaveis.",
-      "needed_from_origin": "Definicao de custodia: quem emite G5 (congelamento de bytes) e qual runner nativo produz B07 (checks native_windows, physical_policy_capture, state_continuity, vss_identity, negative_controls, process_tree_cleanup).",
-      "status": "G5_EVIDENCE_BUILDER_IMPLEMENTED_B07_MATRIX_PROPOSED_AWAITING_ORIGIN (b2/B2_REQUIREMENTS_MATRIX.json)"
-    },
-    {
-      "id": "R41-B3",
-      "title": "Fechamento D4/1399, Stage B E9/F1/F2 e FULL/H1-H6 so sao provaveis nos gates D4..FULL",
-      "evidence": "Executam no orquestrador congelado com STATE/journal reais; dependem de B07.",
-      "effect": "Prova fim a fim permanece pendente; regressões portateis da base (186) seguem PASS."
-    },
-    {
-      "id": "R41-B4",
-      "title": "Durabilidade a queda de energia nao comprovavel por software",
-      "evidence": "Qualificacao cobre morte abrupta de processo em todos os pontos do protocolo; FlushFileBuffers/MOVEFILE_WRITE_THROUGH aplicados.",
-      "effect": "Declarar apenas PROCESS_DEATH_RECOVERY; CHECKPOINT_POWERLOSS_RECOVERY continua NAO PROVADO."
-    },
-    {
-      "id": "R41-B5",
-      "title": "Smoke nativo do motor multiwork sobre os novos bytes do wrapper",
-      "evidence": "windows_multiwork_smoke_22/rc4 sao historicos; o wrapper mudou (watchdog, AUTOCPU).",
-      "effect": "Proxima prova dirigida (R42) com fixtures sinteticas no formato PTS2G, ou cobertura no CANARY.",
-      "status": "CLOSED_BY_R42_NATIVE_PASS"
-    },
-    {
-      "id": "R41-B6",
-      "title": "Controles negativos conhecidos de B06 nao reverificados no R41",
-      "evidence": "STATE recreation, TOCTOU de configuracao, sobrescrita concorrente de recibos, falha pos-checkpoint: a base contem testes portateis relacionados (186 PASS), mas o R41 nao auditou sua suficiencia.",
-      "effect": "Permanece pendente para a fase de completude antes do B06."
-    },
-    {
-      "id": "R44-B2C",
-      "title": "Admissao D4 fixada na politica V38 (e projeto/thread legados)",
-      "status": "AWAITING_ORIGIN_DECISION",
-      "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
-    },
-    {
-      "id": "R44-B2D",
-      "title": "Materializacao do recibo de estagio G5/B07 PASS a partir de decisao da origem",
-      "status": "PROPOSAL_AWAITING_ORIGIN",
-      "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
-    },
-    {
-      "id": "R44-TP",
-      "title": "Definicao das 6 provas-alvo (sinteticas nativas vs reais); powerloss nao provavel por software",
-      "status": "AWAITING_ORIGIN_DECISION",
-      "ref": "b2/B2_REQUIREMENTS_MATRIX.json"
-    }
+  "smokes_rerun": [
+   "windows_multiwork_smoke",
+   "windows_rc1_recovery_bridge_smoke",
+   "windows_multiwork_smoke_22",
+   "windows_rc4_publisher_smoke",
+   "windows_rc4r2_shutdown_smoke"
   ],
-  "native_windows_qualification": {
-    "run": "R41_QUAL_20261013_181544_767_29780",
-    "classification": "R41_WINDOWS_SANDBOX_QUALIFICATION_PASS",
-    "qual_zip_sha256": "FCDF2C838F121421C77038C023F76FA9FA104C3FF20212C35C8899D693EE086F",
-    "final_package_sha256": "14C9A90BA2EE0CB86AC09E5FDFFE72AB0EE15C9FB5E90829375A86E139F4A4C4",
-    "package_manifest_sha256": "B6176728B80DBC821BEF31EB504B026B33A178F7E61146A509D39AFCAD195C40",
-    "return_zip_sha256": "EDBA88820C5C3B2509C57E578170F7F47C38E6E6DC67B184D9076C08079F7915",
-    "tests": {
-      "S1_WRITER_EFFECTFUL": "27/27",
-      "S2_WRITER_CONTRACT": "40/40",
-      "S3_INSTALLER_CONTRACT": "12/12",
-      "S4_RUNNER_OBSERVABILITY": "14/14",
-      "S5_NATIVE_PROCESS_CONTROL": "4/4",
-      "S6_MULTIWORK_UNIT": "24/24",
-      "S7_STATIC_MULTIWORK_PREAUDIT": "PASS"
-    },
-    "e2e": "PASS_9_OF_9_CROSS_VOLUME_C_D",
-    "production_modified": false,
-    "full_started": false,
-    "platform": "Windows PowerShell 5.1.26100.9444, Python 3.14.7 pinned, 24 logical CPUs",
-    "scope": "R41 delta in disposable sandboxes; process-death recovery only; not G4/G5/B06/B07",
-    "evidence_file": "evidence/R41_QUAL_20261013_181544_767_29780_RUN_LOG.txt",
-    "prior_failed_runs": [
-      "R41_QUAL_20261013_174923_852_23668 (2 test-code defects, fixed R41R1)",
-      "R41R1/R41R2 bootstrap OneDrive Cloud Files folder check (fixed R41R3)"
-    ]
-  },
-  "closed_in_r41_source_pending_windows_status": "QUALIFIED_NATIVE_SANDBOX_R41R3",
-  "r42": {
-    "scope": "Native end-to-end of the real MULTIWORK coordinator (_execute_admitted_multiwork) on synthetic production-format data, plus re-run of historical native smokes that import the changed wrapper.",
-    "product_fix": {
-      "id": "R42-F1",
-      "file": "candidate/full/tickstore_full_multiwork.py",
-      "function": "_finalize_coordinator_resources",
-      "defect": "publisher_proc None (error before publisher start) raised AttributeError in finally: primary error masked, writer lock/lease/StopEvent/Job not released.",
-      "found_by": "R42 offline harness (STOP_RESUME resume with invalid worker count)",
-      "present_in_baseline": true,
-      "regression_test": "candidate/full/test_full_multiwork.py::test_r42_finalize_without_publisher_keeps_primary_error_and_releases"
-    },
-    "scenarios": [
-      "NOMINAL",
-      "STOP_RESUME",
-      "WATCHDOG",
-      "RAM"
-    ],
-    "smokes_rerun": [
-      "windows_multiwork_smoke",
-      "windows_rc1_recovery_bridge_smoke",
-      "windows_multiwork_smoke_22",
-      "windows_rc4_publisher_smoke",
-      "windows_rc4r2_shutdown_smoke"
-    ],
-    "offline_harness": "PASS (POSIX seams; not evidence)",
-    "native_windows": {
-      "run": "R42_QUAL_20261013_182714_069_44076",
-      "classification": "R42_WINDOWS_SANDBOX_QUALIFICATION_PASS",
-      "final_package_sha256": "46B446A61EB4D2BF20A0686F60DE6B60189091245956F4C80C80E9C23065C861",
-      "package_manifest_sha256": "6FDBF5DD4548B5B89E42E6CED5DBA3F38B6B1094DC08D10818BEC607D7BB06EF",
-      "return_zip_sha256": "8EDDE5888B34F7488096588ED5AE38581250B6B5363E5FEC51439C949263FEEF",
-      "items": "16/16 PASS",
-      "e2e": "9/9",
-      "production_modified": false,
-      "evidence_file": "evidence/R42_QUAL_20261013_182714_069_44076_RUN_LOG.txt",
-      "return_zip_physically_received": false
-    }
-  },
-  "r41_return_zip_physically_received": false,
-  "r43": {
-    "native_run": "R43_QUAL_20261013_215725_632_24152",
-    "b1": "122/126",
-    "blockers": [
-      "R43-B1B (origin decision)",
-      "R43-E1 (run elevated)"
-    ],
-    "reconciliation": "b1/R42_B1_RECONCILIATION.json"
-  },
-  "driver_fix": "R43 RETURN ZIP omitted EVIDENCE subfolders; QUAL_DRIVER now includes them recursively"
+  "offline_harness": "PASS (POSIX seams; not evidence)",
+  "native_windows": {
+   "run": "R42_QUAL_20261013_182714_069_44076",
+   "classification": "R42_WINDOWS_SANDBOX_QUALIFICATION_PASS",
+   "final_package_sha256": "46B446A61EB4D2BF20A0686F60DE6B60189091245956F4C80C80E9C23065C861",
+   "package_manifest_sha256": "6FDBF5DD4548B5B89E42E6CED5DBA3F38B6B1094DC08D10818BEC607D7BB06EF",
+   "return_zip_sha256": "8EDDE5888B34F7488096588ED5AE38581250B6B5363E5FEC51439C949263FEEF",
+   "items": "16/16 PASS",
+   "e2e": "9/9",
+   "production_modified": false,
+   "evidence_file": "evidence/R42_QUAL_20261013_182714_069_44076_RUN_LOG.txt",
+   "return_zip_physically_received": false
+  }
+ },
+ "r41_return_zip_physically_received": false,
+ "r43": {
+  "native_run": "R43_QUAL_20261013_215725_632_24152",
+  "b1": "122/126",
+  "blockers": [
+   "R43-B1B (origin decision)",
+   "R43-E1 (run elevated)"
+  ],
+  "reconciliation": "b1/R42_B1_RECONCILIATION.json"
+ },
+ "driver_fix": "R43 RETURN ZIP omitted EVIDENCE subfolders; QUAL_DRIVER now includes them recursively"
 }

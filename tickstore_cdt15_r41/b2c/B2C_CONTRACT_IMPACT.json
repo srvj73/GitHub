@@ -1,0 +1,72 @@
+{
+ "schema": "TICKSTORE_CDT15_R44_B2C_CONTRACT_IMPACT_V001",
+ "role": "ENGINEER_ONLY_PROPOSAL_FOR_ORIGIN_DECISION",
+ "measured": "R3 harness PORTABLE selection (106 of 126 IDs) on merged tree source/candidate + b2c/candidate_overlay, Linux; native-only 20 IDs not measurable here",
+ "without_fixture_derivation": {
+  "totals": {
+   "tests_run": 106,
+   "failures": 0,
+   "errors": 38,
+   "skips": 0
+  },
+  "non_pass": [
+   "tests_resume_delta.QualificationContract.test_count_substitution_blocks",
+   "tests_resume_delta.QualificationContract.test_duplicate_required_proof_blocks",
+   "tests_resume_delta.QualificationContract.test_duplicate_test_ids_block",
+   "tests_resume_delta.QualificationContract.test_each_bad_test_status_blocks",
+   "tests_resume_delta.QualificationContract.test_exact_bound_contract_accepts_fixture",
+   "tests_resume_delta.QualificationContract.test_linux_cannot_be_promoted",
+   "tests_resume_delta.QualificationContract.test_missing_physical_baseline_blocks",
+   "tests_resume_delta.QualificationContract.test_missing_target_proof_blocks",
+   "tests_resume_delta.QualificationContract.test_recounted_baseline_blocks",
+   "tests_resume_delta.QualificationContract.test_unhashed_target_evidence_blocks",
+   "tests_resume_delta.QualificationContract.test_wrong_final_bytes_blocks",
+   "test_first_admission_transaction.TransactionTests.test_authority_publication_collision_preserves_concurrent_winner",
+   "test_first_admission_transaction.TransactionTests.test_code_binding_tamper_blocks",
+   "test_first_admission_transaction.TransactionTests.test_each_b07_check_required_before_any_write",
+   "test_first_admission_transaction.TransactionTests.test_existing_run_never_becomes_a_new_successor",
+   "test_first_admission_transaction.TransactionTests.test_frozen_engine_gate_selector_accepts_compiled_descriptor",
+   "test_first_admission_transaction.TransactionTests.test_incomplete_candidate_blocks_before_any_write",
+   "test_first_admission_transaction.TransactionTests.test_injected_flush_failure_preserves_evidence_and_never_publishes",
+   "test_first_admission_transaction.TransactionTests.test_locator_wrong_descriptor_and_changed_generation_block",
+   "test_first_admission_transaction.TransactionTests.test_missing_independent_review_blocks_before_any_write",
+   "test_first_admission_transaction.TransactionTests.test_missing_windows_qualification_cannot_be_hidden_by_test_totals",
+   "test_first_admission_transaction.TransactionTests.test_native_locator_negative_blocks_before_creating_files",
+   "test_first_admission_transaction.TransactionTests.test_orphan_checkpoint_blocks_first_admission",
+   "test_first_admission_transaction.TransactionTests.test_positive_fixture_materializes_bound_identity_without_state_or_checkpoint",
+   "test_first_admission_transaction.TransactionTests.test_reparse_resume_root_rejected",
+   "test_first_admission_transaction.TransactionTests.test_resume_commit_binds_exact_file_set",
+   "test_first_admission_transaction.TransactionTests.test_resume_commit_detects_missing_or_changed_support",
+   "test_first_admission_transaction.TransactionTests.test_review_binding_drift_blocks",
+   "test_first_admission_transaction.TransactionTests.test_skipped_windows_test_blocks_completeness",
+   "test_first_admission_transaction.TransactionTests.test_state_drift_at_publish_preserves_support_without_authority",
+   "test_first_admission_transaction.TransactionTests.test_state_drift_before_first_write_blocks",
+   "test_first_admission_transaction.TransactionTests.test_support_swap_is_denied_or_detected_before_publication",
+   "test_first_admission_transaction.TransactionTests.test_v37_policy_cannot_release_v38_instance",
+   "test_bootstrap_contract.BootstrapContract.test_entry_accepts_complete_commit_and_rejects_state_replacement",
+   "test_bootstrap_contract.BootstrapContract.test_entry_rejects_post_publication_gate_evidence_drift",
+   "test_bootstrap_contract.BootstrapContract.test_historical_v37_cannot_be_current_policy",
+   "test_bootstrap_contract.BootstrapContract.test_materialized_contract_reaches_actual_frozen_runtime_boundary",
+   "test_bootstrap_contract.BootstrapContract.test_v38_technical_policy_validates_without_issuer_or_owner_approval"
+  ]
+ },
+ "with_proposed_derivation": {
+  "totals": {
+   "tests_run": 106,
+   "failures": 0,
+   "errors": 0,
+   "skips": 0
+  },
+  "success": true,
+  "derived_files": {
+   "engineering/test_first_admission_transaction.py": "b2c/proposed_contract_fixture/PROPOSED_B2C_test_first_admission_transaction.patch",
+   "engineering/test_bootstrap_contract.py": "b2c/proposed_contract_fixture/PROPOSED_B2C_test_bootstrap_contract.patch"
+  }
+ },
+ "native_only_ids_at_risk": [
+  "test_first_admission_transaction.TransactionTests.* run natively share the same setUp (covered by the same derivation)"
+ ],
+ "root_cause": "Contract fixtures reference T.POLICY_MASTER/HEAD/REVISION, P.MASTER_SHA and B.policy_v38, i.e. the V37/V38 literals that B2C removes by design.",
+ "frozen_engine_constraint": "tickstore_publisher_recovery_v004_release.py (RELEASE_SHA BFC44DA9...) requires policy receipt project=PEGASUS_TICKSTORE and thread=Compressao De Ticks 7 (POLICY_ADMISSION_SCOPE); kept as receipt provenance ABI, routing moved to reconciliation routing_project/routing_thread.",
+ "decision_needed": "Approve (byte-exact) or reject the two fixture derivations; until then B2C stays outside the qualified bytes and D4 admission remains blocked on V38_POLICY_HEAD_BINDING with the R40 policy."
+}

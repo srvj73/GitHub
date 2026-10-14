@@ -1,0 +1,634 @@
+--- a/candidate/control/60_EFFECTFUL_WRAPPER_RELEASE.ps1
++++ b/candidate/control/60_EFFECTFUL_WRAPPER_RELEASE.ps1
+@@ -13,6 +13,7 @@
+     [switch]$ObserveNative,
+     [string]$PolicyRoot = '',
+     [string]$OriginCapturePath = '',
++    [string]$OriginReconciliationSha256 = '',
+     [string]$PreparationBindingSha = '',
+     [string]$EvidenceDir = '',
+     [string]$PreparationInstanceId = '',
+@@ -67,6 +68,7 @@
+         if ((Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash -cne $binding.wrapper_sha256) { throw 'PREPARATION_WRAPPER_SHA' }
+         if ((Get-FileHash -LiteralPath $PreparationPython -Algorithm SHA256).Hash -cne '4942B86A6597E5AEE0128DAA00050ED79BC21F6E709A78EB19CBFEB0C2F39AC9') { throw 'PREPARATION_PYTHON_SHA' }
+         if ([string]::IsNullOrWhiteSpace($PolicyRoot) -or [string]::IsNullOrWhiteSpace($OriginCapturePath)) { throw 'TECHNICAL_POLICYROOT_AND_ORIGIN_REQUIRED' }
++        if ($OriginReconciliationSha256 -cnotmatch '^[0-9A-F]{64}$') { throw 'ORIGIN_POLICY_RECONCILIATION_SHA_REQUIRED' }
+         if ([string]::IsNullOrWhiteSpace($EvidenceDir)) { throw 'NEW_EVIDENCE_DIRECTORY_REQUIRED' }
+         $target = [IO.Path]::GetFullPath($EvidenceDir)
+         $userBase = [IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\') + '\'
+@@ -81,7 +83,7 @@
+         if ([string]::IsNullOrWhiteSpace($PreparationInstanceId)) { $PreparationInstanceId = [Guid]::NewGuid().ToString('D') }
+         $runtime = Split-Path -Parent $PSScriptRoot
+         $bootstrap = 'import base64,sys;sys.argv=sys.argv[1:];__file__=sys.argv[0];exec(compile(base64.b64decode(sys.stdin.buffer.read().strip(),validate=True),__file__,"exec"))'
+-        $argsPrep = @('-I','-S','-B','-c',$bootstrap,$prepScript,'--policy-root',$PolicyRoot,'--origin',$OriginCapturePath,
++        $argsPrep = @('-I','-S','-B','-c',$bootstrap,$prepScript,'--policy-root',$PolicyRoot,'--policy-reconciliation',$OriginCapturePath,'--policy-reconciliation-sha256',$OriginReconciliationSha256,
+             '--package',(Join-Path $runtime 'recovery'),'--adapter-dir',(Join-Path $runtime 'adapter'),
+             '--resume-root',$PreparationResumeRoot,'--instance-id',$PreparationInstanceId,'--binding-sha',$PreparationBindingSha)
+         if ($ObserveNative) { $argsPrep += '--observe-native' }
+@@ -110,10 +112,12 @@
+     Write-Host 'BLOCKED|USE_PREPARE_FIRST_ADMISSION'; exit 2
+ }
+ 
++# Historical receipt provenance required byte-for-byte by the frozen release engine (ABI,
++# not routing); the current policy identity is bound by POLICY_CAPTURE_BINDING (R44-B2C).
+ $Project = 'PEGASUS_TICKSTORE'
+ $Thread = 'Compress' + [char]0x00E3 + 'o De Ticks 7'
+ $ResultProject='Base de Dados CSV / Tickstore'
+-$ResultThread='Compress'+[char]0x00E3+'o De Ticks 14'
++$ResultThread='Compress'+[char]0x00E3+'o De Ticks 15'
+ $Python='C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'
+ $ResumeRoot = 'D:\Base CSV\Scripts\TICKSTORE_R9_DEV\TICKSTORE_D4_RESUMABLE_V002R22'
+ $CheckpointRoot = Join-Path $ResumeRoot 'checkpoint'
+@@ -128,7 +132,9 @@
+ $ControlRoot = 'D:\Base CSV\Scripts\TICKSTORE_R9_DEV\WORK_R9_PUBLISHER_RECOVERY_V004R1R1\ORCHESTRATOR_V001R9R1_B6_R8_PROVENANCE_VSS_SCOPE_FIX'
+ $StatePath = Join-Path $ControlRoot 'state\STATE.json'
+ $RunsRoot = Join-Path $ControlRoot 'runs'
+-$OwnerGatePath = 'C:\Users\silvi\TICKSTORE_D4_PROMOTION_PREP_RECEIPTS\20260930_110443_935_34868\OWNER_GATE.json'
++# R44-B2C: no historical administrative gate is named here; the technical descriptor path and
++# digest are always taken from the admitted RUN_AUTHORITY before use.
++$OwnerGatePath = ''
+ $ExpectedBaseReleaseSha = '82FA3A22E6AA7BC306E0544F2FE7EE250B96BBE305A6D1593911E3641CE888C7'
+ $ExpectedReleaseSha = 'BFC44DA9A375ED565D8DA2DA7E34EC376C25DEAFE15ED2F3C063CE635CEBCD4C'
+ $ExpectedCandidateSha = 'E998032478EA1FAB8BD69FF000D9622749B679058F457A927D5854963208E310'
+@@ -137,7 +143,7 @@
+ $ExpectedCodeManifestSha = '60FE88C92BDBD95884DF3258C739855AF870F4A4D58B40301BF8E5E1786C579D'
+ $ExpectedPackageManifestSha = '5199C7B03A442F0D33C1250E3E2A68A5A213377E012A902336502453CAAA18D6'
+ $ExpectedPackageZipSha = '4BC28843012A059F65237E07780B79D158190A661B16FFD520861A3F092C3062'
+-$ExpectedOwnerGateSha = '7D49D9C2F5C5BC599097815CA6DD71DB60F2C40E79EC12A292848E55EAE442D1'
++$ExpectedOwnerGateSha = ''
+ $ExpectedMasterScriptSha = '18900BCC198347A5912AA4CEC23F4D9E7A2513FC41EBE393BFD8151F9EEF259A'
+ $ArtifactBaseMasterSha = 'C7697B1798A02DF2CF128B2A28247182C8D36A9924C52A0844BCDDE66B956AE1'
+ $ArtifactBaseHeadSha = '7B4C0654F45D7E3A2170A33E9453D8D0593D00E127ECB60CF497DFEB5CC72601'
+@@ -242,6 +248,7 @@
+     Require ([string](Get-Prop $p 'schema') -ceq 'TICKSTORE_D4_POLICY_ADMISSION_RECEIPT_V001') 'POLICY_ADMISSION_SCHEMA'
+     Require ([string](Get-Prop $p 'status') -ceq 'PASS') 'POLICY_ADMISSION_STATUS'
+     Require ([string](Get-Prop $p 'project') -ceq $Project -and [string](Get-Prop $p 'thread') -ceq $Thread) 'POLICY_ADMISSION_ROUTING'
++    Require ([string](Get-Prop $p 'origin_policy_reconciliation_sha256') -cmatch '^[0-9A-F]{64}$') 'POLICY_ADMISSION_RECONCILIATION'
+     Require ([string](Get-Prop $p 'effect_scope') -ceq 'D4_ONLY') 'POLICY_ADMISSION_SCOPE'
+     Require ([string](Get-Prop $p 'policy_source_cardinality') -ceq 'PASS_1_MASTER_PLUS_1_HEAD') 'POLICY_SOURCE_CARDINALITY'
+     Require ([string](Get-Prop $p 'policy_head_state') -ceq 'FROZEN') 'POLICY_HEAD_STATE'
+@@ -259,6 +266,7 @@
+     Require (Is-Admin) 'FIRST_ADMISSION_NATIVE_ELEVATION_REQUIRED'
+     Require ($PreparationBindingSha -cmatch '^[0-9A-F]{64}$') 'FIRST_ADMISSION_CODE_BINDING_SHA_REQUIRED'
+     Require ($FinalCodeManifestSha -cmatch '^[0-9A-F]{64}$') 'FINAL_CODE_MANIFEST_SHA_REQUIRED'
++    Require ($OriginReconciliationSha256 -cmatch '^[0-9A-F]{64}$') 'ORIGIN_POLICY_RECONCILIATION_SHA_REQUIRED'
+     foreach($p in @($PolicyRoot,$OriginCapturePath,$CompletenessReceiptPath,$B07ReceiptPath,$FinalCodeManifestPath,$FirstAdmissionReviewPackPath,$ReviewVerdictPath,$PolicyAdmissionReceiptPath,$AdapterDir,$PredecessorEvidenceDir)) {
+         Require (-not [string]::IsNullOrWhiteSpace($p)) 'FIRST_ADMISSION_REQUIRED_INPUT_MISSING'
+     }
+@@ -279,7 +287,7 @@
+     $mode='--admit-first';if ($ResumeAdmittedRun) {$mode='--validate-existing'}
+     $argsAdmission=@('-I','-S','-B','-c',$bootstrap,$bootstrapPath,$mode,
+       '--package',$SuccessorRoot,'--package-zip',$SuccessorZip,'--adapter-dir',$AdapterDir,'--resume-root',$ResumeRoot,
+-      '--binding-sha',$PreparationBindingSha,'--policy-root',$PolicyRoot,'--origin-witness',$OriginCapturePath,
++      '--binding-sha',$PreparationBindingSha,'--policy-root',$PolicyRoot,'--policy-reconciliation',$OriginCapturePath,'--policy-reconciliation-sha256',$OriginReconciliationSha256,
+       '--final-code-manifest',$FinalCodeManifestPath,'--final-code-sha',$FinalCodeManifestSha,
+       '--review-pack',$FirstAdmissionReviewPackPath,'--review-verdict',$ReviewVerdictPath,
+       '--policy-receipt',$PolicyAdmissionReceiptPath,'--b07',$B07ReceiptPath,'--completeness',$CompletenessReceiptPath,
+--- a/candidate/control/D4_FIRST_ADMISSION_BOOTSTRAP.py
++++ b/candidate/control/D4_FIRST_ADMISSION_BOOTSTRAP.py
+@@ -24,7 +24,6 @@
+ import uuid
+ 
+ RELEASE_SHA='BFC44DA9A375ED565D8DA2DA7E34EC376C25DEAFE15ED2F3C063CE635CEBCD4C'
+-ORIGIN_V38_SHA='6F9D9E8C4FF360942DBFBB425547B6061AFAEBA6932E80CE82E5A09E69F9BAE5'
+ 
+ def sha(b):return hashlib.sha256(b).hexdigest().upper()
+ def require(v,r):
+@@ -52,14 +51,9 @@
+     try:return ctypes.string_at(target.data,target.size)
+     finally:kernel.LocalFree(ctypes.cast(target.data,w.HLOCAL))
+ 
+-def policy_v38(reads,root,origin,tx):
+-    root=Path(root);names=['POLITICA_CANONICA_HEAD.json','POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md']
+-    require(sorted(p.name for p in root.iterdir())==names,'V38_POLICY_CARDINALITY')
+-    head=json.loads(reads.read(root/names[0],tx.POLICY_HEAD))
+-    reads.read(root/names[1],tx.POLICY_MASTER)
+-    require(head['master_sha256']==tx.POLICY_MASTER and head['state']=='FROZEN' and head['revision_id']==tx.POLICY_REVISION,'V38_POLICY_HEAD_BINDING')
+-    witness=json.loads(reads.read(origin,ORIGIN_V38_SHA))
+-    require(witness['master_sha256_v38']==tx.POLICY_MASTER and witness['head_sha256_v38']==tx.POLICY_HEAD,'V38_ORIGIN_BINDING')
++def policy_current(reads,root,reconciliation,reconciliation_sha,capture_module):
++    """R44-B2C: current policy from physical capture + origin reconciliation; no revision literal."""
++    return capture_module.verify_capture(reads.read,root,reconciliation,reconciliation_sha)
+ 
+ def check_native_process_boundary():
+     from ctypes import wintypes as w
+@@ -103,6 +97,7 @@
+         seen.add(name.casefold());data=reads.read(p,row['sha256'])
+         require(type(row.get('bytes')) is int and len(data)==row['bytes'],'FINAL_CODE_MANIFEST_SIZE')
+     required={'control/D4_FIRST_ADMISSION_BOOTSTRAP.py','control/D4_FIRST_ADMISSION_TRANSACTION.py','control/D4_FIRST_ADMISSION_PREP.py',
++      'control/POLICY_CAPTURE_BINDING.py',
+       'control/FIRST_ADMISSION_BINDING.json','control/60_EFFECTFUL_WRAPPER_RELEASE.ps1',
+       'adapter/runtime_locator_adapter.py','adapter/runtime_locator_orchestrator_entry.py','adapter/runtime_locator_inline_entry.py',
+       'adapter/INLINE_ROOT_LOADER_V004_R1R1_ADAPTER.ps1','adapter/Launch-TickstoreBundle-Adapter.ps1',
+@@ -141,7 +136,8 @@
+     binding=json.loads(binding_raw)
+     modules={}
+     for name,key in [('D4_FIRST_ADMISSION_PREP.py','preparation_sha256'),('D4_FIRST_ADMISSION_TRANSACTION.py','transaction_sha256'),
+-                     ('D4_PREDECESSOR_RECONCILIATION.py','predecessor_reconciliation_sha256')]:
++                     ('D4_PREDECESSOR_RECONCILIATION.py','predecessor_reconciliation_sha256'),
++                     ('POLICY_CAPTURE_BINDING.py','policy_capture_binding_sha256')]:
+         raw=(home/name).read_bytes();require(sha(raw)==binding[key],'BOOTSTRAP_COMPONENT_SHA:'+name);modules[name]=lib(raw,home/name)
+     prep=modules['D4_FIRST_ADMISSION_PREP.py'];tx=modules['D4_FIRST_ADMISSION_TRANSACTION.py']
+     with prep.Reads(engine.Win32Store()) as reads:
+@@ -156,8 +152,10 @@
+         reads.read(home/'FIRST_ADMISSION_BINDING.json',a.binding_sha)
+         reads.read(home/'D4_FIRST_ADMISSION_BOOTSTRAP.py',binding['bootstrap_sha256'])
+         for name,key in [('D4_FIRST_ADMISSION_PREP.py','preparation_sha256'),('D4_FIRST_ADMISSION_TRANSACTION.py','transaction_sha256'),
+-                         ('D4_PREDECESSOR_RECONCILIATION.py','predecessor_reconciliation_sha256')]:reads.read(home/name,binding[key])
+-        policy_v38(reads,a.policy_root,a.origin_witness,tx)
++                         ('D4_PREDECESSOR_RECONCILIATION.py','predecessor_reconciliation_sha256'),
++                         ('POLICY_CAPTURE_BINDING.py','policy_capture_binding_sha256')]:reads.read(home/name,binding[key])
++        capmod=modules['POLICY_CAPTURE_BINDING.py']
++        capture=policy_current(reads,a.policy_root,a.policy_reconciliation,a.policy_reconciliation_sha256,capmod)
+         read_code_set(reads,a.final_code_manifest,a.final_code_sha,candidate)
+         validate_review_payload(reads,a.review_pack,reads.read(a.final_code_manifest))
+         config_path=package/'config/STAGE_A_SEALED_VALUES_V001.json';cfg=prep.strict_json(reads.read(config_path,prep.CONFIG_SHA))
+@@ -191,6 +189,7 @@
+                 p=p.absolute();raw=reads.read(p);artifacts[pk]=str(p);artifacts[hk]=sha(raw)
+             review=engine._d4r_parse_verdict(Path(a.review_verdict))
+             b07=prep.strict_json(reads.read(a.b07));complete=prep.strict_json(reads.read(a.completeness));policy=prep.strict_json(reads.read(a.policy_receipt))
++            artifacts['policy_capture']=capture
+             artifacts['qualification_validator_sha256']=sha(reads.read(home/'FULL_QUALIFICATION_CONTRACT.py'))
+             contract_raw=reads.read(home/'QUALIFICATION_CONTRACT.json')
+             artifacts['qualification_contract']=prep.strict_json(contract_raw)
+@@ -227,7 +226,9 @@
+             locator,descriptor=prep.observe_native(reads,engine,orch,adapter,runtime_binding,cfg,state,str(uuid.UUID(run_id)))
+             require(before==prep.no_first_admission_artifacts(a.resume_root,state['canary']['recovery'],state_path),'ADMISSION_SCOPE_CHANGED')
+             def revalidate():
+-                reads.revalidate();policy_v38(reads,a.policy_root,a.origin_witness,tx)
++                reads.revalidate()
++                require(policy_current(reads,a.policy_root,a.policy_reconciliation,a.policy_reconciliation_sha256,capmod)==capture,
++                        'POLICY_DRIFT_DURING_ADMISSION')
+                 fresh_predecessor(reads,a.predecessor_evidence,prep,modules['D4_PREDECESSOR_RECONCILIATION.py'],state_raw,journal_raw)
+                 check_native_process_boundary()
+                 for p in state['canary'].values():require(not os.path.lexists(Path(p)/'TICKSTORE_WRITER.lock'),'WRITER_LOCK_PRESENT')
+@@ -236,7 +237,8 @@
+             artifacts['policy_root']=str(Path(a.policy_root).absolute())
+             for pk,hk,p in [('policy_master_path','policy_master_sha256',Path(a.policy_root)/'POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md'),
+                             ('policy_head_path','policy_head_sha256',Path(a.policy_root)/'POLITICA_CANONICA_HEAD.json'),
+-                            ('origin_witness_path','origin_witness_sha256',Path(a.origin_witness))]:
++                            # RA ABI key kept (adapter/closure consumers); it now names the origin reconciliation record.
++                            ('origin_witness_path','origin_witness_sha256',Path(a.policy_reconciliation))]:
+                 artifacts[pk]=str(p.absolute());artifacts[hk]=sha(reads.read(p))
+             result=tx.materialize(a.resume_root,run_id,descriptor['legacy_format'],runtime_binding,locator,artifacts,sha(key),protected,pin,
+                                   review,b07,complete,policy,revalidate,adapter.validate_locator_receipt,code,
+@@ -247,7 +249,8 @@
+ def main(argv=None):
+     ap=argparse.ArgumentParser(allow_abbrev=False)
+     group=ap.add_mutually_exclusive_group(required=True);group.add_argument('--admit-first',action='store_true');group.add_argument('--validate-existing',action='store_true')
+-    for n in ('package','package-zip','adapter-dir','resume-root','binding-sha','policy-root','origin-witness','final-code-manifest','final-code-sha',
++    for n in ('package','package-zip','adapter-dir','resume-root','binding-sha','policy-root','policy-reconciliation',
++              'policy-reconciliation-sha256','final-code-manifest','final-code-sha',
+               'review-pack','review-verdict','policy-receipt','b07','completeness','predecessor-evidence'):ap.add_argument('--'+n,required=True)
+     try:
+         result=run(ap.parse_args(argv));print(json.dumps(dict(result,schema='TICKSTORE_FIRST_ADMISSION_BOOTSTRAP_RESULT_V001')));return 0
+--- a/candidate/control/D4_FIRST_ADMISSION_PREP.py
++++ b/candidate/control/D4_FIRST_ADMISSION_PREP.py
+@@ -18,12 +18,7 @@
+ import types
+ import uuid
+ 
+-MASTER = 'POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md'
+-HEAD = 'POLITICA_CANONICA_HEAD.json'
+-MASTER_SHA = 'CADAF9068532EACBF4886CDE3BABE809B075480D8776AF15F3B395C31D9B2CD0'
+-HEAD_SHA = '4F4D2B6028B291F9BD26C086817F56BDE22EBA4F3D8DDE54FD918EE2C92FF962'
+-ORIGIN_SHA = 'D3834F992DDF120B08D97ADF7A46930DF62E223004ABB3C69832EA84261CC92D'
+-REVISION = '20261011T204600-0300-CADAF9068532EACB'
++# R44-B2C: no policy revision literal; see POLICY_CAPTURE_BINDING.verify_capture.
+ RELEASE_SHA = 'BFC44DA9A375ED565D8DA2DA7E34EC376C25DEAFE15ED2F3C063CE635CEBCD4C'
+ ORCH_SHA = '9EB509A2A82C0BE6D4C7AEF315AAF6B41348CECE64AB502061116DFC74419DDA'
+ CONFIG_SHA = 'B67527C0E78E896BF4F4128BF02CC3968CA1AE00F2A8449DB7DBD1E583785515'
+@@ -150,25 +145,18 @@
+         return {name: {'sha256': sha(v['raw']), 'bytes': len(v['raw']), 'physical_identity': v['identity'], 'native_identity': v['native']}
+                 for name, v in sorted(self.items.items())}
+ 
+-def validate_policy(reads, root, origin):
+-    root = Path(root)
+-    chain(root)
+-    require(sorted(p.name for p in root.iterdir()) == sorted([MASTER, HEAD]), 'POLICY_CARDINALITY_1_PLUS_1')
+-    master = reads.read(root / MASTER, MASTER_SHA)
+-    head = strict_json(reads.read(root / HEAD, HEAD_SHA))
+-    bridge = strict_json(reads.read(origin, ORIGIN_SHA))
+-    require(head['master_filename'] == MASTER and head['master_sha256'] == sha(master), 'POLICY_HEAD_MASTER')
+-    require(head['state'] == 'FROZEN' and head['revision_id'] == REVISION, 'POLICY_FROZEN_REVISION')
+-    require(bridge['source_policy_master_sha256'] == sha(master) and
+-            bridge['source_policy_head_sha256'] == HEAD_SHA and bridge['source_policy_revision'] == REVISION,
+-            'POLICY_ORIGIN_BINDING')
+-    require(bridge['source_policy_live_cardinality'] == {'master':1, 'head':1}, 'POLICY_ORIGIN_CARDINALITY')
+-    require('### 13.2 TICKSTORE' in master.decode('utf-8'), 'POLICY_TICKSTORE_SCOPE')
+-    return {'status':'CAPTURE_VERIFIED_NOT_LIVE', 'revision':REVISION, 'master_sha256':MASTER_SHA,
+-            'head_sha256':HEAD_SHA, 'origin_sha256':ORIGIN_SHA,
+-            'origin_observed_date':bridge['created_at_brazil_date'],
+-            'additional_issuer_required':False, 'administrative_owner_gate_required':False,
+-            'current_origin_reconciliation':'PENDING', 'windows_immutability':'PENDING_B07'}
++def load_policy_binding(reads, manifest):
++    """POLICY_CAPTURE_BINDING bytes admitted by the sealed first-admission code binding."""
++    path = Path(__file__).with_name('POLICY_CAPTURE_BINDING.py')
++    raw = reads.read(path, manifest['policy_capture_binding_sha256'])
++    return library(raw, 'first_admission_policy_capture_binding')
++
++
++def validate_policy(reads, root, reconciliation, reconciliation_sha, binding_module):
++    chain(Path(root))
++    capture = binding_module.verify_capture(reads.read, root, reconciliation, reconciliation_sha)
++    return dict(capture, status='CAPTURE_VERIFIED_AND_ORIGIN_RECONCILED_NOT_LIVE',
++                additional_issuer_required=False, windows_immutability='PENDING_B07')
+ 
+ def validate_state(state):
+     require(isinstance(state, dict) and state.get('schema') == 'TICKSTORE_ORCH_STATE_V001' and
+@@ -280,7 +268,7 @@
+                'root_bindings':bindings, 'inventory_sha256':sha(canonical(inventory))}
+     return locator, descriptor
+ 
+-def prepare(policy_root, origin, package, adapter_dir, resume_root, instance_id, observe=False, binding_sha=None):
++def prepare(policy_root, reconciliation, reconciliation_sha, package, adapter_dir, resume_root, instance_id, observe=False, binding_sha=None):
+     require(isinstance(binding_sha, str) and re.fullmatch(r"[0-9A-F]{64}", binding_sha), "EXTERNAL_PREPARATION_BINDING_SHA_REQUIRED")
+     require(str(uuid.UUID(instance_id)) == instance_id.lower(), 'INSTANCE_UUID')
+     package = Path(package); adapter_dir = Path(adapter_dir)
+@@ -294,6 +282,7 @@
+         br = initial.read(adapter_dir/'RUNTIME_LOCATOR_ADAPTER_BINDING.json', manifest['runtime_binding_sha256'])
+         initial.read(__file__, manifest['preparation_sha256'])
+         initial.read(Path(__file__).with_name('60_EFFECTFUL_WRAPPER_RELEASE.ps1'), manifest['wrapper_sha256'])
++        policy_binding = load_policy_binding(initial, manifest)
+         initial.revalidate()
+     engine = library(eraw, 'first_admission_frozen_engine') if observe else None
+     if observe: require(os.name == 'nt', 'NATIVE_WINDOWS_REQUIRED')
+@@ -304,7 +293,7 @@
+                         (package/'modules/orchestrator.py',oraw), (adapter_dir/'runtime_locator_adapter.py',ar),
+                         (adapter_dir/'RUNTIME_LOCATOR_ADAPTER_BINDING.json',br)]:
+             reads.read(p, sha(data))
+-        policy = validate_policy(reads, policy_root, origin)
++        policy = validate_policy(reads, policy_root, reconciliation, reconciliation_sha, policy_binding)
+         report = {'schema':'TICKSTORE_D4_FIRST_ADMISSION_PREPARATION_V001', 'role':'EXTERNAL_ISOLATED_IMPLEMENTER',
+                   'instance_id':instance_id, 'observed_at_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
+                   'status':'PREPARED_NOT_ADMITTED', 'production_authorized':False, 'execution_allowed':False,
+@@ -329,7 +318,8 @@
+         else:
+             report['gates_pending'] = ['WINDOWS_G_CA_POLICYROOT_ROOTS_PREDECESSOR_OBSERVATION'] + GATES
+         # Also detect cardinality changes, not just changes to existing policy files.
+-        validate_policy(reads, policy_root, origin)
++        require(validate_policy(reads, policy_root, reconciliation, reconciliation_sha, policy_binding) == policy,
++                'POLICY_DRIFT_DURING_PREPARATION')
+         reads.revalidate()
+         report['inputs'] = reads.evidence()
+         report['input_binding_sha256'] = sha(canonical(report['inputs']))
+@@ -337,12 +327,12 @@
+ 
+ def main(argv=None):
+     ap = argparse.ArgumentParser(allow_abbrev=False)
+-    for arg in ('policy-root','origin','package','adapter-dir','resume-root','instance-id','binding-sha'):
++    for arg in ('policy-root','policy-reconciliation','policy-reconciliation-sha256','package','adapter-dir','resume-root','instance-id','binding-sha'):
+         ap.add_argument('--'+arg, required=True)
+     ap.add_argument('--observe-native', action='store_true')
+     a = ap.parse_args(argv)
+     try:
+-        r = prepare(a.policy_root, a.origin, a.package, a.adapter_dir, a.resume_root, a.instance_id, a.observe_native, a.binding_sha)
++        r = prepare(a.policy_root, a.policy_reconciliation, a.policy_reconciliation_sha256, a.package, a.adapter_dir, a.resume_root, a.instance_id, a.observe_native, a.binding_sha)
+         print(json.dumps(r, indent=2)); return 0
+     except (OSError, RuntimeError, ValueError, KeyError, TypeError) as e:
+         print(json.dumps({'schema':'TICKSTORE_D4_FIRST_ADMISSION_PREPARATION_V001', 'status':'BLOCKED',
+--- a/candidate/control/D4_FIRST_ADMISSION_TRANSACTION.py
++++ b/candidate/control/D4_FIRST_ADMISSION_TRANSACTION.py
+@@ -24,9 +24,10 @@
+ 
+ def canon(obj): return (json.dumps(obj,sort_keys=True,separators=(',',':'),ensure_ascii=True)+'\n').encode('ascii')
+ 
+-POLICY_MASTER='5B135DA0CA7C3BFE992F364720605522FB939977772C6D5A6FD3811A8288B302'
+-POLICY_HEAD='2DA2939C88530B089D3E6D33418439B38A243EE776DAC151559199C2703B5BA9'
+-POLICY_REVISION='20261012T070600-0300-5B135DA0CA7C3BFE'
++# R44-B2C: no policy revision literal.  The current policy identity arrives as
++# expected['policy_capture'], verified from physical bytes plus the origin reconciliation
++# by POLICY_CAPTURE_BINDING.verify_capture (historical V37/V38 kept there as provenance only).
++POLICY_CAPTURE_SCHEMA='TICKSTORE_VERIFIED_POLICY_CAPTURE_V001'
+ REVIEW_CHECKS={
+  'VERDICT':'PASS','INDEPENDENT_REVIEW':'YES','TESTED_CODE_EQUALS_PACKAGED_CODE':'YES',
+  'CANDIDATE_RELEASE_FUSE_ONLY':'PASS','CERTIFY_SCRATCH_FINAL_SEMANTICS_PRESERVED':'YES',
+@@ -74,11 +75,20 @@
+             b07.get('review_verdict_sha256')==expected['review_verdict_sha256'], 'B07_BYTES_BINDING')
+     require(set(b07.get('checks',{}))==set(B07_CHECKS) and all(b07['checks'][n]=='PASS' for n in B07_CHECKS), 'B07_CHECKS_INCOMPLETE')
+     require(policy.get('schema')=='TICKSTORE_D4_POLICY_ADMISSION_RECEIPT_V001' and policy.get('status')=='PASS','POLICY_TECHNICAL_RECEIPT')
+-    for key,value in [('project','PEGASUS_TICKSTORE'),('thread','Compressão De Ticks 7'),('effect_scope','D4_ONLY'),
+-                      ('active_master_sha256',POLICY_MASTER),('active_head_sha256',POLICY_HEAD),('active_revision_id',POLICY_REVISION),
++    capture=expected.get('policy_capture')
++    require(isinstance(capture,dict) and capture.get('schema')==POLICY_CAPTURE_SCHEMA
++            and capture.get('capture_operational_authority') is False
++            and capture.get('administrative_owner_gate_required') is False,'POLICY_CAPTURE_REQUIRED')
++    for name in ('master_sha256','head_sha256','reconciliation_sha256'):
++        require(re.fullmatch('[0-9A-F]{64}',str(capture.get(name))) is not None,'POLICY_CAPTURE_DIGEST:'+name)
++    # project/thread: historical receipt provenance required by the frozen engine (ABI, not routing).
++    for key,value in [('project',capture.get('receipt_project')),('thread',capture.get('receipt_thread')),('effect_scope','D4_ONLY'),
++                      ('active_master_sha256',capture['master_sha256']),('active_head_sha256',capture['head_sha256']),
++                      ('active_revision_id',capture.get('revision_id')),
++                      ('origin_policy_reconciliation_sha256',capture['reconciliation_sha256']),
+                       ('policy_source_cardinality','PASS_1_MASTER_PLUS_1_HEAD'),('policy_head_state','FROZEN'),
+                       ('material_delta_reconciled','YES'),('material_delta_blocks_execution','NO')]:
+-        require(policy.get(key)==value,'POLICY_'+key)
++        require(isinstance(value,str) and bool(value) and policy.get(key)==value,'POLICY_'+key)
+     for key in ('artifact_base_master_sha256','review_pack_sha256','review_verdict_sha256','effectful_wrapper_sha256'):
+         require(policy.get(key)==expected[key],'POLICY_BINDING_'+key)
+ 
+@@ -142,7 +152,10 @@
+     require(type(state_pin.get('identity')) is list and len(state_pin['identity'])==4 and re.fullmatch('[0-9A-F]{64}',state_pin.get('sha256','')),'INITIAL_STATE_PHYSICAL_PIN')
+     rr=Path(resume_root);support=rr/('admission.'+run_id)
+     gate_raw=canon(gate);gate_sha=sha(gate_raw)
+-    per_run=dict(binding,owner_gate_sha256=gate_sha,policy_master_sha256=POLICY_MASTER,policy_head_sha256=POLICY_HEAD,policy_revision_id=POLICY_REVISION)
++    capture=artifacts['policy_capture']
++    per_run=dict(binding,owner_gate_sha256=gate_sha,policy_master_sha256=capture['master_sha256'],
++                 policy_head_sha256=capture['head_sha256'],policy_revision_id=capture['revision_id'],
++                 origin_policy_reconciliation_sha256=capture['reconciliation_sha256'])
+     receipt={'schema':'TICKSTORE_G_CA_RUNTIME_LOCATOR_RECEIPT_V001','status':'PASS','owner_gate_sha256':gate_sha,
+       'stable_identity_parity':True,'shadow_root_open':locator['shadow_root_open'],'shadow_scratch_open':locator['shadow_scratch_open'],
+       'snapshot_recreation_required':False,'snapshot_state':locator['snapshot_state'],'persistent':bool(locator['attributes']&1),
+--- a/candidate/control/FIRST_ADMISSION_BINDING.json
++++ b/candidate/control/FIRST_ADMISSION_BINDING.json
+@@ -1,14 +1,16 @@
+ {
+   "schema": "TICKSTORE_FIRST_ADMISSION_CODE_BINDING_V001",
+   "production_authorized": false,
+-  "preparation_sha256": "08EFF0B1414E5572CB9569CDEBEBEF109A5066C94A089C7DAE1C1E1C2E6F3095",
+-  "wrapper_sha256": "95365E85CCF80C92B79B6104041CAE05CF61D1D6D63D029628577337978A7EED",
+-  "transaction_sha256": "3E67BDFD8D52B08C927937A4B4CCEDCAABC64021692C766CBF572E9932C4D02F",
+-  "bootstrap_sha256": "F36C9D1D9C8C960FDC82E74C5D006C087748EFCF585BAE65CD44E36F7AFAF72B",
++  "preparation_sha256": "2F24C8873FC00647337670F1BA4F39325FD35EA23116A5923FF3B3B0E252F3A0",
++  "wrapper_sha256": "C396E95D42DE8E488F7D3BD85EAC54F1D56C28DDF0C802517DF2434DBC5A787A",
++  "transaction_sha256": "B03A83C393B47DF775FFEB8C874E90C1ACCD1ABBA33F467AE41EE47734C67D0A",
++  "bootstrap_sha256": "EF74BB8946E80222E71F19B8DBACD46ADAB26F0603BC3AFB4C3C7CE5F3BDB295",
+   "predecessor_reconciliation_sha256": "2F96470E336CBDFB88A92C7BF4494DA99C9BCEFF5EA3635805F460515A11FD97",
+   "adapter_sha256": "D50AB3CE03EA54F767508765CB6326CB77C4297E6C4633534CD3D305FB826BA2",
+   "runtime_binding_sha256": "85152D8BEB800A011E7CB52B8DB25A202E093F19D01F2A7B015083BFB71C8402",
+   "B06_independent": "NOT_STARTED",
+   "B07": "PENDING",
+-  "formal_audit_dispatch": "REQUIRES_ENGINEERING_COMPLETENESS"
++  "formal_audit_dispatch": "REQUIRES_ENGINEERING_COMPLETENESS",
++  "policy_capture_binding_sha256": "D1783D6AECBCCBF154253B7DDED8084AE517834CD632421D32775B9A2E614381",
++  "policy_binding": "R44_B2C_CURRENT_CAPTURE_PLUS_ORIGIN_RECONCILIATION_NO_REVISION_LITERAL"
+ }
+--- a/candidate/control/FULL_INSTANCE_PREPARE.py
++++ b/candidate/control/FULL_INSTANCE_PREPARE.py
+@@ -60,7 +60,9 @@
+         params = inputs['d4_parameters']
+         manifest_raw = reads.read(params['FinalCodeManifestPath'], params['FinalCodeManifestSha'])
+         boot.read_code_set(reads, params['FinalCodeManifestPath'], sha(manifest_raw), root)
+-        boot.policy_v38(reads, inputs['policy_root'], inputs['origin_witness'], tx)
++        capmod = boot.lib(reads.read(root/'control/POLICY_CAPTURE_BINDING.py'), root/'control/POLICY_CAPTURE_BINDING.py')
++        boot.policy_current(reads, inputs['policy_root'], inputs['origin_witness'],
++                            digest(inputs.get('origin_reconciliation_sha256'), 'POLICY_RECONCILIATION'), capmod)
+         cfg = strict_json(reads.read(root/'recovery/config/STAGE_A_SEALED_VALUES_V001.json', inputs['config_sha256']))
+         python_sha = sha(reads.read(sys.executable, cfg['python_exe_sha256']))
+         sys.path.insert(0, str(root/'full'))
+--- a/candidate/control/FULL_RUNNER.py
++++ b/candidate/control/FULL_RUNNER.py
+@@ -3,6 +3,7 @@
+ import argparse
+ import json
+ import os
++import re
+ from pathlib import Path
+ import subprocess
+ import sys
+@@ -21,9 +22,15 @@
+ }
+ 
+ 
+-def d4_command(instance, candidate, *, resume=False):
++def d4_command(instance, candidate, *, resume=False, policy_reconciliation='', policy_reconciliation_sha256=''):
+     params = instance.get('d4_parameters')
+     require(isinstance(params, dict) and set(params) == D4_PARAMETERS, 'D4_PARAMETER_SET')
++    # R44-B2C: the D4 effect needs the CURRENT origin policy reconciliation of this stage
++    # invocation; the record named at instance preparation is provenance only.
++    require(isinstance(policy_reconciliation, str) and bool(policy_reconciliation)
++            and re.fullmatch('[0-9A-F]{64}', str(policy_reconciliation_sha256)) is not None,
++            'D4_CURRENT_POLICY_RECONCILIATION_REQUIRED')
++    params = dict(params, OriginCapturePath=policy_reconciliation)
+     command = [str(Path(os.environ['SystemRoot'])/'System32/WindowsPowerShell/v1.0/powershell.exe'),
+                '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+                str(candidate/'control/60_EFFECTFUL_WRAPPER_RELEASE.ps1'),
+@@ -33,6 +40,7 @@
+         value = params[name]
+         require(isinstance(value, str) and bool(value) and '\x00' not in value, 'D4_PARAMETER:' + name)
+         command.extend(['-' + name, value])
++    command.extend(['-OriginReconciliationSha256', policy_reconciliation_sha256])
+     return command
+ 
+ 
+@@ -156,7 +164,8 @@
+             if a.stage == 'D4Close':
+                 close_d4(admission)
+                 return 0
+-            command = d4_command(i, root, resume=a.resume)
++            command = d4_command(i, root, resume=a.resume, policy_reconciliation=a.policy_reconciliation,
++                                 policy_reconciliation_sha256=a.policy_reconciliation_sha256)
+             admission.revalidate()
+             # Existing qualified wrapper owns DPAPI/HMAC, first admission and D4_ONLY dispatch.
+             code = subprocess.call(command)
+@@ -177,6 +186,9 @@
+     ap = argparse.ArgumentParser(allow_abbrev=False)
+     ap.add_argument('--stage', required=True, choices=('Check', 'Monitor', *REQUIRED_PREFIX))
+     for name in ('chain-file', 'chain-sha256', 'b06-sha256'): ap.add_argument('--' + name, required=True)
++    # R44-B2C: current origin policy reconciliation (record + SHA-256 supplied separately).
++    ap.add_argument('--policy-reconciliation', default='')
++    ap.add_argument('--policy-reconciliation-sha256', default='')
+     ap.add_argument('--resume', action='store_true')
+     ap.add_argument('--close-only', action='store_true')
+     ap.add_argument('--workers', default='AUTO')
+--- a/candidate/control/FULL_STAGE_CONTINUATION.py
++++ b/candidate/control/FULL_STAGE_CONTINUATION.py
+@@ -269,8 +269,12 @@
+     with ReleaseChain(a.chain_file, a.chain_sha256, a.b06_sha256, root,
+                       until=PREVIOUS[stage][0]) as admission:
+         instance = admission.instance; package = root/'recovery'
+-        # Same physical capture checks as the qualified first admission, no administrative issuer.
+-        boot.policy_v38(admission, instance['policy_root'], instance['origin_witness'], tx)
++        # Same physical capture checks as the qualified first admission, no administrative issuer;
++        # every effectful stage needs a CURRENT origin reconciliation (R44-B2C), and the policy may
++        # have legitimately moved since admission: the verified identity is recorded, not pinned.
++        capmod = boot.lib(admission.read(root/'control/POLICY_CAPTURE_BINDING.py'), root/'control/POLICY_CAPTURE_BINDING.py')
++        policy_capture = boot.policy_current(admission, instance['policy_root'], getattr(a, 'policy_reconciliation', ''),
++                                             getattr(a, 'policy_reconciliation_sha256', ''), capmod)
+         config_path = package/'config/STAGE_A_SEALED_VALUES_V001.json'
+         config_raw = admission.read(config_path, instance['config_sha256'])
+         cfg = strict_json(config_raw)
+--- /dev/null
++++ b/candidate/control/POLICY_CAPTURE_BINDING.py
+@@ -0,0 +1,140 @@
++"""R44-B2C: hash-bound verification of the CURRENT canonical policy capture (no revision pin).
++
++Replaces the V37/V38 literals formerly embedded in the D4 first-admission consumers.
++Nothing here names the current revision: the policy identity is derived from the bytes
++of the captured pair and accepted only when ALL of the following hold:
++
++  * the capture folder holds exactly one MASTER and one HEAD (cardinality 1+1);
++  * HEAD binds MASTER by filename and SHA-256, state FROZEN, single active master/head,
++    and declares that a project-local copy carries no operational authority;
++  * revision_id is structurally bound to the MASTER digest (<stamp>-<MASTER[:16]>);
++  * the MASTER covers the TICKSTORE scope;
++  * the identity is not one of the historical (superseded) revisions kept for provenance;
++  * an origin-issued reconciliation record, whose SHA-256 is supplied separately by the
++    operator (same pattern as the independent B06 digest), states that exactly this
++    MASTER/HEAD/revision is the live library state, is still within its validity window,
++    and names the origin conversation that reconciled it (routing_project/routing_thread).
++
++The policy admission receipt keeps project='PEGASUS_TICKSTORE' / thread='Compress\u00e3o De Ticks 7':
++those are historical provenance fields required byte-for-byte by the frozen release engine
++(_d4r ... POLICY_ADMISSION_SCOPE), i.e. receipt ABI, not a policy revision or routing pin.
++
++A capture is never authority by itself; the reconciliation is issued by the ChatGPT
++origin, never by this code.  No administrative OWNER_GATE approval is required or accepted.
++"""
++from __future__ import annotations
++
++import datetime as dt
++import hashlib
++import json
++import re
++from pathlib import Path
++
++MASTER = 'POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md'
++HEAD = 'POLITICA_CANONICA_HEAD.json'
++RECONCILIATION_SCHEMA = 'TICKSTORE_ORIGIN_POLICY_RECONCILIATION_V001'
++SCOPE_MARKER = '### 13.2 TICKSTORE'
++MAX_VALIDITY = dt.timedelta(hours=72)
++# Frozen release engine ABI (tickstore_publisher_recovery_v004_release.py, POLICY_ADMISSION_SCOPE).
++RECEIPT_PROVENANCE = {'project': 'PEGASUS_TICKSTORE', 'thread': 'Compress\u00e3o De Ticks 7'}
++# Provenance only: superseded identities may be cited as history, never accepted as current.
++HISTORICAL_POLICY_PROVENANCE = {
++    'CADAF9068532EACBF4886CDE3BABE809B075480D8776AF15F3B395C31D9B2CD0': {
++        'label': 'V37', 'head_sha256': '4F4D2B6028B291F9BD26C086817F56BDE22EBA4F3D8DDE54FD918EE2C92FF962',
++        'revision_id': '20261011T204600-0300-CADAF9068532EACB'},
++    '5B135DA0CA7C3BFE992F364720605522FB939977772C6D5A6FD3811A8288B302': {
++        'label': 'V38', 'head_sha256': '2DA2939C88530B089D3E6D33418439B38A243EE776DAC151559199C2703B5BA9',
++        'revision_id': '20261012T070600-0300-5B135DA0CA7C3BFE',
++        'project': 'PEGASUS_TICKSTORE', 'thread': 'Compressão De Ticks 7'},
++}
++
++
++class PolicyBlocked(RuntimeError):
++    pass
++
++
++def _require(ok, reason):
++    if not ok:
++        raise PolicyBlocked(reason)
++
++
++def _sha(raw):
++    return hashlib.sha256(raw).hexdigest().upper()
++
++
++def _strict_json(raw):
++    def pairs(items):
++        out = {}
++        for k, v in items:
++            _require(k not in out, 'POLICY_JSON_DUPLICATE_KEY:' + str(k))
++            out[k] = v
++        return out
++    return json.loads(raw.decode('utf-8'), object_pairs_hook=pairs)
++
++
++def _instant(value, name):
++    try:
++        t = dt.datetime.fromisoformat(str(value))
++    except ValueError:
++        raise PolicyBlocked('POLICY_RECONCILIATION_TIME:' + name)
++    _require(t.tzinfo is not None, 'POLICY_RECONCILIATION_TIMEZONE:' + name)
++    return t
++
++
++def verify_capture(read, root, reconciliation_path, reconciliation_sha256, *, now=None):
++    """Return the verified current-policy identity; raise PolicyBlocked otherwise.
++
++    ``read(path, expected_sha_or_None) -> bytes`` is the caller's reader (on Windows the
++    D4 Reads object, which keeps write/delete-denying handles open until revalidation).
++    """
++    root = Path(root)
++    _require(sorted(p.name for p in root.iterdir()) == sorted([MASTER, HEAD]), 'POLICY_CARDINALITY_1_PLUS_1')
++    master_raw = read(root / MASTER, None)
++    head_raw = read(root / HEAD, None)
++    master_sha, head_sha = _sha(master_raw), _sha(head_raw)
++    _require(master_sha not in HISTORICAL_POLICY_PROVENANCE, 'POLICY_HISTORICAL_NOT_CURRENT:'
++             + HISTORICAL_POLICY_PROVENANCE.get(master_sha, {}).get('label', ''))
++    head = _strict_json(head_raw)
++    _require(head.get('schema') == 'POLITICA_CANONICA_HEAD', 'POLICY_HEAD_SCHEMA')
++    _require(head.get('master_filename') == MASTER and head.get('master_sha256') == master_sha, 'POLICY_HEAD_MASTER')
++    _require(head.get('state') == 'FROZEN', 'POLICY_HEAD_NOT_FROZEN')
++    _require(head.get('active_master_cardinality') == 'EXACTLY_ONE'
++             and head.get('active_head_cardinality') == 'EXACTLY_ONE', 'POLICY_HEAD_CARDINALITY')
++    _require(head.get('project_local_copy_operational_authority') is False, 'POLICY_CAPTURE_CLAIMS_AUTHORITY')
++    revision = str(head.get('revision_id', ''))
++    _require(re.fullmatch(r'[0-9]{8}T[0-9]{6}-[0-9]{4}-' + master_sha[:16], revision) is not None,
++             'POLICY_REVISION_NOT_BOUND_TO_MASTER')
++    _require(SCOPE_MARKER in master_raw.decode('utf-8'), 'POLICY_TICKSTORE_SCOPE')
++    _require(re.fullmatch('[0-9A-F]{64}', str(reconciliation_sha256)) is not None, 'POLICY_RECONCILIATION_SHA_FORMAT')
++    rec_raw = read(Path(reconciliation_path), reconciliation_sha256)
++    _require(_sha(rec_raw) == reconciliation_sha256, 'POLICY_RECONCILIATION_SHA256')
++    rec = _strict_json(rec_raw)
++    _require(rec.get('schema') == RECONCILIATION_SCHEMA and rec.get('issuer') == 'CHATGPT_ORIGIN', 'POLICY_RECONCILIATION_SCHEMA')
++    _require(rec.get('status') == 'CURRENT_AT_ORIGIN', 'POLICY_RECONCILIATION_NOT_CURRENT')
++    _require((rec.get('policy_master_sha256'), rec.get('policy_head_sha256'), rec.get('policy_revision'))
++             == (master_sha, head_sha, revision), 'POLICY_RECONCILIATION_BINDING')
++    _require(rec.get('live_cardinality') == {'master': 1, 'head': 1} and rec.get('live_state') == 'FROZEN',
++             'POLICY_RECONCILIATION_LIVE_STATE')
++    _require(rec.get('capture_operational_authority') is False
++             and rec.get('administrative_owner_gate_required') is False, 'POLICY_RECONCILIATION_AUTHORITY_FIELDS')
++    _require(isinstance(rec.get('scope'), list) and 'D4_FIRST_ADMISSION' in rec['scope'], 'POLICY_RECONCILIATION_SCOPE')
++    for key in ('routing_project', 'routing_thread'):
++        _require(isinstance(rec.get(key), str) and rec[key].strip() == rec[key] and rec[key], 'POLICY_RECONCILIATION_' + key.upper())
++    issued, until = _instant(rec.get('reconciled_at'), 'reconciled_at'), _instant(rec.get('valid_until'), 'valid_until')
++    now = now or dt.datetime.now(dt.timezone.utc)
++    _require(issued <= now <= until, 'POLICY_RECONCILIATION_EXPIRED_OR_FUTURE')
++    _require(until - issued <= MAX_VALIDITY, 'POLICY_RECONCILIATION_WINDOW_TOO_LONG')
++    return {'schema': 'TICKSTORE_VERIFIED_POLICY_CAPTURE_V001', 'master_sha256': master_sha, 'head_sha256': head_sha,
++            'revision_id': revision, 'reconciliation_sha256': reconciliation_sha256,
++            'receipt_project': RECEIPT_PROVENANCE['project'], 'receipt_thread': RECEIPT_PROVENANCE['thread'],
++            'routing_project': rec['routing_project'], 'routing_thread': rec['routing_thread'],
++            'valid_until': rec['valid_until'], 'capture_operational_authority': False,
++            'administrative_owner_gate_required': False}
++
++
++def expected_receipt_fields(capture):
++    """Fields of TICKSTORE_D4_POLICY_ADMISSION_RECEIPT_V001 that must equal the verified capture."""
++    return {'project': capture['receipt_project'], 'thread': capture['receipt_thread'],
++            'active_master_sha256': capture['master_sha256'], 'active_head_sha256': capture['head_sha256'],
++            'active_revision_id': capture['revision_id'],
++            'origin_policy_reconciliation_sha256': capture['reconciliation_sha256']}
+--- a/candidate/control/RUN_TICKSTORE_FULL.ps1
++++ b/candidate/control/RUN_TICKSTORE_FULL.ps1
+@@ -7,6 +7,8 @@
+     [switch]$Resume,
+     [switch]$CloseOnly,
+     [string]$Workers='AUTO',
++    [string]$PolicyReconciliation='',
++    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$PolicyReconciliationSha256='',
+     [switch]$MonitorOnce,
+     [ValidateRange(2,3600)][int]$MonitorInterval=10,
+     [switch]$ElevatedChild,
+@@ -136,6 +138,7 @@
+           ' -ElevatedChild -ExpectedLauncherSha '+(Hash $PSCommandPath)+' -ExpectedEntrySha '+(Hash $entry)
+         if ($Resume) { $argsLine+=' -Resume' }
+         if ($CloseOnly) { $argsLine+=' -CloseOnly' }
++        if ($PolicyReconciliation -ne '') { $argsLine+=' -PolicyReconciliation '+(Quoted $PolicyReconciliation)+' -PolicyReconciliationSha256 '+$PolicyReconciliationSha256 }
+         $ps=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+         Log 'UAC_ELEVATION=REQUESTED WINDOW=VISIBLE (progress bar, ETA and Ctrl+C SAFE_STOP live in that window)'
+         # Visible window: the operator sees PROGRESS/ETA and can press Ctrl+C for SAFE_STOP.
+@@ -152,6 +155,7 @@
+     if ($Resume) { $argv+='--resume' }
+     if ($CloseOnly) { $argv+='--close-only' }
+     if ($MonitorOnce) { $argv+='--monitor-once' }
++    if ($PolicyReconciliation -ne '') { $argv+=@('--policy-reconciliation',$PolicyReconciliation,'--policy-reconciliation-sha256',$PolicyReconciliationSha256) }
+     & $python @argv
+     $code=$LASTEXITCODE
+     if ($null -eq $code) { throw 'RUNNER_EXIT_UNKNOWN' }
+--- a/candidate/full/tickstore_serial_runner.py
++++ b/candidate/full/tickstore_serial_runner.py
+@@ -2404,6 +2404,11 @@
+     ap.add_argument("--inject")
+     args=ap.parse_args()
+ 
++    # R40/R44-B2C: administrative owner gates are revoked.  The legacy FULL_SERIAL, pilot and
++    # full-history entries consumed human-issued gate files; FULL runs only via FULL_RUNNER
++    # (technical release chain + independent B06 digest).
++    if args.mode=="FULL_SERIAL" or args.pilot_date or args.full_history or args.pilot_gate_file or args.full_gate_file:
++        raise Blocked("LEGACY_ADMINISTRATIVE_OWNER_GATE_REVOKED:USE_CONTROL_FULL_RUNNER")
+     if args.mode=="FULL_SERIAL":
+         if args.plan or args.pilot_date or args.full_history or args.inject:
+             raise Blocked("FULL_SERIAL_CONFLICTING_MODE")

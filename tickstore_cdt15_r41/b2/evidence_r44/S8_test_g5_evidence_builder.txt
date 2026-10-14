@@ -1,0 +1,39 @@
+test_40_same_evidence_cannot_prove_two_requirements (__main__.GenericConsumerHardening.test_40_same_evidence_cannot_prove_two_requirements) ... ok
+test_41_real_contract_requires_typed_provenance (__main__.GenericConsumerHardening.test_41_real_contract_requires_typed_provenance) ... ok
+test_01_closed_native_return_zip_is_accepted_by_both (__main__.MechanicsAcceptWithHypotheticalPhysicalSpec.test_01_closed_native_return_zip_is_accepted_by_both) ... ok
+test_02_pack_is_relocatable_but_bytes_stay_bound (__main__.MechanicsAcceptWithHypotheticalPhysicalSpec.test_02_pack_is_relocatable_but_bytes_stay_bound) ... ok
+test_03_consumer_rejects_delta_tests_not_from_physical_harness (__main__.MechanicsAcceptWithHypotheticalPhysicalSpec.test_03_consumer_rejects_delta_tests_not_from_physical_harness) ... ok
+test_04_consumer_rejects_hand_written_delta_without_provenance (__main__.MechanicsAcceptWithHypotheticalPhysicalSpec.test_04_consumer_rejects_hand_written_delta_without_provenance) ... ok
+test_10_empty_code_manifest (__main__.OriginAdversarialControls.test_10_empty_code_manifest) ... ok
+test_11_127_records_for_126_ids (__main__.OriginAdversarialControls.test_11_127_records_for_126_ids) ... ok
+test_12_harness_success_false (__main__.OriginAdversarialControls.test_12_harness_success_false) ... ok
+test_13_harness_tests_run_zero (__main__.OriginAdversarialControls.test_13_harness_tests_run_zero) ... ok
+test_14_declared_native_without_windows_evidence (__main__.OriginAdversarialControls.test_14_declared_native_without_windows_evidence) ... ok
+test_15_same_receipt_for_all_proofs (__main__.OriginAdversarialControls.test_15_same_receipt_for_all_proofs) ... ok
+test_16_generic_receipt_without_named_checks (__main__.OriginAdversarialControls.test_16_generic_receipt_without_named_checks) ... ok
+test_17_receipt_without_artifacts (__main__.OriginAdversarialControls.test_17_receipt_without_artifacts) ... ok
+test_18_receipt_artifact_not_in_return_zip (__main__.OriginAdversarialControls.test_18_receipt_artifact_not_in_return_zip) ... ok
+test_19_runner_not_the_packaged_runner (__main__.OriginAdversarialControls.test_19_runner_not_the_packaged_runner) ... ok
+test_20_receipt_from_another_run_or_bytes (__main__.OriginAdversarialControls.test_20_receipt_from_another_run_or_bytes) ... ok
+test_21_receipt_status_not_pass (__main__.OriginAdversarialControls.test_21_receipt_status_not_pass) ... ok
+test_22_missing_typed_receipt (__main__.OriginAdversarialControls.test_22_missing_typed_receipt) ... ok
+test_23_final_zip_member_tampered (__main__.OriginAdversarialControls.test_23_final_zip_member_tampered) ... ok
+test_24_return_member_outside_return_manifest (__main__.OriginAdversarialControls.test_24_return_member_outside_return_manifest) ... ok
+test_25_tests_log_missing_one_id (__main__.OriginAdversarialControls.test_25_tests_log_missing_one_id) ... ok
+test_26_tests_log_failed (__main__.OriginAdversarialControls.test_26_tests_log_failed) ... ok
+test_27_receipt_bound_to_other_final_zip (__main__.OriginAdversarialControls.test_27_receipt_bound_to_other_final_zip) ... ok
+test_28_not_elevated (__main__.OriginAdversarialControls.test_28_not_elevated) ... ok
+test_29_harness_bound_to_other_code (__main__.OriginAdversarialControls.test_29_harness_bound_to_other_code) ... ok
+test_30_one_non_pass_id (__main__.OriginAdversarialControls.test_30_one_non_pass_id) ... ok
+test_31_known_blocker_and_wrong_baseline (__main__.OriginAdversarialControls.test_31_known_blocker_and_wrong_baseline) ... ok
+test_32_no_clobber (__main__.OriginAdversarialControls.test_32_no_clobber) ... ok
+test_50_origin_reproducer_now_incomplete_and_rejected (__main__.OriginAdversarialScript.test_50_origin_reproducer_now_incomplete_and_rejected) ... ok
+test_05_only_physical_powerloss_remains_pending (__main__.RealContractNeverCompleteWithoutPhysicalPowerloss.test_05_only_physical_powerloss_remains_pending) ... ok
+test_06_powerloss_emulated_never_satisfies_physical_proof (__main__.RealContractNeverCompleteWithoutPhysicalPowerloss.test_06_powerloss_emulated_never_satisfies_physical_proof) ... ok
+test_07_emulated_receipt_reported_separately_never_as_proof (__main__.RealContractNeverCompleteWithoutPhysicalPowerloss.test_07_emulated_receipt_reported_separately_never_as_proof) ... ok
+test_08_never_issues_a_gate_pass (__main__.RealContractNeverCompleteWithoutPhysicalPowerloss.test_08_never_issues_a_gate_pass) ... ok
+
+----------------------------------------------------------------------
+Ran 34 tests in 0.719s
+
+OK

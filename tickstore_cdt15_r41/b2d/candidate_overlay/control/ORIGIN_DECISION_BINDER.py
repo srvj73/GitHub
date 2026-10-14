@@ -1,0 +1,169 @@
+"""R44-B2D: bind an ORIGIN-ISSUED G5/B07 decision into a TICKSTORE_STAGE_RECEIPT_V001 (copy only).
+
+This module never decides.  It materializes a stage receipt only from a decision record
+issued by the ChatGPT origin, whose SHA-256 is supplied separately by the operator (same
+trust pattern as the independent B06 digest), after re-verifying every binding against
+physical bytes.  A REJECT, a missing field, a drifted digest or any blocker refuses to
+write anything.  No administrative OWNER_GATE is created, required or accepted, and the
+implementer can never be the issuer.
+
+Bindings (all mandatory): stage, policy capture (master/head/revision + origin
+reconciliation), code manifest, FINAL package, instance, evidence (re-read and hashed),
+blockers (empty), predecessor receipt chain and, for B07, the independent B06 verdict.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+from pathlib import Path
+
+DECISION_SCHEMA = 'TICKSTORE_ORIGIN_STAGE_DECISION_V001'
+STAGE_RECEIPT_SCHEMA = 'TICKSTORE_STAGE_RECEIPT_V001'
+MATERIALIZABLE = ('G5', 'B07')
+PREDECESSORS = {'G5': (), 'B07': ('G5', 'B06')}
+REQUIRED_CHECKS = {
+    'G5': ('features_implemented', 'blockers_closed', 'tested_equals_packaged', 'adversarial_completeness', 'byte_freeze'),
+    'B07': ('native_windows', 'physical_policy_capture', 'state_continuity', 'vss_identity', 'negative_controls',
+            'process_tree_cleanup'),
+}
+# Evidence roles the binder re-reads and checks semantically, per stage.
+REQUIRED_EVIDENCE = {'G5': ('G5_EVIDENCE_PACK', 'ENGINEERING_COMPLETENESS', 'NATIVE_RETURN_ZIP'),
+                     'B07': ('B07_TECHNICAL_RECEIPT', 'NATIVE_RETURN_ZIP')}
+HEX64 = re.compile('[0-9A-F]{64}')
+
+
+class DecisionBlocked(RuntimeError):
+    pass
+
+
+def _require(ok, reason):
+    if not ok:
+        raise DecisionBlocked(reason)
+
+
+def _sha(raw):
+    return hashlib.sha256(raw).hexdigest().upper()
+
+
+def _hex(value, label):
+    _require(isinstance(value, str) and HEX64.fullmatch(value) is not None, 'DECISION_DIGEST:' + label)
+    return value
+
+
+def _strict_json(raw):
+    def pairs(items):
+        out = {}
+        for k, v in items:
+            _require(k not in out, 'DECISION_JSON_DUPLICATE_KEY:' + str(k))
+            out[k] = v
+        return out
+    return json.loads(raw.decode('utf-8'), object_pairs_hook=pairs)
+
+
+def _canonical(obj):
+    return (json.dumps(obj, sort_keys=True, ensure_ascii=False, indent=1) + '\n').encode('utf-8')
+
+
+def verify_decision(decision_raw, decision_sha256, *, stage, code_sha, final_package_sha, instance_sha,
+                    policy_capture, predecessor_hashes, b06_sha=None):
+    """Pure verification of the origin decision bindings; returns the parsed decision."""
+    _require(stage in MATERIALIZABLE, 'DECISION_STAGE_NOT_MATERIALIZABLE:' + str(stage))
+    _require(_sha(decision_raw) == _hex(decision_sha256, 'decision'), 'DECISION_SHA256_SUPPLIED_SEPARATELY')
+    d = _strict_json(decision_raw)
+    _require(d.get('schema') == DECISION_SCHEMA and d.get('issuer') == 'CHATGPT_ORIGIN', 'DECISION_SCHEMA_ISSUER')
+    _require(d.get('implementation_participant_is_issuer') is False, 'DECISION_IMPLEMENTER_CANNOT_ISSUE')
+    _require(d.get('administrative_owner_gate') is False, 'DECISION_NO_ADMINISTRATIVE_OWNER_GATE')
+    _require(d.get('stage') == stage, 'DECISION_STAGE')
+    _require(d.get('decision') in ('PASS', 'REJECT'), 'DECISION_VALUE')
+    _require(d['decision'] == 'PASS', 'ORIGIN_DECISION_REJECT')
+    _require(isinstance(d.get('decision_id'), str) and d['decision_id'].strip(), 'DECISION_ID')
+    for key, want in (('code_manifest_sha256', code_sha), ('final_package_sha256', final_package_sha),
+                      ('instance_sha256', instance_sha)):
+        _require(d.get(key) == _hex(want, key), 'DECISION_BINDING:' + key)
+    pol = d.get('policy') if isinstance(d.get('policy'), dict) else {}
+    _require(isinstance(policy_capture, dict) and policy_capture.get('schema') == 'TICKSTORE_VERIFIED_POLICY_CAPTURE_V001',
+             'DECISION_POLICY_CAPTURE_REQUIRED')
+    for key in ('master_sha256', 'head_sha256', 'revision_id', 'reconciliation_sha256'):
+        _require(pol.get(key) == policy_capture.get(key) and bool(pol.get(key)), 'DECISION_POLICY_BINDING:' + key)
+    names = PREDECESSORS[stage]
+    _require(isinstance(predecessor_hashes, dict) and tuple(predecessor_hashes) == names, 'DECISION_PREDECESSOR_SET')
+    _require(d.get('predecessors') == {n: _hex(predecessor_hashes[n], n) for n in names}, 'DECISION_PREDECESSORS')
+    previous = predecessor_hashes[names[-1]] if names else None
+    _require(d.get('previous_receipt_sha256') == previous, 'DECISION_PREVIOUS_RECEIPT')
+    if stage == 'B07':
+        _require(d.get('b06_verdict_sha256') == _hex(b06_sha, 'b06') and predecessor_hashes['B06'] == b06_sha,
+                 'DECISION_B06_BINDING')
+        _require(d.get('b06_independent') is True, 'DECISION_B06_INDEPENDENCE')
+    _require(d.get('blockers') == [], 'DECISION_BLOCKERS')
+    checks = d.get('checks')
+    _require(isinstance(checks, dict) and set(checks) == set(REQUIRED_CHECKS[stage])
+             and all(v is True for v in checks.values()), 'DECISION_CHECKS')
+    ev = d.get('evidence')
+    _require(isinstance(ev, list) and ev, 'DECISION_EVIDENCE_REQUIRED')
+    roles = [e.get('role') for e in ev if isinstance(e, dict)]
+    _require(len(roles) == len(ev) and len(set(roles)) == len(roles) and set(REQUIRED_EVIDENCE[stage]) <= set(roles),
+             'DECISION_EVIDENCE_ROLES')
+    shas = [e.get('sha256') for e in ev]
+    _require(all(isinstance(s, str) and HEX64.fullmatch(s) for s in shas) and len(set(shas)) == len(shas),
+             'DECISION_EVIDENCE_DIGESTS')
+    return d
+
+
+def _check_evidence_semantics(stage, role, raw, *, code_sha, final_package_sha, b06_sha):
+    if role == 'NATIVE_RETURN_ZIP':
+        return
+    obj = _strict_json(raw)
+    if role == 'G5_EVIDENCE_PACK':
+        _require(obj.get('schema') == 'TICKSTORE_G5_EVIDENCE_PACK_V001' and obj.get('completeness_status') == 'COMPLETE'
+                 and obj.get('known_blockers') == [] and obj.get('consumer_self_check') == 'ACCEPTS'
+                 and obj.get('code_manifest_sha256') == code_sha and obj.get('gate_verdict_issued') is False,
+                 'DECISION_EVIDENCE_G5_PACK')
+    elif role == 'ENGINEERING_COMPLETENESS':
+        _require(obj.get('schema') == 'TICKSTORE_ENGINEERING_COMPLETENESS_V002' and obj.get('status') == 'COMPLETE'
+                 and obj.get('known_blockers') == [] and obj.get('code_manifest_sha256') == code_sha
+                 and obj.get('provenance_mode') == 'CLOSED_NATIVE_RETURN_ZIP', 'DECISION_EVIDENCE_COMPLETENESS')
+        prov = (obj.get('delta_qualification') or {}).get('native_provenance') or {}
+        _require((prov.get('final_zip') or {}).get('sha256') == final_package_sha, 'DECISION_EVIDENCE_FINAL_PACKAGE')
+    elif role == 'B07_TECHNICAL_RECEIPT':
+        _require(obj.get('schema') == 'TICKSTORE_B07_TECHNICAL_RECEIPT_V001' and obj.get('status') == 'PASS'
+                 and obj.get('platform') == 'WINDOWS_NTFS_PS51' and obj.get('code_manifest_sha256') == code_sha
+                 and obj.get('review_verdict_sha256') == b06_sha, 'DECISION_EVIDENCE_B07_RECEIPT')
+
+
+def materialize(decision_path, decision_sha256, *, stage, code_sha, final_package_sha, instance_sha, policy_capture,
+                predecessor_hashes, evidence_paths, out_path, b06_sha=None, read=None):
+    """Write the stage receipt (no-clobber) only if the origin decision binds everything."""
+    read = read or (lambda p: Path(p).read_bytes())
+    raw = read(decision_path)
+    d = verify_decision(raw, decision_sha256, stage=stage, code_sha=code_sha, final_package_sha=final_package_sha,
+                        instance_sha=instance_sha, policy_capture=policy_capture,
+                        predecessor_hashes=predecessor_hashes, b06_sha=b06_sha)
+    _require(isinstance(evidence_paths, dict) and set(evidence_paths) == {e['role'] for e in d['evidence']},
+             'DECISION_EVIDENCE_FILES_SET')
+    evidence = []
+    for e in d['evidence']:
+        body = read(evidence_paths[e['role']])
+        _require(_sha(body) == e['sha256'], 'DECISION_EVIDENCE_SHA256:' + e['role'])
+        _check_evidence_semantics(stage, e['role'], body, code_sha=code_sha, final_package_sha=final_package_sha,
+                                  b06_sha=b06_sha)
+        evidence.append({'path': str(Path(evidence_paths[e['role']]).absolute()), 'sha256': e['sha256'], 'role': e['role']})
+    evidence.append({'path': str(Path(decision_path).absolute()), 'sha256': decision_sha256, 'role': 'ORIGIN_DECISION'})
+    receipt = {'schema': STAGE_RECEIPT_SCHEMA, 'stage': stage, 'status': 'PASS', 'environment': 'WINDOWS_PRODUCTION',
+               'code_manifest_sha256': code_sha, 'instance_sha256': instance_sha,
+               'previous_receipt_sha256': d['previous_receipt_sha256'], 'blockers': [],
+               'checks': {k: True for k in REQUIRED_CHECKS[stage]}, 'evidence': evidence,
+               'origin_decision_sha256': decision_sha256, 'origin_decision_id': d['decision_id'],
+               'final_package_sha256': final_package_sha, 'policy': dict(d['policy']),
+               'materialized_by': 'ORIGIN_DECISION_BINDER_COPY_ONLY', 'decision_owner': 'CHATGPT_ORIGIN',
+               'implementation_participant_is_issuer': False}
+    if stage == 'B07':
+        receipt['b06_verdict_sha256'] = b06_sha
+    raw_out = _canonical(receipt)
+    out = Path(out_path)
+    _require(not os.path.lexists(out), 'STAGE_RECEIPT_EXISTS')
+    with open(out, 'xb') as f:
+        f.write(raw_out); f.flush(); os.fsync(f.fileno())
+    _require(out.read_bytes() == raw_out, 'STAGE_RECEIPT_READBACK')
+    return {'path': str(out.absolute()), 'sha256': _sha(raw_out), 'stage': stage}
