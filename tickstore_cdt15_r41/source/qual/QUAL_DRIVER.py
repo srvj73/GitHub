@@ -465,15 +465,19 @@ def main(a):
         env = dict(os.environ, TMP=str(tmp), TEMP=str(tmp), PYTHONDONTWRITEBYTECODE='1', PYTHONUTF8='1')
         env.pop('PYTHONPATH', None)
         d_parent = Path(a.d_parent) / run_dir.name if native else work / 'D_PARENT'
-        # R44-DROOT-01: the D: sandbox root and the work root are admitted physically before any
-        # write (no reparse component, resolves to itself, NTFS) and re-checked at POSTCHECK.
+        # R44-DROOT-01 / R44D-ORIGIN-01: just-in-time admission in this same attempt.  The work root
+        # and the pre-existing D: sandbox root are admitted and HELD (every component, no share-delete)
+        # before any write; the D: run directory is created exclusively under the held root and held.
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import SANDBOX_ADMISSION as admission
-        admitted = {'work_root': admission.admit_root(work)}
+        held = [admission.HeldChain(work)]
+        admitted = {'work_root': held[0].leaf.identity}
         if native:
-            admitted['d_sandbox_root'] = admission.admit_root(a.d_parent)
-            d_parent.mkdir(parents=False, exist_ok=False)
-            admitted['d_run_root'] = admission.admit_root(d_parent)
+            held.append(admission.HeldChain(a.d_parent))
+            admitted['d_sandbox_root'] = held[-1].leaf.identity
+            admission.create_run_dir_exclusive(held[-1], run_dir.name).close()
+            held.append(admission.HeldChain(d_parent))
+            admitted['d_run_root'] = held[-1].leaf.identity
         receipt['SANDBOX_ADMISSION'] = admitted
         print('QUAL_SANDBOX_ADMISSION=PASS ' + ' '.join(sorted(admitted)), flush=True)
         suites = []
@@ -503,9 +507,9 @@ def main(a):
         prog.end('PROOFS')
 
         prog.begin('POSTCHECK')
-        for key, rec in admitted.items():
-            admission.revalidate(rec)
-        receipt['SANDBOX_ADMISSION_REVALIDATED'] = 'PASS'
+        for chain in held:
+            chain.verify()
+        receipt['SANDBOX_ADMISSION_REVALIDATED'] = 'PASS_SAME_HELD_IDENTITY'
         after = snapshot_real_targets(app) if native else {}
         (evidence / 'REAL_TARGETS_AFTER.json').write_bytes(canonical(after))
         receipt['PRODUCTION_MODIFIED'] = (before != after) if native else False
@@ -538,6 +542,8 @@ def main(a):
         (evidence / 'DRIVER_TRACEBACK.txt').write_text(traceback.format_exc(), encoding='utf-8')
         print('QUAL_BLOCKED=' + receipt['BLOCKER'], flush=True)
         code = 2
+    for chain in reversed(locals().get('held', [])):
+        chain.close()
     prog.begin('RETURN')
     receipt['EXIT_CODE'] = code
     receipt['finished_unix_ns'] = time.time_ns()
@@ -575,6 +581,7 @@ if __name__ == '__main__':
     ap.add_argument('--run-dir'); ap.add_argument('--work-root'); ap.add_argument('--bundle-dir')
     ap.add_argument('--d-parent', default='D:\\TICKSTORE_QUALIFICATION_SANDBOX')
     ap.add_argument('--ps-version', default='UNKNOWN')
+    ap.add_argument('--bootstrap-sha256', default='UNKNOWN')
     ap.add_argument('--offline-preflight', action='store_true')
     args = ap.parse_args()
     if args.run_suite_child:

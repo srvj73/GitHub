@@ -1,0 +1,21 @@
+{
+ "audited_r44_final_sha256": "0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D",
+ "bootstrap": "RUN_TICKSTORE_CDT15_R44D2_DROOT.ps1",
+ "bootstrap_bytes": 14319,
+ "bootstrap_sha256": "0F2CE5F4DCE7EEDD24C1CF64D6BC828D17608E5BC728EF73B0B58F47E740B310",
+ "elevation_required": true,
+ "final_bytes_touched": false,
+ "full_started": false,
+ "gate_verdict_issued": false,
+ "invocation": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\silvi\\OneDrive\\Downloads\\RUN_TICKSTORE_CDT15_R44D2_DROOT.ps1\"",
+ "production_modified": false,
+ "purpose": "R44D2 (supersedes R44D per R44D-ORIGIN-01): no D: write before admission, handle-bound identity, adversarial admission controls",
+ "qual_manifest_sha256": "BFD8A55007047D614CF9E6C67DCB4FA8F94E5F4B6E74E11CD3482645BE865B8B",
+ "qual_zip": "TICKSTORE_CDT15_R44D2_DROOT_20261014.zip",
+ "qual_zip_bytes": 14996,
+ "qual_zip_sha256": "AE15680545601270AD34C5FA186E7A9DDCBC33A6A95428B7A84933F761F4489C",
+ "r44_126_rerun": false,
+ "revision": "R44D2",
+ "role": "ENGINEER_ONLY",
+ "schema": "EXTERNAL_WITNESS_TICKSTORE_CDT15_QUAL_V002"
+}

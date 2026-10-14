@@ -124,6 +124,8 @@ public static class R41Reparse {
     Require ($app -cmatch '^[A-Za-z]:\\[^%]+$' -and -not $app.EndsWith('\')) 'LOCALAPPDATA_INVALID_OR_UNEXPANDED'
     Require ([IO.Path]::GetFullPath($app) -ceq $app) 'LOCALAPPDATA_NOT_CANONICAL'
     Log ('POWERSHELL=' + $PSVersionTable.PSVersion.ToString() + ' LOCALAPPDATA=' + $app)
+    $bootstrapSha = Sha $PSCommandPath
+    Log ('BOOTSTRAP_SHA256=' + $bootstrapSha + ' PARSED_AND_RUNNING_UNDER_PS=' + $PSVersionTable.PSVersion.ToString())
     $principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     Log ('ELEVATED=' + $(if ($isAdmin) { 'YES' } else { 'NO' }))
@@ -166,11 +168,13 @@ public static class R41Reparse {
     # 2. Extract into a fresh run-owned, non-synced folder; every member re-verified.
     $work = Join-Path (Join-Path $app 'TICKSTORE_QUAL_@@REV@@') $runName
     NoReparseBelow $app @()
-    # R44-DROOT-01: the D: sandbox root must be a plain NTFS directory chain (no junction/symlink).
-    if (-not [IO.Directory]::Exists($DParent)) { [IO.Directory]::CreateDirectory($DParent) | Out-Null }
+    # R44D-ORIGIN-01: the D: sandbox root is NEVER created here.  It must already exist and is
+    # admitted physically (no reparse component, resolves to itself) before anything touches D:;
+    # the Python driver then holds it by handle and creates its run directory exclusively.
+    Require ([IO.Directory]::Exists($DParent)) ('D_SANDBOX_ROOT_ABSENT_NOT_CREATED:' + $DParent)
     NoReparseBelow $DParent @()
     Require ([R41Reparse]::FinalPath($DParent) -ieq $DParent) ('D_SANDBOX_ROOT_REDIRECTED:' + [R41Reparse]::FinalPath($DParent))
-    Log ('D_SANDBOX_ROOT_ADMITTED=' + $DParent)
+    Log ('D_SANDBOX_ROOT_ADMITTED_PREWRITE=' + $DParent)
     Require (-not [IO.Directory]::Exists($work)) 'WORK_DIR_COLLISION'
     [IO.Directory]::CreateDirectory($work) | Out-Null
     $bundle = Join-Path $work 'X'; [IO.Directory]::CreateDirectory($bundle) | Out-Null
@@ -202,7 +206,7 @@ public static class R41Reparse {
 
     # 4. Driver (its own output is mirrored into RUN_LOG.txt by Python).
     $driver = Join-Path $bundle '@@DRIVER@@'
-    & $Python -I -X utf8 -B $driver --run-dir $script:RunDir --work-root $work --bundle-dir $bundle --d-parent $DParent --ps-version ($PSVersionTable.PSVersion.ToString())
+    & $Python -I -X utf8 -B $driver --run-dir $script:RunDir --work-root $work --bundle-dir $bundle --d-parent $DParent --ps-version ($PSVersionTable.PSVersion.ToString()) --bootstrap-sha256 $bootstrapSha
     $exitCode = $LASTEXITCODE
     if ($null -eq $exitCode) { $exitCode = 2 }
     Log ('QUAL_BOOTSTRAP_DRIVER_EXIT=' + $exitCode)
