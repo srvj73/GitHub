@@ -13,7 +13,7 @@ from pathlib import Path
 
 DATE = '20261014'
 FIXED_TIME = (2026, 10, 13, 0, 0, 0)
-REV = 'R44'
+REV = 'R45'
 FINAL_NAME = 'TICKSTORE_FULL_FINAL_CDT15_%s_%s.zip' % (REV, DATE)
 FINAL_WITNESS = 'WITNESS_TICKSTORE_FULL_FINAL_CDT15_%s_%s.json' % (REV, DATE)
 QUAL_NAME = 'TICKSTORE_CDT15_%s_QUAL_%s.zip' % (REV, DATE)
@@ -25,17 +25,30 @@ BASELINE = {
     'baseline_source_zip_sha256': '26F783A0B05DA2436DDD56B1CE23FC289FD9A44C8EBF8363419F8C55692CB757',
     'baseline_source_manifest_sha256': '2D6BC4F308F3D3B95D823456F2616FDCC74790096768102F83FF0D10CAAFA56F',
     'parent_source_zip_sha256': '53A86045068E0C7A1899BBEF78CF22FB857B73BF8FBD4CFC1E4F52ED899CBD30',
+    # R45 parent: the R44 FINAL qualified natively (126/126, RETURN 02036B1E...); never rebuilt here.
+    'parent_final_r44_sha256': '0FBB6C36B840F2EF228DB3B160AA50D733FE5293C80BB4060AFFD4C074F8A48D',
+    'parent_r44_native_return_sha256': '02036B1EA45370BE570865E281F8F5FC4C5D1C5364171680E2EE493EC7C5BB6D',
 }
 POLICY = {'revision': '20261013T070500-0300-695DCD6495E549B1',
           'master_sha256': '695DCD6495E549B13B13A73E063EA147CF97354C53940A70647EDFD0A0BC7DF5',
           'head_sha256': 'B3B419592DC29651487B1545E1CD7AE66604AB78582202883684E69BCB1FF7EA',
-          'custody': 'SNAPSHOT_NON_AUTHORITATIVE_RECONCILE_AT_CHATGPT_ORIGIN'}
+          'custody': 'SNAPSHOT_NON_AUTHORITATIVE_RECONCILE_AT_CHATGPT_ORIGIN',
+          'POLICY_RECONCILIATION_FOR_R45': 'NOT_ISSUED'}
 SUITES = {
     # B2-G5-01 producer/consumer controls and the runner/consumer contract (new in R44).
     'S8_G5_EVIDENCE_BUILDER': {'files': [{'file': 'tests/test_g5_evidence_builder.py'}], 'sys_path': ['tests']},
     'S9_G5_PROOF_RUNNER_CONTRACT': {'files': [{'file': 'tests/test_g5_proof_runner_contract.py'}], 'sys_path': ['tests']},
+    # R45: B2C/B2D/B07 integrated into the candidate, held sandbox admission, legacy entry isolation.
+    'S10_B2C_POLICY_CAPTURE_BINDING': {'files': [{'file': 'tests/test_b2c_policy_capture_binding.py'}], 'sys_path': ['tests']},
+    'S11_B2D_ORIGIN_DECISION_BINDER': {'files': [{'file': 'tests/test_b2d_origin_decision_binder.py'}], 'sys_path': ['tests']},
+    'S12_B07_TECHNICAL_PRODUCER': {'files': [{'file': 'tests/test_b07_technical_producer.py'}], 'sys_path': ['tests']},
+    'S13_SANDBOX_ADMISSION': {'files': [{'file': 'tests/test_sandbox_admission.py'}], 'sys_path': ['tests']},
+    'S14_LEGACY_ENTRY_ISOLATION': {'files': [{'file': 'tests/test_legacy_entry_isolation.py'}], 'sys_path': ['tests']},
 }
-SCRIPTS = {}
+SCRIPTS = {
+    'R45_B2C_NATIVE_PROBE': {'script': 'qual/R45_B2C_NATIVE_PROBE.py', 'isolated': True, 'timeout': 600,
+                             'expect': ['R45_B2C_NATIVE_PROBE=PASS', 'POLICY_RECONCILIATION_FOR_R45=NOT_ISSUED']},
+}
 PROOFS = {
     # Order matters only for readability of the log; every proof uses its own sandbox.
     'PROCESS_TREE_CRASH_CONTAINMENT': {'timeout': 600},
@@ -46,10 +59,16 @@ PROOFS = {
     'POWERLOSS_EMULATED': {'timeout': 7200, 'volume': 'D'},
 }
 B1_DIR = Path(__file__).resolve().parent.parent / 'b1'
+B2C_FIX = Path(__file__).resolve().parent.parent / 'b2c/proposed_contract_fixture'
+# Origin-approved exact bytes (R44 G5 origin decision): never re-derived at build time.
+B2C_APPROVED = {'test_first_admission_transaction.py': 'E74F37015B55FBA5A139A225A4FC4BCFA0EC1747FA9B8F8982C4340A69A73E29',
+                'test_bootstrap_contract.py': '40B396FC30656CFDDA0ACA16BE19ED5CB653CF2C4ED7FB36CC6AC26874295A24'}
 B1_INPUTS = {'b1/R3_RUNTIME_ORIGINAL_ARCHIVE.zip': B1_DIR / 'r3_inputs/R3_RUNTIME_ORIGINAL_ARCHIVE.zip',
              'b1/QUALIFICATION_CONTRACT_ORIGINAL.json': B1_DIR / 'r3_inputs/QUALIFICATION_CONTRACT_ORIGINAL.json',
              'b1/tests_full_lifecycle.py': B1_DIR / 'derived/tests_full_lifecycle.py',
-             'b1/tests_delta.py': B1_DIR / 'derived/tests_delta.py'}
+             'b1/tests_delta.py': B1_DIR / 'derived/tests_delta.py',
+             'b1/test_first_admission_transaction.py': B2C_FIX / 'test_first_admission_transaction.py',
+             'b1/test_bootstrap_contract.py': B2C_FIX / 'test_bootstrap_contract.py'}
 
 
 def sha(raw):
@@ -107,6 +126,9 @@ def count_tests(source, spec):
 
 def main(source, out):
     source, out = Path(source).resolve(), Path(out).resolve()
+    for name, digest in B2C_APPROVED.items():
+        assert sha((B2C_FIX / name).read_bytes()) == digest, 'B2C_APPROVED_FIXTURE_DRIFT:' + name
+    assert REV != 'R44', 'R44_FINAL_IS_FROZEN_NEVER_REBUILT'
     out.mkdir(parents=True, exist_ok=True)
     # 1. Runtime code manifest (outside the candidate root: ReleaseChain closed set).
     code = files_under(source / 'candidate')
@@ -156,13 +178,25 @@ def main(source, out):
                              {'target': 'cdt15/tests_delta.py', 'approval': 'R43_B1B_ORIGIN_APPROVED_PATCH_84E32FA3',
                               'parent_sha256': '67B41A04787A2BEB3CB1CA7AE1CF79286E034F81B50ADEAC4C536956972FAD1D',
                               'derived': 'b1/tests_delta.py',
-                              'derived_sha256': sha((B1_DIR / 'derived/tests_delta.py').read_bytes())}],
+                              'derived_sha256': sha((B1_DIR / 'derived/tests_delta.py').read_bytes())},
+                             {'target': 'engineering/test_first_admission_transaction.py',
+                              'approval': 'R44_G5_ORIGIN_DECISION_B2C_FIXTURE_APPROVED_EXACT_BYTES',
+                              'parent_sha256': '993F323F761A40C1BE32301B17A57D73CE6C7E633657D538507E42F5339E4C9C',
+                              'derived': 'b1/test_first_admission_transaction.py',
+                              'derived_sha256': B2C_APPROVED['test_first_admission_transaction.py']},
+                             {'target': 'engineering/test_bootstrap_contract.py',
+                              'approval': 'R44_G5_ORIGIN_DECISION_B2C_FIXTURE_APPROVED_EXACT_BYTES',
+                              'parent_sha256': 'AC22516AB7EEF28BDC380352C5E6AB73CC035942B8A3BB4F905771055AAA89ED',
+                              'derived': 'b1/test_bootstrap_contract.py',
+                              'derived_sha256': B2C_APPROVED['test_bootstrap_contract.py']}],
                          'microprobes': 'qual/R43_B1A_MICROPROBES.py',
                          'microprobes_sha256': sha((source / 'qual/R43_B1A_MICROPROBES.py').read_bytes()),
                          'portable': 106, 'native_only': 20}})
     qmembers = [('qual/QUAL_DRIVER.py', (source / 'qual/QUAL_DRIVER.py').read_bytes()),
                 ('qual/R44_B1_RUNNER.py', (source / 'qual/R44_B1_RUNNER.py').read_bytes()),
                 ('qual/R43_B1A_MICROPROBES.py', (source / 'qual/R43_B1A_MICROPROBES.py').read_bytes()),
+                # QUAL_DRIVER imports the held-admission module from its own bundle directory.
+                ('qual/SANDBOX_ADMISSION.py', (source / 'qual/SANDBOX_ADMISSION.py').read_bytes()),
                ] + [(k, v.read_bytes()) for k, v in B1_INPUTS.items()] + [
                 ('qual/QUAL_PLAN.json', plan), ('FINAL/' + FINAL_NAME, final_raw), ('FINAL/' + FINAL_WITNESS, fwitness)]
     qmanifest = canon({'schema': 'TICKSTORE_CDT15_R41_QUAL_BUNDLE_MANIFEST_V001',
@@ -195,7 +229,8 @@ def main(source, out):
                      'invocation': 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File '
                                    '"C:\\Users\\silvi\\OneDrive\\Downloads\\' + BOOTSTRAP + '"',
                      'production_modified': False, 'full_started': False, 'b06_formal_audit': False,
-                     'G4': 'INCOMPLETE', 'G5': 'NOT_PROVEN', 'B06': 'NOT_STARTED', 'B07': 'NOT_STARTED',
+                     'G4': 'INCOMPLETE', 'G5': 'INCOMPLETE_CHECKPOINT_POWERLOSS_RECOVERY_PHYSICAL_PROOF_PENDING',
+                     'B06': 'NOT_STARTED', 'B07': 'NOT_STARTED_SOURCE_ONLY_AFTER_B06',
                      'gate_verdict_issued': False})
     (out / QUAL_WITNESS).write_bytes(witness)
     for name in (QUAL_NAME, BOOTSTRAP, QUAL_WITNESS, FINAL_NAME, FINAL_WITNESS):

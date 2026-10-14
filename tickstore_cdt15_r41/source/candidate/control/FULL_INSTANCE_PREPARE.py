@@ -60,7 +60,9 @@ def prepare(inputs_path, inputs_sha, output):
         params = inputs['d4_parameters']
         manifest_raw = reads.read(params['FinalCodeManifestPath'], params['FinalCodeManifestSha'])
         boot.read_code_set(reads, params['FinalCodeManifestPath'], sha(manifest_raw), root)
-        boot.policy_v38(reads, inputs['policy_root'], inputs['origin_witness'], tx)
+        capmod = boot.lib(reads.read(root/'control/POLICY_CAPTURE_BINDING.py'), root/'control/POLICY_CAPTURE_BINDING.py')
+        boot.policy_current(reads, inputs['policy_root'], inputs['origin_witness'],
+                            digest(inputs.get('origin_reconciliation_sha256'), 'POLICY_RECONCILIATION'), capmod)
         cfg = strict_json(reads.read(root/'recovery/config/STAGE_A_SEALED_VALUES_V001.json', inputs['config_sha256']))
         python_sha = sha(reads.read(sys.executable, cfg['python_exe_sha256']))
         sys.path.insert(0, str(root/'full'))

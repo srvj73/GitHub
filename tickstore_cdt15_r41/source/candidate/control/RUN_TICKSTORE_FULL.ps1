@@ -7,6 +7,8 @@ param(
     [switch]$Resume,
     [switch]$CloseOnly,
     [string]$Workers='AUTO',
+    [string]$PolicyReconciliation='',
+    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$PolicyReconciliationSha256='',
     [switch]$MonitorOnce,
     [ValidateRange(2,3600)][int]$MonitorInterval=10,
     [switch]$ElevatedChild,
@@ -136,6 +138,7 @@ try {
           ' -ElevatedChild -ExpectedLauncherSha '+(Hash $PSCommandPath)+' -ExpectedEntrySha '+(Hash $entry)
         if ($Resume) { $argsLine+=' -Resume' }
         if ($CloseOnly) { $argsLine+=' -CloseOnly' }
+        if ($PolicyReconciliation -ne '') { $argsLine+=' -PolicyReconciliation '+(Quoted $PolicyReconciliation)+' -PolicyReconciliationSha256 '+$PolicyReconciliationSha256 }
         $ps=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
         Log 'UAC_ELEVATION=REQUESTED WINDOW=VISIBLE (progress bar, ETA and Ctrl+C SAFE_STOP live in that window)'
         # Visible window: the operator sees PROGRESS/ETA and can press Ctrl+C for SAFE_STOP.
@@ -152,6 +155,7 @@ try {
     if ($Resume) { $argv+='--resume' }
     if ($CloseOnly) { $argv+='--close-only' }
     if ($MonitorOnce) { $argv+='--monitor-once' }
+    if ($PolicyReconciliation -ne '') { $argv+=@('--policy-reconciliation',$PolicyReconciliation,'--policy-reconciliation-sha256',$PolicyReconciliationSha256) }
     & $python @argv
     $code=$LASTEXITCODE
     if ($null -eq $code) { throw 'RUNNER_EXIT_UNKNOWN' }

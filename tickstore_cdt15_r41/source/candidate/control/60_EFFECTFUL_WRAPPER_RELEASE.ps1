@@ -13,6 +13,7 @@ param (
     [switch]$ObserveNative,
     [string]$PolicyRoot = '',
     [string]$OriginCapturePath = '',
+    [string]$OriginReconciliationSha256 = '',
     [string]$PreparationBindingSha = '',
     [string]$EvidenceDir = '',
     [string]$PreparationInstanceId = '',
@@ -67,6 +68,7 @@ if ($PrepareFirstAdmission) {
         if ((Get-FileHash -LiteralPath $PSCommandPath -Algorithm SHA256).Hash -cne $binding.wrapper_sha256) { throw 'PREPARATION_WRAPPER_SHA' }
         if ((Get-FileHash -LiteralPath $PreparationPython -Algorithm SHA256).Hash -cne '4942B86A6597E5AEE0128DAA00050ED79BC21F6E709A78EB19CBFEB0C2F39AC9') { throw 'PREPARATION_PYTHON_SHA' }
         if ([string]::IsNullOrWhiteSpace($PolicyRoot) -or [string]::IsNullOrWhiteSpace($OriginCapturePath)) { throw 'TECHNICAL_POLICYROOT_AND_ORIGIN_REQUIRED' }
+        if ($OriginReconciliationSha256 -cnotmatch '^[0-9A-F]{64}$') { throw 'ORIGIN_POLICY_RECONCILIATION_SHA_REQUIRED' }
         if ([string]::IsNullOrWhiteSpace($EvidenceDir)) { throw 'NEW_EVIDENCE_DIRECTORY_REQUIRED' }
         $target = [IO.Path]::GetFullPath($EvidenceDir)
         $userBase = [IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\') + '\'
@@ -81,7 +83,7 @@ if ($PrepareFirstAdmission) {
         if ([string]::IsNullOrWhiteSpace($PreparationInstanceId)) { $PreparationInstanceId = [Guid]::NewGuid().ToString('D') }
         $runtime = Split-Path -Parent $PSScriptRoot
         $bootstrap = 'import base64,sys;sys.argv=sys.argv[1:];__file__=sys.argv[0];exec(compile(base64.b64decode(sys.stdin.buffer.read().strip(),validate=True),__file__,"exec"))'
-        $argsPrep = @('-I','-S','-B','-c',$bootstrap,$prepScript,'--policy-root',$PolicyRoot,'--origin',$OriginCapturePath,
+        $argsPrep = @('-I','-S','-B','-c',$bootstrap,$prepScript,'--policy-root',$PolicyRoot,'--policy-reconciliation',$OriginCapturePath,'--policy-reconciliation-sha256',$OriginReconciliationSha256,
             '--package',(Join-Path $runtime 'recovery'),'--adapter-dir',(Join-Path $runtime 'adapter'),
             '--resume-root',$PreparationResumeRoot,'--instance-id',$PreparationInstanceId,'--binding-sha',$PreparationBindingSha)
         if ($ObserveNative) { $argsPrep += '--observe-native' }
@@ -110,10 +112,12 @@ if (($ObserveNative -or -not [string]::IsNullOrWhiteSpace($PolicyRoot)) -and -no
     Write-Host 'BLOCKED|USE_PREPARE_FIRST_ADMISSION'; exit 2
 }
 
+# Historical receipt provenance required byte-for-byte by the frozen release engine (ABI,
+# not routing); the current policy identity is bound by POLICY_CAPTURE_BINDING (R44-B2C).
 $Project = 'PEGASUS_TICKSTORE'
 $Thread = 'Compress' + [char]0x00E3 + 'o De Ticks 7'
 $ResultProject='Base de Dados CSV / Tickstore'
-$ResultThread='Compress'+[char]0x00E3+'o De Ticks 14'
+$ResultThread='Compress'+[char]0x00E3+'o De Ticks 15'
 $Python='C:\Users\silvi\AppData\Local\Python\pythoncore-3.14-64\python.exe'
 $ResumeRoot = 'D:\Base CSV\Scripts\TICKSTORE_R9_DEV\TICKSTORE_D4_RESUMABLE_V002R22'
 $CheckpointRoot = Join-Path $ResumeRoot 'checkpoint'
@@ -128,7 +132,9 @@ $ReviewPack = Join-Path $ArtifactsRoot 'TICKSTORE_D4_RESUMABLE_CODE_DELTA_REVIEW
 $ControlRoot = 'D:\Base CSV\Scripts\TICKSTORE_R9_DEV\WORK_R9_PUBLISHER_RECOVERY_V004R1R1\ORCHESTRATOR_V001R9R1_B6_R8_PROVENANCE_VSS_SCOPE_FIX'
 $StatePath = Join-Path $ControlRoot 'state\STATE.json'
 $RunsRoot = Join-Path $ControlRoot 'runs'
-$OwnerGatePath = 'C:\Users\silvi\TICKSTORE_D4_PROMOTION_PREP_RECEIPTS\20260930_110443_935_34868\OWNER_GATE.json'
+# R44-B2C: no historical administrative gate is named here; the technical descriptor path and
+# digest are always taken from the admitted RUN_AUTHORITY before use.
+$OwnerGatePath = ''
 $ExpectedBaseReleaseSha = '82FA3A22E6AA7BC306E0544F2FE7EE250B96BBE305A6D1593911E3641CE888C7'
 $ExpectedReleaseSha = 'BFC44DA9A375ED565D8DA2DA7E34EC376C25DEAFE15ED2F3C063CE635CEBCD4C'
 $ExpectedCandidateSha = 'E998032478EA1FAB8BD69FF000D9622749B679058F457A927D5854963208E310'
@@ -137,7 +143,7 @@ $ExpectedConfigSha = 'B67527C0E78E896BF4F4128BF02CC3968CA1AE00F2A8449DB7DBD1E583
 $ExpectedCodeManifestSha = '60FE88C92BDBD95884DF3258C739855AF870F4A4D58B40301BF8E5E1786C579D'
 $ExpectedPackageManifestSha = '5199C7B03A442F0D33C1250E3E2A68A5A213377E012A902336502453CAAA18D6'
 $ExpectedPackageZipSha = '4BC28843012A059F65237E07780B79D158190A661B16FFD520861A3F092C3062'
-$ExpectedOwnerGateSha = '7D49D9C2F5C5BC599097815CA6DD71DB60F2C40E79EC12A292848E55EAE442D1'
+$ExpectedOwnerGateSha = ''
 $ExpectedMasterScriptSha = '18900BCC198347A5912AA4CEC23F4D9E7A2513FC41EBE393BFD8151F9EEF259A'
 $ArtifactBaseMasterSha = 'C7697B1798A02DF2CF128B2A28247182C8D36A9924C52A0844BCDDE66B956AE1'
 $ArtifactBaseHeadSha = '7B4C0654F45D7E3A2170A33E9453D8D0593D00E127ECB60CF497DFEB5CC72601'
@@ -242,6 +248,7 @@ function Validate-PolicyAdmission([string]$Path,[string]$ReviewVerdictSha){
     Require ([string](Get-Prop $p 'schema') -ceq 'TICKSTORE_D4_POLICY_ADMISSION_RECEIPT_V001') 'POLICY_ADMISSION_SCHEMA'
     Require ([string](Get-Prop $p 'status') -ceq 'PASS') 'POLICY_ADMISSION_STATUS'
     Require ([string](Get-Prop $p 'project') -ceq $Project -and [string](Get-Prop $p 'thread') -ceq $Thread) 'POLICY_ADMISSION_ROUTING'
+    Require ([string](Get-Prop $p 'origin_policy_reconciliation_sha256') -cmatch '^[0-9A-F]{64}$') 'POLICY_ADMISSION_RECONCILIATION'
     Require ([string](Get-Prop $p 'effect_scope') -ceq 'D4_ONLY') 'POLICY_ADMISSION_SCOPE'
     Require ([string](Get-Prop $p 'policy_source_cardinality') -ceq 'PASS_1_MASTER_PLUS_1_HEAD') 'POLICY_SOURCE_CARDINALITY'
     Require ([string](Get-Prop $p 'policy_head_state') -ceq 'FROZEN') 'POLICY_HEAD_STATE'
@@ -259,6 +266,7 @@ function Invoke-FirstAdmissionBoundary {
     Require (Is-Admin) 'FIRST_ADMISSION_NATIVE_ELEVATION_REQUIRED'
     Require ($PreparationBindingSha -cmatch '^[0-9A-F]{64}$') 'FIRST_ADMISSION_CODE_BINDING_SHA_REQUIRED'
     Require ($FinalCodeManifestSha -cmatch '^[0-9A-F]{64}$') 'FINAL_CODE_MANIFEST_SHA_REQUIRED'
+    Require ($OriginReconciliationSha256 -cmatch '^[0-9A-F]{64}$') 'ORIGIN_POLICY_RECONCILIATION_SHA_REQUIRED'
     foreach($p in @($PolicyRoot,$OriginCapturePath,$CompletenessReceiptPath,$B07ReceiptPath,$FinalCodeManifestPath,$FirstAdmissionReviewPackPath,$ReviewVerdictPath,$PolicyAdmissionReceiptPath,$AdapterDir,$PredecessorEvidenceDir)) {
         Require (-not [string]::IsNullOrWhiteSpace($p)) 'FIRST_ADMISSION_REQUIRED_INPUT_MISSING'
     }
@@ -279,7 +287,7 @@ function Invoke-FirstAdmissionBoundary {
     $mode='--admit-first';if ($ResumeAdmittedRun) {$mode='--validate-existing'}
     $argsAdmission=@('-I','-S','-B','-c',$bootstrap,$bootstrapPath,$mode,
       '--package',$SuccessorRoot,'--package-zip',$SuccessorZip,'--adapter-dir',$AdapterDir,'--resume-root',$ResumeRoot,
-      '--binding-sha',$PreparationBindingSha,'--policy-root',$PolicyRoot,'--origin-witness',$OriginCapturePath,
+      '--binding-sha',$PreparationBindingSha,'--policy-root',$PolicyRoot,'--policy-reconciliation',$OriginCapturePath,'--policy-reconciliation-sha256',$OriginReconciliationSha256,
       '--final-code-manifest',$FinalCodeManifestPath,'--final-code-sha',$FinalCodeManifestSha,
       '--review-pack',$FirstAdmissionReviewPackPath,'--review-verdict',$ReviewVerdictPath,
       '--policy-receipt',$PolicyAdmissionReceiptPath,'--b07',$B07ReceiptPath,'--completeness',$CompletenessReceiptPath,

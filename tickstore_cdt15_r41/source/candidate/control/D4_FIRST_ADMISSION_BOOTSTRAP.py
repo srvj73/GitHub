@@ -24,7 +24,6 @@ import types
 import uuid
 
 RELEASE_SHA='BFC44DA9A375ED565D8DA2DA7E34EC376C25DEAFE15ED2F3C063CE635CEBCD4C'
-ORIGIN_V38_SHA='6F9D9E8C4FF360942DBFBB425547B6061AFAEBA6932E80CE82E5A09E69F9BAE5'
 
 def sha(b):return hashlib.sha256(b).hexdigest().upper()
 def require(v,r):
@@ -52,14 +51,9 @@ def dpapi(data,protect):
     try:return ctypes.string_at(target.data,target.size)
     finally:kernel.LocalFree(ctypes.cast(target.data,w.HLOCAL))
 
-def policy_v38(reads,root,origin,tx):
-    root=Path(root);names=['POLITICA_CANONICA_HEAD.json','POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md']
-    require(sorted(p.name for p in root.iterdir())==names,'V38_POLICY_CARDINALITY')
-    head=json.loads(reads.read(root/names[0],tx.POLICY_HEAD))
-    reads.read(root/names[1],tx.POLICY_MASTER)
-    require(head['master_sha256']==tx.POLICY_MASTER and head['state']=='FROZEN' and head['revision_id']==tx.POLICY_REVISION,'V38_POLICY_HEAD_BINDING')
-    witness=json.loads(reads.read(origin,ORIGIN_V38_SHA))
-    require(witness['master_sha256_v38']==tx.POLICY_MASTER and witness['head_sha256_v38']==tx.POLICY_HEAD,'V38_ORIGIN_BINDING')
+def policy_current(reads,root,reconciliation,reconciliation_sha,capture_module):
+    """R44-B2C: current policy from physical capture + origin reconciliation; no revision literal."""
+    return capture_module.verify_capture(reads.read,root,reconciliation,reconciliation_sha)
 
 def check_native_process_boundary():
     from ctypes import wintypes as w
@@ -103,6 +97,7 @@ def read_code_set(reads,manifest_path,expected_sha,candidate):
         seen.add(name.casefold());data=reads.read(p,row['sha256'])
         require(type(row.get('bytes')) is int and len(data)==row['bytes'],'FINAL_CODE_MANIFEST_SIZE')
     required={'control/D4_FIRST_ADMISSION_BOOTSTRAP.py','control/D4_FIRST_ADMISSION_TRANSACTION.py','control/D4_FIRST_ADMISSION_PREP.py',
+      'control/POLICY_CAPTURE_BINDING.py',
       'control/FIRST_ADMISSION_BINDING.json','control/60_EFFECTFUL_WRAPPER_RELEASE.ps1',
       'adapter/runtime_locator_adapter.py','adapter/runtime_locator_orchestrator_entry.py','adapter/runtime_locator_inline_entry.py',
       'adapter/INLINE_ROOT_LOADER_V004_R1R1_ADAPTER.ps1','adapter/Launch-TickstoreBundle-Adapter.ps1',
@@ -141,7 +136,8 @@ def run(a):
     binding=json.loads(binding_raw)
     modules={}
     for name,key in [('D4_FIRST_ADMISSION_PREP.py','preparation_sha256'),('D4_FIRST_ADMISSION_TRANSACTION.py','transaction_sha256'),
-                     ('D4_PREDECESSOR_RECONCILIATION.py','predecessor_reconciliation_sha256')]:
+                     ('D4_PREDECESSOR_RECONCILIATION.py','predecessor_reconciliation_sha256'),
+                     ('POLICY_CAPTURE_BINDING.py','policy_capture_binding_sha256')]:
         raw=(home/name).read_bytes();require(sha(raw)==binding[key],'BOOTSTRAP_COMPONENT_SHA:'+name);modules[name]=lib(raw,home/name)
     prep=modules['D4_FIRST_ADMISSION_PREP.py'];tx=modules['D4_FIRST_ADMISSION_TRANSACTION.py']
     with prep.Reads(engine.Win32Store()) as reads:
@@ -156,8 +152,10 @@ def run(a):
         reads.read(home/'FIRST_ADMISSION_BINDING.json',a.binding_sha)
         reads.read(home/'D4_FIRST_ADMISSION_BOOTSTRAP.py',binding['bootstrap_sha256'])
         for name,key in [('D4_FIRST_ADMISSION_PREP.py','preparation_sha256'),('D4_FIRST_ADMISSION_TRANSACTION.py','transaction_sha256'),
-                         ('D4_PREDECESSOR_RECONCILIATION.py','predecessor_reconciliation_sha256')]:reads.read(home/name,binding[key])
-        policy_v38(reads,a.policy_root,a.origin_witness,tx)
+                         ('D4_PREDECESSOR_RECONCILIATION.py','predecessor_reconciliation_sha256'),
+                         ('POLICY_CAPTURE_BINDING.py','policy_capture_binding_sha256')]:reads.read(home/name,binding[key])
+        capmod=modules['POLICY_CAPTURE_BINDING.py']
+        capture=policy_current(reads,a.policy_root,a.policy_reconciliation,a.policy_reconciliation_sha256,capmod)
         read_code_set(reads,a.final_code_manifest,a.final_code_sha,candidate)
         validate_review_payload(reads,a.review_pack,reads.read(a.final_code_manifest))
         config_path=package/'config/STAGE_A_SEALED_VALUES_V001.json';cfg=prep.strict_json(reads.read(config_path,prep.CONFIG_SHA))
@@ -191,6 +189,7 @@ def run(a):
                 p=p.absolute();raw=reads.read(p);artifacts[pk]=str(p);artifacts[hk]=sha(raw)
             review=engine._d4r_parse_verdict(Path(a.review_verdict))
             b07=prep.strict_json(reads.read(a.b07));complete=prep.strict_json(reads.read(a.completeness));policy=prep.strict_json(reads.read(a.policy_receipt))
+            artifacts['policy_capture']=capture
             artifacts['qualification_validator_sha256']=sha(reads.read(home/'FULL_QUALIFICATION_CONTRACT.py'))
             contract_raw=reads.read(home/'QUALIFICATION_CONTRACT.json')
             artifacts['qualification_contract']=prep.strict_json(contract_raw)
@@ -227,7 +226,9 @@ def run(a):
             locator,descriptor=prep.observe_native(reads,engine,orch,adapter,runtime_binding,cfg,state,str(uuid.UUID(run_id)))
             require(before==prep.no_first_admission_artifacts(a.resume_root,state['canary']['recovery'],state_path),'ADMISSION_SCOPE_CHANGED')
             def revalidate():
-                reads.revalidate();policy_v38(reads,a.policy_root,a.origin_witness,tx)
+                reads.revalidate()
+                require(policy_current(reads,a.policy_root,a.policy_reconciliation,a.policy_reconciliation_sha256,capmod)==capture,
+                        'POLICY_DRIFT_DURING_ADMISSION')
                 fresh_predecessor(reads,a.predecessor_evidence,prep,modules['D4_PREDECESSOR_RECONCILIATION.py'],state_raw,journal_raw)
                 check_native_process_boundary()
                 for p in state['canary'].values():require(not os.path.lexists(Path(p)/'TICKSTORE_WRITER.lock'),'WRITER_LOCK_PRESENT')
@@ -236,7 +237,8 @@ def run(a):
             artifacts['policy_root']=str(Path(a.policy_root).absolute())
             for pk,hk,p in [('policy_master_path','policy_master_sha256',Path(a.policy_root)/'POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md'),
                             ('policy_head_path','policy_head_sha256',Path(a.policy_root)/'POLITICA_CANONICA_HEAD.json'),
-                            ('origin_witness_path','origin_witness_sha256',Path(a.origin_witness))]:
+                            # RA ABI key kept (adapter/closure consumers); it now names the origin reconciliation record.
+                            ('origin_witness_path','origin_witness_sha256',Path(a.policy_reconciliation))]:
                 artifacts[pk]=str(p.absolute());artifacts[hk]=sha(reads.read(p))
             result=tx.materialize(a.resume_root,run_id,descriptor['legacy_format'],runtime_binding,locator,artifacts,sha(key),protected,pin,
                                   review,b07,complete,policy,revalidate,adapter.validate_locator_receipt,code,
@@ -247,7 +249,8 @@ def run(a):
 def main(argv=None):
     ap=argparse.ArgumentParser(allow_abbrev=False)
     group=ap.add_mutually_exclusive_group(required=True);group.add_argument('--admit-first',action='store_true');group.add_argument('--validate-existing',action='store_true')
-    for n in ('package','package-zip','adapter-dir','resume-root','binding-sha','policy-root','origin-witness','final-code-manifest','final-code-sha',
+    for n in ('package','package-zip','adapter-dir','resume-root','binding-sha','policy-root','policy-reconciliation',
+              'policy-reconciliation-sha256','final-code-manifest','final-code-sha',
               'review-pack','review-verdict','policy-receipt','b07','completeness','predecessor-evidence'):ap.add_argument('--'+n,required=True)
     try:
         result=run(ap.parse_args(argv));print(json.dumps(dict(result,schema='TICKSTORE_FIRST_ADMISSION_BOOTSTRAP_RESULT_V001')));return 0

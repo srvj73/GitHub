@@ -18,12 +18,7 @@ import sys
 import types
 import uuid
 
-MASTER = 'POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md'
-HEAD = 'POLITICA_CANONICA_HEAD.json'
-MASTER_SHA = 'CADAF9068532EACBF4886CDE3BABE809B075480D8776AF15F3B395C31D9B2CD0'
-HEAD_SHA = '4F4D2B6028B291F9BD26C086817F56BDE22EBA4F3D8DDE54FD918EE2C92FF962'
-ORIGIN_SHA = 'D3834F992DDF120B08D97ADF7A46930DF62E223004ABB3C69832EA84261CC92D'
-REVISION = '20261011T204600-0300-CADAF9068532EACB'
+# R44-B2C: no policy revision literal; see POLICY_CAPTURE_BINDING.verify_capture.
 RELEASE_SHA = 'BFC44DA9A375ED565D8DA2DA7E34EC376C25DEAFE15ED2F3C063CE635CEBCD4C'
 ORCH_SHA = '9EB509A2A82C0BE6D4C7AEF315AAF6B41348CECE64AB502061116DFC74419DDA'
 CONFIG_SHA = 'B67527C0E78E896BF4F4128BF02CC3968CA1AE00F2A8449DB7DBD1E583785515'
@@ -150,25 +145,18 @@ class Reads(contextlib.ExitStack):
         return {name: {'sha256': sha(v['raw']), 'bytes': len(v['raw']), 'physical_identity': v['identity'], 'native_identity': v['native']}
                 for name, v in sorted(self.items.items())}
 
-def validate_policy(reads, root, origin):
-    root = Path(root)
-    chain(root)
-    require(sorted(p.name for p in root.iterdir()) == sorted([MASTER, HEAD]), 'POLICY_CARDINALITY_1_PLUS_1')
-    master = reads.read(root / MASTER, MASTER_SHA)
-    head = strict_json(reads.read(root / HEAD, HEAD_SHA))
-    bridge = strict_json(reads.read(origin, ORIGIN_SHA))
-    require(head['master_filename'] == MASTER and head['master_sha256'] == sha(master), 'POLICY_HEAD_MASTER')
-    require(head['state'] == 'FROZEN' and head['revision_id'] == REVISION, 'POLICY_FROZEN_REVISION')
-    require(bridge['source_policy_master_sha256'] == sha(master) and
-            bridge['source_policy_head_sha256'] == HEAD_SHA and bridge['source_policy_revision'] == REVISION,
-            'POLICY_ORIGIN_BINDING')
-    require(bridge['source_policy_live_cardinality'] == {'master':1, 'head':1}, 'POLICY_ORIGIN_CARDINALITY')
-    require('### 13.2 TICKSTORE' in master.decode('utf-8'), 'POLICY_TICKSTORE_SCOPE')
-    return {'status':'CAPTURE_VERIFIED_NOT_LIVE', 'revision':REVISION, 'master_sha256':MASTER_SHA,
-            'head_sha256':HEAD_SHA, 'origin_sha256':ORIGIN_SHA,
-            'origin_observed_date':bridge['created_at_brazil_date'],
-            'additional_issuer_required':False, 'administrative_owner_gate_required':False,
-            'current_origin_reconciliation':'PENDING', 'windows_immutability':'PENDING_B07'}
+def load_policy_binding(reads, manifest):
+    """POLICY_CAPTURE_BINDING bytes admitted by the sealed first-admission code binding."""
+    path = Path(__file__).with_name('POLICY_CAPTURE_BINDING.py')
+    raw = reads.read(path, manifest['policy_capture_binding_sha256'])
+    return library(raw, 'first_admission_policy_capture_binding')
+
+
+def validate_policy(reads, root, reconciliation, reconciliation_sha, binding_module):
+    chain(Path(root))
+    capture = binding_module.verify_capture(reads.read, root, reconciliation, reconciliation_sha)
+    return dict(capture, status='CAPTURE_VERIFIED_AND_ORIGIN_RECONCILED_NOT_LIVE',
+                additional_issuer_required=False, windows_immutability='PENDING_B07')
 
 def validate_state(state):
     require(isinstance(state, dict) and state.get('schema') == 'TICKSTORE_ORCH_STATE_V001' and
@@ -280,7 +268,7 @@ def observe_native(reads, engine, orch, adapter, binding, cfg, state, instance):
                'root_bindings':bindings, 'inventory_sha256':sha(canonical(inventory))}
     return locator, descriptor
 
-def prepare(policy_root, origin, package, adapter_dir, resume_root, instance_id, observe=False, binding_sha=None):
+def prepare(policy_root, reconciliation, reconciliation_sha, package, adapter_dir, resume_root, instance_id, observe=False, binding_sha=None):
     require(isinstance(binding_sha, str) and re.fullmatch(r"[0-9A-F]{64}", binding_sha), "EXTERNAL_PREPARATION_BINDING_SHA_REQUIRED")
     require(str(uuid.UUID(instance_id)) == instance_id.lower(), 'INSTANCE_UUID')
     package = Path(package); adapter_dir = Path(adapter_dir)
@@ -294,6 +282,7 @@ def prepare(policy_root, origin, package, adapter_dir, resume_root, instance_id,
         br = initial.read(adapter_dir/'RUNTIME_LOCATOR_ADAPTER_BINDING.json', manifest['runtime_binding_sha256'])
         initial.read(__file__, manifest['preparation_sha256'])
         initial.read(Path(__file__).with_name('60_EFFECTFUL_WRAPPER_RELEASE.ps1'), manifest['wrapper_sha256'])
+        policy_binding = load_policy_binding(initial, manifest)
         initial.revalidate()
     engine = library(eraw, 'first_admission_frozen_engine') if observe else None
     if observe: require(os.name == 'nt', 'NATIVE_WINDOWS_REQUIRED')
@@ -304,7 +293,7 @@ def prepare(policy_root, origin, package, adapter_dir, resume_root, instance_id,
                         (package/'modules/orchestrator.py',oraw), (adapter_dir/'runtime_locator_adapter.py',ar),
                         (adapter_dir/'RUNTIME_LOCATOR_ADAPTER_BINDING.json',br)]:
             reads.read(p, sha(data))
-        policy = validate_policy(reads, policy_root, origin)
+        policy = validate_policy(reads, policy_root, reconciliation, reconciliation_sha, policy_binding)
         report = {'schema':'TICKSTORE_D4_FIRST_ADMISSION_PREPARATION_V001', 'role':'EXTERNAL_ISOLATED_IMPLEMENTER',
                   'instance_id':instance_id, 'observed_at_utc':dt.datetime.now(dt.timezone.utc).isoformat(),
                   'status':'PREPARED_NOT_ADMITTED', 'production_authorized':False, 'execution_allowed':False,
@@ -329,7 +318,8 @@ def prepare(policy_root, origin, package, adapter_dir, resume_root, instance_id,
         else:
             report['gates_pending'] = ['WINDOWS_G_CA_POLICYROOT_ROOTS_PREDECESSOR_OBSERVATION'] + GATES
         # Also detect cardinality changes, not just changes to existing policy files.
-        validate_policy(reads, policy_root, origin)
+        require(validate_policy(reads, policy_root, reconciliation, reconciliation_sha, policy_binding) == policy,
+                'POLICY_DRIFT_DURING_PREPARATION')
         reads.revalidate()
         report['inputs'] = reads.evidence()
         report['input_binding_sha256'] = sha(canonical(report['inputs']))
@@ -337,12 +327,12 @@ def prepare(policy_root, origin, package, adapter_dir, resume_root, instance_id,
 
 def main(argv=None):
     ap = argparse.ArgumentParser(allow_abbrev=False)
-    for arg in ('policy-root','origin','package','adapter-dir','resume-root','instance-id','binding-sha'):
+    for arg in ('policy-root','policy-reconciliation','policy-reconciliation-sha256','package','adapter-dir','resume-root','instance-id','binding-sha'):
         ap.add_argument('--'+arg, required=True)
     ap.add_argument('--observe-native', action='store_true')
     a = ap.parse_args(argv)
     try:
-        r = prepare(a.policy_root, a.origin, a.package, a.adapter_dir, a.resume_root, a.instance_id, a.observe_native, a.binding_sha)
+        r = prepare(a.policy_root, a.policy_reconciliation, a.policy_reconciliation_sha256, a.package, a.adapter_dir, a.resume_root, a.instance_id, a.observe_native, a.binding_sha)
         print(json.dumps(r, indent=2)); return 0
     except (OSError, RuntimeError, ValueError, KeyError, TypeError) as e:
         print(json.dumps({'schema':'TICKSTORE_D4_FIRST_ADMISSION_PREPARATION_V001', 'status':'BLOCKED',

@@ -269,8 +269,12 @@ def run(a):
     with ReleaseChain(a.chain_file, a.chain_sha256, a.b06_sha256, root,
                       until=PREVIOUS[stage][0]) as admission:
         instance = admission.instance; package = root/'recovery'
-        # Same physical capture checks as the qualified first admission, no administrative issuer.
-        boot.policy_v38(admission, instance['policy_root'], instance['origin_witness'], tx)
+        # Same physical capture checks as the qualified first admission, no administrative issuer;
+        # every effectful stage needs a CURRENT origin reconciliation (R44-B2C), and the policy may
+        # have legitimately moved since admission: the verified identity is recorded, not pinned.
+        capmod = boot.lib(admission.read(root/'control/POLICY_CAPTURE_BINDING.py'), root/'control/POLICY_CAPTURE_BINDING.py')
+        policy_capture = boot.policy_current(admission, instance['policy_root'], getattr(a, 'policy_reconciliation', ''),
+                                             getattr(a, 'policy_reconciliation_sha256', ''), capmod)
         config_path = package/'config/STAGE_A_SEALED_VALUES_V001.json'
         config_raw = admission.read(config_path, instance['config_sha256'])
         cfg = strict_json(config_raw)

@@ -24,9 +24,10 @@ def sha(raw): return hashlib.sha256(raw).hexdigest().upper()
 
 def canon(obj): return (json.dumps(obj,sort_keys=True,separators=(',',':'),ensure_ascii=True)+'\n').encode('ascii')
 
-POLICY_MASTER='5B135DA0CA7C3BFE992F364720605522FB939977772C6D5A6FD3811A8288B302'
-POLICY_HEAD='2DA2939C88530B089D3E6D33418439B38A243EE776DAC151559199C2703B5BA9'
-POLICY_REVISION='20261012T070600-0300-5B135DA0CA7C3BFE'
+# R44-B2C: no policy revision literal.  The current policy identity arrives as
+# expected['policy_capture'], verified from physical bytes plus the origin reconciliation
+# by POLICY_CAPTURE_BINDING.verify_capture (historical V37/V38 kept there as provenance only).
+POLICY_CAPTURE_SCHEMA='TICKSTORE_VERIFIED_POLICY_CAPTURE_V001'
 REVIEW_CHECKS={
  'VERDICT':'PASS','INDEPENDENT_REVIEW':'YES','TESTED_CODE_EQUALS_PACKAGED_CODE':'YES',
  'CANDIDATE_RELEASE_FUSE_ONLY':'PASS','CERTIFY_SCRATCH_FINAL_SEMANTICS_PRESERVED':'YES',
@@ -74,11 +75,20 @@ def validate_gates(review, b07, completeness, policy, expected):
             b07.get('review_verdict_sha256')==expected['review_verdict_sha256'], 'B07_BYTES_BINDING')
     require(set(b07.get('checks',{}))==set(B07_CHECKS) and all(b07['checks'][n]=='PASS' for n in B07_CHECKS), 'B07_CHECKS_INCOMPLETE')
     require(policy.get('schema')=='TICKSTORE_D4_POLICY_ADMISSION_RECEIPT_V001' and policy.get('status')=='PASS','POLICY_TECHNICAL_RECEIPT')
-    for key,value in [('project','PEGASUS_TICKSTORE'),('thread','Compressão De Ticks 7'),('effect_scope','D4_ONLY'),
-                      ('active_master_sha256',POLICY_MASTER),('active_head_sha256',POLICY_HEAD),('active_revision_id',POLICY_REVISION),
+    capture=expected.get('policy_capture')
+    require(isinstance(capture,dict) and capture.get('schema')==POLICY_CAPTURE_SCHEMA
+            and capture.get('capture_operational_authority') is False
+            and capture.get('administrative_owner_gate_required') is False,'POLICY_CAPTURE_REQUIRED')
+    for name in ('master_sha256','head_sha256','reconciliation_sha256'):
+        require(re.fullmatch('[0-9A-F]{64}',str(capture.get(name))) is not None,'POLICY_CAPTURE_DIGEST:'+name)
+    # project/thread: historical receipt provenance required by the frozen engine (ABI, not routing).
+    for key,value in [('project',capture.get('receipt_project')),('thread',capture.get('receipt_thread')),('effect_scope','D4_ONLY'),
+                      ('active_master_sha256',capture['master_sha256']),('active_head_sha256',capture['head_sha256']),
+                      ('active_revision_id',capture.get('revision_id')),
+                      ('origin_policy_reconciliation_sha256',capture['reconciliation_sha256']),
                       ('policy_source_cardinality','PASS_1_MASTER_PLUS_1_HEAD'),('policy_head_state','FROZEN'),
                       ('material_delta_reconciled','YES'),('material_delta_blocks_execution','NO')]:
-        require(policy.get(key)==value,'POLICY_'+key)
+        require(isinstance(value,str) and bool(value) and policy.get(key)==value,'POLICY_'+key)
     for key in ('artifact_base_master_sha256','review_pack_sha256','review_verdict_sha256','effectful_wrapper_sha256'):
         require(policy.get(key)==expected[key],'POLICY_BINDING_'+key)
 
@@ -142,7 +152,10 @@ def build_instance(run_id,resume_root,gate,binding,locator,artifacts,key_sha,pro
     require(type(state_pin.get('identity')) is list and len(state_pin['identity'])==4 and re.fullmatch('[0-9A-F]{64}',state_pin.get('sha256','')),'INITIAL_STATE_PHYSICAL_PIN')
     rr=Path(resume_root);support=rr/('admission.'+run_id)
     gate_raw=canon(gate);gate_sha=sha(gate_raw)
-    per_run=dict(binding,owner_gate_sha256=gate_sha,policy_master_sha256=POLICY_MASTER,policy_head_sha256=POLICY_HEAD,policy_revision_id=POLICY_REVISION)
+    capture=artifacts['policy_capture']
+    per_run=dict(binding,owner_gate_sha256=gate_sha,policy_master_sha256=capture['master_sha256'],
+                 policy_head_sha256=capture['head_sha256'],policy_revision_id=capture['revision_id'],
+                 origin_policy_reconciliation_sha256=capture['reconciliation_sha256'])
     receipt={'schema':'TICKSTORE_G_CA_RUNTIME_LOCATOR_RECEIPT_V001','status':'PASS','owner_gate_sha256':gate_sha,
       'stable_identity_parity':True,'shadow_root_open':locator['shadow_root_open'],'shadow_scratch_open':locator['shadow_scratch_open'],
       'snapshot_recreation_required':False,'snapshot_state':locator['snapshot_state'],'persistent':bool(locator['attributes']&1),

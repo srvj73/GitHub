@@ -1,0 +1,22 @@
+{
+  "schema": "POLITICA_CANONICA_HEAD",
+  "library_active_folder": "/POLITICA_CANONICA_ATIVA",
+  "master_filename": "POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md",
+  "master_path": "/POLITICA_CANONICA_ATIVA/POLITICA_CANONICA_UNIFICADA_OPERACIONAL.md",
+  "master_sha256": "5B135DA0CA7C3BFE992F364720605522FB939977772C6D5A6FD3811A8288B302",
+  "revision_id": "20261012T070600-0300-5B135DA0CA7C3BFE",
+  "state": "FROZEN",
+  "numbered_policy_versions": "FORBIDDEN",
+  "default_conversation_role": "CANDIDATE_PRODUCER",
+  "direct_master_update_allowed": false,
+  "candidate_allowed": true,
+  "unfreeze_requires_explicit_user_request": true,
+  "auto_refreeze_after_update": true,
+  "active_master_cardinality": "EXACTLY_ONE",
+  "active_head_cardinality": "EXACTLY_ONE",
+  "project_local_master_copy_required": false,
+  "project_local_copy_operational_authority": false,
+  "previous_master_sha256": "CADAF9068532EACBF4886CDE3BABE809B075480D8776AF15F3B395C31D9B2CD0",
+  "update_reason": "GLOBAL_PROHIBITION_FORMAL_AUDIT_INCOMPLETE_CANDIDATE",
+  "updated_at": "2026-10-12T07:06:00-03:00"
+}

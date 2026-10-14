@@ -723,8 +723,19 @@ class FullSerialTests(unittest.TestCase):
         with self.assertRaisesRegex(r.Blocked,"PIN_CLOSED"):view.verify_full()
 
     def test_no_autocpu_or_csv_deletion_routes(self):
-        import static_runner_preaudit_r9
-        with contextlib.redirect_stdout(io.StringIO()):static_runner_preaudit_r9.scan()
+        # R45: the legacy FULL_SERIAL launcher and its R9 release audit are quarantined out of the
+        # package (legacy entry isolation); the frozen core itself keeps the original guarantees.
+        import ast
+        self.assertFalse((BASE/"run_tickstore_full_serial_r9.ps1").exists())
+        self.assertFalse((BASE/"static_runner_preaudit_r9.py").exists())
+        source=(BASE/"tickstore_serial_runner.py").read_text(encoding="utf-8")
+        for word in ("ThreadPoolExecutor","ProcessPoolExecutor","multiprocessing","concurrent.futures",
+                     "os.cpu_count","threading.Thread","ThreadPool","Pool("):
+            self.assertNotIn(word,source)
+        options=[n.args[0].value for n in ast.walk(ast.parse(source)) if isinstance(n,ast.Call)
+                 and isinstance(n.func,ast.Attribute) and n.func.attr=="add_argument" and n.args
+                 and isinstance(n.args[0],ast.Constant)]
+        self.assertFalse([o for o in options if "cpu" in o.lower() or "worker" in o.lower()])
 
 
 class CertifiedCompatibilityTests(unittest.TestCase):

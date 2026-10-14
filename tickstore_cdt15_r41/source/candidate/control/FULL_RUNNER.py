@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -21,9 +22,15 @@ D4_PARAMETERS = {
 }
 
 
-def d4_command(instance, candidate, *, resume=False):
+def d4_command(instance, candidate, *, resume=False, policy_reconciliation='', policy_reconciliation_sha256=''):
     params = instance.get('d4_parameters')
     require(isinstance(params, dict) and set(params) == D4_PARAMETERS, 'D4_PARAMETER_SET')
+    # R44-B2C: the D4 effect needs the CURRENT origin policy reconciliation of this stage
+    # invocation; the record named at instance preparation is provenance only.
+    require(isinstance(policy_reconciliation, str) and bool(policy_reconciliation)
+            and re.fullmatch('[0-9A-F]{64}', str(policy_reconciliation_sha256)) is not None,
+            'D4_CURRENT_POLICY_RECONCILIATION_REQUIRED')
+    params = dict(params, OriginCapturePath=policy_reconciliation)
     command = [str(Path(os.environ['SystemRoot'])/'System32/WindowsPowerShell/v1.0/powershell.exe'),
                '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
                str(candidate/'control/60_EFFECTFUL_WRAPPER_RELEASE.ps1'),
@@ -33,6 +40,7 @@ def d4_command(instance, candidate, *, resume=False):
         value = params[name]
         require(isinstance(value, str) and bool(value) and '\x00' not in value, 'D4_PARAMETER:' + name)
         command.extend(['-' + name, value])
+    command.extend(['-OriginReconciliationSha256', policy_reconciliation_sha256])
     return command
 
 
@@ -156,7 +164,8 @@ def run(a):
             if a.stage == 'D4Close':
                 close_d4(admission)
                 return 0
-            command = d4_command(i, root, resume=a.resume)
+            command = d4_command(i, root, resume=a.resume, policy_reconciliation=a.policy_reconciliation,
+                                 policy_reconciliation_sha256=a.policy_reconciliation_sha256)
             admission.revalidate()
             # Existing qualified wrapper owns DPAPI/HMAC, first admission and D4_ONLY dispatch.
             code = subprocess.call(command)
@@ -177,6 +186,9 @@ def main(argv=None):
     ap = argparse.ArgumentParser(allow_abbrev=False)
     ap.add_argument('--stage', required=True, choices=('Check', 'Monitor', *REQUIRED_PREFIX))
     for name in ('chain-file', 'chain-sha256', 'b06-sha256'): ap.add_argument('--' + name, required=True)
+    # R44-B2C: current origin policy reconciliation (record + SHA-256 supplied separately).
+    ap.add_argument('--policy-reconciliation', default='')
+    ap.add_argument('--policy-reconciliation-sha256', default='')
     ap.add_argument('--resume', action='store_true')
     ap.add_argument('--close-only', action='store_true')
     ap.add_argument('--workers', default='AUTO')
