@@ -1,0 +1,31 @@
+{
+ "schema": "TICKSTORE_INSTANCE_INPUTS_V001",
+ "template_only_not_an_instance": true,
+ "source_root": "<origem dos CSV mensais, absoluto>",
+ "dest_root": "<destino canonico TICKSTORE, absoluto>",
+ "scratch_root": "<scratch NTFS, absoluto>",
+ "ledger_path": "<P4A ledger zip, absoluto>",
+ "config_sha256": "<SHA-256 de recovery/config/STAGE_A_SEALED_VALUES_V001.json>",
+ "d4_resume_root": "<raiz de retomada D4, absoluto>",
+ "policy_root": "<pasta da captura 1+1 da politica viva>",
+ "origin_witness": "<registro de reconciliacao da origem>",
+ "origin_reconciliation_sha256": "<hex fornecido a parte>",
+ "resources": {
+  "max_workers": 22,
+  "ram_target_percent": 60
+ },
+ "d4_parameters": {
+  "AdapterDir": "<absoluto>",
+  "B07ReceiptPath": "<absoluto>",
+  "CompletenessReceiptPath": "<absoluto>",
+  "FinalCodeManifestPath": "<absoluto>",
+  "FirstAdmissionReviewPackPath": "<absoluto>",
+  "OriginCapturePath": "<absoluto>",
+  "PolicyAdmissionReceiptPath": "<absoluto>",
+  "PolicyRoot": "<absoluto>",
+  "PredecessorEvidenceDir": "<absoluto>",
+  "ReviewVerdictPath": "<absoluto>",
+  "FinalCodeManifestSha": "<hex do RUNTIME_CODE_MANIFEST>",
+  "PreparationBindingSha": "<hex>"
+ }
+}

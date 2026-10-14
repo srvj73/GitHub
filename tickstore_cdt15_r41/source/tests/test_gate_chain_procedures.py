@@ -207,5 +207,59 @@ class InitialChain(unittest.TestCase):
             self.assemble(spec, 'F' * 64, 'B06')
 
 
+
+class B06ReceiptCheck(unittest.TestCase):
+    """B06 is independent: the tool only verifies a delivered receipt (fixtures here are synthetic)."""
+    def setUp(self):
+        t = tempfile.TemporaryDirectory(); self.addCleanup(t.cleanup); self.d = Path(t.name)
+        sys.path.insert(0, str(C / 'control'))
+        import B06_RECEIPT_CHECK as B
+        self.B = B
+        self.code = self.d / 'CODE.json'; self.code.write_bytes(b'{"files":[]}')
+        self.inst = self.d / 'INSTANCE.json'; self.inst.write_bytes(b'{"run_id":"X"}')
+        self.verdict = self.d / 'B06_VERDICT.txt'
+        self.verdict.write_bytes(b'VERDICT=PASS\nINDEPENDENT_REVIEW=YES\nTESTED_CODE_EQUALS_PACKAGED_CODE=YES\n'
+                                 b'CRITICAL_FINDINGS=0\nMAJOR_FINDINGS=0\n')
+
+    def receipts(self, cite=True, participant=False, reviewer='INDEPENDENT_FIXTURE'):
+        def rec(stage, prev, extra):
+            obj = {'schema': 'TICKSTORE_STAGE_RECEIPT_V001', 'stage': stage, 'status': 'PASS',
+                   'environment': 'WINDOWS_PRODUCTION', 'code_manifest_sha256': h(self.code.read_bytes()),
+                   'instance_sha256': h(self.inst.read_bytes()), 'previous_receipt_sha256': prev, 'blockers': [],
+                   'checks': {k: True for k in REQUIRED_CHECKS[stage]}, 'evidence': [{'path': 'E', 'sha256': 'E' * 64}]}
+            obj.update(extra)
+            raw = json.dumps(obj, sort_keys=True).encode(); p = self.d / ('STAGE_%s.json' % stage); p.write_bytes(raw)
+            return p, h(raw)
+        g5, g5_sha = rec('G5', None, {})
+        ev = [{'path': str(self.verdict), 'sha256': h(self.verdict.read_bytes()) if cite else 'F' * 64}]
+        b06, _ = rec('B06', g5_sha, {'reviewer': reviewer, 'implementation_participant': participant, 'evidence': ev})
+        return g5, b06
+
+    def run_check(self, g5, b06, verdict_sha=None):
+        return self.B.check(b06_receipt=b06, g5_receipt=g5, code_manifest=self.code, instance=self.inst,
+                            verdict=self.verdict, verdict_sha256=verdict_sha or h(self.verdict.read_bytes()))
+
+    def test_10_conformant_receipt_yields_both_digests(self):
+        g5, b06 = self.receipts()
+        r = self.run_check(g5, b06)
+        self.assertEqual(r['b06_receipt_sha256'], h(b06.read_bytes()))
+        self.assertEqual(r['b06_verdict_sha256'], h(self.verdict.read_bytes())); self.assertFalse(r['issued_by_this_tool'])
+
+    def test_11_non_conformant_receipts_block(self):
+        g5, b06 = self.receipts(participant=True)
+        with self.assertRaisesRegex(RuntimeError, 'B06_IMPLEMENTER_CANNOT_APPROVE'):
+            self.run_check(g5, b06)
+        g5, b06 = self.receipts(cite=False)
+        with self.assertRaisesRegex(RuntimeError, 'B06_RECEIPT_DOES_NOT_CITE_VERDICT'):
+            self.run_check(g5, b06)
+        g5, b06 = self.receipts()
+        with self.assertRaisesRegex(RuntimeError, 'B06_VERDICT_SHA256_SUPPLIED_SEPARATELY'):
+            self.run_check(g5, b06, verdict_sha='0' * 64)
+        self.verdict.write_bytes(b'VERDICT=PASS\nINDEPENDENT_REVIEW=NO\n')
+        g5, b06 = self.receipts()
+        with self.assertRaisesRegex(RuntimeError, 'B06_VERDICT_FIELD'):
+            self.run_check(g5, b06)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

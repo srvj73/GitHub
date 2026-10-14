@@ -1,0 +1,35 @@
+{
+ "schema": "TICKSTORE_ORIGIN_STAGE_DECISION_V001",
+ "issuer": "CHATGPT_ORIGIN",
+ "implementation_participant_is_issuer": false,
+ "administrative_owner_gate": false,
+ "stage": "<G5|B07>",
+ "decision": "<PASS|REJECT>",
+ "decision_id": "<id da origem>",
+ "code_manifest_sha256": "<hex>",
+ "final_package_sha256": "<hex>",
+ "instance_sha256": "<hex>",
+ "policy": {
+  "master_sha256": "<hex>",
+  "head_sha256": "<hex>",
+  "revision_id": "<rev>",
+  "reconciliation_sha256": "<hex>"
+ },
+ "predecessors": {
+  "G5": "<hex (B07)>",
+  "B06": "<hex recibo B06 (B07)>"
+ },
+ "previous_receipt_sha256": "<hex|null>",
+ "b06_receipt_sha256": "<B07 apenas>",
+ "b06_verdict_sha256": "<B07 apenas>",
+ "b06_independent": true,
+ "blockers": [],
+ "checks": "<ver ORIGIN_DECISION_BINDER.REQUIRED_CHECKS[stage], todos true>",
+ "evidence": [
+  {
+   "role": "<G5_EVIDENCE_PACK|ENGINEERING_COMPLETENESS|NATIVE_RETURN_ZIP|B07_TECHNICAL_RECEIPT>",
+   "sha256": "<hex>"
+  }
+ ],
+ "template_only_issued_by_the_origin": true
+}

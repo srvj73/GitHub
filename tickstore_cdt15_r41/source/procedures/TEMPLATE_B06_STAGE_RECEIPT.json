@@ -1,0 +1,24 @@
+{
+ "schema": "TICKSTORE_STAGE_RECEIPT_V001",
+ "stage": "B06",
+ "status": "PASS",
+ "environment": "WINDOWS_PRODUCTION",
+ "code_manifest_sha256": "<hex do RUNTIME_CODE_MANIFEST congelado>",
+ "instance_sha256": "<hex da INSTANCE>",
+ "previous_receipt_sha256": "<hex do recibo G5>",
+ "blockers": [],
+ "checks": {
+  "independent_review": true,
+  "final_bytes": true,
+  "no_critical_or_major_findings": true
+ },
+ "evidence": [
+  {
+   "path": "<B06_VERDICT.txt>",
+   "sha256": "<hex do veredito>"
+  }
+ ],
+ "reviewer": "<revisor independente>",
+ "implementation_participant": false,
+ "template_only_issued_by_the_independent_reviewer": true
+}

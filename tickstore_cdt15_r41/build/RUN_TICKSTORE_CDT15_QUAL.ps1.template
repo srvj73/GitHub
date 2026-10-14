@@ -5,6 +5,10 @@
 #   -ChainFile <EXECUTION_CHAIN until B06> -ChainSha256 <hex> -B06Sha256 <B06 stage receipt hex>
 #   -B06Verdict <B06 verdict text> -B06VerdictSha256 <hex> -PolicyRoot <capture 1+1>
 #   -PolicyReconciliation <origin record> -PolicyReconciliationSha256 <hex>
+# Mode QUAL campaign control: SAFE_STOP = create the file STOP inside the RUN folder printed below
+# (the campaign stops between units and closes a partial RETURN ZIP); resume with
+#   -ResumeFrom "C:\Users\silvi\OneDrive\Downloads\TICKSTORE_RUNS\<RUN>\QUAL_RETURN_<RUN>.zip"
+# (same bytes only; units already PASS are reused from that closed ZIP, the campaign RUN_ID is kept).
 # Requires Administrator (symlink tests). When started without elevation it opens a new
 # elevated window of itself (UAC prompt) and the non-elevated run ends with exit code 3.
 # Effects: creates only run-owned folders
@@ -21,7 +25,8 @@ param(
     [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$B06VerdictSha256 = '',
     [string]$PolicyRoot = '',
     [string]$PolicyReconciliation = '',
-    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$PolicyReconciliationSha256 = ''
+    [ValidatePattern('^$|^[0-9A-F]{64}$')][string]$PolicyReconciliationSha256 = '',
+    [string]$ResumeFrom = ''
 )
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'
@@ -144,6 +149,15 @@ public static class R41Reparse {
     $isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
     Log ('ELEVATED=' + $(if ($isAdmin) { 'YES' } else { 'NO' }) + ' MODE=' + $Mode)
     $b07Args = @()
+    if ($ResumeFrom -ne '') {
+        Require ($Mode -ceq 'QUAL') 'RESUME_ONLY_QUAL_CAMPAIGN'
+        $rf = [IO.Path]::GetFullPath($ResumeFrom)
+        Require ($rf.StartsWith($LogRoot + '\', [StringComparison]::OrdinalIgnoreCase)) 'RESUME_FROM_OUTSIDE_TICKSTORE_RUNS'
+        Require ([IO.Path]::GetFileName($rf) -cmatch '^QUAL_RETURN_[A-Za-z0-9_]+\.zip$' -and [IO.File]::Exists($rf)) 'RESUME_FROM_NOT_A_QUAL_RETURN'
+        Require ($rf.IndexOf([char]34) -lt 0) 'RESUME_FROM_QUOTE'
+        $b07Args = @('--resume-return', $rf)
+        Log ('RESUME_FROM=' + $rf + ' SHA256=' + (Sha $rf))
+    }
     if ($Mode -ceq 'B07') {
         foreach ($pair in @(@('ChainFile',$ChainFile),@('ChainSha256',$ChainSha256),@('B06Sha256',$B06Sha256),
                             @('B06Verdict',$B06Verdict),@('B06VerdictSha256',$B06VerdictSha256),@('PolicyRoot',$PolicyRoot),
@@ -160,6 +174,7 @@ public static class R41Reparse {
         Require ([IO.File]::Exists($PSCommandPath)) 'SCRIPT_PATH_UNKNOWN_FOR_ELEVATION'
         Log 'ELEVATION_REQUIRED: abrindo uma nova janela do PowerShell como Administrador (confirme o UAC).'
         $argList = '-NoProfile -ExecutionPolicy Bypass -NoExit -File "' + $PSCommandPath + '"'
+        if ($ResumeFrom -ne '') { $argList += ' -ResumeFrom "' + $ResumeFrom + '"' }
         if ($Mode -ceq 'B07') {
             foreach ($pair in @(@('ChainFile',$ChainFile),@('ChainSha256',$ChainSha256),@('B06Sha256',$B06Sha256),
                                 @('B06Verdict',$B06Verdict),@('B06VerdictSha256',$B06VerdictSha256),@('PolicyRoot',$PolicyRoot),

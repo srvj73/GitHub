@@ -28,6 +28,7 @@ import platform
 import shutil
 import subprocess
 import sys
+import threading
 import time
 import traceback
 import types
@@ -116,6 +117,108 @@ class Progress:
 
     def end(self, name):
         self.done += dict(self.steps)[name]
+
+    def snapshot(self):
+        elapsed = time.monotonic() - self.started
+        pct = 100.0 * self.done / self.total
+        return {'pct': round(pct, 2), 'elapsed_dhms': dhms(elapsed),
+                'eta_dhms': 'UNKNOWN' if self.done == 0 else dhms(elapsed * (self.total - self.done) / self.done)}
+
+
+# ----------------------------------------------------------------------------- campaign control (R46)
+
+STOP_FILE = 'STOP'
+RESUMABLE = ('SAFE_STOP', 'INTERRUPTED')
+
+
+class SafeStopRequested(Exception):
+    pass
+
+
+class CampaignHeartbeat(threading.Thread):
+    """HEARTBEAT.json in the run folder every `interval` s (step, unit, %, elapsed, ETA)."""
+    def __init__(self, run_dir, progress, campaign_id, interval=10.0):
+        super().__init__(daemon=True)
+        self.path = Path(run_dir) / 'HEARTBEAT.json'; self.progress = progress
+        self.state = {'campaign_id': campaign_id, 'run_dir': str(run_dir), 'step': None, 'unit': None,
+                      'status': 'RUNNING', 'stop_file': str(Path(run_dir) / STOP_FILE)}
+        self.interval = interval; self._stop = threading.Event()
+
+    def update(self, **kw):
+        self.state.update(kw); self.write()
+
+    def write(self):
+        body = dict(self.state, **self.progress.snapshot(), updated_unix_ns=time.time_ns(), pid=os.getpid())
+        tmp = self.path.with_name('HEARTBEAT.json.tmp')
+        tmp.write_bytes(canonical(body)); os.replace(tmp, self.path)
+
+    def run(self):
+        while not self._stop.wait(self.interval):
+            try:
+                self.write()
+            except OSError:
+                pass
+
+    def finish(self, status):
+        self._stop.set(); self.state['status'] = status
+        try:
+            self.write()
+        except OSError:
+            pass
+
+
+def check_stop(run_dir, unit):
+    if (Path(run_dir) / STOP_FILE).exists():
+        raise SafeStopRequested(unit)
+
+
+def unit_prefixes(kind, name):
+    return {'suite': ['SUITE_%s.json' % name, 'SUITE_%s_STDIO.txt' % name],
+            'script': ['SCRIPT_%s.txt' % name],
+            'b1': ['B1_RESULT.json', 'B1_RUNNER_STDIO.txt', 'B1_HARNESS/', 'B1_HARNESS_STDIO.txt', 'B1A_MICROPROBES.txt'],
+            'proof': ['PROOF_%s_STDIO.txt' % name, 'PROOFS/%s/' % name]}[kind]
+
+
+def load_resume(path, final_sha, qual_sha, native):
+    """Previous SAFE_STOP/INTERRUPTED RETURN of the SAME bytes: (prior receipt, member bytes, sha)."""
+    raw = Path(path).read_bytes()
+    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+        require(z.testzip() is None, 'RESUME_RETURN_CRC')
+        files = {n: z.read(n) for n in z.namelist()}
+    listed = json.loads(files['RETURN_MANIFEST.json'])['files']
+    require({f['path'] for f in listed} == set(files) - {'RETURN_MANIFEST.json'}, 'RESUME_RETURN_SET')
+    for f in listed:
+        require(sha_bytes(files[f['path']]) == f['sha256'], 'RESUME_RETURN_MEMBER:' + f['path'])
+    prior = json.loads(files['QUAL_RECEIPT.json'])
+    require(prior.get('CLASSIFICATION') in RESUMABLE, 'RESUME_PRIOR_NOT_SAFE_STOP_OR_INTERRUPTED')
+    require(prior.get('SOURCE_SHA256') == final_sha and prior.get('QUAL_MANIFEST_SHA256') == qual_sha,
+            'RESUME_DIFFERENT_BYTES')
+    require(prior.get('mode') == ('NATIVE_WINDOWS' if native else 'OFFLINE_PREFLIGHT'), 'RESUME_MODE_MISMATCH')
+    require(prior.get('QUAL_MODE', 'QUAL') == 'QUAL', 'RESUME_ONLY_QUAL_CAMPAIGN')
+    return prior, files, sha_bytes(raw)
+
+
+def reuse_unit(prior, files, evidence, kind, name, ok_statuses):
+    """Copy the evidence of a unit that PASSED in the prior segment; False when it must run again."""
+    key = 'proof' if kind == 'proof' else 'suite'
+    rows = prior.get('PROOFS' if kind == 'proof' else 'TESTS') or []
+    want = 'B1_126_CONTRACT_IDS' if kind == 'b1' else name
+    match = [r for r in rows if r.get(key) == want]
+    if len(match) != 1 or match[0].get('status') not in ok_statuses:
+        return None
+    copied = 0
+    for member, body in files.items():
+        if not member.startswith('EVIDENCE/'):
+            continue
+        rel = member[len('EVIDENCE/'):]
+        if any(rel == p or (p.endswith('/') and rel.startswith(p)) for p in unit_prefixes(kind, name)):
+            target = Path(evidence) / rel
+            target.parent.mkdir(parents=True, exist_ok=True)
+            with open(target, 'xb') as f:
+                f.write(body)
+            copied += 1
+    require(copied > 0, 'RESUME_UNIT_EVIDENCE_MISSING:' + want)
+    return dict(match[0], reused_from_segment=True)
 
 
 # ----------------------------------------------------------------------------- identity
@@ -467,6 +570,7 @@ def main(a):
                                'policy_root', 'policy_reconciliation', 'policy_reconciliation_sha256')
                    if b07_mode and not getattr(a, k)]
     receipt = dict(schema=DRIVER_SCHEMA, RESULT_CONTEXT=RESULT_CONTEXT, RUN_ID=run_dir.name, QUAL_MODE=a.mode,
+                   SEGMENTS=[run_dir.name],
                    mode='NATIVE_WINDOWS' if native else 'OFFLINE_PREFLIGHT',
                    PRODUCTION_MODIFIED=None, FULL_STARTED=False, B06='NOT_STARTED', G4='INCOMPLETE',
                    G5='NOT_PROVEN', B07='NOT_STARTED', GATE_VERDICT_ISSUED=False, BLOCKER=None,
@@ -476,6 +580,10 @@ def main(a):
              [('IDENTITY', 2), ('FINAL_PACKAGE', 3), ('SUITES', 30), ('PROOFS', 60), ('POSTCHECK', 2), ('RETURN', 3)])
     prog = Progress(steps)
     code = 2
+    beat = CampaignHeartbeat(run_dir, prog, run_dir.name)
+    beat.start()
+    print('SAFE_STOP_HOWTO=crie o arquivo ' + str(run_dir / STOP_FILE) + ' (a campanha para entre unidades e fecha o RETURN)',
+          flush=True)
     try:
         prog.begin('IDENTITY')
         require(not missing_b07, 'B07_INPUT_REQUIRED:' + ','.join(missing_b07))
@@ -515,6 +623,17 @@ def main(a):
         receipt['RUNTIME_CODE_MANIFEST_SHA256'] = final['plan']['runtime_code_manifest_sha256']
         receipt['TESTED_CODE_EQUALS_PACKAGED_CODE'] = 'PASS_TESTS_EXECUTED_FROM_EXTRACTED_FINAL_PACKAGE'
         print('QUAL_FINAL_PACKAGE=PASS SHA256=%s MEMBERS=%d' % (receipt['SOURCE_SHA256'], final['members']), flush=True)
+        prior, prior_files = None, {}
+        if a.resume_return:
+            require(not b07_mode, 'RESUME_ONLY_QUAL_CAMPAIGN')
+            prior, prior_files, prior_sha = load_resume(a.resume_return, receipt['SOURCE_SHA256'], qsha, native)
+            # One campaign identity across segments: proofs and the receipt keep the original RUN_ID.
+            receipt['RUN_ID'] = prior['RUN_ID']
+            receipt['SEGMENTS'] = list(prior.get('SEGMENTS') or [prior['RUN_ID']]) + [run_dir.name]
+            receipt['RESUMED_FROM_RETURN_SHA256'] = prior_sha
+            beat.update(campaign_id=prior['RUN_ID'])
+            print('QUAL_RESUME=PASS CAMPAIGN=%s PRIOR_RETURN_SHA256=%s' % (prior['RUN_ID'], prior_sha), flush=True)
+        reuse_ok = ('PASS', 'EMULATED_PASS') if native else ('PASS', 'OFFLINE_HARNESS_PASS', 'OFFLINE_HARNESS_ONLY')
         prog.end('FINAL_PACKAGE')
 
         prog.begin('B07' if b07_mode else 'SUITES')
@@ -546,27 +665,39 @@ def main(a):
             receipt['FINAL_EXTRACT_UNCHANGED_AFTER_RUN'] = 'PASS'
             prog.end('B07')
             proofs = []
+        def unit(kind, name, fn):
+            check_stop(run_dir, kind + ':' + name)
+            beat.update(step='SUITES' if kind != 'proof' else 'PROOFS', unit=kind + ':' + name)
+            reused = reuse_unit(prior, prior_files, evidence, kind, name, reuse_ok) if prior else None
+            if reused is not None:
+                print('QUAL_UNIT_REUSED %s:%s=%s' % (kind, name, reused.get('status')), flush=True)
+                return reused
+            return fn()
+
+        receipt['TESTS'] = suites
         for name, spec in ([] if b07_mode else final['plan']['suites'].items()):
             if spec.get('native_only') and not native:
                 suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
-            suites.append(run_suite(name, spec, impl, env, evidence, sys.executable))
+            suites.append(unit('suite', name, lambda: run_suite(name, spec, impl, env, evidence, sys.executable)))
         for name, spec in ([] if b07_mode else final['plan']['scripts'].items()):
             if spec.get('native_only') and not native:
                 suites.append({'suite': name, 'status': 'NOT_NATIVE_SKIPPED_OFFLINE'}); continue
-            suites.append(run_script(name, spec['script'], impl, env, evidence, sys.executable, spec['expect'],
-                                     isolated=spec.get('isolated', True), timeout=spec.get('timeout', 600)))
+            suites.append(unit('script', name, lambda: run_script(name, spec['script'], impl, env, evidence, sys.executable,
+                                                                 spec['expect'], isolated=spec.get('isolated', True),
+                                                                 timeout=spec.get('timeout', 600))))
         if not b07_mode:
             if 'b1' in final['plan']:
-                suites.append(run_b1(Path(bundle), impl, work, env, evidence, sys.executable, native))
+                suites.append(unit('b1', 'B1', lambda: run_b1(Path(bundle), impl, work, env, evidence, sys.executable,
+                                                               native)))
             receipt['TESTS'] = suites
             prog.end('SUITES')
 
             prog.begin('PROOFS')
             proofs = []
-            for name, spec in final['plan'].get('proofs', {}).items():
-                proofs.append(run_proof(name, spec, final, impl, work, d_parent, evidence, env, sys.executable,
-                                        run_dir.name, native))
             receipt['PROOFS'] = proofs
+            for name, spec in final['plan'].get('proofs', {}).items():
+                proofs.append(unit('proof', name, lambda: run_proof(name, spec, final, impl, work, d_parent, evidence, env,
+                                                                    sys.executable, receipt['RUN_ID'], native)))
             # Nothing may have modified the extracted FINAL bytes the tests and proofs ran from.
             verify_closed_manifest(final['extract'], 'PACKAGE_MANIFEST.json', 'TICKSTORE_FINAL_PACKAGE_MANIFEST_V001')
             receipt['FINAL_EXTRACT_UNCHANGED_AFTER_RUN'] = 'PASS'
@@ -603,8 +734,13 @@ def main(a):
                             'not physical power-loss evidence (POWERLOSS_EMULATED is process death only).')
         code = 0 if passed else 2
         prog.end('POSTCHECK')
+    except SafeStopRequested as stop:
+        receipt['BLOCKER'] = 'SAFE_STOP_REQUESTED_BEFORE:' + str(stop); receipt['CLASSIFICATION'] = 'SAFE_STOP'; code = 130
+        receipt['RESUME'] = 'rerun the same bootstrap with -ResumeFrom <this RETURN ZIP>'
+        print('QUAL_SAFE_STOP=YES BEFORE=' + str(stop), flush=True)
     except KeyboardInterrupt:
         receipt['BLOCKER'] = 'INTERRUPTED_BY_OPERATOR'; receipt['CLASSIFICATION'] = 'INTERRUPTED'; code = 130
+        receipt['RESUME'] = 'rerun the same bootstrap with -ResumeFrom <this RETURN ZIP>'
     except BaseException as exc:
         receipt['BLOCKER'] = type(exc).__name__ + ':' + str(exc)
         receipt['CLASSIFICATION'] = 'BLOCKED'
@@ -648,6 +784,7 @@ def main(a):
     except BaseException as exc:
         print('RETURN_ZIP_BLOCKED=' + type(exc).__name__ + ':' + str(exc))
         code = 2
+    beat.finish(str(receipt.get('CLASSIFICATION')))
     print('RESULT_RETURN_TO=' + RESULT_CONTEXT)
     return code
 
@@ -662,6 +799,7 @@ if __name__ == '__main__':
     ap.add_argument('--bootstrap-sha256', default='UNKNOWN')
     ap.add_argument('--offline-preflight', action='store_true')
     ap.add_argument('--mode', choices=('QUAL', 'B07'), default='QUAL')
+    ap.add_argument('--resume-return', default='')
     for k in ('b07-chain-file', 'b07-chain-sha256', 'b06-sha256', 'b06-verdict', 'b06-verdict-sha256',
               'policy-root', 'policy-reconciliation', 'policy-reconciliation-sha256'):
         ap.add_argument('--' + k, default='')

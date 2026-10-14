@@ -55,6 +55,9 @@ SUITES = {
     'S15_OPERATOR_ENTRY_POINTS': {'files': [{'file': 'tests/test_operator_entry_points.py'}], 'sys_path': ['tests']},
     'S16_GATE_CHAIN_PROCEDURES': {'files': [{'file': 'tests/test_gate_chain_procedures.py'}], 'sys_path': ['tests']},
     'S17_STATE_CAS_RECOVERY': {'files': [{'file': 'tests/test_state_cas_recovery.py'}], 'sys_path': ['tests']},
+    # Physical power-loss lab tooling (preflight/plan/arm/inspect/reconcile/aggregate) on the packaged
+    # engine with an EMULATED cut; never physical evidence (that runs only in a separate lab).
+    'S18_POWERLOSS_LAB_TOOLING': {'files': [{'file': 'tests/test_lab_powerloss.py'}], 'sys_path': ['tests'], 'timeout': 7200},
 }
 SCRIPTS = {
     'R45_B2C_NATIVE_PROBE': {'script': 'qual/R45_B2C_NATIVE_PROBE.py', 'isolated': True, 'timeout': 600,
