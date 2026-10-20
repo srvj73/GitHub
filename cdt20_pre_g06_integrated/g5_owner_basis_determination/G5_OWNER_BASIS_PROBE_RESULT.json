@@ -1,0 +1,110 @@
+{
+ "all_cases_match": true,
+ "binder_sha256": "DC6182C9CA339EECCA63EFDEAAC9EDF0FBCBA0F8C762E29B4D7410F2D13F23AB",
+ "cases": [
+  {
+   "case": "historical_16_10_bytes_against_current_identities",
+   "expected": "BLOCKED:DECISION_BINDING:code_manifest_sha256",
+   "match": true,
+   "meaning": "stale decision cannot authorize 6C952BD9: hash binding (checked before any policy field), independent of issuer_basis",
+   "observed": "BLOCKED:DECISION_BINDING:code_manifest_sha256"
+  },
+  {
+   "case": "relabelled_historical_record_old_sha_supplied",
+   "expected": "BLOCKED:DECISION_SHA256_SUPPLIED_SEPARATELY",
+   "match": true,
+   "meaning": "editing the 16/10 record to current hashes changes its bytes; the operator-pinned SHA no longer matches",
+   "observed": "BLOCKED:DECISION_SHA256_SUPPLIED_SEPARATELY"
+  },
+  {
+   "case": "new_current_decision_role_basis_16_10",
+   "expected": "ACCEPTED",
+   "match": true,
+   "meaning": "a NEW owner record binding current code/final/instance is accepted; issuer_basis names the role basis, not the decision date",
+   "observed": "ACCEPTED_BY_PURE_VERIFIER"
+  },
+  {
+   "case": "new_current_decision_role_basis_relabelled_20_10",
+   "expected": "BLOCKED:G5_OWNER_SCOPE_AND_NO_FAKE_INDEPENDENCE",
+   "match": true,
+   "meaning": "an unrecognised role basis is refused: designating a different G5 issuer basis is an origin/titular governance act",
+   "observed": "BLOCKED:G5_OWNER_SCOPE_AND_NO_FAKE_INDEPENDENCE"
+  },
+  {
+   "case": "basis_missing",
+   "expected": "BLOCKED:G5_OWNER_SCOPE",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:G5_OWNER_SCOPE_AND_NO_FAKE_INDEPENDENCE"
+  },
+  {
+   "case": "owner_claims_b06_independence",
+   "expected": "BLOCKED:G5_OWNER_SCOPE",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:G5_OWNER_SCOPE_AND_NO_FAKE_INDEPENDENCE"
+  },
+  {
+   "case": "chatgpt_origin_as_g5_issuer",
+   "expected": "BLOCKED:DECISION_SCHEMA_ISSUER",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:DECISION_SCHEMA_ISSUER"
+  },
+  {
+   "case": "implementer_as_issuer",
+   "expected": "BLOCKED:DECISION_IMPLEMENTER_CANNOT_ISSUE",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:DECISION_IMPLEMENTER_CANNOT_ISSUE"
+  },
+  {
+   "case": "reject_decision",
+   "expected": "BLOCKED:ORIGIN_DECISION_REJECT",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:ORIGIN_DECISION_REJECT"
+  },
+  {
+   "case": "wrong_final_package",
+   "expected": "BLOCKED:DECISION_BINDING:final_package_sha256",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:DECISION_BINDING:final_package_sha256"
+  },
+  {
+   "case": "wrong_instance",
+   "expected": "BLOCKED:DECISION_BINDING:instance_sha256",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:DECISION_BINDING:instance_sha256"
+  },
+  {
+   "case": "open_blocker",
+   "expected": "BLOCKED:DECISION_BLOCKERS",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:DECISION_BLOCKERS"
+  },
+  {
+   "case": "missing_check",
+   "expected": "BLOCKED:DECISION_CHECKS",
+   "match": true,
+   "meaning": "negative control",
+   "observed": "BLOCKED:DECISION_CHECKS"
+  },
+  {
+   "case": "wrong_separate_sha",
+   "expected": "BLOCKED:DECISION_SHA256_SUPPLIED_SEPARATELY",
+   "match": true,
+   "meaning": "second-channel pin required",
+   "observed": "BLOCKED:DECISION_SHA256_SUPPLIED_SEPARATELY"
+  }
+ ],
+ "fixture_sha256": "3C5A99EF3F3714FDEF4DC1B8FD264736DE3E63122B0016F68827FAC6E8DA6D49",
+ "historical_decision_sha256": "5949917740192B04D1C0A101DD9484792D3A707349567D8128AA05EE50D16E65",
+ "owner_authorization_issued": false,
+ "policy_read": false,
+ "schema": "CDT20_G5_OWNER_BASIS_DETERMINATION_PROBE_V001",
+ "synthetic": true
+}

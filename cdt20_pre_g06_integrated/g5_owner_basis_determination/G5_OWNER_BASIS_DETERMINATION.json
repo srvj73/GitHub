@@ -1,0 +1,36 @@
+{
+ "b06": "NOT_STARTED",
+ "b07": "NOT_STARTED",
+ "chatgpt_experimental_successor_DB1C7205_used": false,
+ "classification": [
+  "INTENTIONAL_SCOPED_CONTRACT",
+  "NONBLOCKING_FOR_PRE_B06"
+ ],
+ "code_changed": false,
+ "d4_d5_productive": "NOT_STARTED",
+ "finding": "G5_OWNER_BASIS_FINDING",
+ "full": "NOT_STARTED",
+ "g5": "NOT_ISSUED",
+ "handoff_input_sha256": "FB9EEB6D0E93FA4B92459D2AF9DE9A09B8BC50BB6FEF59C410EA8BB106A33DA9",
+ "owner_authorization_issued": false,
+ "policy_read": false,
+ "preserved": {
+  "binder_sha256": "DC6182C9CA339EECCA63EFDEAAC9EDF0FBCBA0F8C762E29B4D7410F2D13F23AB",
+  "inner_package_sha256": "6C952BD9D0C0B7E13D7B5AD01E1563DA8AFC2FB641262835A0AABBC49778C064",
+  "launcher_sha256": "E1EB62A4EFCCEDBBFB9D37322DC616A41A1ADC5E730BB79EAE5D79B3432AEB48",
+  "native_artifact_refs": 479,
+  "native_commits": 38,
+  "native_return_sha256": "9B565CF3A7E6DED342A24376108A2565B4A56E69D3D4B9ED0F2CD09FCA19F205",
+  "transport_sha256": "61C0EFFA358D9CB04E90114CA5A7B544493B4DC5DB2B8E90DDDC6FB72B333C13"
+ },
+ "probe": {
+  "cases": "14/14_MATCH",
+  "result_sha256": "A08754990A4B1DC8AB66417830AAA71F270ACEF54FAFAD7FC8A9AEA744858AC8",
+  "script_sha256": "4CACFE93E899B83A2F6F6E342F4CABB3CB0FA040AA0B876895C89CD53061C2FB",
+  "synthetic": true
+ },
+ "result_return_to": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 20",
+ "schema": "CDT20_G5_OWNER_BASIS_DETERMINATION_V001",
+ "verdict": "NOT_DEFECT",
+ "windows_rerun_required": false
+}
