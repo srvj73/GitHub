@@ -1,0 +1,97 @@
+--- parent/implementation_v001/candidate/control/ORIGIN_DECISION_BINDER.py
++++ successor/implementation_v001/candidate/control/ORIGIN_DECISION_BINDER.py
+@@ -89,6 +89,25 @@
+     return (json.dumps(obj, sort_keys=True, ensure_ascii=False, indent=1) + '\n').encode('utf-8')
+ 
+ 
++# The G5 issuer basis is an explicit owner declaration in chat, identified by its
++# calendar date. Owner-authorized on 2026-10-20: any valid declaration date is
++# accepted (2026-10-16 is no longer the only basis). Arbitrary labels stay refused;
++# the decision itself remains pinned by current hashes and a second-channel SHA.
++OWNER_BASIS = re.compile(r'EXPLICIT_OWNER_DECLARATION_CHAT_([0-9]{8})')
++
++
++def _owner_basis(value):
++    match = OWNER_BASIS.fullmatch(value) if isinstance(value, str) else None
++    if match is None:
++        return False
++    import datetime
++    try:
++        datetime.date(int(match.group(1)[:4]), int(match.group(1)[4:6]), int(match.group(1)[6:]))
++    except ValueError:
++        return False
++    return True
++
++
+ def verify_decision(decision_raw, decision_sha256, *, stage, code_sha, final_package_sha, instance_sha,
+                     policy_capture, predecessor_hashes, b06_sha=None, b06_verdict_sha=None):
+     """Pure verification of the origin decision bindings; returns the parsed decision."""
+@@ -97,7 +116,7 @@
+     d = _strict_json(decision_raw)
+     _require(d.get('schema') == DECISION_SCHEMA and d.get('issuer') == ('OWNER_RELEASE_AUTHORITY' if stage == 'G5' else 'CHATGPT_ORIGIN'), 'DECISION_SCHEMA_ISSUER')
+     if stage == 'G5':
+-        _require(d.get('issuer_basis') == 'EXPLICIT_OWNER_DECLARATION_CHAT_20261016' and d.get('owner_is_independent_b06_auditor') is False, 'G5_OWNER_SCOPE_AND_NO_FAKE_INDEPENDENCE')
++        _require(_owner_basis(d.get('issuer_basis')) and d.get('owner_is_independent_b06_auditor') is False, 'G5_OWNER_SCOPE_AND_NO_FAKE_INDEPENDENCE')
+     _require(d.get('implementation_participant_is_issuer') is False, 'DECISION_IMPLEMENTER_CANNOT_ISSUE')
+     _require(d.get('administrative_owner_gate') is False, 'DECISION_NO_ADMINISTRATIVE_OWNER_GATE')
+     _require(d.get('stage') == stage, 'DECISION_STAGE')
+--- parent/implementation_v001/tests/test_cdt20_pre_g06_integrated_closure.py
++++ successor/implementation_v001/tests/test_cdt20_pre_g06_integrated_closure.py
+@@ -115,4 +115,57 @@
+         self.assertEqual(G.native_zip_members(out.getvalue()),{'a.bin':b'x'*4096})
+ 
+ 
++class OwnerBasis(unittest.TestCase):
++    """Owner-authorized 2026-10-20: any valid owner declaration date; every other guard unchanged."""
++    def setUp(self):
++        import hashlib,json
++        import ORIGIN_DECISION_BINDER as B
++        self.B=B;self.H=lambda b:hashlib.sha256(b).hexdigest().upper();self.json=json
++        self.ids=dict(code='A'*64,final='B'*64,instance='C'*64)
++        self.policy={'schema':'TICKSTORE_VERIFIED_POLICY_CAPTURE_V001','master_sha256':'SYNTHETIC_M',
++                     'head_sha256':'SYNTHETIC_H','revision_id':'SYNTHETIC_R','reconciliation_sha256':'SYNTHETIC_C'}
++        self.d={'schema':B.DECISION_SCHEMA,'issuer':'OWNER_RELEASE_AUTHORITY',
++                'issuer_basis':'EXPLICIT_OWNER_DECLARATION_CHAT_20261020','owner_is_independent_b06_auditor':False,
++                'implementation_participant_is_issuer':False,'administrative_owner_gate':False,'stage':'G5',
++                'decision':'PASS','decision_id':'SYNTHETIC_UNIT_NOT_ISSUED','code_manifest_sha256':'A'*64,
++                'final_package_sha256':'B'*64,'instance_sha256':'C'*64,
++                'policy':{k:self.policy[k] for k in ('master_sha256','head_sha256','revision_id','reconciliation_sha256')},
++                'predecessors':{},'previous_receipt_sha256':None,'blockers':[],
++                'checks':{k:True for k in B.REQUIRED_CHECKS['G5']},
++                'evidence':[{'role':r,'sha256':('%X'%n)*64} for n,r in enumerate(B.REQUIRED_EVIDENCE['G5'],1)]}
++    def verify(self,sha=None,final='B'*64,**edits):
++        d=dict(self.d,**edits);raw=self.json.dumps(d,sort_keys=True).encode()
++        return self.B.verify_decision(raw,sha or self.H(raw),stage='G5',code_sha=self.ids['code'],final_package_sha=final,
++                                      instance_sha=self.ids['instance'],policy_capture=self.policy,predecessor_hashes={})
++
++    def test_current_owner_declaration_accepted(self):
++        self.assertEqual(self.verify()['issuer_basis'],'EXPLICIT_OWNER_DECLARATION_CHAT_20261020')
++
++    def test_historical_declaration_still_accepted(self):
++        self.verify(issuer_basis='EXPLICIT_OWNER_DECLARATION_CHAT_20261016')
++
++    def test_arbitrary_or_malformed_basis_rejected(self):
++        for basis in ('FICTION',None,'',20261020,'EXPLICIT_OWNER_DECLARATION_CHAT_2026102',
++                      'EXPLICIT_OWNER_DECLARATION_CHAT_20261020X','EXPLICIT_OWNER_DECLARATION_CHAT_20261332',
++                      'EXPLICIT_OWNER_DECLARATION_CHAT_20260230','x EXPLICIT_OWNER_DECLARATION_CHAT_20261020',
++                      'EXPLICIT_OWNER_DECLARATION_CHAT_20261020\n','EXPLICIT_OWNER_DECLARATION_CHAT_２０２６１０２０'):
++            with self.subTest(basis=basis),self.assertRaisesRegex(self.B.DecisionBlocked,'G5_OWNER_SCOPE'):
++                self.verify(issuer_basis=basis)
++
++    def test_other_guards_unchanged(self):
++        for edits,code in ((dict(owner_is_independent_b06_auditor=True),'G5_OWNER_SCOPE'),
++                           (dict(issuer='CHATGPT_ORIGIN'),'DECISION_SCHEMA_ISSUER'),
++                           (dict(implementation_participant_is_issuer=True),'DECISION_IMPLEMENTER_CANNOT_ISSUE'),
++                           (dict(administrative_owner_gate=True),'DECISION_NO_ADMINISTRATIVE_OWNER_GATE'),
++                           (dict(decision='REJECT'),'ORIGIN_DECISION_REJECT'),
++                           (dict(instance_sha256='0'*64),'DECISION_BINDING:instance_sha256'),
++                           (dict(blockers=['X']),'DECISION_BLOCKERS')):
++            with self.subTest(edits=edits),self.assertRaisesRegex(self.B.DecisionBlocked,code):self.verify(**edits)
++
++    def test_stale_package_and_wrong_pin_rejected(self):
++        with self.assertRaisesRegex(self.B.DecisionBlocked,'DECISION_BINDING:final_package_sha256'):
++            self.verify(final='2A522667D2592E848E055C8374C9453660D774276ED4522DF82B15F30523F660')
++        with self.assertRaisesRegex(self.B.DecisionBlocked,'DECISION_SHA256_SUPPLIED_SEPARATELY'):self.verify(sha='F'*64)
++
++
+ if __name__=='__main__':unittest.main(verbosity=2)

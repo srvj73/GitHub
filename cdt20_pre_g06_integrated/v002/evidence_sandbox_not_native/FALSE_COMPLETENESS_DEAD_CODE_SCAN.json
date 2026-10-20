@@ -1,0 +1,68 @@
+{
+  "files": [
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 16,
+      "file": "G0_CDT20_PRE_G06.py",
+      "markers": [],
+      "preexisting_unreferenced_out_of_scope": [],
+      "sha256": "FB31B99DB61101E4D3F74F2E573A3AE0D6C8C0AD16817C6C860CDB43771DBCB3",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 1,
+      "file": "G0_SUITE_RUNNER.py",
+      "markers": [],
+      "preexisting_unreferenced_out_of_scope": [],
+      "sha256": "5593408E9612C4026EC62E04FFF82FB7CBCF76B85C41F428BED9DC54EE551E7B",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 17,
+      "file": "RUN_CDT20_R08Q1.py",
+      "markers": [],
+      "preexisting_unreferenced_out_of_scope": [],
+      "sha256": "018D040B404F7D0883E0320914C06B9F853943A2A04D7881A27733B3C14B6282",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 17,
+      "file": "implementation_v001/candidate/control/ORIGIN_DECISION_BINDER.py",
+      "markers": [],
+      "preexisting_unreferenced_out_of_scope": [
+        "_qualification_contract"
+      ],
+      "sha256": "44BB839667A9C179BFFD385E2AD5F1FDA46459A3E63D3C42E90C7B686A9C9955",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 26,
+      "file": "implementation_v001/tests/test_cdt20_pre_g06_integrated_closure.py",
+      "markers": [],
+      "preexisting_unreferenced_out_of_scope": [],
+      "sha256": "754C57E2A4AF708A3743BB3EEDB410C0CE727E6F2903B7B2E58811073D96B9C7",
+      "unittest_cases_discovered_by_type": [
+        "FourFindings",
+        "Heartbeat",
+        "OwnerBasis",
+        "ReturnBound"
+      ],
+      "unreferenced_definitions": []
+    }
+  ],
+  "schema": "CDT20_FALSE_COMPLETENESS_SCAN_V001",
+  "status": "PASS"
+}

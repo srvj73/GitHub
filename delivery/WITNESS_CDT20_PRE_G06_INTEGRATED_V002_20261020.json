@@ -1,0 +1,60 @@
+{
+  "schema": "CDT20_PRE_G06_INTEGRATED_EXTERNAL_WITNESS_V002",
+  "owner_authorization": "TITULAR_EMISSOR_G5_CHAT_20261020: aceitar EXPLICIT_OWNER_DECLARATION_CHAT_AAAAMMDD com qualquer data valida, mantendo os demais bloqueios; gerar V002 com nova execucao Windows",
+  "launcher": {
+    "name": "RUN_CDT20_PRE_G06_INTEGRATED_V002_20261020.ps1",
+    "bytes": 17015,
+    "sha256": "F05C621846AA77596322397FF0845FBB56A83B3E1BE6248621F29C538623681D"
+  },
+  "transport": {
+    "name": "CDT20_PRE_G06_INTEGRATED_TRANSPORT_V002_20261020.zip",
+    "bytes": 17335544,
+    "sha256": "9CEB9C62238213B039EE3FF22EBCE70A034FCE0D4B8C82CA2328870B27175C3A"
+  },
+  "inner_package": {
+    "name": "CDT20_PRE_G06_INTEGRATED_SOURCE_V002_20261020.zip",
+    "sha256": "4942871541629C3B38F47EDA55EA2C9E310361533887CB55E577D9641542E7C5",
+    "code_manifest_sha256": "3C97A2D732F4430E8C5BAB30138ED422D1070B73F43AD1DFAD5D5CB2BBDF25B5",
+    "members": 304,
+    "parent_sha256": "6C952BD9D0C0B7E13D7B5AD01E1563DA8AFC2FB641262835A0AABBC49778C064",
+    "core_frozen_sha256": "749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00",
+    "changed": [
+      "implementation_v001/candidate/control/ORIGIN_DECISION_BINDER.py",
+      "implementation_v001/tests/test_cdt20_pre_g06_integrated_closure.py"
+    ],
+    "binder_sha256": "44BB839667A9C179BFFD385E2AD5F1FDA46459A3E63D3C42E90C7B686A9C9955"
+  },
+  "parent_native_pass_preserved": {
+    "package_sha256": "6C952BD9D0C0B7E13D7B5AD01E1563DA8AFC2FB641262835A0AABBC49778C064",
+    "native_return_sha256": "9B565CF3A7E6DED342A24376108A2565B4A56E69D3D4B9ED0F2CD09FCA19F205",
+    "commits": 38,
+    "artifact_refs": 479,
+    "rebound_to_v002": false
+  },
+  "sandbox_qualification_not_native": {
+    "owner_basis_suite": "17/17_PASS",
+    "package_regression": "NO_NEW_FAILURE_VS_V001",
+    "post_g3_chain_real_1219_bytes": "PASS_SYNTHETIC_REBIND",
+    "g0_qualify_posix": "13/13_SUITES_PASS",
+    "g0_contract": "11/11_PASS",
+    "bootstrap_contract": "12/12_PASS",
+    "launcher_ps51_lint": "PASS",
+    "launcher_functional_pwsh74_linux": "11/11_PASS",
+    "launcher_functional_log_sha256": "55B99F8AEC61646515DAAE0654C1E9A893E66D48BE6CF7B291F30626B5E922CF",
+    "preexisting_finding_not_fixed": "ORIGIN_DECISION_BINDER._qualification_contract unreferenced since before CDT20; outside authorized delta"
+  },
+  "status": {
+    "EXECUTABLE_DELIVERY_READY": "NOT_PROVEN",
+    "native": "TARGET_RUNTIME_PENDING_V002",
+    "g5": "NOT_ISSUED",
+    "b06": "NOT_STARTED",
+    "b07": "NOT_STARTED",
+    "d4_d5_productive": "NOT_STARTED",
+    "canary": "NOT_STARTED",
+    "full": "NOT_STARTED",
+    "production_modified": false,
+    "physical_powerloss": "NOT_TESTED_PHYSICAL_POWERLOSS",
+    "policy_read": false
+  },
+  "result_return_to": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 20"
+}

@@ -1,0 +1,17 @@
+test_cross_volume_env_and_profile_restored (__main__.Transport.test_cross_volume_env_and_profile_restored) ... ok
+test_exact_package_and_frozen_core (__main__.Transport.test_exact_package_and_frozen_core) ... ok
+test_linux_cannot_start_native_campaign (__main__.Transport.test_linux_cannot_start_native_campaign) ... ok
+test_live_prior_process_blocks_without_killing (__main__.Transport.test_live_prior_process_blocks_without_killing) ... ok
+test_no_clobber_publishing (__main__.Transport.test_no_clobber_publishing) ... ok
+test_owner_requires_both_volumes_and_exact_package (__main__.Transport.test_owner_requires_both_volumes_and_exact_package) ... ok
+test_review_bound_to_exact_package (__main__.Transport.test_review_bound_to_exact_package) ... ok
+test_symlink_ancestor_rejected (__main__.Transport.test_symlink_ancestor_rejected) ... ok
+test_traversal_duplicate_drive_and_backslash_blocked (__main__.Transport.test_traversal_duplicate_drive_and_backslash_blocked) ... ok
+test_wrong_package_hash (__main__.Transport.test_wrong_package_hash) ... ok
+test_wrong_runtime_manifest (__main__.Transport.test_wrong_runtime_manifest) ... ok
+test_zip_symlink_rejected (__main__.Transport.test_zip_symlink_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.438s
+
+OK
