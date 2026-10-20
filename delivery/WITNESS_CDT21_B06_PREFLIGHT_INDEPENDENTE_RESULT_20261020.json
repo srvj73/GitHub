@@ -1,0 +1,21 @@
+{
+  "artifact": "CDT21_B06_PREFLIGHT_INDEPENDENTE_RESULT_20261020.zip",
+  "auditor": "Claude (Anthropic) / Claude Code remote / claude-opus-5-5 / session_01Xok2R8aoku273NfhbE4HwH",
+  "b06": "BLOCKED",
+  "b06_formal": "NOT_STARTED",
+  "bytes": 32917,
+  "candidate_completeness": "FAIL",
+  "candidate_sha256": "4942871541629C3B38F47EDA55EA2C9E310361533887CB55E577D9641542E7C5",
+  "evidence_manifest_sha256": "88FA5DFA1023CDF266847881229A686DFDD369858A28CD51BCAF61B4867DD992",
+  "generated_utc": "2026-10-20T20:25:20+00:00",
+  "independence": "NOT_PROVEN",
+  "kit_sha256": "63E0D111EFBEC4D58A1A078C58D12174EB31E4C9E7A9079DDD3F11DD86479F29",
+  "launcher_sha256": "EBABF2A037C0D63C40CCAFD8B0B8F27C97F92712A7EEA42B3C61B938418F7965",
+  "members": 19,
+  "paid_credit_used": false,
+  "primary_evidence": "256/479",
+  "return_route": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 21",
+  "schema": "CDT21_B06_PREFLIGHT_NONCIRCULAR_WITNESS_V001",
+  "sha256": "0195EB71DCFEF0DC9B39285E51794F95542F357E7A2411F028B6844E120DC731",
+  "v002_modified": false
+}

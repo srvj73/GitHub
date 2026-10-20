@@ -1,0 +1,453 @@
+[
+  {
+    "role": "G5_D4_REAL_ISOLATED_PATH_NATIVE",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true
+  },
+  {
+    "role": "G5_POWERLOSS_EMULATED",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": false
+  },
+  {
+    "role": "G5_PROCESS_TREE_CRASH_CONTAINMENT",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": false
+  },
+  {
+    "role": "G5_PS51_INSTALL_MENU",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true
+  },
+  {
+    "role": "G5_SAFE_STOP_RESUME_ROW_GROUP",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": false
+  },
+  {
+    "role": "G5_STAGE_B_REAL_ISOLATED_PATH_NATIVE",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true
+  },
+  {
+    "role": "PRE_B06_11_CHAIN",
+    "status": "PASS_PRE_B06_ENGINEERING",
+    "exit": 0,
+    "own_commit": true
+  },
+  {
+    "role": "SUITE_adapter_tests.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_adapter_tests.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_adapter_tests.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/candidate/adapter/adapter_tests.py"
+    ],
+    "ran": 29,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_b2d_origin_decision_binder.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_b2d_origin_decision_binder.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_b2d_origin_decision_binder.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_b2d_origin_decision_binder.py"
+    ],
+    "ran": 29,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_canary_receipt_readback.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": false,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_canary_receipt_readback.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_canary_receipt_readback.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_canary_receipt_readback.py"
+    ],
+    "ran": 13,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_cdt16_delete_share_denial.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_cdt16_delete_share_denial.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_cdt16_delete_share_denial.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_cdt16_delete_share_denial.py"
+    ],
+    "ran": 7,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_cdt16_held_rename_failure.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_cdt16_held_rename_failure.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_cdt16_held_rename_failure.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_cdt16_held_rename_failure.py"
+    ],
+    "ran": 4,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_cdt16_native_pin_contract.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_cdt16_native_pin_contract.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_cdt16_native_pin_contract.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_cdt16_native_pin_contract.py"
+    ],
+    "ran": 2,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_cdt17_final_g5_complete_proof_gate.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_cdt17_final_g5_complete_proof_gate.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_cdt17_final_g5_complete_proof_gate.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_cdt17_final_g5_complete_proof_gate.py"
+    ],
+    "ran": 13,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_cdt18_stage_proof_integrated_reconcile.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_cdt18_stage_proof_integrated_reconcile.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_cdt18_stage_proof_integrated_reconcile.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_cdt18_stage_proof_integrated_reconcile.py"
+    ],
+    "ran": 5,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_full_multiwork.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_full_multiwork.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_full_multiwork.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/candidate/full/test_full_multiwork.py"
+    ],
+    "ran": 38,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_full_postverify_readback.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": false,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_full_postverify_readback.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_full_postverify_readback.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_full_postverify_readback.py"
+    ],
+    "ran": 17,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_full_runner_observability_r41.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_full_runner_observability_r41.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_full_runner_observability_r41.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_full_runner_observability_r41.py"
+    ],
+    "ran": 14,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_full_serial_r9.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_full_serial_r9.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_full_serial_r9.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/candidate/full/test_full_serial_r9.py"
+    ],
+    "ran": 43,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_g5_proof_runner_contract.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_g5_proof_runner_contract.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_g5_proof_runner_contract.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_g5_proof_runner_contract.py"
+    ],
+    "ran": 3,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_installer_legacy_activation_prune.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_installer_legacy_activation_prune.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_installer_legacy_activation_prune.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_installer_legacy_activation_prune.py"
+    ],
+    "ran": 12,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_menu_tx_interprocess.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_menu_tx_interprocess.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_menu_tx_interprocess.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_menu_tx_interprocess.py"
+    ],
+    "ran": 17,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_native_process_control_r41.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_native_process_control_r41.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_native_process_control_r41.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_native_process_control_r41.py"
+    ],
+    "ran": 5,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_official_target_readonly_admission.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_official_target_readonly_admission.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_official_target_readonly_admission.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_official_target_readonly_admission.py"
+    ],
+    "ran": 16,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_official_writer_effectful.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_official_writer_effectful.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_official_writer_effectful.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_official_writer_effectful.py"
+    ],
+    "ran": 27,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_operator_entry_points.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_operator_entry_points.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_operator_entry_points.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_operator_entry_points.py"
+    ],
+    "ran": 11,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_publisher_recovery_v004.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_publisher_recovery_v004.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_publisher_recovery_v004.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/candidate/recovery/tests_release/test_publisher_recovery_v004.py",
+      "implementation_v001/candidate/recovery/tests/test_publisher_recovery_v004.py"
+    ],
+    "ran": 29,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_scratch_powerloss_debris.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_scratch_powerloss_debris.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_scratch_powerloss_debris.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_scratch_powerloss_debris.py"
+    ],
+    "ran": 1,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_stage_canary_physical_publication.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": false,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_stage_canary_physical_publication.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_stage_canary_physical_publication.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_stage_canary_physical_publication.py"
+    ],
+    "ran": 7,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_stageb_full_physical_closure.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": false,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_stageb_full_physical_closure.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_stageb_full_physical_closure.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_stageb_full_physical_closure.py"
+    ],
+    "ran": 12,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  },
+  {
+    "role": "SUITE_test_state_cas_recovery.py",
+    "status": "PASS_NATIVE_SCOPED",
+    "exit": 0,
+    "own_commit": true,
+    "log_matches": [
+      "NATIVE_EVIDENCE/LOGS/SUITE_test_state_cas_recovery.py.log",
+      "NATIVE_EVIDENCE/FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_state_cas_recovery.py.log"
+    ],
+    "test_source_in_pkg": [
+      "implementation_v001/tests/test_state_cas_recovery.py"
+    ],
+    "ran": 11,
+    "ok_line": true,
+    "skips": 0,
+    "count_consistent": true
+  }
+]

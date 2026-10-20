@@ -1,0 +1,48 @@
+{
+  "schema": "CDT21_B06_AUDITOR_IDENTITY_INDEPENDENCE_RESOURCES_V001",
+  "identity": {
+    "assistant": "Claude (Anthropic)",
+    "surface": "Claude Code - sessao remota em nuvem (environment_kind=anthropic_cloud, origin=desktop_app)",
+    "session_id": "session_01Xok2R8aoku273NfhbE4HwH",
+    "configured_model": "claude-opus-5-5",
+    "session_context_model": "claude-opus-5-5",
+    "last_served_model": "claude-opus-5-5",
+    "source": "get_session (claude-code-remote) consultado nesta sessao"
+  },
+  "execution_environment": {
+    "os": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "python": "3.13.16",
+    "windows_native": false,
+    "powershell_5_1": false,
+    "consequence": "Testes nativos Windows/PS 5.1/VSS nao reproduziveis aqui (e nao repetidos por regra: mesmos bytes, PASS nativo preservado). Sondas comportamentais limitadas a codigo Python independente de plataforma (E05/E06)."
+  },
+  "prior_participation": {
+    "this_session": "NENHUMA participacao registrada; container efemero novo; sem diretorio de memoria; unico transcript e o desta sessao; repositorio de trabalho sem conteudo Tickstore.",
+    "model_level": "NAO EXCLUIDA. Os bytes identificam o implementador como \"Opus\" (handoff 00_START_HERE: \"nunca implementador Opus\") e o candidato contem recovery/review/00_PROMPT_OPUS55_B6_CODE_DELTA_REVIEW_V005R1.md dirigido a \"Claude Opus 5.5\" - mesmo modelo desta sessao. Nao e possivel provar que este modelo nao implementou/revisou partes do V002 em outras sessoes."
+  },
+  "memory_isolation": {
+    "declared": "Memorias, outras conversas e conclusoes previas desconsideradas deliberadamente; nenhuma memoria pessoal/historica consultada. A plataforma nao expos memoria persistente nesta sessao; nao se alega desabilitacao global.",
+    "context_present_not_used_for_merit": "Preferencias de estilo do usuario (idioma, convencoes PowerShell) e CLAUDE.md do repositorio (projeto Perseu) - irrelevantes ao merito Tickstore."
+  },
+  "independence_class": "ISOLAMENTO_DE_CONTEXTO_DE_SESSAO_APENAS; MESMA_FAMILIA_E_MESMO_MODELO_DO_IMPLEMENTADOR_DECLARADO",
+  "independence_verdict": "NOT_PROVEN (insuficiente para B06 formal)",
+  "policy_custody": "MASTER/HEAD/SPEC nao procurados, lidos online, validados, comparados nem hasheados; hashes que aparecem nos bytes recebidos foram ignorados para merito.",
+  "resources": {
+    "paid_credits_used": false,
+    "paid_api_used": false,
+    "overage": "isUsingOverage=false (get_session rate_limit_info)",
+    "network_used_for_audit": false,
+    "actual_usage": "tokens do plano da sessao; contagem numerica UNKNOWN"
+  },
+  "prohibited_actions_not_performed": [
+    "alterar V002",
+    "corrigir como auditor",
+    "B07",
+    "D4/D5 produtivos",
+    "canario",
+    "FULL",
+    "eliminar arquivos do titular",
+    "repetir 38 testes nativos",
+    "uso de credito pago"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "CDT21_B06_PREFLIGHT_INPUT_RECEIPT_V001",
+  "generated_utc": "2026-10-20T20:23:58+00:00",
+  "inputs": [
+    {
+      "received_name": "CDT21_B06_PREPARACAO_PRIMARIAS_V002_20261020_R1.zip",
+      "bytes": 18504430,
+      "sha256": "63E0D111EFBEC4D58A1A078C58D12174EB31E4C9E7A9079DDD3F11DD86479F29"
+    },
+    {
+      "received_name": "RUN_CDT21_BUILD_B06_PRIMARY_FULL_20261020_R1.ps1",
+      "bytes": 6345,
+      "sha256": "EBABF2A037C0D63C40CCAFD8B0B8F27C97F92712A7EEA42B3C61B938418F7965"
+    },
+    {
+      "received_name": "WITNESS_CDT21_B06_PREPARACAO_PRIMARIAS_V002_20261020_R1.json",
+      "bytes": 902,
+      "sha256": "163A5F46E4F305CC8511F181B789931DB25B4B86A328807E92C4CE41D36E83A9"
+    }
+  ],
+  "witness_checks": {
+    "kit_sha256_match": true,
+    "launcher_sha256_match": true,
+    "witness_declares_final_audit_package_created": false,
+    "witness_declares_b06_formal_started": false
+  },
+  "required_by_start_file_but_not_received": [
+    "AUDIT_TRANSPORT_MANIFEST.json",
+    "G3_G6_NATIVE_223_PRIMARY.zip",
+    "FULL_PRIMARY_EVIDENCE_RESOLUTION.json",
+    "WITNESS_CDT21_B06_AUDIT_FULL_PRIMARY_V002_20261020.json (testemunha externa do pacote final)",
+    "ENVIAR_AO_CHATGPT_CDT20_PRE_G06_INTEGRATED_20261020_134244_526_37652.zip (SHA ACD7B387..., 115.447.789 bytes)"
+  ]
+}

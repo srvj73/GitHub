@@ -1,0 +1,90 @@
+{
+  "schema": "CDT21_B06_INDEPENDENT_PREFLIGHT_FINDINGS_V001",
+  "candidate_sha256": "4942871541629C3B38F47EDA55EA2C9E310361533887CB55E577D9641542E7C5",
+  "formal_b06_merit_started": false,
+  "classification_note": "Diagnostico tecnico de preflight; nao e veredito formal B06; auditor sem independencia de modelo demonstrada (ver E08).",
+  "findings": [
+    {
+      "id": "F-01",
+      "severity": "MAJOR",
+      "category": "CANDIDATE_COMPLETENESS_EFFECTFUL_ROUTE",
+      "status": "OPEN_FIXABLE",
+      "title": "Entrada legada TICKSTORE_V004R1_MASTER_ORCHESTRATOR.ps1 invoca o orquestrador congelado sem os guards B06-01/B06-02 e fora da cadeia D4/B06/B07",
+      "locators": [
+        {
+          "path": "implementation_v001/candidate/recovery/TICKSTORE_V004R1_MASTER_ORCHESTRATOR.ps1",
+          "sha256": "18900BCC198347A5912AA4CEC23F4D9E7A2513FC41EBE393BFD8151F9EEF259A"
+        },
+        {
+          "path": "implementation_v001/candidate/recovery/modules/orchestrator.py",
+          "sha256": "3C16FC13DBB2C1903DBA4D1463E1249C19086743723E72138F9EDF9A83F741A0"
+        },
+        {
+          "path": "implementation_v001/candidate/adapter/runtime_locator_orchestrator_entry.py",
+          "sha256": "5BFECEA38C55061CD0370D8A9BF0E517115B4932611A58001B8D4704681321A0"
+        },
+        {
+          "path": "implementation_v001/candidate/control/60_EFFECTFUL_WRAPPER_RELEASE.ps1",
+          "sha256": "B8FC4099F1F6AA87CFA627ACC893247874FE1A3E6CCBF4F5D4C64FC4C2C0485B"
+        },
+        {
+          "path": "implementation_v001/candidate/control/FULL_STAGE_CONTINUATION.py",
+          "sha256": "DD501C4DF959C1257E972A58C91003F9C23B114FA7CC52EC551BCF5EE9DAB81D"
+        },
+        {
+          "path": "implementation_v001/candidate/recovery/engine/tickstore_publisher_recovery_v004_release.py",
+          "sha256": "4BB92D88DB728F4BAE3C207C4627F6FDA4D2FAB593E785E7311A90D3CC9F11E7"
+        },
+        {
+          "path": "implementation_v001/candidate/recovery/modules/Launch-TickstoreBundle.ps1",
+          "sha256": "56B7F4FDF1978AB96B23A143907F697C7E89FD6DBCB272CFF9E0C9F4E7D6AB02"
+        }
+      ],
+      "answers": {
+        "ps1_invokes_frozen_orchestrator_directly": "SIM: linhas 11-12 do PS1 executam python -I -S -B modules/orchestrator.py <Command> --package <root> (comandos plan/run/status/stop/resume/reconcile/confirm-stale-lock/ingest-stage-b/postfull/attach).",
+        "bypasses_d4_b06_b07_chain_guards": "SIM (estatico): orchestrator.py nao contem referencia a B06/B07/D4_FIRST/FULL_RELEASE_CHAIN/PRE_B06/ORIGIN_DECISION; a rota sancionada (FULL_RUNNER -> 60_EFFECTFUL_WRAPPER -> runtime_locator_orchestrator_entry / FULL_STAGE_CONTINUATION) aplica RUN_AUTHORITY DPAPI/HMAC, OWNER_GATE sha, policy capture, receipts e remendos em tempo de execucao (guard_frozen_state_reads, pin_frozen_engine_load, install_orchestrator_namespace, no-clobber receipt writer) que o PS1 legado nao aplica. Os unicos portoes internos da rota legada sao arquivos de texto no inbox (C1 B6_CODE_DELTA_REVIEW_V005R1.txt; F1 STAGE_B_REVIEW_V001.txt + frase AUTORIZO FULL; G6 confirmacao de stale lock).",
+        "reachable_by_operator_or_installer": "OPERADOR: SIM por invocacao manual (arquivo embarcado no pacote instalado e exigido por hash na SUCCESSOR_PACKAGE pelo wrapper e pelo D4_FIRST_ADMISSION_BOOTSTRAP; exige cwd C:\\Users\\silvi e Python 3.14.7 pinado). INSTALADOR/MENU/RUN: NAO despachado (MENU -> RUN_TICKSTORE_FULL.ps1 -> FULL_RUNNER.py -> 60_EFFECTFUL_WRAPPER_RELEASE.ps1). Nenhum controle negativo/teste cobre a entrada; nao consta dos 11 consumidores effectful.",
+        "behavior_with_missing_state": "State.__init__ congelado fabrica STATE NEW/A0 e o grava (E05 P1); reescreve STATE existente a cada construcao (E05 P2); com STATE perdido e journal preservado reinicia em A0 sem consultar o journal (E05 P3); plan/status tambem constroem State (E05 P4). Contraste: sob guard_frozen_state_reads -> ADAPTER_ENTRY_STATE_MISSING e sem reescrita (E06). O proprio contrato exige test_state_constructor_does_not_rewrite/test_missing_state_never_recreated (QUALIFICATION_CONTRACT.json; B07_TECHNICAL_PRODUCER.py), atendidos apenas pela rota com remendo.",
+        "owner_gate_and_release_independently_protected": "NAO na rota legada: O.gate() fixa \"authorized\": True; admit_bundle do engine apenas confere coerencia com a ancora emitida pelo mesmo processo; E8 materializa bundle RECOVER de producao (production_recovery_authorized=True) e ancora antes de F1; modules/Launch-TickstoreBundle.ps1 lanca qualquer par bundle/ancora conferindo so hash do loader e campos da ancora (estatico, nao executado)."
+      },
+      "reachable_effects_static": "STATE ausente + run (until padrao E9): reexecucao A0..E9 com efeitos SYS (VSS em B6/B6X/D3/E2), CAN (copia de producao para canario em D2) e DEV; escrita FULL de producao (G3) exige portoes de texto F1 ou lancamento direto do bundle pos-E8. Alcancabilidade fisica na maquina do titular NAO comprovada dinamicamente (exige Windows/VSS/admin).",
+      "producer_claims_contradicted": [
+        "g5proof/PRE_G06_CONSUMER_REVIEW.json: orchestrator.py \"file cannot be an orchestration root; no production execute/main invocation\"",
+        "FINAL_G5/FIVE_PART_PROOFS all_known_fixable_blockers_closed=PASS e adversarial_false_completeness_check=PASS sem evidencia cobrindo esta rota"
+      ],
+      "contrast": "full/run_tickstore_full_multiwork_r9.ps1 (rota legada FULL multiwork) foi endurecida: LEGACY_ADMINISTRATIVE_OWNER_GATE_REVOKED e TECHNICAL_RELEASE_CHAIN_REQUIRED via FULL_RELEASE_CHAIN; a rota recovery V004R1 nao recebeu endurecimento equivalente.",
+      "auditor_does_not_fix": true
+    },
+    {
+      "id": "F-02",
+      "severity": "BLOCKER_EVIDENTIARY",
+      "category": "PRIMARY_EVIDENCE_INTEGRITY",
+      "status": "OPEN",
+      "title": "223/479 artefatos primarios do commit G3_G6_NATIVE ausentes; tres provas G5 derivam de um unico experimento",
+      "detail": "Presentes e integros 256/479; ausentes 223 (197.403.163 bytes), todos NATIVE_EVIDENCE/WORK/G3_G6_NATIVE/ (E01, E09). POWERLOSS_EMULATED, PROCESS_TREE_CRASH_CONTAINMENT e SAFE_STOP_RESUME_ROW_GROUP: mesmo cenario, mesmo runner g5proof/PRE_G06_PROOF_PROJECTION.py (SHA A649C628...), sem commit proprio; POWERLOSS_EMULATED status EMULATED_PASS, counts_as NOT_CHECKPOINT_POWERLOSS_RECOVERY. Nao equivalem a tres provas independentes; bytes primarios indisponiveis."
+    },
+    {
+      "id": "F-03",
+      "severity": "MINOR",
+      "category": "NEGATIVE_CONTROL_COVERAGE",
+      "status": "OPEN",
+      "title": "Controle negativo pulado em execucao nativa",
+      "detail": "DELTA_test_cdt19_r06_integrated_contract: skipped=1 (test_native_required_blocks_offline, motivo \"Windows native separately\") embora executado em Windows nativo; status PASS. Cobertura equivalente nao localizada nos bytes recebidos."
+    },
+    {
+      "id": "F-04",
+      "severity": "MINOR",
+      "category": "TOCTOU_LEGACY_LAUNCHER",
+      "status": "OPEN_FIXABLE",
+      "title": "Launcher legado do recovery mantem janela hash->releitura corrigida no adapter",
+      "detail": "recovery/modules/Launch-TickstoreBundle.ps1 calcula Get-FileHash do loader e depois executa ReadAllBytes; a variante adapter/Launch-TickstoreBundle-Adapter.ps1 declara correcao B06R2 (hash do mesmo buffer executado). Relacionado a F-01."
+    },
+    {
+      "id": "I-01",
+      "severity": "INFO",
+      "category": "LABELING",
+      "title": "31 papeis contratados vs 24 com commit proprio",
+      "detail": "LIVE_STATUS.committed_units=31 com escopo CONTRACTED_EVIDENCE_ROLES_NOT_COMMIT_FILES; 7 papeis sem commit proprio (3 projecoes G3/G6 e 4 suites cujas fontes estao vinculadas por hash em EVIDENCE/PROOFS/STAGE_B_REAL_ISOLATED_PATH_NATIVE/NATIVE_SUITE_RESULT.json, sob o commit G5_STAGE_B_REAL_ISOLATED_PATH_NATIVE)."
+    }
+  ]
+}

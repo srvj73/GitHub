@@ -1,0 +1,12 @@
+{
+  "entry_load": "OK",
+  "G1_guarded_missing_state": {
+    "outcome": "FAIL_CLOSED",
+    "error": "ADAPTER_ENTRY_STATE_MISSING",
+    "state_exists": false
+  },
+  "G2_guarded_existing_state": {
+    "outcome": "CONSTRUCTED",
+    "rewritten": false
+  }
+}

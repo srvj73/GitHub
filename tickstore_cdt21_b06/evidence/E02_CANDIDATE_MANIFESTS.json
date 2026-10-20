@@ -1,0 +1,30 @@
+{
+  "PACKAGE": {
+    "total": 303,
+    "ok": 303,
+    "missing": [],
+    "mismatch": []
+  },
+  "PACKAGE_unlisted": [
+    "PACKAGE_MANIFEST.json"
+  ],
+  "SOURCE": {
+    "total": 301,
+    "ok": 301,
+    "missing": [],
+    "mismatch": []
+  },
+  "SOURCE_unlisted": [
+    "RUNTIME_CODE_MANIFEST.json",
+    "SOURCE_MANIFEST.json"
+  ],
+  "RUNTIME": {
+    "total": 162,
+    "ok": 162,
+    "missing": [],
+    "mismatch": []
+  },
+  "RUNTIME_unlisted_in_candidate_dir": [],
+  "RUNTIME_manifest_sha": "3C97A2D732F4430E8C5BAB30138ED422D1070B73F43AD1DFAD5D5CB2BBDF25B5",
+  "SOURCE_manifest_sha": "FDC1DB12A798DBBADD9BA448C738C368C7390485EA264ACE53F156DE79BCE163"
+}

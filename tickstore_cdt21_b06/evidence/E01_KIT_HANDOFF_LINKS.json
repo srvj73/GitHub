@@ -1,0 +1,682 @@
+{
+  "kit_manifest": [
+    {
+      "path": "00_START_HERE_PREPARAR_PRIMARIAS_B06.md",
+      "bytes_ok": true,
+      "sha_ok": true,
+      "sha_actual": "ADEBB739D0BB67EEF4EB993C438ACE8AD982DAF2DE102D205D073F6E6CF7C6DF"
+    },
+    {
+      "path": "00_START_HERE_B06_INDEPENDENT_NO_MEMORY.md",
+      "bytes_ok": true,
+      "sha_ok": true,
+      "sha_actual": "E9E718A0F8D3E1E7B9DC8D189E87CFC8E9FA0F4AA768CF7E32CACE68541A0CB6"
+    },
+    {
+      "path": "BUILD_PACKAGE_WITH_PRIMARY.py",
+      "bytes_ok": true,
+      "sha_ok": true,
+      "sha_actual": "AA24AE75DD207D0FA98FD3BC1D222E124B0D0D14D43044567F59B53BD5B79A7C"
+    },
+    {
+      "path": "ORIGINAL_HANDOFF_TICKS20_TO_TICKS21_V002.zip",
+      "bytes_ok": true,
+      "sha_ok": true,
+      "sha_actual": "58BA9B246708E73AB33F4037D96DB8BD3DA3F0DBBE0D4064C2026A95C86DFECE"
+    },
+    {
+      "path": "G5_OWNER_FORMAL_DECISION.json",
+      "bytes_ok": true,
+      "sha_ok": true,
+      "sha_actual": "52D22B28339BA094B8EEB0D3A7E9EC7988B8B412BEAA2558759D4F84E73CE93A"
+    },
+    {
+      "path": "B06_ORIGIN_KNOWN_RISK_AND_ADMISSION.json",
+      "bytes_ok": true,
+      "sha_ok": true,
+      "sha_actual": "47E2C2D0922A91934B0E7046315AC58A8B0C36B2111DD19A87CA869C73CDC76A"
+    },
+    {
+      "path": "REQUIRED_223_PRIMARY_FILES.json",
+      "bytes_ok": true,
+      "sha_ok": true,
+      "sha_actual": "4FCB13B5710A94BD5E9A77E0423745962B61A9A3386049CE48E4E2DC049BD470"
+    }
+  ],
+  "kit_manifest_all_ok": true,
+  "handoff_sha": "58BA9B246708E73AB33F4037D96DB8BD3DA3F0DBBE0D4064C2026A95C86DFECE",
+  "handoff_bytes": 19069416,
+  "handoff_testzip": null,
+  "handoff_entries": 1005,
+  "handoff_dup_casefold": [],
+  "handoff_unsafe": [],
+  "candidate_sha": "4942871541629C3B38F47EDA55EA2C9E310361533887CB55E577D9641542E7C5",
+  "candidate_bytes": 17264051,
+  "candidate_testzip": null,
+  "candidate_entries": 304,
+  "commit_count": 38,
+  "raw_artifact_refs": 479,
+  "unique_links": 479,
+  "conflicting_links": [],
+  "links_present_verified": 256,
+  "links_present_corrupt": [],
+  "links_missing": 223,
+  "links_missing_bytes": 197403163,
+  "missing_outside_g3g6": [],
+  "missing_by_commit": {
+    "NATIVE_EVIDENCE/COMMITS/G3_G6_NATIVE.json": 223
+  },
+  "required223_count": 223,
+  "required223_equals_independent_missing_set": true,
+  "required223_sym_diff": [],
+  "per_commit": {
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt18_pre_g06_v003_d4_technical_bridge.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_durable_barrier_contract.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_final_completeness_contract.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_final_transport_closure.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_g6_ownership_closure.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_integrated_crash_recovery.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_native_campaign_contract.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_r04_preb06_g6.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_r06_integrated_contract.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt19_r07_g3_g6_integrated_causality.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_cdt20_pre_g06_integrated_closure.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_g5_producer_consumer_roundtrip.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/DELTA_test_integrated_evidence_contract.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/G3_G6_NATIVE.json": {
+      "artifacts": 225,
+      "present_ok": 2,
+      "missing": 223,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/G5_D4_REAL_ISOLATED_PATH_NATIVE.json": {
+      "artifacts": 8,
+      "present_ok": 8,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/G5_PS51_INSTALL_MENU.json": {
+      "artifacts": 12,
+      "present_ok": 12,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/G5_STAGE_B_REAL_ISOLATED_PATH_NATIVE.json": {
+      "artifacts": 11,
+      "present_ok": 11,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/PRE_B06_11_CHAIN.json": {
+      "artifacts": 157,
+      "present_ok": 157,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_adapter_tests.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_b2d_origin_decision_binder.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_cdt16_delete_share_denial.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_cdt16_held_rename_failure.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_cdt16_native_pin_contract.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_cdt17_final_g5_complete_proof_gate.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_cdt18_stage_proof_integrated_reconcile.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_full_multiwork.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_full_runner_observability_r41.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_full_serial_r9.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_g5_proof_runner_contract.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_installer_legacy_activation_prune.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_menu_tx_interprocess.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_native_process_control_r41.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_official_target_readonly_admission.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_official_writer_effectful.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_operator_entry_points.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_publisher_recovery_v004.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_scratch_powerloss_debris.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    },
+    "NATIVE_EVIDENCE/COMMITS/SUITE_test_state_cas_recovery.py.json": {
+      "artifacts": 2,
+      "present_ok": 2,
+      "missing": 0,
+      "corrupt": [],
+      "keys": [
+        "code_sha256",
+        "observed_processes",
+        "own_descendants_final",
+        "owner",
+        "package_sha256",
+        "result",
+        "schema",
+        "seconds"
+      ]
+    }
+  }
+}

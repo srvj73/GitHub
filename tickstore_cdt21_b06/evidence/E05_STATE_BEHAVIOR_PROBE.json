@@ -1,0 +1,23 @@
+{
+  "orchestrator_sha256": "3C16FC13DBB2C1903DBA4D1463E1249C19086743723E72138F9EDF9A83F741A0",
+  "python": "3.13.16 (main, Oct  1 2026, 15:40:24) [GCC 13.3.0]",
+  "module_load": "OK",
+  "P1_missing_state": {
+    "state_file_created": true,
+    "next_node": "A0",
+    "status": "NEW"
+  },
+  "P2_constructor_rewrite": {
+    "sha_before": "37B197A6C4C493C9D0FB22FF7281EEA795CB55F5397A5344746B4D317587A6AB",
+    "sha_after": "35F7EF5A0026953783E92A74032DFB724183C52F81E4F98E3247F8D5172CB24B",
+    "rewritten": true
+  },
+  "P3_state_lost_journal_kept": {
+    "journal_lines": 1,
+    "reinitialized_next_node": "A0",
+    "reinitialized_status": "NEW",
+    "journal_unchanged": true
+  },
+  "P4_main_constructs_state_before_plan_status": true,
+  "P5_gate_self_authorized": true
+}

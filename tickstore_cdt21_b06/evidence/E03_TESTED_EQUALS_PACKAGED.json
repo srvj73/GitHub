@@ -1,0 +1,486 @@
+[
+  {
+    "commit": "DELTA_test_cdt18_pre_g06_v003_d4_technical_bridge.py.json",
+    "unit": "DELTA_test_cdt18_pre_g06_v003_d4_technical_bridge.py",
+    "test_source_sha256": "7F5AF9FDFE7C78F5D1DEFCF04E9D0FDAD424151AB7356753D4744F31F9AF6332",
+    "in_package": [
+      "implementation_v001/tests/test_cdt18_pre_g06_v003_d4_technical_bridge.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_durable_barrier_contract.py.json",
+    "unit": "DELTA_test_cdt19_durable_barrier_contract.py",
+    "test_source_sha256": "2157F394BE6C06DA6775009D48928669AE56C7CB86FA81779BB40316173E356C",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_durable_barrier_contract.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_final_completeness_contract.py.json",
+    "unit": "DELTA_test_cdt19_final_completeness_contract.py",
+    "test_source_sha256": "64C368237ADCE5A4C435966FF864A0891F62BAC7EEB35FD02D1E840767FB9E65",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_final_completeness_contract.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_final_transport_closure.py.json",
+    "unit": "DELTA_test_cdt19_final_transport_closure.py",
+    "test_source_sha256": "23EC64294C451E4EF2606594BDD8B56A9680314137022579160C3D657FF38D43",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_final_transport_closure.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_g6_ownership_closure.py.json",
+    "unit": "DELTA_test_cdt19_g6_ownership_closure.py",
+    "test_source_sha256": "3C75B14C48F33C96D45F4946BEB99077E1B2A87C20C88BD9BDA364C1E327FF92",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_g6_ownership_closure.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_integrated_crash_recovery.py.json",
+    "unit": "DELTA_test_cdt19_integrated_crash_recovery.py",
+    "test_source_sha256": "6C72AF080A0BE4EF24465C77E0B10676A34F41C1CE892A7A5E9DFE1DDB2FADA6",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_integrated_crash_recovery.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_native_campaign_contract.py.json",
+    "unit": "DELTA_test_cdt19_native_campaign_contract.py",
+    "test_source_sha256": "3624ABF38FDDEDB65ECBABFE2C2E9DC2E200810DD903B521D9768A822F7167E7",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_native_campaign_contract.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_r04_preb06_g6.py.json",
+    "unit": "DELTA_test_cdt19_r04_preb06_g6.py",
+    "test_source_sha256": "375860CD80B9713F23C875089D6734E98DAC2AAF5E56DE916090A2500FCE1424",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_r04_preb06_g6.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_r06_integrated_contract.py.json",
+    "unit": "DELTA_test_cdt19_r06_integrated_contract.py",
+    "test_source_sha256": "E1AA1A9616FC98C97F57DC8572605CCCC701E7C5E8233E7BCB3EFE1B6D13CA12",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_r06_integrated_contract.py"
+    ],
+    "skipped": true,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt19_r07_g3_g6_integrated_causality.py.json",
+    "unit": "DELTA_test_cdt19_r07_g3_g6_integrated_causality.py",
+    "test_source_sha256": "12C2B84E73EADB557B1A230EA4BFADD16DB4DD2CA957BB20C4BB4D2CC455E99F",
+    "in_package": [
+      "implementation_v001/tests/test_cdt19_r07_g3_g6_integrated_causality.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_cdt20_pre_g06_integrated_closure.py.json",
+    "unit": "DELTA_test_cdt20_pre_g06_integrated_closure.py",
+    "test_source_sha256": "754C57E2A4AF708A3743BB3EEDB410C0CE727E6F2903B7B2E58811073D96B9C7",
+    "in_package": [
+      "implementation_v001/tests/test_cdt20_pre_g06_integrated_closure.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_g5_producer_consumer_roundtrip.py.json",
+    "unit": "DELTA_test_g5_producer_consumer_roundtrip.py",
+    "test_source_sha256": "3656DC591DA978025711E9867CDB081B116652648C0FA04C11CC70DE6DCEAE1F",
+    "in_package": [
+      "implementation_v001/tests/test_g5_producer_consumer_roundtrip.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "DELTA_test_integrated_evidence_contract.py.json",
+    "unit": "DELTA_test_integrated_evidence_contract.py",
+    "test_source_sha256": "0A5A1E17E2B32791BAE076DAD28E1E47B220E16C879C76CFBA851BEF70A02860",
+    "in_package": [
+      "implementation_v001/tests/test_integrated_evidence_contract.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "G3_G6_NATIVE.json",
+    "unit": "G3_G6_NATIVE",
+    "test_source_sha256": null,
+    "in_package": null,
+    "skipped": null,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "G5_D4_REAL_ISOLATED_PATH_NATIVE.json",
+    "unit": "G5_D4_REAL_ISOLATED_PATH_NATIVE",
+    "test_source_sha256": null,
+    "in_package": null,
+    "skipped": null,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "G5_PS51_INSTALL_MENU.json",
+    "unit": "G5_PS51_INSTALL_MENU",
+    "test_source_sha256": null,
+    "in_package": null,
+    "skipped": null,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "G5_STAGE_B_REAL_ISOLATED_PATH_NATIVE.json",
+    "unit": "G5_STAGE_B_REAL_ISOLATED_PATH_NATIVE",
+    "test_source_sha256": null,
+    "in_package": null,
+    "skipped": null,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "PRE_B06_11_CHAIN.json",
+    "unit": "PRE_B06_11_CHAIN",
+    "test_source_sha256": null,
+    "in_package": null,
+    "skipped": null,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_adapter_tests.py.json",
+    "unit": "SUITE_adapter_tests.py",
+    "test_source_sha256": "280212DCBF9AB4C6E069A68783D09ADAB6D5F1766BE3A53770D3531D9DFB3809",
+    "in_package": [
+      "implementation_v001/candidate/adapter/adapter_tests.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_b2d_origin_decision_binder.py.json",
+    "unit": "SUITE_test_b2d_origin_decision_binder.py",
+    "test_source_sha256": "D19EF3BA870D4065CFDF6C39B35EEB8D24CE9FAEF171E2C6806D9C4E7708DAA0",
+    "in_package": [
+      "implementation_v001/tests/test_b2d_origin_decision_binder.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_cdt16_delete_share_denial.py.json",
+    "unit": "SUITE_test_cdt16_delete_share_denial.py",
+    "test_source_sha256": "6515919E34B2E461BBEBC1C6DBA04AEC9D707BEAD5EB35B47AD0A419070EFA60",
+    "in_package": [
+      "implementation_v001/tests/test_cdt16_delete_share_denial.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_cdt16_held_rename_failure.py.json",
+    "unit": "SUITE_test_cdt16_held_rename_failure.py",
+    "test_source_sha256": "C1A35475820EF62BD0FBB2D1CF6B268460AD936E7991D0D629F92E00B2D73D84",
+    "in_package": [
+      "implementation_v001/tests/test_cdt16_held_rename_failure.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_cdt16_native_pin_contract.py.json",
+    "unit": "SUITE_test_cdt16_native_pin_contract.py",
+    "test_source_sha256": "19E4688311EBC587DFED7865615FAACE3E7D4265C6D47DB115DE754402822734",
+    "in_package": [
+      "implementation_v001/tests/test_cdt16_native_pin_contract.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_cdt17_final_g5_complete_proof_gate.py.json",
+    "unit": "SUITE_test_cdt17_final_g5_complete_proof_gate.py",
+    "test_source_sha256": "AEEF1AAD041D00F3FB1D30ECA76EFC057B67DDDC325788DB13E1EE619CEE0E80",
+    "in_package": [
+      "implementation_v001/tests/test_cdt17_final_g5_complete_proof_gate.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_cdt18_stage_proof_integrated_reconcile.py.json",
+    "unit": "SUITE_test_cdt18_stage_proof_integrated_reconcile.py",
+    "test_source_sha256": "1BE90D8E045E79D3B44D081A9FE6E9BFED1E379BE32FB22DE3D36075F731534F",
+    "in_package": [
+      "implementation_v001/tests/test_cdt18_stage_proof_integrated_reconcile.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_full_multiwork.py.json",
+    "unit": "SUITE_test_full_multiwork.py",
+    "test_source_sha256": "32E7146FE44292A70A7A68106AEC2D4014707B856F98BDE7D6E9CE813B76955E",
+    "in_package": [
+      "implementation_v001/candidate/full/test_full_multiwork.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_full_runner_observability_r41.py.json",
+    "unit": "SUITE_test_full_runner_observability_r41.py",
+    "test_source_sha256": "42BBE81E7BD13623FE0669267A6562069DCD5059C0D20D9EEE91EC6AFBA62DD7",
+    "in_package": [
+      "implementation_v001/tests/test_full_runner_observability_r41.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_full_serial_r9.py.json",
+    "unit": "SUITE_test_full_serial_r9.py",
+    "test_source_sha256": "E462FC847CC98CFB865259F94454E386955D34A113328E638BB83CE3BA90525B",
+    "in_package": [
+      "implementation_v001/candidate/full/test_full_serial_r9.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_g5_proof_runner_contract.py.json",
+    "unit": "SUITE_test_g5_proof_runner_contract.py",
+    "test_source_sha256": "E1A9536B1B35D90E4604F673696384D1D285CA5E98169D7D1A477C7423997FC9",
+    "in_package": [
+      "implementation_v001/tests/test_g5_proof_runner_contract.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_installer_legacy_activation_prune.py.json",
+    "unit": "SUITE_test_installer_legacy_activation_prune.py",
+    "test_source_sha256": "863303A68C30A92DA95EC73C3EB286C09C8B30CFE8B37095A0C1D6DD9BF6ED81",
+    "in_package": [
+      "implementation_v001/tests/test_installer_legacy_activation_prune.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_menu_tx_interprocess.py.json",
+    "unit": "SUITE_test_menu_tx_interprocess.py",
+    "test_source_sha256": "88DF3EDD499C80C08707B7BBC72F60DEFA9FD24F943520DBCD1932CE4DAAB177",
+    "in_package": [
+      "implementation_v001/tests/test_menu_tx_interprocess.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_native_process_control_r41.py.json",
+    "unit": "SUITE_test_native_process_control_r41.py",
+    "test_source_sha256": "62B31DF08EA8A57A5DB925B71F7B5B750FB056A1893F8A20B50E46C682B291A1",
+    "in_package": [
+      "implementation_v001/tests/test_native_process_control_r41.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_official_target_readonly_admission.py.json",
+    "unit": "SUITE_test_official_target_readonly_admission.py",
+    "test_source_sha256": "A06C8F41F4865895CAD4FBB9C38C5003BBB4B07DDE34CFD24A4CE8A383B8AEA3",
+    "in_package": [
+      "implementation_v001/tests/test_official_target_readonly_admission.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_official_writer_effectful.py.json",
+    "unit": "SUITE_test_official_writer_effectful.py",
+    "test_source_sha256": "3A115B7EE41C175B5CEF21D940E3771150321DC3BD89F2BB22D3C73B4114D190",
+    "in_package": [
+      "implementation_v001/tests/test_official_writer_effectful.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_operator_entry_points.py.json",
+    "unit": "SUITE_test_operator_entry_points.py",
+    "test_source_sha256": "FCB3132A1CAA3049558F48AB537CD1A4E226541E2D340B03E69246BFDDD3B0E4",
+    "in_package": [
+      "implementation_v001/tests/test_operator_entry_points.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_publisher_recovery_v004.py.json",
+    "unit": "SUITE_test_publisher_recovery_v004.py",
+    "test_source_sha256": "26B334901A1C13F73F737508EDFE9CEB5A0F9228D751849DC9A70CEC373F60D8",
+    "in_package": [
+      "implementation_v001/candidate/recovery/tests_release/test_publisher_recovery_v004.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_scratch_powerloss_debris.py.json",
+    "unit": "SUITE_test_scratch_powerloss_debris.py",
+    "test_source_sha256": "E955228D8E34EB6D7D02EEC3FC40FAA87455F5E6C8EA21DE82F691CF615426F6",
+    "in_package": [
+      "implementation_v001/tests/test_scratch_powerloss_debris.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  },
+  {
+    "commit": "SUITE_test_state_cas_recovery.py.json",
+    "unit": "SUITE_test_state_cas_recovery.py",
+    "test_source_sha256": "13CB1E3631265D86FCAED71CC12EC614B2A875C75D0F5530D89C73EBABC628AD",
+    "in_package": [
+      "implementation_v001/tests/test_state_cas_recovery.py"
+    ],
+    "skipped": false,
+    "status": "PASS",
+    "exit": 0,
+    "code_sha_ok": true,
+    "pkg_sha_ok": true
+  }
+]
