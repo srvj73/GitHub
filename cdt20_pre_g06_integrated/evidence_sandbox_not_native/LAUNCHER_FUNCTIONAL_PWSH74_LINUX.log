@@ -1,0 +1,19 @@
+test_a_real_g0_refuses_non_windows_and_blocks_after_staging (__main__.Launcher.test_a_real_g0_refuses_non_windows_and_blocks_after_staging) ... ok
+test_b_success_plumbing_with_real_g0_sandbox_and_stub_campaign (__main__.Launcher.test_b_success_plumbing_with_real_g0_sandbox_and_stub_campaign) ... ok
+test_c_safe_stop_and_blocked_campaign_codes (__main__.Launcher.test_c_safe_stop_and_blocked_campaign_codes) ... ok
+test_d_tampered_transport_blocks_before_effects (__main__.Launcher.test_d_tampered_transport_blocks_before_effects) ... ok
+test_e_missing_transport_blocks (__main__.Launcher.test_e_missing_transport_blocks) ... ok
+test_f_member_hash_mismatch_blocks_after_staging (__main__.Launcher.test_f_member_hash_mismatch_blocks_after_staging) ... ok
+test_g_unsafe_member_blocks (__main__.Launcher.test_g_unsafe_member_blocks) ... ok
+test_h_extra_member_blocks (__main__.Launcher.test_h_extra_member_blocks) ... ok
+test_i_prior_g0_log_collected_read_only (__main__.Launcher.test_i_prior_g0_log_collected_read_only) ... ok
+test_j_reentrancy_blocked (__main__.Launcher.test_j_reentrancy_blocked) ... /usr/lib/python3.13/unittest/case.py:606: ResourceWarning: unclosed file <_io.BufferedReader name=3>
+  if method() is not None:
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_k_exit_zero_without_receipt_is_not_pass (__main__.Launcher.test_k_exit_zero_without_receipt_is_not_pass) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 56.716s
+
+OK

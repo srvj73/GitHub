@@ -1,0 +1,428 @@
+--- parent/implementation_v001/candidate/control/FULL_G5_COMPLETE_PROOF_GATE.py
++++ successor/implementation_v001/candidate/control/FULL_G5_COMPLETE_PROOF_GATE.py
+@@ -235,13 +235,21 @@
+                      'FAILURE_AFTER_CHECKPOINT')
+ 
+ 
++# Resource bound against decompression bombs, not an evidence criterion. A real
++# PRE-G06 return carries the full G3/G6 physical namespace (~197 MB in the 12:19
++# native run) plus every other unit, so the earlier 512 MiB bound was untested
++# against a complete successful campaign and could block a valid readback.
++NATIVE_ZIP_MAX_MEMBERS = 20000
++NATIVE_ZIP_MAX_UNCOMPRESSED = 1536 * 1024**2
++
++
+ def native_zip_members(raw):
+     """Bounded, exact-name ZIP read; no extraction and no execution of evidence."""
+     try:
+         with zipfile.ZipFile(io.BytesIO(raw)) as arc:
+             infos = arc.infolist()
+             names = [r.filename for r in infos]
+-            req(len(names) <= 20000 and sum(r.file_size for r in infos) <= 512 * 1024**2,
++            req(len(names) <= NATIVE_ZIP_MAX_MEMBERS and sum(r.file_size for r in infos) <= NATIVE_ZIP_MAX_UNCOMPRESSED,
+                 'NATIVE_ZIP_BOUNDS')
+             req(len(names) == len({n.casefold() for n in names}), 'NATIVE_ZIP_DUPLICATE')
+             req(all(not r.is_dir() and r.filename and not r.filename.startswith('/')
+--- parent/implementation_v001/candidate/g5proof/PRE_G06_CAMPAIGN.py
++++ successor/implementation_v001/candidate/g5proof/PRE_G06_CAMPAIGN.py
+@@ -40,9 +40,49 @@
+        'test_cdt19_r07_g3_g6_integrated_causality.py','test_cdt19_r06_integrated_contract.py',
+        'test_integrated_evidence_contract.py',
+        'test_g5_producer_consumer_roundtrip.py','test_cdt18_pre_g06_v003_d4_technical_bridge.py',
+-       'test_cdt19_r04_preb06_g6.py')
++       'test_cdt19_r04_preb06_g6.py','test_cdt20_pre_g06_integrated_closure.py')
+ STAGE_SUITES=('test_stageb_full_physical_closure.py','test_stage_canary_physical_publication.py',
+               'test_full_postverify_readback.py','test_canary_receipt_readback.py')
++
++
++# Observed unit durations (seconds) of the 12:19 native run R08_Q1_20261020121927.
++# Only an ETA basis: never evidence, never reused as a result of this package.
++UNIT_BASELINE_S={'DELTA_test_cdt18_pre_g06_v003_d4_technical_bridge.py':2,'DELTA_test_cdt19_durable_barrier_contract.py':1,
++    'DELTA_test_cdt19_final_completeness_contract.py':13,'DELTA_test_cdt19_final_transport_closure.py':8,
++    'DELTA_test_cdt19_g6_ownership_closure.py':1,'DELTA_test_cdt19_integrated_crash_recovery.py':1,
++    'DELTA_test_cdt19_native_campaign_contract.py':1,'DELTA_test_cdt19_r04_preb06_g6.py':1,
++    'DELTA_test_cdt19_r06_integrated_contract.py':4,'DELTA_test_cdt19_r07_g3_g6_integrated_causality.py':1,
++    'DELTA_test_g5_producer_consumer_roundtrip.py':2,'DELTA_test_integrated_evidence_contract.py':1,
++    'G3_G6_NATIVE':311,'G5_D4_REAL_ISOLATED_PATH_NATIVE':1,'G5_PS51_INSTALL_MENU':12,
++    'G5_STAGE_B_REAL_ISOLATED_PATH_NATIVE':7,'PRE_B06_11_CHAIN':14,'SUITE_adapter_tests.py':1,
++    'SUITE_test_b2d_origin_decision_binder.py':8,'SUITE_test_cdt16_delete_share_denial.py':1,
++    'SUITE_test_cdt16_held_rename_failure.py':1,'SUITE_test_cdt16_native_pin_contract.py':1,
++    'SUITE_test_cdt17_final_g5_complete_proof_gate.py':2,'SUITE_test_cdt18_stage_proof_integrated_reconcile.py':1,
++    'SUITE_test_full_multiwork.py':5,'SUITE_test_full_runner_observability_r41.py':1,'SUITE_test_full_serial_r9.py':37,
++    'SUITE_test_g5_proof_runner_contract.py':8,'SUITE_test_installer_legacy_activation_prune.py':1,
++    'SUITE_test_menu_tx_interprocess.py':3,'SUITE_test_native_process_control_r41.py':2,
++    'SUITE_test_official_target_readonly_admission.py':1,'SUITE_test_official_writer_effectful.py':17,
++    'SUITE_test_operator_entry_points.py':2,'SUITE_test_publisher_recovery_v004.py':1,
++    'SUITE_test_scratch_powerloss_debris.py':237,'SUITE_test_state_cas_recovery.py':1}
++
++
++def heartbeat_line(key,elapsed,owned,progress,remaining_keys,now_utc):
++    """One honest status line: ETA is UNKNOWN once the native baseline is exceeded."""
++    base=UNIT_BASELINE_S.get(key)
++    if base is None:eta,reason='UNKNOWN','NO_NATIVE_BASELINE'
++    elif elapsed>2*base+30:eta,reason='UNKNOWN','UNIT_EXCEEDED_NATIVE_BASELINE'
++    else:eta,reason=str(max(0,base-int(elapsed))),'R08_1219_NATIVE_BASELINE'
++    rest=[UNIT_BASELINE_S.get(k) for k in remaining_keys]
++    unbased=rest.count(None)
++    # A unit without an observed native duration is never given an invented one:
++    # the campaign ETA is then UNKNOWN and only the observed part is reported.
++    known=None if eta=='UNKNOWN' else int(eta)+sum(r for r in rest if r is not None)
++    total='UNKNOWN' if known is None or unbased else str(known)
++    return ('HEARTBEAT ACTIVE_TEST='+key+' UNIT_ELAPSED_S='+str(int(elapsed))+' OWNED_PIDS='+str(owned)+
++            ' PROGRESS_COMMITTED='+progress+' UNIT_ETA_S='+eta+' CAMPAIGN_ETA_S='+total+
++            ' CAMPAIGN_ETA_OBSERVED_PART_S='+('UNKNOWN' if known is None else str(known))+
++            ' UNITS_WITHOUT_BASELINE='+str(unbased)+
++            ' ETA_BASIS='+reason+' ETA_AS_OF='+now_utc.strftime('%Y-%m-%dT%H:%M:%SZ'))
+ 
+ 
+ def suite_path(name):
+@@ -160,8 +200,8 @@
+                 census=job.memory_snapshot()
+                 for p in census['processes']:
+                     if p['pid']!=os.getpid():seen[(p['pid'],p['creation_filetime'])]=p
+-                print('HEARTBEAT PHASE='+key+' ELAPSED_S='+str(int(now-started))+
+-                      ' OWNED_PIDS='+str(len(census['processes'])-1)+' ETA=UNKNOWN REASON=NATIVE_ENGINEERING',flush=True)
++                print(heartbeat_line(key,now-started,len(census['processes'])-1,spec.get('progress','?/?'),
++                      spec.get('remaining',()),datetime.datetime.now(datetime.timezone.utc)),flush=True)
+                 last=now+5
+             if (root/'SAFE_STOP.request').exists():
+                 # Request existing owned engine events. Tests without one finish
+@@ -378,10 +418,15 @@
+         result.update(code_manifest_sha256=code_sha,final_zip_sha256=pack_sha,run_id=root.name)
+         base=dict(root=str(root),run_id=root.name,package_sha256=pack_sha,code_sha256=code_sha,
+                   witness=a.witness,d_parent=a.d_parent)
++        plan=(['G5_'+n for n in ('PS51_INSTALL_MENU','STAGE_B_REAL_ISOLATED_PATH_NATIVE','D4_REAL_ISOLATED_PATH_NATIVE')]+
++              ['SUITE_'+n for n in gate.SUITES if n not in STAGE_SUITES]+['DELTA_'+n for n in EXTRA]+
++              ['PRE_B06_11_CHAIN','G3_G6_NATIVE'])
+         def unit(kind,key,**kw):
+             require(not (root/'SAFE_STOP.request').exists(),'SAFE_STOP_REQUESTED')
+             verify_package(Path(a.package))
+-            return run_unit(dict(base,kind=kind,key=key,**kw))
++            done=len([k for k in plan if (root/'COMMITS'/(k+'.json')).exists()])
++            return run_unit(dict(base,kind=kind,key=key,progress=str(done)+'/'+str(len(plan)),
++                                 remaining=tuple(plan[plan.index(key)+1:]),**kw))
+         # Stage-B proof already runs four required suites; use their exact logs
+         # below rather than run their unchanged tests a second time.
+         for name in ('PS51_INSTALL_MENU','STAGE_B_REAL_ISOLATED_PATH_NATIVE','D4_REAL_ISOLATED_PATH_NATIVE'):
+@@ -427,12 +472,17 @@
+                       partial_effect_scope='RUN_OWNED_LAB_ONLY',
+                       traceback=traceback.format_exc())
+         print(result['blockers'][0],flush=True)
++        print('PRIMARY_TRACEBACK_BEGIN\n'+result['traceback']+'PRIMARY_TRACEBACK_END',flush=True)
+     finally:
+         write_terminal(root,result)
+         archive=None
+         try:
+             archive=seal_return(root,'R08_RETURN.zip',excluded=('R08_RETURN.zip','R08_RETURN.sha256'))
+             if code==0:
++                with zipfile.ZipFile(archive) as sealed:
++                    infos=sealed.infolist()
++                    print('RETURN_MEMBERS='+str(len(infos))+' RETURN_UNCOMPRESSED_BYTES='+
++                          str(sum(i.file_size for i in infos))+' BOUND='+str(gate.NATIVE_ZIP_MAX_UNCOMPRESSED),flush=True)
+                 code_sha,members=verify_package(Path(a.package))
+                 index={r['path']:r for r in json.loads(members['implementation_v001/RUNTIME_CODE_MANIFEST.json'])['files']}
+                 try:
+@@ -440,6 +490,7 @@
+                 except BaseException as exc:
+                     code=3
+                     result.update(status='BLOCKED',blockers=['FINAL_READBACK:'+str(exc)],traceback=traceback.format_exc())
++                    print('FINAL_READBACK_BLOCKED='+str(exc)+'\nPRIMARY_TRACEBACK_BEGIN\n'+result['traceback']+'PRIMARY_TRACEBACK_END',flush=True)
+                     write_terminal(root,result)
+                     archive=None
+                     archive=seal_return(root,'R08_RETURN.zip',excluded=('R08_RETURN.zip','R08_RETURN.sha256'))
+--- parent/implementation_v001/candidate/g5proof/PRE_G06_COMPLETENESS.py
++++ successor/implementation_v001/candidate/g5proof/PRE_G06_COMPLETENESS.py
+@@ -5,6 +5,7 @@
+ """
+ import json
+ from pathlib import Path
++import re
+ import shutil
+ import sys
+ import uuid
+@@ -14,6 +15,63 @@
+ import G5_FINAL_COMPLETENESS_PRODUCER as producer
+ import FULL_G5_COMPLETE_PROOF_GATE as gate
+ import FULL_CRASH_RECOVERY as R
++
++
++# Adversarial suites whose native DELTA commit is required (never skipped).
++# G0 reads this same tuple, so its pre-effect gate cannot drift from closure.
++REQUIRED_DELTA=('test_cdt19_final_transport_closure.py','test_cdt19_native_campaign_contract.py',
++                'test_cdt19_integrated_crash_recovery.py','test_cdt19_g6_ownership_closure.py',
++                'test_cdt19_durable_barrier_contract.py','test_cdt19_r07_g3_g6_integrated_causality.py',
++                'test_integrated_evidence_contract.py','test_g5_producer_consumer_roundtrip.py',
++                'test_cdt20_pre_g06_integrated_closure.py')
++
++# Each pre-B06 finding is bound to named native regressions: the defect is
++# reproduced by a negative test and the corrected path by a positive one. A
++# label in the adversarial attestation is not evidence; the sealed native log
++# line '<test> (<module>.<class>.<test>) ... ok' is.
++FINDINGS={
++  'STATE_RECREATION':(
++    ('DELTA_test_cdt19_integrated_crash_recovery.py','test_dead_attempt_closes_fail_without_advancing_or_recreating_state'),
++    ('DELTA_test_cdt19_integrated_crash_recovery.py','test_state_drift_blocks'),
++    ('DELTA_test_cdt19_durable_barrier_contract.py','test_deleted_marker_not_recreated'),
++    ('SUITE_test_state_cas_recovery.py','test_08_state_matching_neither_blocks')),
++  'CONFIG_TOCTOU':(
++    ('SUITE_test_official_writer_effectful.py','test_37_hostile_swap_inside_replace_window_detected'),
++    ('SUITE_test_official_writer_effectful.py','test_30_menu_drift_blocks_before_write'),
++    ('SUITE_test_official_writer_effectful.py','test_35_installed_candidate_drift_blocks')),
++  'CONCURRENT_RECEIPT_OVERWRITE':(
++    ('SUITE_test_official_writer_effectful.py','test_20_concurrent_writer_is_refused_without_effect'),
++    ('SUITE_test_official_writer_effectful.py','test_22_two_simultaneous_writer_processes_one_winner'),
++    ('SUITE_test_cdt16_held_rename_failure.py','test_atomic_checkpoint_roundtrip_and_no_overwrite')),
++  'FAILURE_AFTER_CHECKPOINT':(
++    ('SUITE_test_state_cas_recovery.py','test_09_state_ahead_of_checkpoint_blocks'),
++    ('SUITE_test_state_cas_recovery.py','test_02_r1_restores_the_confirmed_previous_state'),
++    ('SUITE_test_cdt16_held_rename_failure.py','test_accepted_rename_checkpoints_and_blocks'),
++    ('SUITE_test_cdt16_held_rename_failure.py','test_without_checkpoint_blocks'),
++    ('DELTA_test_cdt19_integrated_crash_recovery.py','test_false_crash_blocks_before_state_and_journal_changes'))}
++
++
++def verify_four_findings(native,result):
++    """Bind every finding to closed native logs already bound by the result."""
++    rows={}
++    for finding,cases in FINDINGS.items():
++        evidence=[]
++        for key,test in cases:
++            unit=result['tests'].get(key) if key.startswith('SUITE_') else result['additional_tests'].get(key)
++            R.require(isinstance(unit,dict),'FINDING_UNIT_MISSING:'+finding+':'+key)
++            log='LOGS/'+key+'.log'
++            R.require(log in native,'FINDING_LOG_MISSING:'+finding+':'+key)
++            raw=native[log]
++            if key.startswith('SUITE_'):
++                R.require(unit.get('sha256')==R.sha(raw),'FINDING_LOG_UNBOUND:'+finding+':'+key)
++            line=re.compile(rb'(?m)^'+re.escape(test.encode('ascii'))+rb' \([A-Za-z0-9_.]+\.'+
++                            re.escape(test.encode('ascii'))+rb'\) \.\.\. ok\r?$')
++            R.require(len(line.findall(raw))==1,'FINDING_TEST_NOT_PASSED:'+finding+':'+test)
++            R.require(re.search(rb'(?m)^OK\r?$',raw) is not None and b'FAILED (' not in raw,
++                      'FINDING_LOG_NOT_CLOSED:'+finding+':'+key)
++            evidence.append(dict(unit=key,test=test,log=log,log_sha256=R.sha(raw)))
++        rows[finding]=dict(status='PASS_NATIVE_REGRESSION',evidence=evidence)
++    return rows
+ 
+ 
+ def close(final_zip,native_zip,review_path,run_root):
+@@ -33,12 +91,8 @@
+     R.require(result['run_id']==root.name,'COMPLETENESS_RUN_BINDING')
+     # Additional adversarial suites are not silently counted as contracted roles.
+     # Each source/log/result/COMMIT is bound to this exact candidate here.
+-    required=('test_cdt19_final_transport_closure.py','test_cdt19_native_campaign_contract.py',
+-              'test_cdt19_integrated_crash_recovery.py','test_cdt19_g6_ownership_closure.py',
+-              'test_cdt19_durable_barrier_contract.py','test_cdt19_r07_g3_g6_integrated_causality.py',
+-              'test_integrated_evidence_contract.py','test_g5_producer_consumer_roundtrip.py')
+     refs=[]
+-    for name in required:
++    for name in REQUIRED_DELTA:
+         key='DELTA_'+name;commit_name='COMMITS/'+key+'.json'
+         R.require(commit_name in native,'COMPLETENESS_COMMIT_MISSING:'+key)
+         obj=gate.strict(native[commit_name]);ran=result['additional_tests'].get(key)
+@@ -60,6 +114,7 @@
+         R.require(len(counts)==1 and int(counts[0])==ran['test_count']
+                   and re.search(rb'(?m)^OK\r?$',raw) is not None,'COMPLETENESS_NATIVE_LOG')
+         refs.append(dict(member=commit_name,sha256=R.sha(native[commit_name]),bytes=len(native[commit_name])))
++    findings=verify_four_findings(native,result)
+     out=root/'FINAL_G5'
+     if out.exists():
+         # Retain prior complete or interrupted assembly; no replay of native tests.
+@@ -75,7 +130,8 @@
+         native_g5_return_sha256=native_hash,legacy_technical_consumer_count=11,
+         false_completeness_search='PASS',state_toctou_receipt_checkpoint_negative_controls='PASS',
+         final_bytes_freeze='PASS',independent_b06_audit=False,scope='IMPLEMENTER_ENGINEERING_REVIEW',
+-        source_review_sha256=producer.hash_path(review_path),native_negative_commits=refs))
++        source_review_sha256=producer.hash_path(review_path),native_negative_commits=refs,
++        four_pre_b06_findings=findings))
+     result=producer.produce(final_zip,native_zip,instance,adverse,out)
+     # Physical readback of every proof and all references, including five criteria.
+     comp=gate.strict((out/'ENGINEERING_COMPLETENESS.json').read_bytes())
+@@ -84,7 +140,10 @@
+         raw=Path(row['path']).read_bytes();R.require(R.sha(raw)==row['sha256'],'COMPLETENESS_PART_READBACK')
+         for ref in gate.strict(raw)['evidence']:
+             R.require(producer.hash_path(ref['path'])==ref['sha256'],'COMPLETENESS_REFERENCE_READBACK')
++    R.publish(out/'FOUR_PRE_B06_FINDINGS.json',dict(schema='CDT20_FOUR_PRE_B06_FINDINGS_NATIVE_V001',
++        native_return_sha256=native_hash,code_manifest_sha256=code,final_package_sha256=package,findings=findings))
+     result.update(engineering_five_part_completeness='PASS',independent_b06_audit=False,
++                  four_pre_b06_findings='PASS_NATIVE_REGRESSION',
+                   physical_powerloss='NOT_TESTED_PHYSICAL_POWERLOSS')
+     R.publish(out/'FINAL_ENGINEERING_STATUS.json',result)
+     return result
+--- parent/implementation_v001/tests/test_cdt19_final_completeness_contract.py
++++ successor/implementation_v001/tests/test_cdt19_final_completeness_contract.py
+@@ -34,7 +34,8 @@
+         needed=('test_cdt19_final_transport_closure.py','test_cdt19_native_campaign_contract.py',
+                 'test_cdt19_integrated_crash_recovery.py','test_cdt19_g6_ownership_closure.py',
+                 'test_cdt19_durable_barrier_contract.py','test_cdt19_r07_g3_g6_integrated_causality.py',
+-                'test_integrated_evidence_contract.py','test_g5_producer_consumer_roundtrip.py')
++                'test_integrated_evidence_contract.py','test_g5_producer_consumer_roundtrip.py',
++                'test_cdt20_pre_g06_integrated_closure.py')
+         for name in needed:packaged['implementation_v001/tests/'+name]=(ROOT/'tests'/name).read_bytes()
+         packaged['PACKAGE_MANIFEST.json']=R.encoded(dict(schema='TICKSTORE_FINAL_PACKAGE_MANIFEST_V001',
+             files=[dict(path=n,sha256=R.sha(b),bytes=len(b)) for n,b in sorted(packaged.items()) if n!='PACKAGE_MANIFEST.json']))
+@@ -72,8 +73,23 @@
+                       code_manifest_sha256=code,final_zip_sha256=pack,operational_authority=False,physical_files=source_refs))
+                 obj['artifacts']=[dict(member=evidence,sha256=R.sha(native[evidence]),bytes=len(native[evidence]))]
+             native[member]=R.encoded(obj)
++        # Synthetic lines for the four pre-B06 findings; the native campaign log
++        # must carry them as real unittest results for the same exact names.
++        finding_lines={}
++        for cases in F.FINDINGS.values():
++            for key,test in cases:
++                finding_lines.setdefault(key,b'')
++                finding_lines[key]+=('%s (fixture.Case.%s) ... ok\n'%(test,test)).encode('ascii')
++        for key,record in result['tests'].items():
++            if key in finding_lines:
++                # Bind the role's own log, then expose it under the unit-key name
++                # the native campaign writes (LOGS/<key>.log).
++                own='LOGS/'+record['log'].replace('\\','/').split('/')[-1]
++                raw=finding_lines[key]+native[own];native[own]=raw;native['LOGS/'+key+'.log']=raw
++                record['sha256']=R.sha(raw)
+         for name in needed:
+-            key='DELTA_'+name;log='LOGS/'+key+'.log';raw=b'CONTRACT FIXTURE ONLY\nRan 1 test in 0.001s\n\nOK\n';native[log]=raw
++            key='DELTA_'+name;log='LOGS/'+key+'.log'
++            raw=finding_lines.get(key,b'')+b'CONTRACT FIXTURE ONLY\nRan 1 test in 0.001s\n\nOK\n';native[log]=raw
+             ran=dict(status='PASS',exit_code=0,test_count=1,failures=0,errors=0,skipped=False,
+                      test_source_sha256=R.sha(packaged['implementation_v001/tests/'+name]))
+             result['additional_tests'][key]=ran
+@@ -92,6 +108,20 @@
+         self.assertEqual(result['g5'],'NOT_ISSUED');self.assertEqual(result['b06'],'NOT_STARTED')
+         self.assertEqual(len(list((self.root/'FINAL_G5/FIVE_PART_PROOFS').glob('*.json'))),5)
+         self.assertFalse(list(self.root.rglob('ORIGIN_DECISION*')))
++        findings=R.read(self.root/'FINAL_G5/FOUR_PRE_B06_FINDINGS.json')[0]
++        self.assertEqual(set(findings['findings']),set(G.NEGATIVE_CONTROLS))
++        self.assertEqual(result['four_pre_b06_findings'],'PASS_NATIVE_REGRESSION')
++    def test_missing_native_finding_regression_prevents_g5(self):
++        key='SUITE_test_official_writer_effectful.py';log='LOGS/'+key+'.log'
++        result=json.loads(self.native_members['ENGINEERING_RESULT.json'])
++        own='LOGS/'+result['tests'][key]['log'].replace('\\','/').split('/')[-1]
++        for name in {log,own}:
++            self.native_members[name]=self.native_members[name].replace(b'test_37_hostile_swap_inside_replace_window_detected (',b'test_37_x (')
++        result['tests'][key]['sha256']=R.sha(self.native_members[log])
++        self.native_members['ENGINEERING_RESULT.json']=R.encoded(result)
++        self.native.write_bytes(archive(self.native_members))
++        with self.assertRaisesRegex(Exception,'FINDING_TEST_NOT_PASSED:CONFIG_TOCTOU'):self.close()
++        self.assertFalse((self.root/'FINAL_G5').exists())
+     def test_changed_native_negative_log_prevents_g5(self):
+         self.native_members['LOGS/DELTA_test_cdt19_final_transport_closure.py.log']=b'FAILED'
+         self.native.write_bytes(archive(self.native_members))
+--- parent/implementation_v001/tests/test_cdt20_pre_g06_integrated_closure.py
++++ successor/implementation_v001/tests/test_cdt20_pre_g06_integrated_closure.py
+@@ -0,0 +1,118 @@
++"""CDT20 integrated closure contracts. Synthetic inputs only, NOT native evidence."""
++import datetime
++import io
++from pathlib import Path
++import sys
++import unittest
++from unittest import mock
++import zipfile
++
++ROOT=Path(__file__).resolve().parents[1]
++for name in ('g5proof','control','full'):sys.path.insert(0,str(ROOT/'candidate'/name))
++import PRE_G06_CAMPAIGN as C
++import PRE_G06_COMPLETENESS as F
++import FULL_CRASH_RECOVERY as R
++import FULL_G5_COMPLETE_PROOF_GATE as G
++
++
++def native_logs():
++    """Closed unittest logs carrying exactly the regressions bound to each finding."""
++    lines={}
++    for cases in F.FINDINGS.values():
++        for key,test in cases:
++            module=key.split('_',1)[1][:-3]
++            lines.setdefault(key,[]).append('%s (%s.Case.%s) ... ok'%(test,module,test))
++    native={};result={'tests':{},'additional_tests':{}}
++    for key,rows in lines.items():
++        raw=('\r\n'.join(rows)+'\r\n\r\n'+'-'*70+'\r\nRan %d tests in 0.010s\r\n\r\nOK\r\n'%len(rows)).encode('ascii')
++        native['LOGS/'+key+'.log']=raw
++        if key.startswith('SUITE_'):result['tests'][key]=dict(status='PASS_NATIVE_SCOPED',sha256=R.sha(raw))
++        else:result['additional_tests'][key]=dict(status='PASS',test_count=len(rows))
++    return native,result
++
++
++class FourFindings(unittest.TestCase):
++    def setUp(self):self.native,self.result=native_logs()
++
++    def test_all_four_bound_to_native_regressions(self):
++        rows=F.verify_four_findings(self.native,self.result)
++        self.assertEqual(set(rows),{'STATE_RECREATION','CONFIG_TOCTOU','CONCURRENT_RECEIPT_OVERWRITE','FAILURE_AFTER_CHECKPOINT'})
++        self.assertEqual(set(F.FINDINGS),set(G.NEGATIVE_CONTROLS))
++        for row in rows.values():
++            self.assertEqual(row['status'],'PASS_NATIVE_REGRESSION');self.assertTrue(row['evidence'])
++
++    def rewrite(self,key,old,new):
++        log='LOGS/'+key+'.log';self.native[log]=self.native[log].replace(old,new)
++        if key in self.result['tests']:self.result['tests'][key]['sha256']=R.sha(self.native[log])
++
++    def test_missing_regression_line_rejected(self):
++        self.rewrite('SUITE_test_official_writer_effectful.py',b'test_37_hostile_swap_inside_replace_window_detected (','test_37_removed ('.encode())
++        with self.assertRaisesRegex(Exception,'FINDING_TEST_NOT_PASSED:CONFIG_TOCTOU'):F.verify_four_findings(self.native,self.result)
++
++    def test_failed_regression_rejected(self):
++        self.rewrite('SUITE_test_state_cas_recovery.py',b'test_09_state_ahead_of_checkpoint_blocks) ... ok',
++                     b'test_09_state_ahead_of_checkpoint_blocks) ... FAIL')
++        with self.assertRaisesRegex(Exception,'FINDING_TEST_NOT_PASSED:FAILURE_AFTER_CHECKPOINT'):
++            F.verify_four_findings(self.native,self.result)
++
++    def test_unclosed_log_rejected(self):
++        self.rewrite('DELTA_test_cdt19_integrated_crash_recovery.py',b'\r\nOK\r\n',b'\r\nFAILED (failures=1)\r\n')
++        with self.assertRaisesRegex(Exception,'FINDING_LOG_NOT_CLOSED'):F.verify_four_findings(self.native,self.result)
++
++    def test_suite_log_not_bound_by_result_rejected(self):
++        self.native['LOGS/SUITE_test_cdt16_held_rename_failure.py.log']+=b'\r\n'
++        with self.assertRaisesRegex(Exception,'FINDING_LOG_UNBOUND'):F.verify_four_findings(self.native,self.result)
++
++    def test_duplicated_line_is_not_two_passes(self):
++        key='SUITE_test_official_writer_effectful.py';log='LOGS/'+key+'.log'
++        line=[l for l in self.native[log].split(b'\r\n') if l.startswith(b'test_20_')][0]
++        self.rewrite(key,line,line+b'\r\n'+line)
++        with self.assertRaisesRegex(Exception,'FINDING_TEST_NOT_PASSED:CONCURRENT_RECEIPT_OVERWRITE'):
++            F.verify_four_findings(self.native,self.result)
++
++    def test_missing_unit_rejected(self):
++        del self.result['additional_tests']['DELTA_test_cdt19_durable_barrier_contract.py']
++        with self.assertRaisesRegex(Exception,'FINDING_UNIT_MISSING:STATE_RECREATION'):
++            F.verify_four_findings(self.native,self.result)
++
++    def test_completeness_requires_this_suite_natively(self):
++        self.assertIn('test_cdt20_pre_g06_integrated_closure.py',F.REQUIRED_DELTA)
++        self.assertTrue(set(F.REQUIRED_DELTA)<=set(C.EXTRA))
++        self.assertIn('test_cdt20_pre_g06_integrated_closure.py',C.EXTRA)
++
++
++class Heartbeat(unittest.TestCase):
++    now=datetime.datetime(2026,10,20,15,0,0,tzinfo=datetime.timezone.utc)
++
++    def test_within_native_baseline(self):
++        line=C.heartbeat_line('G3_G6_NATIVE',11.7,3,'36/38',(),self.now)
++        for field in ('ACTIVE_TEST=G3_G6_NATIVE','UNIT_ELAPSED_S=11','OWNED_PIDS=3','PROGRESS_COMMITTED=36/38',
++                      'UNIT_ETA_S=300','CAMPAIGN_ETA_S=300','ETA_BASIS=R08_1219_NATIVE_BASELINE',
++                      'ETA_AS_OF=2026-10-20T15:00:00Z'):
++            self.assertIn(field,line.split())
++
++    def test_exceeded_baseline_is_unknown_not_zero(self):
++        line=C.heartbeat_line('SUITE_test_state_cas_recovery.py',400,1,'1/38',('G3_G6_NATIVE',),self.now).split()
++        self.assertIn('UNIT_ETA_S=UNKNOWN',line);self.assertIn('CAMPAIGN_ETA_S=UNKNOWN',line)
++        self.assertIn('ETA_BASIS=UNIT_EXCEEDED_NATIVE_BASELINE',line)
++
++    def test_unbaselined_unit_never_gets_invented_eta(self):
++        new='DELTA_test_cdt20_pre_g06_integrated_closure.py'
++        self.assertNotIn(new,C.UNIT_BASELINE_S)
++        line=C.heartbeat_line('PRE_B06_11_CHAIN',4,2,'30/38',(new,'G3_G6_NATIVE'),self.now).split()
++        self.assertIn('CAMPAIGN_ETA_S=UNKNOWN',line);self.assertIn('CAMPAIGN_ETA_OBSERVED_PART_S=321',line)
++        self.assertIn('UNITS_WITHOUT_BASELINE=1',line)
++        self.assertIn('UNIT_ETA_S=UNKNOWN',C.heartbeat_line(new,0,1,'0/1',(),self.now).split())
++
++
++class ReturnBound(unittest.TestCase):
++    def test_bound_is_resource_limit_and_still_enforced(self):
++        self.assertGreaterEqual(G.NATIVE_ZIP_MAX_UNCOMPRESSED,1024**3)
++        out=io.BytesIO()
++        with zipfile.ZipFile(out,'w') as z:z.writestr('a.bin',b'x'*4096)
++        with mock.patch.object(G,'NATIVE_ZIP_MAX_UNCOMPRESSED',1024):
++            with self.assertRaisesRegex(Exception,'NATIVE_ZIP_BOUNDS'):G.native_zip_members(out.getvalue())
++        self.assertEqual(G.native_zip_members(out.getvalue()),{'a.bin':b'x'*4096})
++
++
++if __name__=='__main__':unittest.main(verbosity=2)

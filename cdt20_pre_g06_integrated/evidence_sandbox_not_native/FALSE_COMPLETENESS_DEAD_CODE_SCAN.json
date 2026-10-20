@@ -1,0 +1,94 @@
+{
+  "files": [
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 16,
+      "file": "G0_CDT20_PRE_G06.py",
+      "markers": [],
+      "sha256": "FB31B99DB61101E4D3F74F2E573A3AE0D6C8C0AD16817C6C860CDB43771DBCB3",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 1,
+      "file": "G0_SUITE_RUNNER.py",
+      "markers": [],
+      "sha256": "5593408E9612C4026EC62E04FFF82FB7CBCF76B85C41F428BED9DC54EE551E7B",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 17,
+      "file": "RUN_CDT20_R08Q1.py",
+      "markers": [],
+      "sha256": "018D040B404F7D0883E0320914C06B9F853943A2A04D7881A27733B3C14B6282",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [
+        "# function exists only in that package's gated source: no bypass flag."
+      ],
+      "bypass_patterns": [],
+      "definitions": 15,
+      "file": "implementation_v001/candidate/control/FULL_G5_COMPLETE_PROOF_GATE.py",
+      "markers": [],
+      "sha256": "EC6D9B2D9FE3A09318F6E91308ED90C10365CEDFDD4EAA84604676B7BDD49E1D",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 18,
+      "file": "implementation_v001/candidate/g5proof/PRE_G06_CAMPAIGN.py",
+      "markers": [],
+      "sha256": "347767D17C8526924D87732608CE2D0441E6989275B8E8E3D88E83F6A17FC79A",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 2,
+      "file": "implementation_v001/candidate/g5proof/PRE_G06_COMPLETENESS.py",
+      "markers": [],
+      "sha256": "15B10B107DBD29FE497F24A0D5AE100EFAEBD5A183BA6E9905C4AF7D43A72068",
+      "unittest_cases_discovered_by_type": [],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 10,
+      "file": "implementation_v001/tests/test_cdt19_final_completeness_contract.py",
+      "markers": [],
+      "sha256": "64C368237ADCE5A4C435966FF864A0891F62BAC7EEB35FD02D1E840767FB9E65",
+      "unittest_cases_discovered_by_type": [
+        "IntegratedFive"
+      ],
+      "unreferenced_definitions": []
+    },
+    {
+      "adjudicated_non_bypass_lines": [],
+      "bypass_patterns": [],
+      "definitions": 18,
+      "file": "implementation_v001/tests/test_cdt20_pre_g06_integrated_closure.py",
+      "markers": [],
+      "sha256": "80B36A3FB65821D6E9C70622C5CB193ACF44AE214D9EC03489BE765AFFAA5CCF",
+      "unittest_cases_discovered_by_type": [
+        "FourFindings",
+        "Heartbeat",
+        "ReturnBound"
+      ],
+      "unreferenced_definitions": []
+    }
+  ],
+  "schema": "CDT20_FALSE_COMPLETENESS_SCAN_V001",
+  "status": "PASS"
+}

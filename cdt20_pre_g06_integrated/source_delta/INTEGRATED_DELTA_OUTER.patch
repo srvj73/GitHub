@@ -1,0 +1,425 @@
+--- predecessor/G0_CDT20_PROJECTION.py
++++ successor/G0_CDT20_PRE_G06.py
+@@ -1,18 +1,43 @@
+-"""Native Windows preflight for the exact packaged CDT20 G5-projection successor.
+-No production effects and no policy lookup. In isolated, hash-verified staging only.
++"""CDT20 PRE-G06 native G0: qualify the exact packaged successor before any campaign effect.
++
++No production effects and no policy lookup; hash-verified staging only.
++
++The 20/10 G0 ran `python -E -B <test>` in the operator's ambient context
++(default %TEMP%, inherited cwd, user site enabled), whereas the native campaign
++that had already passed the same suite runs it with -I, an owned canonical TEMP
++and long-path LOCALAPPDATA/USERPROFILE. This G0 qualifies every DELTA suite in
++that campaign context through G0_SUITE_RUNNER.py, records each failure's own
++traceback, and re-runs the transport suite once in the old ambient context as
++a NON-GATING diagnostic so the earlier divergence is evidenced, not assumed.
+ """
+ from __future__ import annotations
+-import hashlib,io,json,os,re,struct,subprocess,sys,zipfile
++import copy
++import hashlib
++import io
++import json
++import os
+ from pathlib import Path
++import re
++import struct
++import subprocess
++import sys
++import zipfile
+ 
+ HERE=Path(__file__).resolve().parent
+-SOURCE_NAME='CDT20_PRE_G06_PROJECTION_CORRECTED_SOURCE_20261020.zip'
+ REAL_SCENARIO_SHA='1715749A48B46F875971B4A623E1E58775DCB040EBB9DB4FAB5B14401711C41B'
+-
+-def fail(s):raise RuntimeError('CDT20_PROJECTION_G0_'+s)
++CORE_SHA='749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00'
++LEGACY_DIAGNOSTIC='test_cdt19_final_transport_closure.py'
++
++
++class G0Blocked(RuntimeError):pass
++
++
++def fail(s):raise G0Blocked('CDT20_PRE_G06_G0_'+s)
+ def sha(b):return hashlib.sha256(b).hexdigest().upper()
+ def require(x,s):
+     if not x:fail(s)
++def encoded(obj):return (json.dumps(obj,sort_keys=True,ensure_ascii=True,indent=1)+'\n').encode('ascii')
++
+ 
+ def safe_members(z):
+     names=[r.filename for r in z.infolist()]
+@@ -24,10 +49,42 @@
+     require(z.testzip() is None,'ZIP_CRC')
+     return names
+ 
+-def main():
+-    require(os.name=='nt' and sys.version_info>=(3,14) and struct.calcsize('P')==8,'WIN_PYTHON_314_X64')
+-    w=json.loads((HERE/'CDT20_R08Q1_WITNESS.json').read_bytes())
+-    data=(HERE/SOURCE_NAME).read_bytes()
++
++def canonical_dir(value):
++    """Long-path, reparse-free absolute directory (campaign bootstrap semantics)."""
++    value=os.path.abspath(os.path.expandvars(str(value)))
++    if os.name=='nt':
++        import ctypes
++        k=ctypes.WinDLL('kernel32',use_last_error=True)
++        k.GetLongPathNameW.argtypes=[ctypes.c_wchar_p,ctypes.c_wchar_p,ctypes.c_uint32]
++        k.GetLongPathNameW.restype=ctypes.c_uint32
++        buf=ctypes.create_unicode_buffer(32768);n=k.GetLongPathNameW(value,buf,len(buf))
++        require(0<n<len(buf),'LONG_PATH:'+value);value=buf.value
++    path=Path(value)
++    for p in (*reversed(path.parents),path):
++        st=p.lstat()
++        require(not p.is_symlink() and not (getattr(st,'st_file_attributes',0)&0x400),'REPARSE:'+str(p))
++    return path
++
++
++def primary_failure(result):
++    """First failing test and the tail of its own traceback, for console and receipt."""
++    for kind in ('errors','failures'):
++        for test_id,tb in result.get(kind) or []:
++            return kind.upper()[:-1]+':'+test_id+'\n'+'\n'.join(tb.strip().splitlines()[-30:])
++    if result.get('crash'):return 'CRASH:'+result['crash']+'\n'+'\n'.join(result.get('traceback','').splitlines()[-30:])
++    return None
++
++
++def log_primary_failure(raw):
++    """Same extraction for a plain unittest log (legacy diagnostic)."""
++    text=raw.decode('utf8','replace').replace('\r\n','\n')
++    m=re.search(r'(?ms)^={20,}\n((?:ERROR|FAIL): .*?)(?=^={20,}|^-{20,}\nRan )',text)
++    if m:return '\n'.join(m.group(1).strip().splitlines()[-34:])
++    return '\n'.join(text.strip().splitlines()[-20:]) or None
++
++
++def verify_source(w,data):
+     require(sha(data)==w['package_sha256'],'SOURCE_SHA256')
+     with zipfile.ZipFile(io.BytesIO(data)) as z:
+         names=safe_members(z)
+@@ -39,86 +96,161 @@
+             b=z.read(r['path'])
+             require(sha(b)==r['sha256'] and len(b)==r['bytes'],'PACKAGE_MEMBER_HASH:'+r['path'])
+         runtime=json.loads(cm)
++        require({r['path'] for r in runtime['files']}=={n[len('implementation_v001/candidate/'):] for n in names
++                 if n.startswith('implementation_v001/candidate/')},'RUNTIME_SET')
+         for r in runtime['files']:
+             b=z.read('implementation_v001/candidate/'+r['path'])
+             require(sha(b)==r['sha256'] and len(b)==r['bytes'],'RUNTIME_SOURCE_HASH:'+r['path'])
+-        require(sha(z.read('implementation_v001/candidate/full/tickstore_serial_runner.py'))=='749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00','CORE_FROZEN')
+-        extraction=HERE/'G0_SOURCES'
+-        require(not extraction.exists(),'G0_EXTRACT_PREEXISTING')
+-        extraction.mkdir()
+-        z.extractall(extraction)
+-    # Exercise exact candidate source, including the failure previously observed
+-    # on Windows. The real G3/G6 summary is an immutable historical fixture, not
+-    # a new G3/G6 production proof.
+-    src=extraction/'implementation_v001'
+-    for sub in ('full','control','g5proof','adapter'):
+-        sys.path.insert(0,str(src/'candidate'/sub))
+-    import PRE_G06_PROOF_PROJECTION as module
+-    import copy
+-    ref=(HERE/'G0_HISTORICAL_NATIVE_G3_G6.json').read_bytes()
++        require(sha(z.read('implementation_v001/candidate/full/tickstore_serial_runner.py'))==CORE_SHA,'CORE_FROZEN')
++        return entries,{n:z.read(n) for n in names}
++
++
++def run_suite(python,runner,test,candidate,out,temp,env,timeout):
++    """Campaign-context suite execution; never raises on a test failure."""
++    log=out/('G0_'+test.name+'.log');res=out/('G0_'+test.name+'.result.json')
++    temp.mkdir()
++    child=dict(env,TEMP=str(temp),TMP=str(temp),TMPDIR=str(temp))
++    cmd=[python,'-I','-B',str(runner),'--test',str(test),'--candidate',str(candidate),'--log',str(log),'--result',str(res)]
++    try:
++        done=subprocess.run(cmd,capture_output=True,timeout=timeout,check=False,cwd=str(out),env=child)
++        rc,stray=done.returncode,done.stdout+done.stderr
++    except subprocess.TimeoutExpired as exc:
++        rc,stray=None,(exc.stdout or b'')+(exc.stderr or b'')
++    (out/('G0_'+test.name+'.runner_stdio.log')).write_bytes(stray)
++    result=json.loads(res.read_bytes()) if res.exists() else {'status':'NO_RESULT','crash':'RUNNER_EXIT:'+str(rc)+':'+stray.decode('utf8','replace')[-2000:]}
++    raw=log.read_bytes() if log.exists() else b''
++    counts=re.findall(rb'(?m)^Ran (\d+) tests? in [^\r\n]+\r?$',raw)
++    closed=(rc==0 and result.get('status')=='PASS' and len(counts)==1 and int(counts[0])==result.get('tests_run')
++            and re.search(rb'(?m)^OK(?: \(skipped=\d+\))?\r?$',raw) is not None and b'FAILED (' not in raw)
++    return dict(suite=test.name,status='PASS' if closed else 'FAIL',exit_code=rc,tests_run=result.get('tests_run'),
++                skipped=[s[0] for s in result.get('skipped') or []],log=log.name,log_sha256=sha(raw),
++                result_file=res.name if res.exists() else None,primary_failure=None if closed else primary_failure(result) or 'LOG_NOT_CLOSED')
++
++
++def gate_row(row,required):
++    """Closure needs required DELTA suites unskipped; diagnostics may skip on Windows."""
++    row=dict(row,required_by_completeness=required)
++    if row['status']=='PASS' and required and row['skipped']:
++        row.update(status='FAIL',primary_failure='REQUIRED_SUITE_SKIPPED:'+','.join(row['skipped']))
++    return row
++
++
++def legacy_diagnostic(python,test,out):
++    """The 20/10 invocation, unchanged: ambient env/TEMP/cwd and -E. Never gating."""
++    log=out/('G0_LEGACY_CONTEXT_'+test.name+'.log')
++    try:
++        done=subprocess.run([python,'-E','-B',str(test)],capture_output=True,timeout=300,check=False)
++        rc,raw=done.returncode,done.stdout+b'\n'+done.stderr
++    except subprocess.TimeoutExpired as exc:
++        rc,raw=None,(exc.stdout or b'')+b'\n'+(exc.stderr or b'')
++    log.write_bytes(raw)
++    passed=rc==0 and re.search(rb'(?m)^OK\r?$',raw) is not None
++    return dict(suite=test.name,gating=False,context='AMBIENT_TEMP_INHERITED_CWD_FLAG_E',exit_code=rc,
++                status='PASS' if passed else 'FAIL',ambient_temp=os.environ.get('TEMP'),log=log.name,log_sha256=sha(raw),
++                primary_failure=None if passed else log_primary_failure(raw))
++
++
++def qualify(here,native):
++    w=json.loads((here/'CDT20_R08Q1_WITNESS.json').read_bytes())
++    data=(here/w['package_name']).read_bytes()
++    entries,members=verify_source(w,data)
++    extraction=here/'G0_SOURCES'
++    require(not extraction.exists(),'G0_EXTRACT_PREEXISTING')
++    extraction.mkdir()
++    with zipfile.ZipFile(io.BytesIO(data)) as z:z.extractall(extraction)
++    src=extraction/'implementation_v001';candidate=src/'candidate'
++    for sub in ('full','control','g5proof','adapter'):sys.path.insert(0,str(candidate/sub))
++    import PRE_G06_PROOF_PROJECTION as projection
++    import PRE_G06_CAMPAIGN as campaign
++    import PRE_G06_COMPLETENESS as completeness
++    # Immutable historical native G3/G6 summary: the corrected validator must
++    # accept it and still reject the four adversarial mutations.
++    ref=(here/'G0_HISTORICAL_NATIVE_G3_G6.json').read_bytes()
+     require(sha(ref)==REAL_SCENARIO_SHA,'REAL_SCENARIO_SHA')
+     actual=json.loads(ref)
+-    require(len(module.validate(actual)['scenarios'])==4,'ORIGINAL_NATIVE_SCENARIO_MUST_VALIDATE')
+-    cases=[('GROUP_CRASH_ZERO',0,'GROUP_CRASH','exit_code'),
+-           ('COMMIT_CRASH_ZERO',0,'COMMIT_CRASH','exit_code'),
+-           ('CANCEL_WRONG_ACTION','TERMINATE_OWNED_COORDINATOR','CANCEL_TREE','action'),
+-           ('CANCEL_BOOLEAN_EXIT',False,'CANCEL_TREE','exit_code')]
+-    for key,value,name,field in cases:
++    require(len(projection.validate(actual)['scenarios'])==4,'ORIGINAL_NATIVE_SCENARIO_MUST_VALIDATE')
++    negatives=[]
++    for key,value,name,field in [('GROUP_CRASH_ZERO',0,'GROUP_CRASH','exit_code'),
++                                 ('COMMIT_CRASH_ZERO',0,'COMMIT_CRASH','exit_code'),
++                                 ('CANCEL_WRONG_ACTION','TERMINATE_OWNED_COORDINATOR','CANCEL_TREE','action'),
++                                 ('CANCEL_BOOLEAN_EXIT',False,'CANCEL_TREE','exit_code')]:
+         altered=copy.deepcopy(actual)
+         next(row['interruption'] for row in altered['results']['scenarios'] if row['name']==name)[field]=value
+-        try:module.validate(altered)
+-        except Exception:pass
++        try:projection.validate(altered)
++        except Exception as exc:negatives.append({'case':key,'rejected':type(exc).__name__+':'+str(exc)})
+         else:fail('NEGATIVE_FALSE_PASS:'+key)
+-    for name in ('test_cdt19_final_transport_closure.py','test_cdt19_final_completeness_contract.py'):
+-        test=src/'tests'/name
+-        cmd=[sys.executable,'-E','-B',str(test)]
+-        finished=subprocess.run(cmd,capture_output=True,timeout=240,check=False)
+-        data=finished.stdout+b'\n'+finished.stderr
+-        log=HERE/('G0_'+name+'.log');log.write_bytes(data)
+-        counts=re.findall(rb'(?m)^Ran (\d+) tests? in [^\r\n]+\r?$',data)
+-        require(finished.returncode==0 and len(counts)==1 and b'FAILED (' not in data and re.search(rb'(?m)^OK\r?$',data),
+-                'NATIVE_TEST_FAILURE:'+name+':log='+str(log))
+-        print('G0_NATIVE_SUITE_PASS='+name+' TESTS='+counts[0].decode()+' SHA256='+sha(data),flush=True)
+-    receipt=dict(schema='CDT20_PROJECTION_NATIVE_G0_V001',result='PASS',package_sha256=w['package_sha256'],
+-                 code_manifest_sha256=w['code_manifest_sha256'],historical_scenario_sha256=REAL_SCENARIO_SHA,
+-                 tests=['G3_G6_HISTORICAL_REPLAY','FOUR_ADVERSARIAL_NATIVE_CONTROLS',
+-                        'test_cdt19_final_transport_closure.py','test_cdt19_final_completeness_contract.py'],
+-                 production_modified=False,formal_b06_started=False)
+-    out=HERE/'G0_PROJECTION_RESULT.json'
+-    with out.open('xb') as f:
+-        f.write((json.dumps(receipt,sort_keys=True,separators=(',',':'))+'\n').encode())
+-        f.flush();os.fsync(f.fileno())
+-    files=['G0_PROJECTION_RESULT.json',
+-           'G0_test_cdt19_final_transport_closure.py.log',
+-           'G0_test_cdt19_final_completeness_contract.py.log']
+-    records=[]
+-    for name in files:
+-        b=(HERE/name).read_bytes()
+-        records.append({'path':name,'bytes':len(b),'sha256':sha(b)})
+-    proof=HERE/'G0_PROJECTION_RETURN.zip'
+-    manifest={'schema':'CDT20_G0_NATIVE_PROOF_TRANSPORT_V001',
+-              'parent_package_sha256':w['package_sha256'],
+-              'g0_code_sha256':sha(Path(__file__).read_bytes()),
+-              'files':records,'native_windows':True,
+-              'formal_b06_started':False,'production_modified':False}
+-    with zipfile.ZipFile(proof,'x',compression=zipfile.ZIP_DEFLATED) as proofzip:
+-        for name in files:proofzip.write(HERE/name,arcname=name)
+-        proofzip.writestr('G0_RETURN_MANIFEST.json',(json.dumps(manifest,sort_keys=True,separators=(',',':'))+'\n').encode())
+-    with zipfile.ZipFile(proof,'r') as checkzip:
+-        require(checkzip.testzip() is None and
+-                set(checkzip.namelist())==set(files+['G0_RETURN_MANIFEST.json']),
+-                'G0_RETURN_ZIP_INTEGRITY')
+-        for r in records:
+-            bb=checkzip.read(r['path'])
+-            require(len(bb)==r['bytes'] and sha(bb)==r['sha256'],
+-                    'G0_RETURN_MEMBER_HASH:'+r['path'])
++    require(set(completeness.REQUIRED_DELTA)<=set(campaign.EXTRA),'REQUIRED_DELTA_NOT_IN_CAMPAIGN')
++    # Campaign-equivalent context.
++    env=dict(os.environ)
++    env['LOCALAPPDATA']=str(canonical_dir(os.environ['LOCALAPPDATA'] if native else here))
++    env['USERPROFILE']=str(canonical_dir(os.environ['USERPROFILE'] if native else here))
++    temp_root=canonical_dir(here)/'G0_TEMP';temp_root.mkdir()
++    out=here/'G0_EVIDENCE';out.mkdir()
++    runner=here/'G0_SUITE_RUNNER.py'
++    suites=[]
++    for n,name in enumerate(campaign.EXTRA):
++        row=gate_row(run_suite(sys.executable,runner,src/'tests'/name,candidate,out,temp_root/('%02d'%n),env,900),
++                     name in completeness.REQUIRED_DELTA)
++        suites.append(row)
++        print('G0_SUITE='+name+' STATUS='+row['status']+' TESTS='+str(row['tests_run'])+
++              ' SKIPPED='+str(len(row['skipped']))+' LOG_SHA256='+row['log_sha256'],flush=True)
++        if row['primary_failure']:
++            print('G0_PRIMARY_FAILURE_BEGIN '+name+'\n'+row['primary_failure']+'\nG0_PRIMARY_FAILURE_END',flush=True)
++    diagnostic=legacy_diagnostic(sys.executable,src/'tests'/LEGACY_DIAGNOSTIC,out)
++    print('G0_LEGACY_CONTEXT_DIAGNOSTIC='+diagnostic['status']+' GATING=NO EXIT='+str(diagnostic['exit_code']),flush=True)
++    if diagnostic['primary_failure']:
++        print('G0_LEGACY_CONTEXT_FAILURE_BEGIN\n'+diagnostic['primary_failure']+'\nG0_LEGACY_CONTEXT_FAILURE_END',flush=True)
++    # Tested == packaged: every extracted member is re-read after the suites ran.
++    drift=[r['path'] for r in entries if sha((extraction/r['path']).read_bytes())!=r['sha256']]
++    require(not drift,'TESTED_CODE_DRIFT:'+','.join(drift[:5]))
++    blocked=[r['suite'] for r in suites if r['status']!='PASS']
++    receipt=dict(schema='CDT20_PRE_G06_NATIVE_G0_V002',result='PASS' if not blocked else 'BLOCKED',
++                 blocked_suites=blocked,native_windows=native,python=sys.version,
++                 package_sha256=w['package_sha256'],code_manifest_sha256=w['code_manifest_sha256'],
++                 g0_code_sha256=sha(Path(__file__).read_bytes()),runner_sha256=sha(runner.read_bytes()),
++                 historical_scenario_sha256=REAL_SCENARIO_SHA,historical_replay='PASS',negative_controls=negatives,
++                 suite_context=dict(flags='-I -B',temp_root=str(temp_root),localappdata=env['LOCALAPPDATA'],
++                                    userprofile=env['USERPROFILE'],cwd=str(out)),
++                 suites=suites,legacy_context_diagnostic=diagnostic,tested_equals_packaged='PASS',
++                 production_modified=False,formal_b06_started=False,full_started=False)
++    return receipt
++
++
++def seal(here,receipt):
++    out=here/'G0_EVIDENCE'
++    with (here/'G0_RESULT.json').open('xb') as f:
++        f.write(encoded(receipt));f.flush();os.fsync(f.fileno())
++    files=[here/'G0_RESULT.json']+sorted(p for p in out.iterdir() if p.is_file())
++    records=[{'path':p.relative_to(here).as_posix(),'bytes':p.stat().st_size,'sha256':sha(p.read_bytes())} for p in files]
++    proof=here/'G0_RETURN.zip'
++    with zipfile.ZipFile(proof,'x',compression=zipfile.ZIP_DEFLATED) as z:
++        for p,r in zip(files,records):z.write(p,arcname=r['path'])
++        z.writestr('G0_RETURN_MANIFEST.json',encoded({'schema':'CDT20_G0_NATIVE_PROOF_TRANSPORT_V002',
++            'package_sha256':receipt.get('package_sha256'),'g0_result':receipt.get('result'),'files':records,
++            'native_windows':receipt.get('native_windows'),'formal_b06_started':False,'production_modified':False}))
++    with zipfile.ZipFile(proof) as z:
++        require(z.testzip() is None,'G0_RETURN_ZIP_CRC')
++        for r in records:require(sha(z.read(r['path']))==r['sha256'],'G0_RETURN_MEMBER_HASH:'+r['path'])
+     print('G0_RETURN='+str(proof)+' SHA256='+sha(proof.read_bytes()),flush=True)
+-    print('ENVIE_O_RETORNO='+str(proof),flush=True)
+-    print('PROJECTION_G0_NATIVE=PASS; NO_PROTECTED_EFFECTS; G5_FINAL_PENDING=YES',flush=True)
++    return proof
++
++
++def main():
++    require(os.name=='nt' and sys.version_info>=(3,14) and struct.calcsize('P')==8,'WIN_PYTHON_314_X64')
++    receipt=qualify(HERE,native=True)
++    seal(HERE,receipt)
++    if receipt['result']!='PASS':
++        print('PRE_G06_NATIVE_G0=BLOCKED SUITES='+','.join(receipt['blocked_suites']),flush=True)
++        return 2
++    print('PRE_G06_NATIVE_G0=PASS; SUITES='+str(len(receipt['suites']))+'; NO_PROTECTED_EFFECTS',flush=True)
+     return 0
++
+ 
+ if __name__=='__main__':
+     try:raise SystemExit(main())
+-    except Exception as e:
+-        print('PROJECTION_G0_NATIVE=BLOCKED REASON='+repr(e),flush=True)
++    except SystemExit:raise
++    except BaseException as e:
++        import traceback
++        print('PRE_G06_NATIVE_G0=BLOCKED REASON='+type(e).__name__+':'+str(e),flush=True)
++        traceback.print_exc(file=sys.stdout)
+         raise SystemExit(2)
+--- predecessor/RUN_CDT20_R08Q1.py
++++ successor/RUN_CDT20_R08Q1.py
+@@ -181,9 +181,12 @@
+             proc=job.start(mp.get_context('spawn'),campaign_child,args=(str(candidate),args),name='CDT20_PRE_G06_CAMPAIGN')
+             started=time.monotonic()
+             while proc.is_alive():
+-                print('SUPERVISOR_HEARTBEAT OWNED_PROCESSES='+str(len(job.memory_snapshot()['processes'])-1),flush=True)
++                committed=len(list((root/'COMMITS').glob('*.json')))
++                print('SUPERVISOR_HEARTBEAT OWNED_PROCESSES='+str(len(job.memory_snapshot()['processes'])-1)+
++                      ' COMMITTED_UNIT_RECEIPTS='+str(committed)+' ELAPSED_S='+str(int(time.monotonic()-started))+
++                      ' AS_OF='+datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),flush=True)
+                 require(time.monotonic()-started<21600,'SUPERVISOR_WATCHDOG')
+-                proc.join(20)
++                proc.join(10)
+             proc.join();code=proc.exitcode
+             require(not [p for p in job.memory_snapshot()['processes'] if p['pid']!=os.getpid()],'OWNED_DESCENDANTS_REMAIN')
+             job.close();job=None
+@@ -191,8 +194,13 @@
+             status=completeness.close(root/'INPUTS'/package.name,native,root/'INPUTS'/review.name,root)
+             require(status.get('engineering_five_part_completeness')=='PASS','FIVE_PART_NOT_PASS')
+             publish(root/('COMPLETION_'+uuid.uuid4().hex+'.json'),status)
+-            print('ENGINEERING_FIVE_PART_COMPLETENESS=PASS; ORIGIN_G5=NOT_ISSUED; B06=NOT_STARTED',flush=True)
+-        else:print('ENGINEERING_STATUS=BLOCKED; CHILD_EXIT_CODE='+str(code),flush=True)
++            print('ENGINEERING_FIVE_PART_COMPLETENESS=PASS; FOUR_PRE_B06_FINDINGS='+str(status.get('four_pre_b06_findings'))+
++                  '; ORIGIN_G5=NOT_ISSUED; B06=NOT_STARTED',flush=True)
++        else:
++            print('ENGINEERING_STATUS=BLOCKED; CHILD_EXIT_CODE='+str(code),flush=True)
++            if (root/'ENGINEERING_RESULT.json').exists():
++                er=read(root/'ENGINEERING_RESULT.json')
++                print('ENGINEERING_RESULT_STATUS='+str(er.get('status'))+'\nENGINEERING_BLOCKERS='+json.dumps(er.get('blockers')),flush=True)
+     except BaseException as exc:
+         code=130 if isinstance(exc,KeyboardInterrupt) else 3
+         traceback.print_exc()
+--- predecessor//dev/null
++++ successor/G0_SUITE_RUNNER.py
+@@ -0,0 +1,59 @@
++"""Run one hash-verified suite exactly as PRE_G06_CAMPAIGN.unit_child does.
++
++Invoked by G0 as `python -I -B G0_SUITE_RUNNER.py`: same isolated flags, same
++candidate import order, same unittest discovery, an owned TEMP set by the
++caller. Writes a closed log and a JSON result with every failure traceback,
++so a non-PASS is never reported only as a log path.
++"""
++from __future__ import annotations
++import argparse
++import contextlib
++import json
++import os
++from pathlib import Path
++import sys
++import traceback
++import unittest
++
++
++def main(argv=None):
++    p=argparse.ArgumentParser(allow_abbrev=False)
++    for name in ('test','candidate','log','result'):p.add_argument('--'+name,required=True)
++    a=p.parse_args(argv)
++    test=Path(a.test);candidate=Path(a.candidate)
++    # Same order as RUN_CDT20_R08Q1.load_candidate + PRE_G06_CAMPAIGN import.
++    for _ in range(2):
++        for folder in ('full','control','adapter','g5proof'):sys.path.insert(0,str(candidate/folder))
++    sys.path.insert(0,str(test.parent))
++    import tempfile
++    tempfile.tempdir=os.environ['TEMP']
++    result={'schema':'CDT20_G0_SUITE_RESULT_V001','suite':test.name,'status':'BLOCKED',
++            'temp':os.environ['TEMP'],'cwd':os.getcwd(),'flags_isolated':sys.flags.isolated}
++    with open(a.log,'x',encoding='utf8',buffering=1) as stream,\
++         contextlib.redirect_stdout(stream),contextlib.redirect_stderr(stream):
++        try:
++            suite=unittest.defaultTestLoader.discover(str(test.parent),pattern=test.name,top_level_dir=str(test.parent))
++            count=suite.countTestCases()
++            ran=unittest.TextTestRunner(stream=stream,verbosity=2).run(suite)
++            result.update(declared=count,tests_run=ran.testsRun,
++                          failures=[[t.id(),tb] for t,tb in ran.failures],
++                          errors=[[t.id(),tb] for t,tb in ran.errors],
++                          skipped=[[t.id(),reason] for t,reason in ran.skipped],
++                          expected_failures=len(ran.expectedFailures),
++                          unexpected_successes=len(ran.unexpectedSuccesses),
++                          successful=ran.wasSuccessful())
++            ok=(count>0 and ran.testsRun==count and ran.wasSuccessful()
++                and not ran.expectedFailures and not ran.unexpectedSuccesses)
++            result['status']='PASS' if ok else 'FAIL'
++        except BaseException as exc:
++            result.update(status='CRASH',crash=type(exc).__name__+':'+str(exc),traceback=traceback.format_exc())
++            traceback.print_exc()
++        finally:
++            stream.flush();os.fsync(stream.fileno())
++    with open(a.result,'xb') as f:
++        f.write((json.dumps(result,sort_keys=True,ensure_ascii=True,indent=1)+'\n').encode('ascii'))
++        f.flush();os.fsync(f.fileno())
++    return 0 if result['status']=='PASS' else 1
++
++
++if __name__=='__main__':raise SystemExit(main())

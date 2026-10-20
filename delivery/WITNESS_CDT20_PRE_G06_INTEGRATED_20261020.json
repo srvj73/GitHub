@@ -1,0 +1,57 @@
+{
+  "schema": "CDT20_PRE_G06_INTEGRATED_EXTERNAL_WITNESS_V001",
+  "mission_id": "CDT20_PRE_G06_OPUS_ONE_INTEGRATED_DELIVERY_20261020",
+  "launcher": {
+    "name": "RUN_CDT20_PRE_G06_INTEGRATED_20261020.ps1",
+    "bytes": 17005,
+    "sha256": "E1EB62A4EFCCEDBBFB9D37322DC616A41A1ADC5E730BB79EAE5D79B3432AEB48"
+  },
+  "transport": {
+    "name": "CDT20_PRE_G06_INTEGRATED_TRANSPORT_20261020.zip",
+    "bytes": 17348635,
+    "sha256": "61C0EFFA358D9CB04E90114CA5A7B544493B4DC5DB2B8E90DDDC6FB72B333C13"
+  },
+  "inner_package": {
+    "name": "CDT20_PRE_G06_INTEGRATED_SOURCE_20261020.zip",
+    "sha256": "6C952BD9D0C0B7E13D7B5AD01E1563DA8AFC2FB641262835A0AABBC49778C064",
+    "code_manifest_sha256": "CC7726742DD5DD72788AC6FD6D4CC1860DB7123F88599188E0A2B559F7FA3ECA",
+    "members": 304,
+    "parent_sha256": "40FB01F4DDC152B77B0DD524A7D01239462310B4D97FDA487C0A6693E58207D2",
+    "core_frozen_sha256": "749EEC5DF5C4F396D553AD75C1765D5BDA108391F877CC0C9179D82590429E00"
+  },
+  "handoff_inputs_verified": {
+    "part_1_sha256": "5B3EB13EF567FBA8B08D4EEC4F08B06B364BB72281A9968C276DAD98E63C0D48",
+    "part_2_sha256": "6373D867503B2DCB926EB9A8A3E27DEFB04D6CCE33988E06F5CB62EA20D30971",
+    "candidate_g0_blocked_sha256": "B91EEF399F691C510B94DB975353E00B26CBC1A1F8A6E1A669875C2171FA39C3",
+    "policy_files": "NOT_OPENED_NOT_HASHED_ORIGIN_CUSTODY"
+  },
+  "historical_native_return": {
+    "sha256": "4A339FE61E73B6E8993ACB4094FE0E55B061B71F109F37F7F6C8AD68E8B0C9E8",
+    "commits": "37_PRESERVED_NOT_REBOUND",
+    "artifact_refs": "477_PRESERVED"
+  },
+  "sandbox_qualification_not_native": {
+    "launcher_ps51_lint": "PASS",
+    "launcher_functional_pwsh74_linux": "11/11_PASS",
+    "launcher_functional_log_sha256": "FD35665689F26254E96F0E5EB4FD0241D966E07B9644C435DCF6E74FDB81884B",
+    "g0_contract": "11/11_PASS",
+    "bootstrap_contract": "12/12_PASS",
+    "g0_qualify_posix": "13/13_SUITES_PASS",
+    "package_regression": "NO_NEW_FAILURE_VS_PARENT",
+    "post_g3_chain_real_1219_bytes": "PASS_SYNTHETIC_REBIND",
+    "four_findings_real_1219_logs": "PASS"
+  },
+  "status": {
+    "EXECUTABLE_DELIVERY_READY": "NOT_PROVEN",
+    "native": "TARGET_RUNTIME_PENDING",
+    "PRE_G06": "NOT_COMPLETE_UNTIL_NATIVE_RETURN",
+    "b06": "NOT_STARTED",
+    "b07": "NOT_STARTED",
+    "d4_d5_productive": "NOT_STARTED",
+    "canary": "NOT_STARTED",
+    "full": "NOT_STARTED",
+    "production_modified": false,
+    "physical_powerloss": "NOT_TESTED_PHYSICAL_POWERLOSS"
+  },
+  "result_return_to": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 20"
+}
