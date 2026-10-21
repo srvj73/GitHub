@@ -1,0 +1,50 @@
+{
+ "b06": "NOT_STARTED",
+ "b07": "NOT_STARTED",
+ "blocked_return": {
+  "checks": "16/17",
+  "failed": "q_no_effect_on_foreign_roots",
+  "not_evaluated": [
+   "production_unchanged_during_q"
+  ],
+  "qualification_result_sha256": "966F33CD4DEDF449B7C52833702F3C9AD8ED1BA3BEF7112E57AE96C50712DC68",
+  "r1_uac_premise_native": "CONFIRMED",
+  "sha256": "289A064EA65235CEA2EF8EB1E80970C5415C2022C26D78781F8EF8CFBE4A7EC2"
+ },
+ "canary": "NOT_STARTED",
+ "candidate_v004_sha256": "AD33486954F1248AF28A78677377E83AB979AB86EDD5F71F5B7D108CBA8F99DD",
+ "d4_d5": "NOT_STARTED",
+ "diagnostic_launcher": {
+  "bytes": 108410,
+  "embedded": {
+   "CDT21_G5_V004_DIAG_RAIZES.py": "42166FA72DB4FD2A0C51EA58D6B04CDCDCC9C62B24A529381335ED578E7B0FC3",
+   "CDT21_G5_V004_SUPERVISOR.py": "273E620746FD5293D87858847CEBE035328B2A354F4371BBB18D82195A410126"
+  },
+  "name": "RUN_CDT21_G5_V004_DIAG_RAIZES_READONLY_20261021.ps1",
+  "read_only": true,
+  "sha256": "DE3938EFBD45014A7F53BEBB0818878E2845ABEC6743CA093DDF61F8B71B8D3A",
+  "writes_only": "C:\\Users\\silvi\\Downloads\\CDT21_G5_V004_RUNS\\DIAGQ_<stamp>"
+ },
+ "diagnostic_linux_qualification": "11/11",
+ "evidence_package": {
+  "bytes": 70933,
+  "manifest_sha256": "E664B2F9622458A072AB4C0527400984A81CEB177B98AA4DA42679AB5DBF2291",
+  "members": 11,
+  "name": "CDT21_G5_V004_DIAGQ_EVIDENCE_20261021.zip",
+  "sha256": "2EFCD6F5C537FC73A66DCF2953CFF78A6EB77646A99EE209D15CEE6F2797EA92"
+ },
+ "excluded_by_linux_audit": "Q_CODE_WRITES_TO_FOREIGN_ROOTS (0 escritas; 17 modulos sem E/S na importacao)",
+ "full": "NOT_STARTED",
+ "g5_campaign_executed": false,
+ "native_return_route": "DIRECT_TO_THIS_OPUS_CONVERSATION",
+ "protection_weakened": false,
+ "remaining_hypotheses": [
+  "EXTERNAL_WRITER",
+  "INDEX_VIEW_INSTABILITY_OF_DIGEST",
+  "TRANSIENT_READ_FAILURE"
+ ],
+ "result_return_to": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 21",
+ "role": "IMPLEMENTER_NOT_B06",
+ "schema": "CDT21_G5_V004_DIAGQ_WITNESS_V001",
+ "supervisor_changed": false
+}
