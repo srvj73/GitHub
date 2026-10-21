@@ -1,0 +1,71 @@
+{
+ "b06": "NOT_STARTED_RESERVED_TO_INDEPENDENT_WORK",
+ "b07": "NOT_STARTED",
+ "canary": "NOT_STARTED",
+ "candidate_v004_sha256": "AD33486954F1248AF28A78677377E83AB979AB86EDD5F71F5B7D108CBA8F99DD",
+ "contract_basis": {
+  "campaign_source_sha256": "347767D17C8526924D87732608CE2D0441E6989275B8E8E3D88E83F6A17FC79A",
+  "conclusion": "SAME_V004_CAMPAIGN_RESUME_APPLICABLE_AND_REQUIRED; OTHER_CANDIDATE_OR_CAMPAIGN_REUSE_FORBIDDEN",
+  "frozen_run_unit_same_root_same_bytes_reuse": true,
+  "frozen_tests": [
+   "test_committed_same_bytes_reused",
+   "test_cross_package_commit_cannot_be_rebound"
+  ]
+ },
+ "d4_d5": "NOT_STARTED",
+ "evidence_package": {
+  "bytes": 164139,
+  "manifest_sha256": "32CF17AD30FA2CCBFF7159879A503CA1AE9CC0D4AF037D70F5B5B066DE9B0CDB",
+  "members": 27,
+  "name": "CDT21_G5_V004_R3_RETOMADA_EVIDENCE_20261021.zip",
+  "sha256": "017A987AD8A81B87F9FCB42D5EA8EA4D17AEF922FCF3BF5624088C4C2108BD06"
+ },
+ "full": "NOT_STARTED",
+ "g0_v004_repeated": false,
+ "g5_campaign_executed": false,
+ "launcher": {
+  "bytes": 117097,
+  "name": "RUN_CDT21_G5_V004_R3_20261021.ps1",
+  "parent_r2_sha256": "8CC1ACB6B093020D4CFC94B3EB618A624243A3F8B3E9E1E991EA7B9E9C1B8DA2",
+  "resume_parameter": "-RetomarRaiz",
+  "sha256": "B68494D29563702592C867051FC94BDCE72A7A496AF006A691AC8CFB522D6E39"
+ },
+ "origin_finding": "R2_REMOVED_RESUME_AND_REFUSED_EVERY_REUSE_COMMITTED",
+ "qualification": {
+  "launcher_fragments": "8/8",
+  "mutants_killed": "7/7",
+  "ntfs_digest_behaviour_on_r3": "E2-E7 PASS (C1/C2 composition by construction)",
+  "resume_end_to_end": "28/28",
+  "v004_validation_on_r3": "37/41 (4 no-resume checks inverted by the origin audit)"
+ },
+ "residuals": [
+  "COMMIT_PUBLISHED_NOT_LEDGERED_AT_POWER_LOSS_REFUSED_NEW_CAMPAIGN",
+  "RESUME_REQUIRES_SAME_SUPERVISOR_BYTES"
+ ],
+ "result_return_to": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 21",
+ "resume_admission": [
+  "ROOT_IN_LOCALAPPDATA_CDT20_R08_PLAIN",
+  "BOOTSTRAP_BY_THIS_SUPERVISOR_V004_BYTES",
+  "OWNER_DLAB_WITNESS_INPUT_V004",
+  "COMMITS_IN_PLAN_NOT_V003_BOUND_V004_ARTIFACTS_REHASHED",
+  "COMMITS_IN_SUPERVISOR_LEDGER_SAME_SHA",
+  "PRIOR_PROCESSES_DEAD_LOCK_FREE",
+  "Q_READ_ONLY_THEN_E_SAME_SET"
+ ],
+ "review_v004_sha256_unchanged": "E84E5C39F37E73C08DE913403D41045F622916063190638DEA308F668C86C802",
+ "role": "IMPLEMENTER_NOT_B06",
+ "schema": "CDT21_G5_V004_R3_WITNESS_V001",
+ "superseded_launchers": [
+  "54C5ED1991AE3BEDAC656E96772DB4DF41E5D99A7385B22405AAB39B82393372",
+  "E3F83D0A76E4B372C02C4F7AFD28243CE7DB568A8B242810AECEE86396CED2C8",
+  "8CC1ACB6B093020D4CFC94B3EB618A624243A3F8B3E9E1E991EA7B9E9C1B8DA2"
+ ],
+ "supervisor": {
+  "name": "CDT21_G5_V004_SUPERVISOR.py",
+  "new_run_behaviour_preserved": true,
+  "ntfs_handle_view_fix_preserved": true,
+  "parent_r2_sha256": "2A5F4B7138C950D320F7787540F98FF912D1AFB6C86C59E0F562887DB671029F",
+  "sha256": "2765FAAAC4725F5925921E25B93E145D3719EFC686BDFD7511A110440B0A1DAD"
+ },
+ "v003_commits_reused": 0
+}
