@@ -1,58 +1,24 @@
 {
- "BLOCKER": "G5_V003_CAMPAIGN_CHILD_EVIDENCE_NOT_IN_HAND: last native G5 run (elevated child PID 5076) ended exit 3 in phase CAMPAIGN; its primary receipts exist only on the owner Windows machine",
- "EFFECTFUL_RERUN_PRECONDITION": "any later campaign/resume writes to D:\\TICKSTORE_CDT19_PRE_G06_LABS; it must wait for the root cause and for the owner's open D: data-loss diagnosis; collection itself touches nothing on D:",
- "EXACT_FILE_NEEDED": [
-  "C:\\Users\\silvi\\Downloads\\CDT21_G5_V003_RUNS\\G5_20261020_210605_565_5076\\SUPERVISOR_RESULT.json",
-  "C:\\Users\\silvi\\Downloads\\CDT21_G5_V003_RUNS\\G5_20261020_210605_565_5076\\RUN_LOG.txt",
-  "C:\\Users\\silvi\\Downloads\\CDT21_G5_V003_RUNS\\G5_20261020_210605_565_5076\\CDT21_G5_V003_RETURN.zip",
-  "C:\\Users\\silvi\\AppData\\Local\\CDT20_R08\\R08_Q1_20261020210605_856fea523791\\ENGINEERING_RESULT.json",
-  "C:\\Users\\silvi\\AppData\\Local\\CDT20_R08\\R08_Q1_20261020210605_856fea523791\\LIVE_STATUS.json",
-  "C:\\Users\\silvi\\AppData\\Local\\CDT20_R08\\R08_Q1_20261020210605_856fea523791\\R08_RETURN.zip",
-  "C:\\Users\\silvi\\AppData\\Local\\CDT20_R08\\R08_Q1_20261020210605_856fea523791\\COMMITS\\*.json",
-  "C:\\Users\\silvi\\AppData\\Local\\CDT20_R08\\R08_Q1_20261020210605_856fea523791\\LOGS\\*.log",
-  "C:\\Users\\silvi\\AppData\\Local\\CDT20_R08\\R08_Q1_20261020210605_856fea523791\\UNITS\\*\\RESULT.json",
-  "C:\\Users\\silvi\\AppData\\Local\\CDT20_R08\\R08_Q1_20261020210605_856fea523791\\EVIDENCE\\PROOFS\\*",
-  "C:\\Users\\silvi\\AppData\\Local\\CDT21_G5_V003\\STAGE_20261020_210605_565_5076\\SUPERVISOR_CONSOLE.log"
- ],
- "NO_NEW_CAMPAIGN_BEFORE_ROOT_CAUSE": true,
+ "BLOCKER": "G5_V003_NATIVE_CAMPAIGN_NOT_YET_RESUMED: 33 of 38 units pending after the R1 layout defect (fixed in R2)",
+ "EXACT_FILE_NEEDED": "ENVIAR_AO_OPUS_CDT21_G5_V003_FINAL_R2_<stamp>.zip from C:\\Users\\silvi\\Downloads\\CDT21_G5_V003_RUNS\\G5R2_<stamp>\\ ",
  "NO_RERUN_COMMITTED": true,
  "PRIMARY_CAUSE_EVIDENCE": {
-  "code_mapping": {
-   "campaign_duration_upper_bound_s": 28,
-   "exit_3_meaning": "In the child branch of R1, $code = $LASTEXITCODE of the supervisor (catch path would give 2). Supervisor exit 3 = phase CAMPAIGN failure (campaign exit != 0 / status not PASS / R08 not sealed) or owned orphans after a PASS.",
-   "not_determined": [
-    "failing unit",
-    "blocker text and traceback",
-    "which units are COMMITTED",
-    "whether R08_RETURN.zip was sealed",
-    "supervisor SUPERVISOR_RESULT fields"
-   ],
-   "pass_impossible": "38-unit plan has a 712 s native baseline; a terminal write at ~28 s cannot be a completed PASS, so the orphan-after-PASS branch is excluded by timing."
-  },
-  "parent_exit": "ELEVATED_CHILD_EXIT_CODE=3 (origin)",
-  "windows_paths_observed": {
-   "campaign_run_root": "C:\\Users\\silvi\\AppData\\Local\\CDT20_R08\\R08_Q1_20261020210605_856fea523791 (LastWriteTime 2026-10-20 21:06:33)",
-   "child_log_dir_derived_from_launcher_code": "C:\\Users\\silvi\\Downloads\\CDT21_G5_V003_RUNS\\G5_20261020_210605_565_5076",
-   "child_process_alive_at_21_11": false,
-   "child_stamp_evidence": "diag V1 lists C:\\Users\\silvi\\AppData\\Local\\CDT21_G5_V003\\STAGE_20261020_210605_565_5076 (stamp suffix _5076 = $PID of the elevated child)",
-   "d_lab": "D:\\TICKSTORE_CDT19_PRE_G06_LABS\\R08_Q1_20261020210605_856fea523791 (LastWriteTime 21:06:07; bootstrap completed)",
-   "diag_v1_run_log_sha256": "D835F3527CC8A502A07391576A718718B1B5B8FB07B5B7723BC3926ADD65E1B2",
-   "embedded_review_sha256": "BB2BDE03B17C38AB54F998A0D0682F8CEC9848DFD433B1C200B6146554635348 (identical)",
-   "embedded_supervisor_sha256": "7B482A4B2CD33734ED9AC2AAAE82ABEBB21B2439A1AB654380A74EDC6195B920 (identical to the qualified supervisor)",
-   "launcher_executed": "CDT21_G5_V003_RUNNER_ORIGEM_R1 (origin modification of RUN_CDT21_G5_V003_FIVE_PART_20261020.ps1: UAC self-elevation, C:\\Users\\silvi\\Downloads); SHA ED0D70357C1D044410C7F50CC94CF3503AFB2335C2C4BBF6EADF0230A047AA43",
-   "parent_run_log": "C:\\Users\\silvi\\Downloads\\CDT21_G5_V003_RUNS\\G5_20261020_210602_767_19736\\RUN_LOG.txt (ELEVATED_CHILD_PID=5076, ELEVATED_CHILD_EXIT_CODE=3; per origin)",
-   "ps51_proof_side_logs": "OneDrive\\Downloads\\TICKSTORE_RUNS INSTALL_*/MENU_OFFICIAL_WRITER_* 21:06:08-21:06:28, layout_kind=QUALIFICATION, backups inside the D-lab"
-  }
+  "errors": "29/29 G5_FIXTURE_RUNROOT_CONTRACT_NOT_MET",
+  "linux_reproduction": "B2D_LAYOUT_CONTROLS 4/4",
+  "native_r08_return_sha256": "5835A84122E0CC455C4217FB85A6D96E11F4CB0A6D7F33FFAC35B9CC357502EF",
+  "unit": "SUITE_test_b2d_origin_decision_binder.py"
  },
  "SMALLEST_SAFE_NEXT_ACTION": {
-  "collector_sha256": "D319EC71D362D63EE2470A3019322C984828DFDE476F04E54AF9595B5C3E0A89",
-  "elevation": "NOT_REQUIRED (no UAC)",
-  "qualification": "31/31 (cases 0/1/N, size/total caps, links, no-execution sentinels, source immutability) + AST check 0 disallowed",
-  "reads": "C: profile paths above only; never D:; never executes collected files; never follows links",
-  "return": "ENVIAR_AO_OPUS_CDT21_G5_V003_COLLECT_<stamp>.zip to this Opus thread",
-  "run": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\silvi\\Downloads\\RUN_CDT21_G5_V003_COLLECT_READONLY_20261021.ps1\"",
-  "writes": "only C:\\Users\\silvi\\Downloads\\CDT21_G5_V003_COLLECT_RUNS\\COLLECT_<stamp>\\ "
+  "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\silvi\\Downloads\\RUN_CDT21_G5_V003_FINAL_R2_20261021.ps1\" -AutorizoLabD",
+  "gates": "phase Q (native Windows qualification) must PASS before any effect; resume requires its PASS",
+  "launcher": "RUN_CDT21_G5_V003_FINAL_R2_20261021.ps1",
+  "launcher_sha256": "DF8FF518F0A9E5DAFF6DB5209E7861AE5C27DE28D0577D8482CEBF17F8C65C1F",
+  "supervisor_r2_sha256": "99704BA5965294204D6FE1BBD348C423EA70204B5C104D4D19C5150217F1C0CC",
+  "without_AutorizoLabD": "native qualification only (exit 10), no D: writes"
  },
- "schema": "CDT21_NOT_READY_SINGLE_BLOCKER_V001",
- "status": "NOT_READY_FOR_ORIGIN_B06_DISPATCH"
+ "b06": "NOT_STARTED",
+ "candidate_sha256": "69DA2D5964BABA95D8B90D5BC17E12683B5F5E91D1C7D7ABD01938A7AE014A50",
+ "schema": "CDT21_NOT_READY_SINGLE_BLOCKER_V002",
+ "status": "NOT_READY_FOR_ORIGIN_B06_DISPATCH",
+ "v003_modified": false
 }
