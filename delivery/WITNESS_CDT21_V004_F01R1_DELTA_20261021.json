@@ -1,0 +1,52 @@
+{
+ "b06": "NOT_STARTED",
+ "b07": "NOT_STARTED",
+ "canary": "NOT_STARTED",
+ "candidate_v004": {
+  "bytes": 17369789,
+  "members": 320,
+  "name": "CDT21_FINAL_PACKAGE_V004_20261021.zip",
+  "package_manifest_sha256": "F6225EA6720FCA558F8BBAD70B3ED46687103374873439E0FADDB4FEA9D3A813",
+  "runtime_code_manifest_sha256": "D2C626FD2819B86D472433CB2B26C6688B1688E5E5474402162B67C5048666FF",
+  "sha256": "AD33486954F1248AF28A78677377E83AB979AB86EDD5F71F5B7D108CBA8F99DD",
+  "source_manifest_sha256": "459535EAB971474930F52A0F0380F909259431D3B9EE19323805082871B676DD"
+ },
+ "d4_d5": "NOT_STARTED",
+ "delta_package": {
+  "bytes": 190811,
+  "manifest_sha256": "860E7C8E4377E2C8AA3A299B54666E8F1CCBA6E16E81202CEE42BACACA20CA48",
+  "members": 52,
+  "name": "CDT21_V004_F01R1_DELTA_PARA_ORIGEM_20261021.zip",
+  "sha256": "A0D6796AD69E6F73E930C7A2E9793FF9A6ED1E7559305553B3600E8BF4B139C3"
+ },
+ "finding_input": {
+  "reproducer_sha256": "03311136875D05BEB15F34C935CE921EDCA165C2C8B5F5F548A61134AB4D4922",
+  "zip_sha256": "676FA20FB3046164D12874576A637D0F2557961CEBFEEB6E7B194C9CDF404628"
+ },
+ "full": "NOT_STARTED",
+ "g5_v004": "NOT_RUN_ORIGIN_DECISION",
+ "linux_qualification": {
+  "f01_suite": "30 run, 27 pass, 3 Windows-only skips",
+  "f01r1_suite": "16 run, 15 pass, 1 Windows-only skip",
+  "full_sweep": "identical to V003 line by line + new suite",
+  "mutation_controls": "BASELINE PASS, 8/8 KILLED",
+  "origin_scenario_v003_contrast": "A and B: F01_LEGACY_ALREADY_INITIALIZED_NOT_STOPPED_BY_FENCE",
+  "origin_scenario_v004": "A and B: OLD_LEGACY_APPEND_DENIED_AFTER_CUT",
+  "reconstruction": "member and ZIP identity; 2/2 negatives refused"
+ },
+ "parent_v003": {
+  "runtime_code_manifest_sha256": "D59BC4EE4F0D5C689335C8F478A0342CC0146930E3B0B44C707B6B95267B3953",
+  "sha256": "69DA2D5964BABA95D8B90D5BC17E12683B5F5E91D1C7D7ABD01938A7AE014A50",
+  "status": "FROZEN_UNCHANGED"
+ },
+ "production_effects": "NONE",
+ "result_return_to": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 21",
+ "role": "IMPLEMENTER_NOT_B06",
+ "schema": "CDT21_V004_F01R1_DELIVERY_WITNESS_V001",
+ "windows_native_qualification": "PENDING_OWNER_RUN",
+ "windows_runner": {
+  "bytes": 10098,
+  "name": "RUN_CDT21_F01R1_G0_V004_20261021.ps1",
+  "sha256": "6A0F8A3801E70C15D99CAD6486D667A2C0874BD3C4738BBDB39583A6C28D8B60"
+ }
+}
