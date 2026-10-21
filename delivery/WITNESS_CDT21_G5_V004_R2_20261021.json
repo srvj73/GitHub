@@ -1,0 +1,59 @@
+{
+ "b06": "NOT_STARTED_RESERVED_TO_INDEPENDENT_WORK",
+ "b07": "NOT_STARTED",
+ "canary": "NOT_STARTED",
+ "candidate_v004_sha256": "AD33486954F1248AF28A78677377E83AB979AB86EDD5F71F5B7D108CBA8F99DD",
+ "causal_conclusion": "INDEX_VIEW_LAG_REFRESHED_BY_Q_FIRST_ENUMERATION_NO_FILESYSTEM_MODIFICATION",
+ "d4_d5": "NOT_STARTED",
+ "defect": "SUPERVISOR_DIGEST_READ_METADATA_FROM_NTFS_DIRECTORY_INDEX",
+ "diag_index_vs_handle_11_reported": "ARTIFACT_OF_DIAG_LINK_SIZE_CODE_REAL_DISCREPANCIES_0",
+ "diagq_return_sha256": "4FEBE2F7B2AFAB06DE422F779340A748B462C619BB59EE760155E3B7CBD89B38",
+ "evidence_package": {
+  "bytes": 118175,
+  "manifest_sha256": "D99C742DF93FAB92CC27347E8E9F367F4612F5F84F7ED0D712357F158E5DE948",
+  "members": 20,
+  "name": "CDT21_G5_V004_R2_SUPERVISOR_FIX_EVIDENCE_20261021.zip",
+  "sha256": "FDCB9FEBCDFBE4033693D131CDD2A30095358A564992DCF3C7A5E0CCCF2FFB6C"
+ },
+ "full": "NOT_STARTED",
+ "g0_v004_repeated": false,
+ "g5_campaign_executed": false,
+ "launcher": {
+  "bytes": 92376,
+  "name": "RUN_CDT21_G5_V004_R2_20261021.ps1",
+  "parent_r1_sha256": "E3F83D0A76E4B372C02C4F7AFD28243CE7DB568A8B242810AECEE86396CED2C8",
+  "sha256": "8CC1ACB6B093020D4CFC94B3EB618A624243A3F8B3E9E1E991EA7B9E9C1B8DA2"
+ },
+ "next_native_execution": "G5_V004_CAMPAIGN_Q_THEN_E_WHEN_ORIGIN_AUTHORIZES",
+ "protection": "UNCHANGED_IMMUTABILITY_REQUIREMENT_SAME_BLOCKER_CODES_REAL_CHANGES_DETECTED",
+ "qualification": {
+  "mutants_killed": "5/5",
+  "native_metadata_source_proof": "DIAGQ 4FEBE2F7: os.lstat 0 errors, 0 real discrepancies, fresh under index lag, junctions not followed",
+  "r2_digest": "22/22",
+  "v004_validation_rerun": "40/41 (only r2_functions_byte_identical, by construction)"
+ },
+ "result_return_to": "ChatGPT | PROJECT=Base de Dados CSV / Tickstore | THREAD=Compressão De Ticks 21",
+ "review_v004_sha256_unchanged": "E84E5C39F37E73C08DE913403D41045F622916063190638DEA308F668C86C802",
+ "role": "IMPLEMENTER_NOT_B06",
+ "schema": "CDT21_G5_V004_R2_WITNESS_V001",
+ "separate_native_qualification_needed": false,
+ "superseded_launchers": [
+  "54C5ED1991AE3BEDAC656E96772DB4DF41E5D99A7385B22405AAB39B82393372",
+  "E3F83D0A76E4B372C02C4F7AFD28243CE7DB568A8B242810AECEE86396CED2C8"
+ ],
+ "supervisor": {
+  "diff_lines": {
+   "added": 47,
+   "removed": 9
+  },
+  "name": "CDT21_G5_V004_SUPERVISOR.py",
+  "parent_sha256": "273E620746FD5293D87858847CEBE035328B2A354F4371BBB18D82195A410126",
+  "sha256": "2A5F4B7138C950D320F7787540F98FF912D1AFB6C86C59E0F562887DB671029F"
+ },
+ "usn_covers_q_window": {
+  "C:": true,
+  "D:": true
+ },
+ "usn_records_in_protected_roots": 0,
+ "v003_commits_reused": 0
+}
