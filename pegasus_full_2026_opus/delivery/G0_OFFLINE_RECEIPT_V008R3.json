@@ -1,0 +1,70 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R3_G0_OFFLINE_RECEIPT",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R3_20261022.zip",
+      "sha256": "46E4D3313020316044D3D4F0DC6D3A2D6EFA1CB5718722B57340BD86149C17B7",
+      "bytes": 87380724,
+      "members": 2948
+    },
+    "manifest_sha256": "3199509D3D8C56AC279F390C9C9421900DAEB8F92B24916DA06213D2CF89291A",
+    "tested_manifest_sha256_m1": "559B1D6FC24B1081DEA87044884B790BB9524F28195F232C37EBA22D85CE2CA4",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R3_PS51.ps1",
+      "sha256": "4185F66D059E2FEC3CDF4E5BA5E53A51CC4915346CD689F3CE16718BD6B47738",
+      "bytes": 22858
+    },
+    "supersedes_v008r2": {
+      "zip_sha256": "4A1676816C81DB5CA343261712238DCCBEA1F9C6ECBDE1AA8013307D8514EFE2",
+      "reason": "Job Object handle lifecycle fixed"
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "zip_crc": "PASS",
+  "zip_member_safety": "PASS",
+  "delivered_extract_verify": "PASS_ALL_DELIVERED_BYTES_MATCH_MANIFEST",
+  "delivered_manifest_sha256": "3199509D3D8C56AC279F390C9C9421900DAEB8F92B24916DA06213D2CF89291A",
+  "delivered_files_checked": 2947,
+  "offline_tests": {
+    "supervisor_unit": "56_OF_56",
+    "supervisor_mutation": "20_OF_20_KILLED",
+    "bootstrap_exit_boundary": "PASS_ALL passed=20",
+    "bootstrap_mutation": "8_OF_8_KILLED",
+    "supervised_qualification": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=16; SKIPPED_NON_NATIVE=2; error=None"
+  },
+  "native_campaign_r2": {
+    "zip_sha256": "7E15A87D55F620E8403D215EB22370A7DB795BD4C74CC3C288C77F1B4A274DB2",
+    "exit_boundary_steps": {
+      "S00_CANARY_EXIT_0": "MATCH",
+      "S00_CANARY_EXIT_2": "MATCH",
+      "S00_CANARY_EXIT_3": "MATCH",
+      "S00_CANARY_EXIT_7": "MATCH",
+      "S00_CANARY_EXIT_19": "MATCH",
+      "S00_CANARY_EXIT_37": "MATCH",
+      "S00_CANARY_EXIT_130": "MATCH",
+      "S00_CANARY_STREAMS_2MB": "MATCH",
+      "S01_SUPERVISOR_VERIFY": "MATCH",
+      "S02_ENTRY_VERIFY": "MATCH",
+      "S03_ARGV_EXIT_PROBE": "MATCH",
+      "S04_FAILCLOSED_run-b": "MATCH",
+      "S04_FAILCLOSED_run-c": "MATCH",
+      "S04_FAILCLOSED_run-full": "MATCH",
+      "S05_VENV": "MATCH",
+      "S06_OFFLINE_NUMPY": "MATCH",
+      "S07_SUPERVISED_NATIVE_QUALIFICATION": "MISMATCH"
+    },
+    "primary_failure": "NATIVE_QUALIFICATION_EXIT=3",
+    "resolved_in": "V008R3_JOB_HANDLE_LIFECYCLE"
+  },
+  "python_compile_new_code": "PASS_ON_3.13 (campanha nativa usa Python 3.14.7 do titular)",
+  "powershell_parse": "PASS_PWSH_7.4.6_LINUX; PS5.1_NATIVE_VALIDATED_BY_CAMPAIGN_R2",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED"
+}

@@ -190,6 +190,7 @@ class WindowsJobCustody:
         self.events = {}            # (pid, ctime) -> True
         self.exits = 0
         self.active_zero = False
+        self._closed = False
         self._stop = threading.Event()
         self.job = CreateJobObjectW(None, None)
         if not self.job:
@@ -287,12 +288,22 @@ class WindowsJobCustody:
                     self.events.pop((pid, 0), None)
                     self.events[(pid, ct)] = True
 
-    def accounting(self) -> dict:
+    def _assert_open(self):
+        # Após close() o handle do Job é fechado (KILL_ON_JOB_CLOSE só como fail-safe de queda
+        # do supervisor); consultá-lo daria ERROR_INVALID_HANDLE. Recusa explícita > handle solto.
+        if self._closed:
+            raise RuntimeError("CUSTODY_QUERIED_AFTER_CLOSE")
+
+    def _accounting_raw(self) -> dict:
         info = JOBOBJECT_BASIC_ACCOUNTING_INFORMATION()
         if not QueryInformationJobObject(self.job, JobObjectBasicAccountingInformation, ctypes.byref(info), ctypes.sizeof(info), None):
             raise _err("JOB_ACCOUNTING_FAILED")
         return {"TotalProcesses": int(info.TotalProcesses), "ActiveProcesses": int(info.ActiveProcesses),
                 "TotalTerminatedProcesses": int(info.TotalTerminatedProcesses)}
+
+    def accounting(self) -> dict:
+        self._assert_open()
+        return self._accounting_raw()
 
     def poll(self):
         return None if self.proc is None else self.proc.poll()
@@ -319,7 +330,11 @@ class WindowsJobCustody:
     def close(self):
         self._stop.set()
         self._pump.join(2)
-        if self.tree_empty():
+        # Emptiness avaliada pelo acessor cru (handle ainda aberto) e ANTES de marcar fechado,
+        # para não disparar a própria recusa de pós-close.
+        empty = self._accounting_raw()["ActiveProcesses"] == 0
+        self._closed = True
+        if empty:
             CloseHandle(self.port)
             CloseHandle(self.job)
         else:

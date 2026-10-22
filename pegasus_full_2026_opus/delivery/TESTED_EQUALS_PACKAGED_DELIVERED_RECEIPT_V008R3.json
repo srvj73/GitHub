@@ -1,11 +1,11 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R2_TESTED_EQUALS_PACKAGED_DELIVERED",
-  "tested_manifest_sha256_m1": "165BE55F17160ECB260F0DA5AC74F6092C78E00D99B45F5350ED67BA7B780A25",
-  "final_manifest_sha256_m2": "9FA39FC91CD3B46A263E62628BF005CBDB4F1871BDA3B77B991616DA9A5C7C02",
+  "schema": "PEGASUS_FULL_2026_V008R3_TESTED_EQUALS_PACKAGED_DELIVERED",
+  "tested_manifest_sha256_m1": "559B1D6FC24B1081DEA87044884B790BB9524F28195F232C37EBA22D85CE2CA4",
+  "final_manifest_sha256_m2": "3199509D3D8C56AC279F390C9C9421900DAEB8F92B24916DA06213D2CF89291A",
   "m1_to_m2": {
     "m1_members": 2914,
-    "m2_members": 2943,
-    "m1_to_m2_added": 29,
+    "m2_members": 2947,
+    "m1_to_m2_added": 33,
     "m1_to_m2_removed": 0,
     "m1_to_m2_changed": 0,
     "m1_to_m2_delta_only_offline_evidence": true,
@@ -13,7 +13,7 @@
     "tested_supervisor_sha256_present_in_final": true
   },
   "delivered_zip_extract_verify": "PASS_ALL_DELIVERED_BYTES_MATCH_MANIFEST",
-  "delivered_unit_tests": "55_OF_55_PASS",
+  "delivered_unit_tests": "56_OF_56_PASS",
   "delivered_supervisor_verify": "PASS_PACKAGE_VERIFIED",
   "delivered_entry_verify": "PACKAGE_INTEGRITY=PASS",
   "installed": "PENDING_OWNER_INSTALL_MODE",

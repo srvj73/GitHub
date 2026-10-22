@@ -32,7 +32,9 @@
     "G3_W04_JIT_JOB": {
       "state": "IMPLEMENTED_OFFLINE_ORCHESTRATION_QUALIFIED_NATIVE_PENDING",
       "offline": "ordem JIT provada nas 9 execuções supervisionadas; linhagem POSIX observacional (não promove)",
-      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q01-Q09 sob Job real + Q11 netos/breakaway)"
+      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q01-Q09 sob Job real + Q11 netos/breakaway)",
+      "native_campaign_r2": "EXECUTED: W04 armou nativo (43 files, 0 violations, usn_hits=0); Job accounting-after-close corrigido em V008R3 (handle lifecycle)",
+      "job_handle_lifecycle": "CLOSED_V008R3: evidência terminal capturada antes de close(); custodiantes recusam consulta pós-close; regressão CustodyLifecycleContract"
     },
     "G4_SAFESTOP_RESUME": {
       "state": "OFFLINE_PASS_ON_REAL_RUNTIME_SYNTHETIC_NATIVE_PENDING",
@@ -47,7 +49,9 @@
     "G5_INTEGRATED_NATIVE_WIN": {
       "state": "CAMPAIGN_READY_NOT_EXECUTED",
       "detail": "Bootstrap único hash-bound; parse PS7 7.4.6 PASS (evidência limitada); parse/execução PS 5.1 e Python 3.14.7 no alvo pendentes",
-      "bootstrap_exit_boundary": "REWRITTEN_V008R2: Process.Start+Handle, Get-PegasusExitCode fail-closed, ReadToEndAsync, watchdog no-kill, UAC relay reconcile; test 20/20 + mutation 8/8 sobre bytes reais do template (pwsh 7.4.6)"
+      "bootstrap_exit_boundary": "REWRITTEN_V008R2: Process.Start+Handle, Get-PegasusExitCode fail-closed, ReadToEndAsync, watchdog no-kill, UAC relay reconcile; test 20/20 + mutation 8/8 sobre bytes reais do template (pwsh 7.4.6)",
+      "native_campaign_r2_exit_boundary": "VALIDATED_ON_WINDOWS: S00 canaries 0/2/3/7/19/37/130 + 2MB streams MATCH; S03 ARGV=37 MATCH (R1 lia 0); S01/S02/S04/S05/S06 MATCH",
+      "native_campaign_r2_blocker": "S07 qualification exit 3 (JOB_ACCOUNTING winerror=6) -> corrigido V008R3; re-run pendente"
     },
     "G6_CANDIDATE_COMPLETENESS": {
       "state": "NOT_PASS_PENDING_G2_G3_G5_NATIVE_EVIDENCE",
@@ -56,7 +60,7 @@
       "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)",
       "exit_code_boundary": "CLOSED_V008R2 (bootstrap+UAC+subprocess+watchdog+supervisor; sem falso PASS)",
       "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
-      "offline_test_counts": "unit 55/55; supervisor mutants 20/20; bootstrap boundary 20/20; bootstrap mutants 8/8; V003 chain 19/19 (imutavel); supervised qualification 16/16 PASS + 2 SKIPPED_NON_NATIVE"
+      "offline_test_counts": "unit 56/56; supervisor mutants 20/20; bootstrap boundary 20/20 (template inalterado, provado nativo); bootstrap mutants 8/8; V003 chain 19/19; supervised qualification 16/16 PASS + 2 SKIPPED_NON_NATIVE (error=None)"
     }
   },
   "boundaries": {
@@ -71,10 +75,19 @@
     "independent_audit": "NOT_STARTED"
   },
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
-  "revision": "V008R2",
+  "revision": "V008R3",
   "supersedes": {
-    "v008r1_zip_sha256": "912A7A1DE17F82A644829FB531B91C88621884E1912DF4FC77E41FF68B51BEB5",
-    "reason": "exit-code execution/propagation boundary closed (bootstrap PS5.1 null-exit false-PASS vector, UAC relay, subprocess, watchdog, supervisor classification)"
+    "v008r2_zip_sha256": "4A1676816C81DB5CA343261712238DCCBEA1F9C6ECBDE1AA8013307D8514EFE2",
+    "reason": "Job Object handle lifecycle fixed (accounting/tree_empty queried after CloseHandle -> ERROR_INVALID_HANDLE on native Windows)"
   },
-  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida."
+  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
+  "native_campaign_r2_result": {
+    "zip_sha256": "7E15A87D55F620E8403D215EB22370A7DB795BD4C74CC3C288C77F1B4A274DB2",
+    "exit_code": 3,
+    "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START",
+    "exit_boundary": "VALIDATED_NATIVE_NO_FALSE_PASS",
+    "primary_failure": "S07 JOB_ACCOUNTING_FAILED winerror=6 (handle closed before accounting) -> fixed V008R3",
+    "ps_version": "5.1.26100.9711",
+    "python": "3.14.7"
+  }
 }

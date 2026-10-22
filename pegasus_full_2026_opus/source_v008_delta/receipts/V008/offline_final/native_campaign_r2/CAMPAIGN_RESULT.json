@@ -1,0 +1,232 @@
+{
+    "schema":  "PEGASUS_FULL_2026_V008R2_WINDOWS_CAMPAIGN_RESULT",
+    "mode":  "QualifyNative",
+    "top_level":  false,
+    "g4":  "FROZEN",
+    "qs4":  "NO",
+    "full_economic":  "NO",
+    "phase_c":  "FORBIDDEN",
+    "reselection_2026":  "FORBIDDEN",
+    "run_released":  "NO",
+    "full_released":  "NO",
+    "steps":  {
+                  "S00_CANARY_EXIT_0":  {
+                                            "expected":  [
+                                                             0
+                                                         ],
+                                            "observed":  0,
+                                            "classification":  "MATCH",
+                                            "pid":  8952,
+                                            "creation_time_utc":  "2026-10-22T16:35:18.5037256Z",
+                                            "seconds":  0.035,
+                                            "stdout_bytes":  0,
+                                            "stderr_bytes":  0
+                                        },
+                  "S00_CANARY_EXIT_2":  {
+                                            "expected":  [
+                                                             2
+                                                         ],
+                                            "observed":  2,
+                                            "classification":  "MATCH",
+                                            "pid":  45132,
+                                            "creation_time_utc":  "2026-10-22T16:35:18.5707022Z",
+                                            "seconds":  0.026,
+                                            "stdout_bytes":  0,
+                                            "stderr_bytes":  0
+                                        },
+                  "S00_CANARY_EXIT_3":  {
+                                            "expected":  [
+                                                             3
+                                                         ],
+                                            "observed":  3,
+                                            "classification":  "MATCH",
+                                            "pid":  35156,
+                                            "creation_time_utc":  "2026-10-22T16:35:18.6034555Z",
+                                            "seconds":  0.026,
+                                            "stdout_bytes":  0,
+                                            "stderr_bytes":  0
+                                        },
+                  "S00_CANARY_EXIT_7":  {
+                                            "expected":  [
+                                                             7
+                                                         ],
+                                            "observed":  7,
+                                            "classification":  "MATCH",
+                                            "pid":  20124,
+                                            "creation_time_utc":  "2026-10-22T16:35:18.6366718Z",
+                                            "seconds":  0.026,
+                                            "stdout_bytes":  0,
+                                            "stderr_bytes":  0
+                                        },
+                  "S00_CANARY_EXIT_19":  {
+                                             "expected":  [
+                                                              19
+                                                          ],
+                                             "observed":  19,
+                                             "classification":  "MATCH",
+                                             "pid":  23240,
+                                             "creation_time_utc":  "2026-10-22T16:35:18.6695067Z",
+                                             "seconds":  0.026,
+                                             "stdout_bytes":  0,
+                                             "stderr_bytes":  0
+                                         },
+                  "S00_CANARY_EXIT_37":  {
+                                             "expected":  [
+                                                              37
+                                                          ],
+                                             "observed":  37,
+                                             "classification":  "MATCH",
+                                             "pid":  41572,
+                                             "creation_time_utc":  "2026-10-22T16:35:18.7019686Z",
+                                             "seconds":  0.025,
+                                             "stdout_bytes":  0,
+                                             "stderr_bytes":  0
+                                         },
+                  "S00_CANARY_EXIT_130":  {
+                                              "expected":  [
+                                                               130
+                                                           ],
+                                              "observed":  130,
+                                              "classification":  "MATCH",
+                                              "pid":  47948,
+                                              "creation_time_utc":  "2026-10-22T16:35:18.7342287Z",
+                                              "seconds":  0.025,
+                                              "stdout_bytes":  0,
+                                              "stderr_bytes":  0
+                                          },
+                  "S00_CANARY_STREAMS_2MB":  {
+                                                 "expected":  [
+                                                                  5
+                                                              ],
+                                                 "observed":  5,
+                                                 "classification":  "MATCH",
+                                                 "pid":  49568,
+                                                 "creation_time_utc":  "2026-10-22T16:35:18.7664009Z",
+                                                 "seconds":  0.087,
+                                                 "stdout_bytes":  2097152,
+                                                 "stderr_bytes":  2097152
+                                             },
+                  "S01_SUPERVISOR_VERIFY":  {
+                                                "expected":  [
+                                                                 0
+                                                             ],
+                                                "observed":  0,
+                                                "classification":  "MATCH",
+                                                "pid":  5780,
+                                                "creation_time_utc":  "2026-10-22T16:35:24.6950830Z",
+                                                "seconds":  2.279,
+                                                "stdout_bytes":  637,
+                                                "stderr_bytes":  0
+                                            },
+                  "S02_ENTRY_VERIFY":  {
+                                           "expected":  [
+                                                            0
+                                                        ],
+                                           "observed":  0,
+                                           "classification":  "MATCH",
+                                           "pid":  39096,
+                                           "creation_time_utc":  "2026-10-22T16:35:26.9817802Z",
+                                           "seconds":  2.257,
+                                           "stdout_bytes":  179,
+                                           "stderr_bytes":  0
+                                       },
+                  "S03_ARGV_EXIT_PROBE":  {
+                                              "expected":  [
+                                                               37
+                                                           ],
+                                              "observed":  37,
+                                              "classification":  "MATCH",
+                                              "pid":  50092,
+                                              "creation_time_utc":  "2026-10-22T16:35:29.2501751Z",
+                                              "seconds":  0.044,
+                                              "stdout_bytes":  0,
+                                              "stderr_bytes":  0
+                                          },
+                  "S04_FAILCLOSED_run-b":  {
+                                               "expected":  [
+                                                                2
+                                                            ],
+                                               "observed":  2,
+                                               "classification":  "MATCH",
+                                               "pid":  48852,
+                                               "creation_time_utc":  "2026-10-22T16:35:29.3011836Z",
+                                               "seconds":  2.221,
+                                               "stdout_bytes":  386,
+                                               "stderr_bytes":  0
+                                           },
+                  "S04_FAILCLOSED_run-c":  {
+                                               "expected":  [
+                                                                2
+                                                            ],
+                                               "observed":  2,
+                                               "classification":  "MATCH",
+                                               "pid":  37588,
+                                               "creation_time_utc":  "2026-10-22T16:35:31.5326303Z",
+                                               "seconds":  2.31,
+                                               "stdout_bytes":  386,
+                                               "stderr_bytes":  0
+                                           },
+                  "S04_FAILCLOSED_run-full":  {
+                                                  "expected":  [
+                                                                   2
+                                                               ],
+                                                  "observed":  2,
+                                                  "classification":  "MATCH",
+                                                  "pid":  14652,
+                                                  "creation_time_utc":  "2026-10-22T16:35:33.8531151Z",
+                                                  "seconds":  2.282,
+                                                  "stdout_bytes":  386,
+                                                  "stderr_bytes":  0
+                                              },
+                  "S05_VENV":  {
+                                   "expected":  [
+                                                    0
+                                                ],
+                                   "observed":  0,
+                                   "classification":  "MATCH",
+                                   "pid":  14192,
+                                   "creation_time_utc":  "2026-10-22T16:35:36.1466284Z",
+                                   "seconds":  4.627,
+                                   "stdout_bytes":  0,
+                                   "stderr_bytes":  0
+                               },
+                  "S06_OFFLINE_NUMPY":  {
+                                            "expected":  [
+                                                             0
+                                                         ],
+                                            "observed":  0,
+                                            "classification":  "MATCH",
+                                            "pid":  45756,
+                                            "creation_time_utc":  "2026-10-22T16:35:40.7825192Z",
+                                            "seconds":  4.499,
+                                            "stdout_bytes":  552,
+                                            "stderr_bytes":  0
+                                        },
+                  "S07_SUPERVISED_NATIVE_QUALIFICATION":  {
+                                                              "expected":  [
+                                                                               0
+                                                                           ],
+                                                              "observed":  3,
+                                                              "classification":  "MISMATCH",
+                                                              "pid":  21964,
+                                                              "creation_time_utc":  "2026-10-22T16:35:45.2978862Z",
+                                                              "seconds":  10.485,
+                                                              "stdout_bytes":  423,
+                                                              "stderr_bytes":  0
+                                                          }
+              },
+    "ps_version":  "5.1.26100.9711",
+    "os_build":  "10.0.26200.0",
+    "elevated":  true,
+    "logical_cpus":  24,
+    "bootstrap_sha256":  "DF1DF8C3145378E58E4A1779E97B1658A00CF3C5DD3A069C1240B2B26A1C901E",
+    "python_sha256":  "4942B86A6597E5AEE0128DAA00050ED79BC21F6E709A78EB19CBFEB0C2F39AC9",
+    "zip_sha256":  "4A1676816C81DB5CA343261712238DCCBEA1F9C6ECBDE1AA8013307D8514EFE2",
+    "manifest_sha256":  "9FA39FC91CD3B46A263E62628BF005CBDB4F1871BDA3B77B991616DA9A5C7C02",
+    "qualification_exit":  3,
+    "qualification_receipt_sha256":  "2762769F842FB8A5D1D91A1D717E613AF54E272EA7E8B32AD3652F4AB4E105E6",
+    "primary_failure":  "NATIVE_QUALIFICATION_EXIT=3",
+    "exit_code":  3,
+    "run_root":  "C:\\Users\\silvi\\Downloads\\PEGASUS_FULL_2026_RUNS\\QUALIFYNATIVE_20261022_133515_806_37556",
+    "exit_class":  "FAIL_TECHNICAL_AFTER_EFFECT_START"
+}

@@ -62,3 +62,18 @@ Correção integral (não um remendo pontual):
 Qualificação acrescida (sobre os bytes finais): **Q14** (matriz de propagação de exit por subprocesso sob a custódia: 0,1,2,3,7,19,37,130 observados exatamente), **Q15** (classificação técnica: exceção na admissão ⇒ 3; filho falho ⇒ 3 com `exit_class=FAIL_TECHNICAL_AFTER_EFFECT_START`). Nova avaliação objetiva embutida no recibo de qualificação: `native_completeness_evaluation` (partes 3–4 do CANDIDATE_COMPLETENESS; veredito `MET`/`NOT_MET` sobre o próprio run — `NOT_MET` fora do Windows nativo).
 
 Controles negativos específicos da fronteira (sobre os **bytes reais** do template, extraídos por AST): `test_bootstrap_exit_boundary_v008.ps1` (20/20) e `mutation_bootstrap_exit_boundary_v008.py` (8/8 mutantes mortos: `null_exit_coerced_to_zero`, `exit_read_before_exit_allowed`, `relay_trusts_process_on_mismatch`, `relay_null_becomes_zero`, `expected_ignored`, `pythonpath_leaks`, `watchdog_kills_child`, `stderr_not_drained`). Testes unitários do supervisor 55/55; mutantes do supervisor 20/20. Nenhum PASS comprovado foi reexecutado sem impacto material; a cadeia V003 (19/19) permanece imutável e reaproveitada.
+
+
+## Fecho do ciclo de vida do handle do Job V008R3 (achado da campanha nativa R2)
+
+A campanha nativa R2 **validou a fronteira de exit no Windows real** (PS 5.1 build 26100): canários S00 (0,2,3,7,19,37,130 e fluxos 2 MB+2 MB → 5) todos MATCH; **S03 ARGV probe = 37 MATCH** (a R1 lia 0 — falso PASS eliminado); S01/S02/S04/S05/S06 MATCH. Sem a correção R2, o defeito abaixo teria sido mascarado como falso PASS.
+
+A fronteira correta **expôs um defeito real** em S07 (`SUPERVISED_NATIVE_QUALIFICATION`, exit 3): `RuntimeError('JOB_ACCOUNTING_FAILED winerror=6')` (`ERROR_INVALID_HANDLE`). Causa-raiz: em `_run_supervised`, `cust.close()` fecha o handle do Job (o `KILL_ON_JOB_CLOSE` é apenas o fail-safe de queda do supervisor) e, **logo em seguida**, `lineage_verdict`/`completion_verdict` consultavam `cust.accounting()`/`cust.tree_empty()` sobre o handle já fechado. No POSIX esse `close()` era no-op e `accounting()` lia `/proc`, então a ordenação inválida passava silenciosamente — invisível offline.
+
+Correção (três frentes):
+
+- **Supervisor**: a evidência terminal (`accounting`, `tree_empty`, `new_process_events`, `marks`, `native_job`, `breakaway_allowed`) é capturada em variáveis locais **antes** do `finally: cust.close()`; `lineage`/`completion`/`safe_stop` passam a usar essas locais. Nenhuma consulta ao custodiante ocorre após `close()`.
+- **Custodiantes (Windows e POSIX)**: passam a **recusar** `accounting()/tree_empty()/new_process_events()` após `close()` (`RuntimeError('CUSTODY_QUERIED_AFTER_CLOSE')`). Isso faz o caminho POSIX **reproduzir offline** a mesma classe de erro de ordenação que no nativo seria `ERROR_INVALID_HANDLE`; o Windows avalia a vacuidade pelo acessor cru antes de marcar fechado e então fecha os handles.
+- **Teste de regressão** (`CustodyLifecycleContract`): prova que a evidência terminal é capturável enquanto aberto e recusada após `close()`.
+
+Validação offline: unit do supervisor **56/56** (inclui o novo contrato); mutantes do supervisor 20/20; a qualificação supervisionada **16/16 PASS + 2 SKIPPED_NON_NATIVE** com `error=None` — o guarda POSIX **não** dispara, provando que o supervisor honra o contrato (se a reordenação estivesse incompleta, Q01 falharia com `CUSTODY_QUERIED_AFTER_CLOSE`). Bootstrap inalterado (template `B5CECF29…`): fronteira de exit 20/20 e mutantes 8/8 reaproveitados (bytes idênticos; já provados nativamente pelos canários S00 e pelo S03). Cadeia V003 19/19 imutável.

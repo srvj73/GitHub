@@ -1,5 +1,6 @@
 test_run_modes_blocked_before_any_effect (test_supervisor_v008.CliFailClosed.test_run_modes_blocked_before_any_effect) ... ok
 test_verify_package (test_supervisor_v008.CliFailClosed.test_verify_package) ... ok
+test_terminal_evidence_capturable_before_close_then_refused_after (test_supervisor_v008.CustodyLifecycleContract.test_terminal_evidence_capturable_before_close_then_refused_after) ... ok
 test_absent_or_bogus_code_never_pass (test_supervisor_v008.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
 test_known_codes (test_supervisor_v008.ExitClassification.test_known_codes) ... ok
 test_main_technical_failure_exits_3_not_1 (test_supervisor_v008.ExitClassification.test_main_technical_failure_exits_3_not_1) ... ok
@@ -56,6 +57,6 @@ test_usn_journal_changed (test_supervisor_v008.W04Verdict.test_usn_journal_chang
 test_usn_purged (test_supervisor_v008.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 55 tests in 4.610s
+Ran 56 tests in 7.008s
 
 OK

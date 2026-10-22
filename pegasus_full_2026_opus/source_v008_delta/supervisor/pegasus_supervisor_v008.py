@@ -335,6 +335,7 @@ class PosixCustody:
         self.proc: Optional[subprocess.Popen] = None
         self.seen: Dict[int, int] = {}
         self.marks: List[dict] = []
+        self._closed = False
 
     def mark(self, name: str) -> None:
         self.marks.append({"mark": name, "mono_ns": time.monotonic_ns()})
@@ -381,17 +382,27 @@ class PosixCustody:
         # Somente o coordenador recebe o sinal (workers V003 ignoram SIGINT).
         os.kill(self.proc.pid, signal.SIGINT)
 
+    def _assert_open(self) -> None:
+        # Contrato espelhado do Windows (lá o handle do Job fica inválido após close): nenhuma
+        # consulta ao custodiante é válida depois de close(). Faz o caminho POSIX reproduzir,
+        # offline, a mesma classe de erro de ordenação que no nativo seria ERROR_INVALID_HANDLE.
+        if getattr(self, "_closed", False):
+            raise RuntimeError("CUSTODY_QUERIED_AFTER_CLOSE")
+
     def tree_empty(self) -> bool:
+        self._assert_open()
         return not self.members()
 
     def accounting(self) -> dict:
+        self._assert_open()
         return {"TotalProcesses": len(self.seen), "ActiveProcesses": len(self.members())}
 
     def new_process_events(self) -> List[dict]:
+        self._assert_open()
         return [{"pid": p, "ctime": c} for p, c in sorted(self.seen.items())]
 
     def close(self) -> None:
-        pass
+        self._closed = True
 
 
 def make_custody(log):
@@ -534,14 +545,24 @@ class Supervision:
             cust.mark("TREE_EMPTY")
             w04 = guard.disarm(tree_empty=True)
             cust.mark("W04_DISARM")
+            # Evidência terminal capturada ANTES de fechar o custodiante. No Windows,
+            # cust.close() fecha o handle do Job (KILL_ON_JOB_CLOSE é só o fail-safe de
+            # queda do supervisor); consultá-lo depois daria ERROR_INVALID_HANDLE. Nenhuma
+            # consulta ao custodiante pode ocorrer após close() — os custodiantes recusam.
+            final_accounting = cust.accounting()
+            final_tree_empty = int(final_accounting.get("ActiveProcesses", -1)) == 0
+            new_proc_events = cust.new_process_events()
+            marks_snapshot = list(cust.marks)
+            native_job = cust.native_job
+            breakaway_allowed = getattr(cust, "breakaway_allowed", False)
         finally:
             if self._prev_sigint is not None:
                 signal.signal(signal.SIGINT, self._prev_sigint)
             cust.close()
-        lineage = lineage_verdict(native_job=cust.native_job, new_process=cust.new_process_events(),
-                                  accounting=cust.accounting(), active_zero_seen=cust.tree_empty(),
-                                  breakaway_allowed=getattr(cust, "breakaway_allowed", False))
-        jit = jit_verdict([m for m in cust.marks if m["mark"] != "W04_ARM_BEGIN"])
+        lineage = lineage_verdict(native_job=native_job, new_process=new_proc_events,
+                                  accounting=final_accounting, active_zero_seen=final_tree_empty,
+                                  breakaway_allowed=breakaway_allowed)
+        jit = jit_verdict([m for m in marks_snapshot if m["mark"] != "W04_ARM_BEGIN"])
         run_lock = (self.out_root / "RUN.lock").exists()
         inv_a = inventory(self.out_root)
         inv_b = inventory(self.out_root)
@@ -550,10 +571,10 @@ class Supervision:
                   "status": self._status(), "stop_requested": self.stop_requested}
         if self.stop_requested:
             result["safe_stop"] = safestop_verdict(
-                stop_requested=True, child_exit=rc, tree_empty=cust.tree_empty(), status=result["status"],
+                stop_requested=True, child_exit=rc, tree_empty=final_tree_empty, status=result["status"],
                 checkpoint_valid=checkpoint_valid(self.out_root), run_lock_present=run_lock, w04=w04)
         else:
-            result["completion"] = completion_verdict(child_exit=rc, tree_empty=cust.tree_empty(),
+            result["completion"] = completion_verdict(child_exit=rc, tree_empty=final_tree_empty,
                                                       run_lock_present=run_lock,
                                                       inventory_a=inv_a, inventory_b=inv_b)
         return result

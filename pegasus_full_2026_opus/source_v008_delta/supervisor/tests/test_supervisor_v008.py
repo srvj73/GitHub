@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -400,6 +401,37 @@ class CliFailClosed(unittest.TestCase):
         p = self._run("verify")
         self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
         self.assertIn("PASS_PACKAGE_VERIFIED", p.stdout)
+
+
+class CustodyLifecycleContract(unittest.TestCase):
+    """Trava o contrato cuja violação derrubou a campanha nativa R2 com
+    JOB_ACCOUNTING_FAILED winerror=6 (ERROR_INVALID_HANDLE): no Windows, close() fecha o
+    handle do Job, de modo que qualquer accounting()/tree_empty()/new_process_events() após
+    close() é inválido. A evidência terminal deve ser capturada ANTES de close(); o POSIX
+    espelha a recusa para reproduzir a classe de erro offline."""
+
+    def test_terminal_evidence_capturable_before_close_then_refused_after(self):
+        cust = sup.PosixCustody(lambda *_a, **_k: None)
+        with tempfile.TemporaryDirectory() as t:
+            td = Path(t)
+            cust.start([sys.executable, "-I", "-c", "pass"], td, dict(os.environ), td / "child.out")
+            deadline = time.monotonic() + 30
+            while cust.poll() is None:           # coleta o filho (senão fica zumbi em /proc)
+                time.sleep(0.01)
+            while not cust.tree_empty():
+                cust.sample()
+                if time.monotonic() > deadline:
+                    self.fail("child did not drain")
+                time.sleep(0.02)
+            acct = cust.accounting()            # capturável enquanto aberto
+            self.assertEqual(acct["ActiveProcesses"], 0)
+            self.assertGreaterEqual(acct["TotalProcesses"], 1)
+            self.assertIsInstance(cust.new_process_events(), list)
+            cust.close()
+            for fn in (cust.accounting, cust.tree_empty, cust.new_process_events):
+                with self.assertRaises(RuntimeError) as ctx:
+                    fn()
+                self.assertIn("CUSTODY_QUERIED_AFTER_CLOSE", str(ctx.exception), fn.__name__)
 
 
 if __name__ == "__main__":
