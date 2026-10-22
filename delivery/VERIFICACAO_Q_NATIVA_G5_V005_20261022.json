@@ -1,0 +1,73 @@
+{
+ "schema": "CDT21_G5_V005_NATIVE_Q_VERIFICATION_V001",
+ "verified_by": "Opus (implementador; nao B06)",
+ "date": "2026-10-22",
+ "return_zip": {
+  "name": "ENVIAR_AO_OPUS_CDT21_G5_V005_20261022_062238_199_29112.zip",
+  "sha256": "FE8B862881BBC7323FDF5ACABBAC835DA1BDD2B35E473DE4B0C3C6D7F4820AFD",
+  "bytes": 8480,
+  "crc": "OK",
+  "members": {
+   "RUN_LOG.txt": "4419F80D6F57496E2431B805BC70035EF18656BB3BD7F259D27EFF9964A6F1BE",
+   "RUN_LOG_ELEVATED.txt": "4AF46ECED8C6FEC18A60C20E7E9B0BD03FA6D865B8AF1B9241CCA05AC429B02E",
+   "QUALIFICATION_RESULT.json": "042893AC0B62FED3D61E9050AA97DB28D3547EDD2DD5F9E9D0BD0AA87E6B8ED2",
+   "B2D_NATIVE_FIXED_LAYOUT.log": "A83C7AF90C7F9EF7B6685EDC1E14D783F11801F5D38B39A705D8D6048858C3C3",
+   "B2D_NATIVE_R1_LAYOUT.log": "B5DD5FF43B6BB1426BCAD5ED07034A8976764CCFD9898860B7260F92D9E07453"
+  }
+ },
+ "launcher_sha256": "2767A823550C7DF3D6C75F301215DB721E895C09545468E66E23E0145B8867FA",
+ "supervisor_sha256": "363D1654681D690C247903F440568238E678FC04B22F6F0DB62462B85458700A",
+ "candidate_sha256": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145",
+ "code_manifest_sha256": "63CBA7065A719CBCF58F1EB1F088D090B87AE7ABBAF37BE03856619CE1D0D74E",
+ "phase_q": {
+  "status": "PASS_WINDOWS_QUALIFICATION",
+  "checks_pass": "19/19",
+  "python": "3.14.7",
+  "seconds": 25.227,
+  "b2d_native_fixed_layout": "29/29 OK (contract_not_met 0)",
+  "b2d_native_negative_r1_layout": "29 executados, falha reproduzida (contract_not_met 58), como esperado",
+  "job_census_sees_nested_child": {
+   "census_size": 2,
+   "nested_child": [
+    27272,
+    134371345712013887
+   ],
+   "seen_nested_child": true,
+   "seen_self": true,
+   "self": [
+    7792,
+    134371345617706588
+   ]
+  },
+  "production_d_base_csv": {
+   "bat": "ABSENT",
+   "menu": "ABSENT",
+   "path": "D:\\Base CSV",
+   "tree": {
+    "entries": 14514,
+    "exists": true,
+    "sha256": "1FD27FDB0496CCCB2554BC2153FDB713F4E1C2D5E860C7414DD9185A5E857967"
+   }
+  },
+  "foreign_roots_read_only": 26,
+  "effects": "EXTRACT_HOME_QUALIFICATION_COPIES_AND_LOG_DIR_ONLY",
+  "label_note": "a checagem package_sha_v004 tem rotulo herdado do R4; ela compara o ZIP com o PACKAGE_SHA fixado do V005 (E3F1F479...) e passou"
+ },
+ "phase_e": {
+  "status": "NOT_STARTED",
+  "reason": "launcher executado sem -AutorizoLabD (EXIT_CODE=10); nenhuma raiz, laboratorio ou COMMIT criado"
+ },
+ "d4_successor_artifact_probe": {
+  "expected_single_identity_sha256": "8A05E76189E63379A60E2447DAA313765D30A2EAB78EAF4E9D91AA19CBFE3E73",
+  "path": "D:\\Base CSV\\Scripts\\TICKSTORE_R9_DEV\\TICKSTORE_D4_RESUMABLE_V002R22\\artifacts\\TICKSTORE_V004R1_D4_RESUMABLE_V002R24_PACKAGE.zip",
+  "present": false,
+  "read_only": true,
+  "successor_package_dir_present": true,
+  "reading": "ausente em artifacts: estado esperado antes da migracao 8b (o plano da migracao inclui COPY_SUCCESSOR_ZIP_TO_ARTIFACTS). O ZIP 8A05E761... (empacotamento da arvore candidate/recovery do FINAL) nao esta no pacote V005; sua fonte deve ser confirmada antes da 8b. Nao afeta o G5."
+ },
+ "cross_run_comparison_with_2026_10_21_154001": {
+  "d_base_csv_tree": "identica (14514 entradas, 1FD27FDB...)",
+  "foreign_roots": "24 de 26 identicas; as 2 entradas da raiz V003 R08_Q1_20261020210605 diferem porque a Q de 21/10 usava o digest pela vista do indice de diretorio (pre-R2), instavel justamente nessa raiz; a checagem antes/depois da propria Q do V005 passou"
+ },
+ "g5_v005_state": "NOT_STARTED__Q_NATIVE_PASS__E_AWAITS_OWNER_AUTHORIZATION"
+}
