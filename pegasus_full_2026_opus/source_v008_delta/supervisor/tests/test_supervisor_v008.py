@@ -467,14 +467,24 @@ class SafeStopRedelivery(unittest.TestCase):
     """Reentrega cooperativa do SAFE_STOP até o coordenador LATCH-ar (STATUS.STOP_REQUESTED=True)
     ou o filho sair. Cobre a corrida nativa em que o Ctrl+C entregue no spawn de workers os mata
     em import sem o coordenador registrar o pedido (campanha R4: Q12b pendurou 1800s)."""
-    BASE = dict(stop_requested=True, child_running=True, latched=False, now=1000.0,
-                last_delivery=0.0, deliveries=0)
+    BASE = dict(stop_requested=True, child_running=True, latched=False, active=2,
+                require_active_window=True, now=1000.0, last_delivery=0.0, deliveries=0)
 
     def _d(self, **kw):
         return sup.should_deliver_safe_stop(**{**self.BASE, **kw})
 
-    def test_first_delivery_immediate(self):
+    def test_first_delivery_immediate_when_workers_active(self):
         self.assertTrue(self._d())
+
+    def test_no_delivery_in_spawn_window_active_zero_on_windows(self):
+        # ACTIVE=0 e a janela de import/spawn no Windows: entregar aqui mataria workers e encravaria
+        # o coordenador (campanha R5, Q03). So entrega com workers em execucao.
+        self.assertFalse(self._d(active=0, now=99999.0))
+        self.assertFalse(self._d(active=0, now=99999.0, deliveries=0))
+
+    def test_posix_delivers_regardless_of_active(self):
+        # POSIX: os.kill mira so o coordenador, sem corrida de console; o gate de janela nao se aplica.
+        self.assertTrue(self._d(require_active_window=False, active=0, now=99999.0))
 
     def test_waits_interval_between_deliveries(self):
         self.assertFalse(self._d(now=1005.0, last_delivery=1000.0, deliveries=1))   # 5s < 15s

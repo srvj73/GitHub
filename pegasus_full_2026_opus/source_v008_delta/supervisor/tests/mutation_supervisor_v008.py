@@ -32,6 +32,8 @@ MUTANTS = [
      '    def close(self) -> None:\n        self._closed = False'),
     ("safestop_redeliver_ignores_latch", 'if not stop_requested or not child_running or latched:',
      'if not stop_requested or not child_running:'),
+    ("safestop_delivers_in_spawn_window", '    if require_active_window and active <= 0:\n        return False',
+     '    if require_active_window and active <= 0:\n        pass'),
     ("safestop_ignore_lock", 'if run_lock_present:\n        gaps.append("RUN_LOCK_STILL_PRESENT")',
      'if False:\n        gaps.append("RUN_LOCK_STILL_PRESENT")'),
     ("completion_ignore_lock", 'if run_lock_present:\n        gaps.append("RUN_LOCK_PRESENT")',

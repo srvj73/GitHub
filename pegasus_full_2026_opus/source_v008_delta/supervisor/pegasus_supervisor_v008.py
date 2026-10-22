@@ -46,23 +46,32 @@ CODE = ROOT / "CODE"
 
 SCHEMA = "PEGASUS_FULL_2026_SUPERVISOR_V008"
 HEARTBEAT_S = 10.0
-# Reentrega cooperativa do SAFE_STOP: um Ctrl+C entregue na janela de spawn de workers do
-# coordenador pode matar workers em import sem o coordenador LATCH-ar o pedido (corrida nativa
-# Windows: STATUS.STOP_REQUESTED fica False). O supervisor reentrega o MESMO sinal cooperativo
-# até o coordenador registrar (STATUS.STOP_REQUESTED=True) ou o filho sair; jamais termina
-# processo. Intervalo >= escrita do heartbeat do STATUS para não reentregar antes de o latch
-# ficar visível.
+# Entrega do SAFE_STOP só em JANELA SEGURA (workers confirmadamente em execução, ACTIVE>0):
+# o Ctrl+C vai ao grupo do console, então entregue durante o spawn/import dos workers (ACTIVE=0,
+# logo após um SESSION_COMMIT) ele MATA os workers em import e encrava o coordenador — que nunca
+# LATCH-a o pedido (STATUS.STOP_REQUESTED fica False) e do qual nenhum Ctrl+C posterior recupera
+# (observado na campanha nativa R5: Q03 preso em COMMITTED=1/3 ACTIVE=0). Com workers em execução
+# (ACTIVE>0) eles ignoram o SIGINT (design V003) e só o coordenador reage, registrando o pedido e
+# fechando a admissão no próximo SESSION_COMMIT. Reentrega (também em janela segura) cobre um sinal
+# perdido; jamais termina processo. SAFE_STOP_HONOR_DEADLINE_S converte um encrave (pedido feito
+# mas nunca LATCH-ado) em falha-fechada rápida e clara, em vez de pendurar até o timeout total.
 SAFE_STOP_REDELIVER_S = 15.0
 SAFE_STOP_MAX_DELIVERIES = 10
+SAFE_STOP_HONOR_DEADLINE_S = 180.0
 
 
 def should_deliver_safe_stop(*, stop_requested: bool, child_running: bool, latched: bool,
-                             now: float, last_delivery: float, deliveries: int,
-                             interval: float = SAFE_STOP_REDELIVER_S,
+                             active: int, require_active_window: bool, now: float, last_delivery: float,
+                             deliveries: int, interval: float = SAFE_STOP_REDELIVER_S,
                              max_deliveries: int = SAFE_STOP_MAX_DELIVERIES) -> bool:
     """Decide se o supervisor deve (re)entregar o Ctrl+C cooperativo agora. Puro/testável.
-    Nunca reentrega depois de LATCH-ado (o 2º Ctrl+C do V003 é WAIT_NO_KILL) nem após o limite."""
+    No Windows (require_active_window) só entrega com workers em execução (active>0), fora da janela
+    de import/spawn, pois o Ctrl+C vai ao grupo do console; no POSIX o sinal vai só ao coordenador
+    (os.kill), sem essa corrida, e o gate não se aplica. Nunca reentrega depois de LATCH-ado (o 2º
+    Ctrl+C do V003 é WAIT_NO_KILL) nem após o limite."""
     if not stop_requested or not child_running or latched:
+        return False
+    if require_active_window and active <= 0:
         return False
     if deliveries >= max_deliveries:
         return False
@@ -539,6 +548,7 @@ class Supervision:
         rc = None
         stop_deliveries = 0
         last_stop_delivery = 0.0
+        stop_requested_at = None
         last_updated = None
         last_change = time.monotonic()
         try:
@@ -559,18 +569,26 @@ class Supervision:
                         and int(st.get("COMMITTED", 0)) >= self.stop_after_committed and rc is None):
                     self.stop_requested = True
                     self.log("SUPERVISOR_SAFE_STOP_INJECTED after_committed=%d" % int(st["COMMITTED"]))
+                if self.stop_requested and stop_requested_at is None:
+                    stop_requested_at = now
+                latched = bool(st.get("STOP_REQUESTED"))
                 if should_deliver_safe_stop(stop_requested=self.stop_requested, child_running=(rc is None),
-                                            latched=bool(st.get("STOP_REQUESTED")), now=now,
+                                            latched=latched, active=int(st.get("ACTIVE", 0) or 0),
+                                            require_active_window=(os.name == "nt"), now=now,
                                             last_delivery=last_stop_delivery, deliveries=stop_deliveries):
-                    # Entrega COOPERATIVA do SAFE_STOP, reentregue até o coordenador LATCH-ar
-                    # (STATUS.STOP_REQUESTED=True) ou o filho sair. Cobre a corrida em que o
-                    # Ctrl+C entregue no spawn de workers os mata em import sem o coordenador
-                    # registrar o pedido. Nunca termina processo.
+                    # Entrega COOPERATIVA do SAFE_STOP SÓ com workers em execução (ACTIVE>0), fora da
+                    # janela de import/spawn; reentregue (em janela segura) até o coordenador LATCH-ar
+                    # (STATUS.STOP_REQUESTED=True) ou o filho sair. Nunca termina processo.
                     cust.request_stop()
                     stop_deliveries += 1
                     last_stop_delivery = now
-                    self.log("SAFE_STOP_DELIVERY n=%d latched=False redeliver_s=%.0f"
-                             % (stop_deliveries, SAFE_STOP_REDELIVER_S))
+                    self.log("SAFE_STOP_DELIVERY n=%d active=%s latched=False"
+                             % (stop_deliveries, st.get("ACTIVE")))
+                # Encrave: pedido feito mas o coordenador nunca LATCH-ou dentro do prazo -> falha-
+                # fechada rápida e clara (não pendura até o timeout total). Só enquanto não LATCH-ado.
+                if (self.stop_requested and not latched and rc is None and stop_requested_at is not None
+                        and now - stop_requested_at > SAFE_STOP_HONOR_DEADLINE_S):
+                    raise SupervisorBlocked("SAFE_STOP_NOT_HONORED_NO_LATCH_RECONCILE_REQUIRED_PID_%d" % pid)
                 if now - last_hb >= HEARTBEAT_S or rc is not None:
                     guard.revalidate()
                     if st:

@@ -42,6 +42,10 @@ A campanha nativa R3 confirmou o fix do handle do Job (Q01/Q02 PASS nativos) e p
 
 A campanha nativa R4 confirmou o SAFE_STOP por plataforma: **Q01–Q09 e Q12 passaram nativamente** (incl. Q03 e Q04). Parou em **Q12b** (SAFE_STOP via `run-full` em subprocesso), que pendurou 1800 s: o Ctrl+C foi entregue na janela de spawn de workers, matou-os em import e o coordenador não registrou o pedido (`STATUS.STOP_REQUESTED=False`). Corrigido em V008R5: o supervisor **reentrega** o Ctrl+C cooperativo (a cada 15 s, até 10×) até o coordenador registrar (`STATUS.STOP_REQUESTED=True`) ou o filho sair; nunca mata; uma vez registrado, não reentrega. Regressão `SafeStopRedelivery`; unit 69/69; mutantes do supervisor 23/23.
 
+## Revisão V008R6 — SAFE_STOP entregue só em janela segura
+
+A campanha nativa R5 mostrou que reentregar o Ctrl+C (R5) nao resolve: em Q03 as reentregas mantiveram `STATUS.STOP_REQUESTED=False` ate o timeout. Causa: o Ctrl+C vai ao grupo do console; entregue com `ACTIVE=0` (spawn/import dos workers) ele mata os workers em import e encrava o coordenador. Corrigido em V008R6: no Windows o supervisor so entrega o SAFE_STOP com workers em execucao (`ACTIVE>0`), fora da janela de import; no POSIX entrega direto ao coordenador (os.kill). Encrave vira falha-fechada em 180 s (`SAFE_STOP_NOT_HONORED`), sem pendurar. Regressao `SafeStopRedelivery` (janela segura); unit 70/70; mutantes 24/24.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

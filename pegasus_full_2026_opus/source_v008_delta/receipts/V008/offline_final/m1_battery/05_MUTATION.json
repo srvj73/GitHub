@@ -1,7 +1,7 @@
 {
  "schema": "PEGASUS_FULL_2026_V008_SUPERVISOR_MUTATION_V001",
- "mutants": 23,
- "killed": 23,
+ "mutants": 24,
+ "killed": 24,
  "results": [
   {
    "mutant": "ignore_sharing_violation",
@@ -53,6 +53,10 @@
   },
   {
    "mutant": "safestop_redeliver_ignores_latch",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "safestop_delivers_in_spawn_window",
    "result": "KILLED"
   },
   {

@@ -101,3 +101,17 @@ Causa-raiz: o Ctrl+C do SAFE_STOP foi entregue **durante o spawn dos workers** d
 Correção (cooperativa, no supervisor; V003 intocado): `should_deliver_safe_stop` + reentrega no laço de monitoramento. O supervisor **reentrega o mesmo Ctrl+C cooperativo** (intervalo `SAFE_STOP_REDELIVER_S=15 s`, até `SAFE_STOP_MAX_DELIVERIES=10`) **até o coordenador LATCH-ar o pedido** (`STATUS.STOP_REQUESTED=True`) ou o filho sair. Uma vez registrado, não reentrega (o 2º Ctrl+C do V003 é `WAIT_NO_KILL`); jamais termina processo. O latch é lido do próprio STATUS do coordenador (`STOP_REQUESTED`), que fica `True` quando ele honra o pedido (visto em Q03). O watchdog por heartbeat estagnado não cobria este caso porque o coordenador seguia vivo e atualizando o STATUS.
 
 Regressão offline: `SafeStopRedelivery` (6 casos sobre o predicado puro: 1ª entrega imediata, respeita o intervalo, para ao LATCH-ar, limite máximo, não entrega após saída do filho nem sem pedido) + mutante `safestop_redeliver_ignores_latch`. Unit do supervisor **69/69**; mutantes do supervisor **23/23**; fronteira do bootstrap 20/20 + 8/8 (template inalterado); cadeia V003 19/19 imutável; qualificação supervisionada 16/16 PASS + 2 SKIPPED_NON_NATIVE.
+
+
+## Janela segura de entrega do SAFE_STOP V008R6 (achado da campanha nativa R5)
+
+A campanha nativa R5 mostrou que a reentrega cooperativa (R5) **não** resolve a corrida: em Q03, as 8+ reentregas do Ctrl+C mantiveram `STATUS.STOP_REQUESTED=False`, `COMMITTED=1/3`, `ACTIVE=0`, até o timeout. O Q03 havia passado na R4 apenas por sorte de timing.
+
+Causa-raiz precisa: o Ctrl+C vai ao **grupo do console**. Entregue no instante `ACTIVE=0` (logo após um `SESSION_COMMIT`, durante o spawn/`import` dos workers da próxima sessão), ele mata os workers em `import` — que ainda não instalaram o ignore-SIGINT do design V003 — e **encrava** o coordenador num estado `ACTIVE=0` do qual nenhum Ctrl+C posterior recupera. Com os workers já em execução (`ACTIVE>0`), eles ignoram o SIGINT e só o coordenador reage, registrando o pedido e fechando a admissão no próximo `SESSION_COMMIT`.
+
+Correção (no supervisor; V003 intocado):
+
+- **Janela segura**: `should_deliver_safe_stop` ganha `require_active_window`. No Windows (`os.name=='nt'`) a entrega só ocorre com `STATUS.ACTIVE>0` (workers em execução), nunca na janela de `import`/spawn. No POSIX o sinal vai só ao coordenador (`os.kill`), sem a corrida de console, então o gate não se aplica (preserva o Q03 offline).
+- **Falha-fechada rápida**: `SAFE_STOP_HONOR_DEADLINE_S=180 s`. Se o pedido for feito mas o coordenador nunca registrar (encrave), o supervisor levanta `SAFE_STOP_NOT_HONORED_NO_LATCH_RECONCILE_REQUIRED` — diagnóstico claro em ~180 s em vez de pendurar até o timeout total. Jamais termina processo.
+
+Regressão offline: `SafeStopRedelivery` passa a cobrir a janela segura (entrega imediata com `ACTIVE>0`; recusa em `ACTIVE=0` no Windows; POSIX entrega independente de `ACTIVE`) + mutante `safestop_delivers_in_spawn_window`. Unit do supervisor **70/70**; mutantes do supervisor **24/24**; fronteira do bootstrap 20/20 + 8/8 (template inalterado); cadeia V003 19/19 imutável; qualificação supervisionada 16/16 PASS + 2 SKIPPED_NON_NATIVE.

@@ -5,15 +5,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 52,
-        "inventory_sha256": "1DC4DCD072E5A718600257049132A599DEBDC7435C254C50EC4A96AF3E461395"
+        "inventory_sha256": "0403D0278D55AF2C22649692D913026F4A18D0C47D08352BF38FB22735EDB49F"
       },
       "jit": {
-        "child_created_ns": 203212556475900,
-        "child_resumed_ns": 203212621893200,
+        "child_created_ns": 207121624720200,
+        "child_resumed_ns": 207121698966400,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 203217497394100,
-        "w04_arm_ns": 203212556195900,
-        "w04_disarm_ns": 203218494898600
+        "tree_empty_ns": 207127892525500,
+        "w04_arm_ns": 207121624336800,
+        "w04_disarm_ns": 207128785533000
       },
       "lineage": {
         "identity_unresolved_short_lived": 0,
@@ -22,14 +22,14 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 6483,
+        "census_unresolved_reported": 7142,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64262104240,
+          "end_usn": 64273990032,
           "journal_id": 133708975302158387,
-          "start_usn": 64261918552
+          "start_usn": 64273813592
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -43,130 +43,37 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 6483,
+        "census_unresolved_reported": 7143,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64262273752,
+          "end_usn": 64274161088,
           "journal_id": 133708975302158387,
-          "start_usn": 64262107888
-        },
-        "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
-      }
-    },
-    {
-      "case": "Q03_SAFE_STOP_CONFIRMED_BY_SUPERVISOR",
-      "committed_at_stop": 1,
-      "result": "PASS",
-      "safe_stop": {
-        "committed_at_stop": 1,
-        "safe_stop": "CONFIRMED_BY_SUPERVISOR"
-      },
-      "w04": {
-        "census_unresolved_reported": 6484,
-        "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
-        "directories": 1,
-        "targets": 43,
-        "usn": {
-          "end_usn": 64262339952,
-          "journal_id": 133708975302158387,
-          "start_usn": 64262275992
-        },
-        "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
-      }
-    },
-    {
-      "case": "Q04_RESUME_EXACTLY_ONCE_AFTER_SAFE_STOP",
-      "committed_before": 5,
-      "result": "PASS"
-    },
-    {
-      "active_journals": [
-        "2000-01-06.48096_1792700499467479700.json"
-      ],
-      "case": "Q05_GAP1_JOURNAL_WITHOUT_PENDING",
-      "child_exit": 1,
-      "result": "PASS"
-    },
-    {
-      "case": "Q08_DUPLICATE_JOURNAL_FAIL_CLOSED",
-      "child_exit": 1,
-      "result": "PASS"
-    },
-    {
-      "case": "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
-      "child_exit": 87,
-      "orphan_run_lock_pid": 26152,
-      "result": "PASS"
-    },
-    {
-      "case": "Q09_EVIDENCE_GATE_REFUSES_ORPHAN_LOCK_STATE",
-      "gate": {
-        "completed": false,
-        "gaps": [
-          "RUN_LOCK_PRESENT"
-        ]
-      },
-      "result": "PASS"
-    },
-    {
-      "case": "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
-      "journal_history": [
-        "1999-12-31.48096_1792700499467479700.json.COMMITTED",
-        "2000-01-06.26152_1792700512866843800.json.RECOVERED_COMMITTED",
-        "2000-01-06.48096_1792700499467479700.json.RECOVERED_REQUEUE",
-        "2000-01-11.16156_1792700520429502400.json.COMMITTED"
-      ],
-      "result": "PASS"
-    },
-    {
-      "case": "Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
-      "completion": {
-        "completed": true,
-        "inventory_entries": 36,
-        "inventory_sha256": "82773D7B0B08295DA7A8BD4AFC9F280FBB2C1E12814981CC3B11EA68EE57010D"
-      },
-      "jit": {
-        "child_created_ns": 203268969921000,
-        "child_resumed_ns": 203269042079100,
-        "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 203273917565400,
-        "w04_arm_ns": 203268969430900,
-        "w04_disarm_ns": 203275868508200
-      },
-      "lineage": {
-        "identity_unresolved_short_lived": 0,
-        "lineage": "GAPLESS_NATIVE_JOB",
-        "processes": 36
-      },
-      "result": "PASS",
-      "returncode": 0,
-      "w04": {
-        "census_unresolved_reported": 6475,
-        "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
-        "directories": 1,
-        "targets": 43,
-        "usn": {
-          "end_usn": 64262962136,
-          "journal_id": 133708975302158387,
-          "start_usn": 64262792784
+          "start_usn": 64273992072
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
     }
   ],
   "economic_execution": false,
-  "error": "TimeoutExpired(['C:\\\\Users\\\\silvi\\\\Downloads\\\\PEGASUS_FULL_2026_RUNS\\\\QUALIFYNATIVE_20261022_172042_923_30024\\\\venv314\\\\Scripts\\\\python.exe', '-I', '-B', 'C:\\\\Users\\\\silvi\\\\Downloads\\\\PEGASUS_FULL_2026_RUNS\\\\QUALIFYNATIVE_20261022_172042_923_30024\\\\PACKAGE\\\\PEGASUS_FULL_2026_ENGINEERING_FINAL_V008\\\\supervisor\\\\pegasus_supervisor_v008.py', 'run-full', '--admission', 'C:\\\\Users\\\\silvi\\\\Downloads\\\\PEGASUS_FULL_2026_RUNS\\\\QUALIFYNATIVE_20261022_172042_923_30024\\\\PACKAGE\\\\PEGASUS_FULL_2026_ENGINEERING_FINAL_V008\\\\supervisor\\\\tests\\\\pegasus_synthetic_admission_v008.py', '--evidence', 'C:\\\\Users\\\\silvi\\\\Downloads\\\\PEGASUS_FULL_2026_RUNS\\\\QUALIFYNATIVE_20261022_172042_923_30024\\\\QUALIFY\\\\Q12b_supervised_safestop_EV'], 1800)",
+  "error": "SupervisorBlocked('QUALIFICATION_TIMEOUT_RECONCILE_REQUIRED_PID_48176')",
   "full_economic": "NO",
   "full_released": "NO",
   "g4": "FROZEN",
   "native_completeness_evaluation": {
-    "gapless_native_job_cases": 3,
+    "gapless_native_job_cases": 2,
     "required_cases": 23,
     "schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
     "unmet": [
       "QUALIFICATION_CHAIN_NOT_PASS",
+      "CASE_NOT_PASS:Q03_SAFE_STOP_CONFIRMED_BY_SUPERVISOR",
+      "CASE_NOT_PASS:Q04_RESUME_EXACTLY_ONCE_AFTER_SAFE_STOP",
+      "CASE_NOT_PASS:Q05_GAP1_JOURNAL_WITHOUT_PENDING",
+      "CASE_NOT_PASS:Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
+      "CASE_NOT_PASS:Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
+      "CASE_NOT_PASS:Q08_DUPLICATE_JOURNAL_FAIL_CLOSED",
+      "CASE_NOT_PASS:Q09_EVIDENCE_GATE_REFUSES_ORPHAN_LOCK_STATE",
       "CASE_NOT_PASS:Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE",
       "CASE_NOT_PASS:Q10b_PREEXISTING_WRITER_BLOCKS",
       "CASE_NOT_PASS:Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS",
@@ -174,19 +81,23 @@
       "CASE_NOT_PASS:Q10E_ALTERNATE_STREAM_NEVER_PASSES",
       "CASE_NOT_PASS:Q10F_HARDLINK_NEVER_PASSES",
       "CASE_NOT_PASS:Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
+      "CASE_NOT_PASS:Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
       "CASE_NOT_PASS:Q12b_CMD_RUN_SAFESTOP_THEN_RESUME_EXACTLY_ONCE",
       "CASE_NOT_PASS:Q13a_DEFAULT_ADMISSION_BLOCKS_ALL_RUN_MODES",
       "CASE_NOT_PASS:Q13b_ECONOMIC_PLAN_REFUSED",
       "CASE_NOT_PASS:Q13c_ECONOMIC_ENTRY_ARGV_BLOCKED",
       "CASE_NOT_PASS:Q14_SUBPROCESS_EXIT_PROPAGATION_MATRIX_UNDER_CUSTODY",
-      "CASE_NOT_PASS:Q15_TECHNICAL_FAILURE_CLASSIFICATION"
+      "CASE_NOT_PASS:Q15_TECHNICAL_FAILURE_CLASSIFICATION",
+      "W04_PASS_NATIVE_SAME_ATTEMPT_COUNT<4:2",
+      "GAPLESS_NATIVE_JOB_COUNT<3:2",
+      "SAFE_STOP_W04_NOT_NATIVE"
     ],
     "verdict": "NOT_MET",
-    "w04_native_pass_cases": 4
+    "w04_native_pass_cases": 2
   },
   "native_windows": true,
   "os_name": "nt",
-  "package_manifest_sha256": "7F7ADC5784F56C93AD8A1D7587D400D5FB579CA846FF0B1B18F631498CCAF9AF",
+  "package_manifest_sha256": "5E617BE84099E10879D2B60C518556D622E8180D1805EE8817AAD0C549F25F87",
   "phase_c": "FORBIDDEN",
   "platform": "Windows-11-10.0.26200-SP0",
   "python": "3.14.7",
@@ -195,7 +106,7 @@
   "result": "FAIL_STOP_CHAIN",
   "run_released": "NO",
   "schema": "PEGASUS_FULL_2026_V008_INTEGRATED_QUALIFICATION_V001",
-  "seconds": 1864.272,
+  "seconds": 920.997,
   "supervisor_parents": {
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152"
@@ -273,7 +184,7 @@
     "pegasus_qs4_binding_v008.py": "7FBE02BAAD077CAF37BCC394452657F84D8F115DC3FFE67413CBAAAE3DC2BB7A",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152",
     "pegasus_qualify_v008.py": "63D3EEDD7B3FF4C6506A4283524C0207EFAEF2D77ECB30C4D74183D2D6766833",
-    "pegasus_supervisor_v008.py": "F9A001E0DBD037D8E24906B47D24C2EA3399A44690EA15822883C5B66955E2C2",
+    "pegasus_supervisor_v008.py": "51E8687A6DBD8FE035468EE0473FE1A7BBB70A0CE816295BC08B6E3B2857A827",
     "pegasus_win_native_v008.py": "0F8012B75887F061D053C602A31CC696AF5FEDECCF1C13159C357506F11DAE58"
   }
 }
