@@ -45,6 +45,12 @@ test_helper_windows_interrupt_codes (test_supervisor_v008.SafeStopExitPlatform.t
 test_posix_exit_1_not_confirmed_but_130_is (test_supervisor_v008.SafeStopExitPlatform.test_posix_exit_1_not_confirmed_but_130_is) ... ok
 test_windows_ctrl_c_confirms_with_independent_evidence (test_supervisor_v008.SafeStopExitPlatform.test_windows_ctrl_c_confirms_with_independent_evidence) ... ok
 test_windows_interrupt_code_without_child_status_still_rejected (test_supervisor_v008.SafeStopExitPlatform.test_windows_interrupt_code_without_child_status_still_rejected) ... ok
+test_bounded_by_max_deliveries (test_supervisor_v008.SafeStopRedelivery.test_bounded_by_max_deliveries) ... ok
+test_first_delivery_immediate (test_supervisor_v008.SafeStopRedelivery.test_first_delivery_immediate) ... ok
+test_latched_stops_redelivery (test_supervisor_v008.SafeStopRedelivery.test_latched_stops_redelivery) ... ok
+test_no_delivery_after_child_exit (test_supervisor_v008.SafeStopRedelivery.test_no_delivery_after_child_exit) ... ok
+test_no_delivery_without_request (test_supervisor_v008.SafeStopRedelivery.test_no_delivery_without_request) ... ok
+test_waits_interval_between_deliveries (test_supervisor_v008.SafeStopRedelivery.test_waits_interval_between_deliveries) ... ok
 test_census_external_writer (test_supervisor_v008.W04Verdict.test_census_external_writer) ... ok
 test_census_truncated (test_supervisor_v008.W04Verdict.test_census_truncated) ... ok
 test_dirs (test_supervisor_v008.W04Verdict.test_dirs) ... ok
@@ -64,6 +70,6 @@ test_usn_journal_changed (test_supervisor_v008.W04Verdict.test_usn_journal_chang
 test_usn_purged (test_supervisor_v008.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 63 tests in 7.351s
+Ran 69 tests in 5.508s
 
 OK

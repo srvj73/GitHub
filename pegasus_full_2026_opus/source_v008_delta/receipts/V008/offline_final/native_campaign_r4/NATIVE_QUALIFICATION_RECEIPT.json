@@ -5,15 +5,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 52,
-        "inventory_sha256": "75994B9A8A7B756DCDC1FC30696D4FD31E5A1222A37D2A401AC106D2D00663CA"
+        "inventory_sha256": "1DC4DCD072E5A718600257049132A599DEBDC7435C254C50EC4A96AF3E461395"
       },
       "jit": {
-        "child_created_ns": 191705669209700,
-        "child_resumed_ns": 191705755733600,
+        "child_created_ns": 203212556475900,
+        "child_resumed_ns": 203212621893200,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 191710381914300,
-        "w04_arm_ns": 191705668886100,
-        "w04_disarm_ns": 191711625328900
+        "tree_empty_ns": 203217497394100,
+        "w04_arm_ns": 203212556195900,
+        "w04_disarm_ns": 203218494898600
       },
       "lineage": {
         "identity_unresolved_short_lived": 0,
@@ -22,14 +22,14 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 6474,
+        "census_unresolved_reported": 6483,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64216817760,
+          "end_usn": 64262104240,
           "journal_id": 133708975302158387,
-          "start_usn": 64216639176
+          "start_usn": 64261918552
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -43,14 +43,14 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 6475,
+        "census_unresolved_reported": 6483,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64217098744,
+          "end_usn": 64262273752,
           "journal_id": 133708975302158387,
-          "start_usn": 64216820656
+          "start_usn": 64262107888
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -58,45 +58,115 @@
     {
       "case": "Q03_SAFE_STOP_CONFIRMED_BY_SUPERVISOR",
       "committed_at_stop": 1,
-      "result": "FAIL",
+      "result": "PASS",
       "safe_stop": {
-        "gaps": [
-          "CHILD_EXIT_NOT_130:1"
-        ],
-        "safe_stop": "NOT_CONFIRMED"
+        "committed_at_stop": 1,
+        "safe_stop": "CONFIRMED_BY_SUPERVISOR"
       },
       "w04": {
-        "census_unresolved_reported": 6474,
+        "census_unresolved_reported": 6484,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64217164600,
+          "end_usn": 64262339952,
           "journal_id": 133708975302158387,
-          "start_usn": 64217103056
+          "start_usn": 64262275992
+        },
+        "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
+      }
+    },
+    {
+      "case": "Q04_RESUME_EXACTLY_ONCE_AFTER_SAFE_STOP",
+      "committed_before": 5,
+      "result": "PASS"
+    },
+    {
+      "active_journals": [
+        "2000-01-06.48096_1792700499467479700.json"
+      ],
+      "case": "Q05_GAP1_JOURNAL_WITHOUT_PENDING",
+      "child_exit": 1,
+      "result": "PASS"
+    },
+    {
+      "case": "Q08_DUPLICATE_JOURNAL_FAIL_CLOSED",
+      "child_exit": 1,
+      "result": "PASS"
+    },
+    {
+      "case": "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
+      "child_exit": 87,
+      "orphan_run_lock_pid": 26152,
+      "result": "PASS"
+    },
+    {
+      "case": "Q09_EVIDENCE_GATE_REFUSES_ORPHAN_LOCK_STATE",
+      "gate": {
+        "completed": false,
+        "gaps": [
+          "RUN_LOCK_PRESENT"
+        ]
+      },
+      "result": "PASS"
+    },
+    {
+      "case": "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
+      "journal_history": [
+        "1999-12-31.48096_1792700499467479700.json.COMMITTED",
+        "2000-01-06.26152_1792700512866843800.json.RECOVERED_COMMITTED",
+        "2000-01-06.48096_1792700499467479700.json.RECOVERED_REQUEUE",
+        "2000-01-11.16156_1792700520429502400.json.COMMITTED"
+      ],
+      "result": "PASS"
+    },
+    {
+      "case": "Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
+      "completion": {
+        "completed": true,
+        "inventory_entries": 36,
+        "inventory_sha256": "82773D7B0B08295DA7A8BD4AFC9F280FBB2C1E12814981CC3B11EA68EE57010D"
+      },
+      "jit": {
+        "child_created_ns": 203268969921000,
+        "child_resumed_ns": 203269042079100,
+        "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
+        "tree_empty_ns": 203273917565400,
+        "w04_arm_ns": 203268969430900,
+        "w04_disarm_ns": 203275868508200
+      },
+      "lineage": {
+        "identity_unresolved_short_lived": 0,
+        "lineage": "GAPLESS_NATIVE_JOB",
+        "processes": 36
+      },
+      "result": "PASS",
+      "returncode": 0,
+      "w04": {
+        "census_unresolved_reported": 6475,
+        "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
+        "directories": 1,
+        "targets": 43,
+        "usn": {
+          "end_usn": 64262962136,
+          "journal_id": 133708975302158387,
+          "start_usn": 64262792784
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
     }
   ],
   "economic_execution": false,
-  "error": "AssertionError('Q03_SAFE_STOP_CONFIRMED_BY_SUPERVISOR {\"committed_at_stop\": 1, \"safe_stop\": {\"gaps\": [\"CHILD_EXIT_NOT_130:1\"], \"safe_stop\": \"NOT_CONFIRMED\"}, \"w04\": {\"census_unresolved_reported\": 6474, \"census_unresolved_semantics\": \"NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE\", \"directories\": 1, \"targets\": 43, \"usn\": {\"end_usn\": 64217164600, \"journal_id\": 133708975302158387, \"start_usn\": 64217103056}, \"w04_full\": \"PASS_NATIVE_SAME_ATTEMPT\"}}')",
+  "error": "TimeoutExpired(['C:\\\\Users\\\\silvi\\\\Downloads\\\\PEGASUS_FULL_2026_RUNS\\\\QUALIFYNATIVE_20261022_172042_923_30024\\\\venv314\\\\Scripts\\\\python.exe', '-I', '-B', 'C:\\\\Users\\\\silvi\\\\Downloads\\\\PEGASUS_FULL_2026_RUNS\\\\QUALIFYNATIVE_20261022_172042_923_30024\\\\PACKAGE\\\\PEGASUS_FULL_2026_ENGINEERING_FINAL_V008\\\\supervisor\\\\pegasus_supervisor_v008.py', 'run-full', '--admission', 'C:\\\\Users\\\\silvi\\\\Downloads\\\\PEGASUS_FULL_2026_RUNS\\\\QUALIFYNATIVE_20261022_172042_923_30024\\\\PACKAGE\\\\PEGASUS_FULL_2026_ENGINEERING_FINAL_V008\\\\supervisor\\\\tests\\\\pegasus_synthetic_admission_v008.py', '--evidence', 'C:\\\\Users\\\\silvi\\\\Downloads\\\\PEGASUS_FULL_2026_RUNS\\\\QUALIFYNATIVE_20261022_172042_923_30024\\\\QUALIFY\\\\Q12b_supervised_safestop_EV'], 1800)",
   "full_economic": "NO",
   "full_released": "NO",
   "g4": "FROZEN",
   "native_completeness_evaluation": {
-    "gapless_native_job_cases": 2,
+    "gapless_native_job_cases": 3,
     "required_cases": 23,
     "schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
     "unmet": [
       "QUALIFICATION_CHAIN_NOT_PASS",
-      "CASE_NOT_PASS:Q03_SAFE_STOP_CONFIRMED_BY_SUPERVISOR",
-      "CASE_NOT_PASS:Q04_RESUME_EXACTLY_ONCE_AFTER_SAFE_STOP",
-      "CASE_NOT_PASS:Q05_GAP1_JOURNAL_WITHOUT_PENDING",
-      "CASE_NOT_PASS:Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
-      "CASE_NOT_PASS:Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
-      "CASE_NOT_PASS:Q08_DUPLICATE_JOURNAL_FAIL_CLOSED",
-      "CASE_NOT_PASS:Q09_EVIDENCE_GATE_REFUSES_ORPHAN_LOCK_STATE",
       "CASE_NOT_PASS:Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE",
       "CASE_NOT_PASS:Q10b_PREEXISTING_WRITER_BLOCKS",
       "CASE_NOT_PASS:Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS",
@@ -104,22 +174,19 @@
       "CASE_NOT_PASS:Q10E_ALTERNATE_STREAM_NEVER_PASSES",
       "CASE_NOT_PASS:Q10F_HARDLINK_NEVER_PASSES",
       "CASE_NOT_PASS:Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
-      "CASE_NOT_PASS:Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
       "CASE_NOT_PASS:Q12b_CMD_RUN_SAFESTOP_THEN_RESUME_EXACTLY_ONCE",
       "CASE_NOT_PASS:Q13a_DEFAULT_ADMISSION_BLOCKS_ALL_RUN_MODES",
       "CASE_NOT_PASS:Q13b_ECONOMIC_PLAN_REFUSED",
       "CASE_NOT_PASS:Q13c_ECONOMIC_ENTRY_ARGV_BLOCKED",
       "CASE_NOT_PASS:Q14_SUBPROCESS_EXIT_PROPAGATION_MATRIX_UNDER_CUSTODY",
-      "CASE_NOT_PASS:Q15_TECHNICAL_FAILURE_CLASSIFICATION",
-      "W04_PASS_NATIVE_SAME_ATTEMPT_COUNT<4:3",
-      "GAPLESS_NATIVE_JOB_COUNT<3:2"
+      "CASE_NOT_PASS:Q15_TECHNICAL_FAILURE_CLASSIFICATION"
     ],
     "verdict": "NOT_MET",
-    "w04_native_pass_cases": 3
+    "w04_native_pass_cases": 4
   },
   "native_windows": true,
   "os_name": "nt",
-  "package_manifest_sha256": "3199509D3D8C56AC279F390C9C9421900DAEB8F92B24916DA06213D2CF89291A",
+  "package_manifest_sha256": "7F7ADC5784F56C93AD8A1D7587D400D5FB579CA846FF0B1B18F631498CCAF9AF",
   "phase_c": "FORBIDDEN",
   "platform": "Windows-11-10.0.26200-SP0",
   "python": "3.14.7",
@@ -128,7 +195,7 @@
   "result": "FAIL_STOP_CHAIN",
   "run_released": "NO",
   "schema": "PEGASUS_FULL_2026_V008_INTEGRATED_QUALIFICATION_V001",
-  "seconds": 18.609,
+  "seconds": 1864.272,
   "supervisor_parents": {
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152"
@@ -205,8 +272,8 @@
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_binding_v008.py": "7FBE02BAAD077CAF37BCC394452657F84D8F115DC3FFE67413CBAAAE3DC2BB7A",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152",
-    "pegasus_qualify_v008.py": "B97879963DEF6266415767B4C81096FEC16C7E164515950D1B6FD2B400CE14BD",
-    "pegasus_supervisor_v008.py": "6C699906EB378AB1744E45B950FD950620DFF3979083EEB1CD92D9116846F1F8",
+    "pegasus_qualify_v008.py": "63D3EEDD7B3FF4C6506A4283524C0207EFAEF2D77ECB30C4D74183D2D6766833",
+    "pegasus_supervisor_v008.py": "F9A001E0DBD037D8E24906B47D24C2EA3399A44690EA15822883C5B66955E2C2",
     "pegasus_win_native_v008.py": "0F8012B75887F061D053C602A31CC696AF5FEDECCF1C13159C357506F11DAE58"
   }
 }

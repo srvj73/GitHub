@@ -38,6 +38,10 @@ A campanha nativa R2 **validou a fronteira de exit no Windows real** (canários 
 
 A campanha nativa R3 confirmou o fix do handle do Job (Q01/Q02 PASS nativos) e parou em Q03: `safestop_verdict` exigia `child_exit == 130`, um artefato POSIX. No Windows o Ctrl+C cooperativo honrado sai 1 (ou `0xC000013A`). Corrigido em V008R4: `is_cooperative_stop_exit` aceita o código de interrupção da plataforma, com a confirmação do SAFE_STOP ancorada na evidência independente (STATUS `SAFE_STOP=YES` + árvore drenada + checkpoint válido + sem `RUN.lock` + W04) e no Q04 (retomada exactly-once). Regressão `SafeStopExitPlatform`; unit 63/63; mutantes do supervisor 22/22.
 
+## Revisão V008R5 — reentrega cooperativa do SAFE_STOP
+
+A campanha nativa R4 confirmou o SAFE_STOP por plataforma: **Q01–Q09 e Q12 passaram nativamente** (incl. Q03 e Q04). Parou em **Q12b** (SAFE_STOP via `run-full` em subprocesso), que pendurou 1800 s: o Ctrl+C foi entregue na janela de spawn de workers, matou-os em import e o coordenador não registrou o pedido (`STATUS.STOP_REQUESTED=False`). Corrigido em V008R5: o supervisor **reentrega** o Ctrl+C cooperativo (a cada 15 s, até 10×) até o coordenador registrar (`STATUS.STOP_REQUESTED=True`) ou o filho sair; nunca mata; uma vez registrado, não reentrega. Regressão `SafeStopRedelivery`; unit 69/69; mutantes do supervisor 23/23.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

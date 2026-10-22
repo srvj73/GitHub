@@ -30,6 +30,8 @@ MUTANTS = [
     ("safestop_windows_accepts_any_code", 'return code in (1, EXIT_CTRL_C_WINDOWS)', 'return True'),
     ("custody_guard_after_close_disabled", '    def close(self) -> None:\n        self._closed = True',
      '    def close(self) -> None:\n        self._closed = False'),
+    ("safestop_redeliver_ignores_latch", 'if not stop_requested or not child_running or latched:',
+     'if not stop_requested or not child_running:'),
     ("safestop_ignore_lock", 'if run_lock_present:\n        gaps.append("RUN_LOCK_STILL_PRESENT")',
      'if False:\n        gaps.append("RUN_LOCK_STILL_PRESENT")'),
     ("completion_ignore_lock", 'if run_lock_present:\n        gaps.append("RUN_LOCK_PRESENT")',
@@ -51,7 +53,7 @@ MUTANTS = [
 ]
 
 SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlatform",
-          "CustodyLifecycleContract", "RunPathWiring", "ExitClassification"]
+          "SafeStopRedelivery", "CustodyLifecycleContract", "RunPathWiring", "ExitClassification"]
 
 
 def main() -> int:

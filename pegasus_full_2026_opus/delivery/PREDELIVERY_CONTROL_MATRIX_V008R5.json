@@ -1,31 +1,31 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R4_PREDELIVERY_CONTROL_MATRIX",
+  "schema": "PEGASUS_FULL_2026_V008R5_PREDELIVERY_CONTROL_MATRIX",
   "final_bytes": {
     "zip": {
-      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R4_20261022.zip",
-      "sha256": "9B2D3820F36174FB1050F6C4AE03E70DF644FB9C41FCCB7184028E5E57358C61",
-      "bytes": 87386885,
-      "members": 2949
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R5_20261022.zip",
+      "sha256": "A7957E699B9BCFA2F0B9F0B4792C9120E05D803321DE22EAA028C079EC865223",
+      "bytes": 87390359,
+      "members": 2948
     },
-    "manifest_sha256": "7F7ADC5784F56C93AD8A1D7587D400D5FB579CA846FF0B1B18F631498CCAF9AF",
-    "tested_manifest_sha256_m1": "E0B2119B7A81F1BF2466B91C23CA1B2CD84D9FA5CDE17A31A3BD53B2D8162DA4",
+    "manifest_sha256": "5E617BE84099E10879D2B60C518556D622E8180D1805EE8817AAD0C549F25F87",
+    "tested_manifest_sha256_m1": "4D3CF6ACCE4E118DF985B687C4497CAEBC0649F7692AC70614A16E37B87D1D03",
     "bootstrap": {
-      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R4_PS51.ps1",
-      "sha256": "E5D5803D07EC756E56597101D8B1E446F14A1737DAFE2DE0A25ADFBE044DE97D",
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R5_PS51.ps1",
+      "sha256": "69474AFD63A5F3D6475263EC5A685B7F1CBD2B8AAACCC927E29F8FD22DDAD46A",
       "bytes": 22858
     },
-    "supersedes_v008r3": {
-      "zip_sha256": "46E4D3313020316044D3D4F0DC6D3A2D6EFA1CB5718722B57340BD86149C17B7",
-      "reason": "SAFE_STOP confirmation made platform-correct"
+    "supersedes_v008r4": {
+      "zip_sha256": "9B2D3820F36174FB1050F6C4AE03E70DF644FB9C41FCCB7184028E5E57358C61",
+      "reason": "cooperative SAFE_STOP re-delivery (single Ctrl+C lost during worker spawn hung Q12b)"
     },
     "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
   },
   "gates": {
     "G1_SOURCE_BINDING": "PASS; SUPERVISED_RUN_PATH + EXIT_BOUNDARY + JOB_HANDLE_LIFECYCLE + SAFE_STOP_PLATFORM CLOSED; QS4_HARNESS_BINDING=BLOCKED_PROVEN",
-    "G2_W04_FULL": "IMPLEMENTED; NATIVE_W04_ARMED_IN_CAMPAIGNS_R2_R3 (43 files, 0 violations, usn_hits=0 por caso); FULL_NATIVE_PENDING_RERUN",
-    "G3_W04_JIT_JOB": "IMPLEMENTED; JOB_HANDLE_LIFECYCLE_CLOSED_R3; NATIVE Q01/Q02 PASS na R3; Q11 netos/breakaway PENDING_RERUN",
-    "G4_SAFESTOP_RESUME": "SAFE_STOP_PLATFORM_EXIT_CLOSED_R4 (130 POSIX / 1|0xC000013A Windows + evidencia independente); Q03/Q04 nativos PENDING_RERUN",
-    "G5_INTEGRATED_NATIVE_WIN": "EXIT_BOUNDARY_VALIDATED_NATIVE (R2/R3, S00/S03 MATCH); FULL_CAMPAIGN_PENDING_RERUN",
+    "G2_W04_FULL": "IMPLEMENTED; NATIVE_W04_ARMED_POR_CASO (R2/R3/R4: 43 files, 0 violations, usn_hits=0); Q10a-f negativos nativos PENDING_RERUN",
+    "G3_W04_JIT_JOB": "IMPLEMENTED; JOB_HANDLE_LIFECYCLE_CLOSED_R3; NATIVE Q01-Q09+Q12 PASS na R4; Q11 netos/breakaway PENDING_RERUN",
+    "G4_SAFESTOP_RESUME": "SAFE_STOP_PLATFORM_EXIT_CLOSED_R4 + COOPERATIVE_REDELIVERY_CLOSED_R5; Q03 SAFE_STOP e Q04 retomada PASS NATIVOS na R4",
+    "G5_INTEGRATED_NATIVE_WIN": "EXIT_BOUNDARY_VALIDATED_NATIVE; Q01-Q09+Q12 PASS nativos (R4); FULL_CAMPAIGN_PENDING_RERUN (Q12b em diante)",
     "G6_CANDIDATE_COMPLETENESS": "NOT_PASS_PENDING_NATIVE_EVIDENCE; native_completeness_evaluation=NOT_MET"
   },
   "offline_evidence": {
@@ -50,11 +50,11 @@
     },
     "exit_boundary_bootstrap": "PASS_ALL passed=20 (template inalterado, provado nativo)",
     "exit_boundary_bootstrap_mutation": "8_OF_8_KILLED",
-    "supervisor_unit": "63_OF_63 (inclui SafeStopExitPlatform e CustodyLifecycleContract)",
-    "supervisor_mutants": "22_OF_22_KILLED (inclui safestop_windows_accepts_any_code, custody_guard_after_close_disabled)",
+    "supervisor_unit": "69_OF_69 (inclui SafeStopExitPlatform e CustodyLifecycleContract)",
+    "supervisor_mutants": "23_OF_23_KILLED (inclui safestop_windows_accepts_any_code, custody_guard_after_close_disabled)",
     "qs4_binding_packaged_r001": "BLOCKED_ADAPTER_PIN_05A0CF3D_VS_V003_EC96FE9A"
   },
-  "native_campaign_r3": {
+  "native_campaign_r4": {
     "exit_boundary": "VALIDATED_NATIVE",
     "exit_boundary_steps": {
       "S00_CANARY_EXIT_0": "MATCH",
@@ -75,9 +75,9 @@
       "S06_OFFLINE_NUMPY": "MATCH",
       "S07_SUPERVISED_NATIVE_QUALIFICATION": "MISMATCH"
     },
-    "native_cases_pass": "Q01,Q02 (Job handle fix confirmado)",
-    "blocker": "Q03 SAFE_STOP exit 130 POSIX-only",
-    "resolved_in": "V008R4"
+    "native_cases_pass": "Q01-Q09,Q12 (incl. Q03 SAFE_STOP, Q04 retomada)",
+    "blocker": "Q12b run-full SAFE_STOP hung 1800s (Ctrl+C lost in worker spawn)",
+    "resolved_in": "V008R5"
   },
   "engineering_implementation": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED",
   "engineering_complete": "NOT_PASS_PENDING_NATIVE_WINDOWS_RERUN",

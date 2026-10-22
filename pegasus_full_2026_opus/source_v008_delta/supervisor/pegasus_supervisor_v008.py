@@ -46,6 +46,27 @@ CODE = ROOT / "CODE"
 
 SCHEMA = "PEGASUS_FULL_2026_SUPERVISOR_V008"
 HEARTBEAT_S = 10.0
+# Reentrega cooperativa do SAFE_STOP: um Ctrl+C entregue na janela de spawn de workers do
+# coordenador pode matar workers em import sem o coordenador LATCH-ar o pedido (corrida nativa
+# Windows: STATUS.STOP_REQUESTED fica False). O supervisor reentrega o MESMO sinal cooperativo
+# até o coordenador registrar (STATUS.STOP_REQUESTED=True) ou o filho sair; jamais termina
+# processo. Intervalo >= escrita do heartbeat do STATUS para não reentregar antes de o latch
+# ficar visível.
+SAFE_STOP_REDELIVER_S = 15.0
+SAFE_STOP_MAX_DELIVERIES = 10
+
+
+def should_deliver_safe_stop(*, stop_requested: bool, child_running: bool, latched: bool,
+                             now: float, last_delivery: float, deliveries: int,
+                             interval: float = SAFE_STOP_REDELIVER_S,
+                             max_deliveries: int = SAFE_STOP_MAX_DELIVERIES) -> bool:
+    """Decide se o supervisor deve (re)entregar o Ctrl+C cooperativo agora. Puro/testável.
+    Nunca reentrega depois de LATCH-ado (o 2º Ctrl+C do V003 é WAIT_NO_KILL) nem após o limite."""
+    if not stop_requested or not child_running or latched:
+        return False
+    if deliveries >= max_deliveries:
+        return False
+    return (now - last_delivery) >= interval
 EXIT_PASS, EXIT_BLOCKED, EXIT_FAIL, EXIT_SAFE_STOP = 0, 2, 3, 130
 
 # Classificação única de exit codes do PEGASUS (supervisor, bootstrap e recibos usam a mesma).
@@ -516,7 +537,8 @@ class Supervision:
         status_initial = None
         last_hb = 0.0
         rc = None
-        stop_sent = False
+        stop_deliveries = 0
+        last_stop_delivery = 0.0
         last_updated = None
         last_change = time.monotonic()
         try:
@@ -537,11 +559,18 @@ class Supervision:
                         and int(st.get("COMMITTED", 0)) >= self.stop_after_committed and rc is None):
                     self.stop_requested = True
                     self.log("SUPERVISOR_SAFE_STOP_INJECTED after_committed=%d" % int(st["COMMITTED"]))
-                if self.stop_requested and rc is None and not stop_sent:
-                    # Encaminhado UMA vez ao coordenador; repetição seria o 2º Ctrl+C
-                    # (V003: SECOND_CTRL_C=WAIT_NO_KILL). Nunca termina processo.
+                if should_deliver_safe_stop(stop_requested=self.stop_requested, child_running=(rc is None),
+                                            latched=bool(st.get("STOP_REQUESTED")), now=now,
+                                            last_delivery=last_stop_delivery, deliveries=stop_deliveries):
+                    # Entrega COOPERATIVA do SAFE_STOP, reentregue até o coordenador LATCH-ar
+                    # (STATUS.STOP_REQUESTED=True) ou o filho sair. Cobre a corrida em que o
+                    # Ctrl+C entregue no spawn de workers os mata em import sem o coordenador
+                    # registrar o pedido. Nunca termina processo.
                     cust.request_stop()
-                    stop_sent = True
+                    stop_deliveries += 1
+                    last_stop_delivery = now
+                    self.log("SAFE_STOP_DELIVERY n=%d latched=False redeliver_s=%.0f"
+                             % (stop_deliveries, SAFE_STOP_REDELIVER_S))
                 if now - last_hb >= HEARTBEAT_S or rc is not None:
                     guard.revalidate()
                     if st:

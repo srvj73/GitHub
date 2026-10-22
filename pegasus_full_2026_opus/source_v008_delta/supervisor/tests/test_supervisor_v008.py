@@ -463,6 +463,37 @@ class SafeStopExitPlatform(unittest.TestCase):
             self.assertIn("CHILD_STATUS_NOT_SAFE", v["gaps"])
 
 
+class SafeStopRedelivery(unittest.TestCase):
+    """Reentrega cooperativa do SAFE_STOP até o coordenador LATCH-ar (STATUS.STOP_REQUESTED=True)
+    ou o filho sair. Cobre a corrida nativa em que o Ctrl+C entregue no spawn de workers os mata
+    em import sem o coordenador registrar o pedido (campanha R4: Q12b pendurou 1800s)."""
+    BASE = dict(stop_requested=True, child_running=True, latched=False, now=1000.0,
+                last_delivery=0.0, deliveries=0)
+
+    def _d(self, **kw):
+        return sup.should_deliver_safe_stop(**{**self.BASE, **kw})
+
+    def test_first_delivery_immediate(self):
+        self.assertTrue(self._d())
+
+    def test_waits_interval_between_deliveries(self):
+        self.assertFalse(self._d(now=1005.0, last_delivery=1000.0, deliveries=1))   # 5s < 15s
+        self.assertTrue(self._d(now=1020.0, last_delivery=1000.0, deliveries=1))    # 20s >= 15s
+
+    def test_latched_stops_redelivery(self):
+        # uma vez registrado pelo coordenador, nao reentrega (2o Ctrl+C do V003 = WAIT_NO_KILL)
+        self.assertFalse(self._d(latched=True, now=99999.0, last_delivery=0.0, deliveries=1))
+
+    def test_bounded_by_max_deliveries(self):
+        self.assertFalse(self._d(now=99999.0, last_delivery=0.0, deliveries=sup.SAFE_STOP_MAX_DELIVERIES))
+
+    def test_no_delivery_after_child_exit(self):
+        self.assertFalse(self._d(child_running=False, now=99999.0))
+
+    def test_no_delivery_without_request(self):
+        self.assertFalse(self._d(stop_requested=False, now=99999.0))
+
+
 class CustodyLifecycleContract(unittest.TestCase):
     """Trava o contrato cuja violação derrubou a campanha nativa R2 com
     JOB_ACCOUNTING_FAILED winerror=6 (ERROR_INVALID_HANDLE): no Windows, close() fecha o

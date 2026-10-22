@@ -1,7 +1,7 @@
 {
  "schema": "PEGASUS_FULL_2026_V008_SUPERVISOR_MUTATION_V001",
- "mutants": 22,
- "killed": 22,
+ "mutants": 23,
+ "killed": 23,
  "results": [
   {
    "mutant": "ignore_sharing_violation",
@@ -49,6 +49,10 @@
   },
   {
    "mutant": "custody_guard_after_close_disabled",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "safestop_redeliver_ignores_latch",
    "result": "KILLED"
   },
   {

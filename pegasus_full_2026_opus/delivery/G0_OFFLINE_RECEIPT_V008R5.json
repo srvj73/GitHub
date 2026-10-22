@@ -1,39 +1,39 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R4_G0_OFFLINE_RECEIPT",
+  "schema": "PEGASUS_FULL_2026_V008R5_G0_OFFLINE_RECEIPT",
   "final_bytes": {
     "zip": {
-      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R4_20261022.zip",
-      "sha256": "9B2D3820F36174FB1050F6C4AE03E70DF644FB9C41FCCB7184028E5E57358C61",
-      "bytes": 87386885,
-      "members": 2949
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R5_20261022.zip",
+      "sha256": "A7957E699B9BCFA2F0B9F0B4792C9120E05D803321DE22EAA028C079EC865223",
+      "bytes": 87390359,
+      "members": 2948
     },
-    "manifest_sha256": "7F7ADC5784F56C93AD8A1D7587D400D5FB579CA846FF0B1B18F631498CCAF9AF",
-    "tested_manifest_sha256_m1": "E0B2119B7A81F1BF2466B91C23CA1B2CD84D9FA5CDE17A31A3BD53B2D8162DA4",
+    "manifest_sha256": "5E617BE84099E10879D2B60C518556D622E8180D1805EE8817AAD0C549F25F87",
+    "tested_manifest_sha256_m1": "4D3CF6ACCE4E118DF985B687C4497CAEBC0649F7692AC70614A16E37B87D1D03",
     "bootstrap": {
-      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R4_PS51.ps1",
-      "sha256": "E5D5803D07EC756E56597101D8B1E446F14A1737DAFE2DE0A25ADFBE044DE97D",
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R5_PS51.ps1",
+      "sha256": "69474AFD63A5F3D6475263EC5A685B7F1CBD2B8AAACCC927E29F8FD22DDAD46A",
       "bytes": 22858
     },
-    "supersedes_v008r3": {
-      "zip_sha256": "46E4D3313020316044D3D4F0DC6D3A2D6EFA1CB5718722B57340BD86149C17B7",
-      "reason": "SAFE_STOP confirmation made platform-correct"
+    "supersedes_v008r4": {
+      "zip_sha256": "9B2D3820F36174FB1050F6C4AE03E70DF644FB9C41FCCB7184028E5E57358C61",
+      "reason": "cooperative SAFE_STOP re-delivery (single Ctrl+C lost during worker spawn hung Q12b)"
     },
     "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
   },
   "zip_crc": "PASS",
   "zip_member_safety": "PASS",
   "delivered_extract_verify": "PASS_ALL_DELIVERED_BYTES_MATCH_MANIFEST",
-  "delivered_manifest_sha256": "0224D9A3FEF49587A710E8489ABAA10BB1743C51AFF9235EAAEDDCF2BE5964C1",
-  "delivered_files_checked": 2948,
+  "delivered_manifest_sha256": "5E617BE84099E10879D2B60C518556D622E8180D1805EE8817AAD0C549F25F87",
+  "delivered_files_checked": 2947,
   "offline_tests": {
-    "supervisor_unit": "63_OF_63",
-    "supervisor_mutation": "22_OF_22_KILLED",
+    "supervisor_unit": "69_OF_69",
+    "supervisor_mutation": "23_OF_23_KILLED",
     "bootstrap_exit_boundary": "PASS_ALL passed=20",
     "bootstrap_mutation": "8_OF_8_KILLED",
     "supervised_qualification": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=16; SKIPPED_NON_NATIVE=2; error=None"
   },
-  "native_campaign_r3": {
-    "zip_sha256": "C39EB7E78D892F95E50FCF1FEA2C1A0DB24239067C6DD7133CED9CC1287A15D8",
+  "native_campaign_r4": {
+    "zip_sha256": "E4BD677ED32CAE99282EE31769AEC5A4D7951EC917BECB28848C5F10F5D61655",
     "exit_boundary_steps": {
       "S00_CANARY_EXIT_0": "MATCH",
       "S00_CANARY_EXIT_2": "MATCH",
@@ -53,9 +53,9 @@
       "S06_OFFLINE_NUMPY": "MATCH",
       "S07_SUPERVISED_NATIVE_QUALIFICATION": "MISMATCH"
     },
-    "advanced_to": "Q03_SAFE_STOP (Q01/Q02 PASS native, Job handle fix confirmed)",
-    "s07_failure": "Q03 required child_exit==130 (POSIX artifact); native Ctrl+C exited 1",
-    "resolved_in": "V008R4_SAFE_STOP_PLATFORM_EXIT"
+    "advanced_to": "Q12b (Q01-Q09 e Q12 PASS nativos, incl. Q03 SAFE_STOP e Q04 retomada exactly-once)",
+    "blocker": "Q12b run-full SAFE_STOP via subprocesso pendurou 1800s: Ctrl+C perdido no spawn de workers, coordenador nao registrou (STATUS.STOP_REQUESTED=False)",
+    "resolved_in": "V008R5_COOPERATIVE_SAFE_STOP_REDELIVERY"
   },
   "python_compile_new_code": "PASS_ON_3.13 (campanha nativa usa Python 3.14.7 do titular)",
   "powershell_parse": "PASS_PWSH_7.4.6_LINUX; PS5.1_NATIVE_VALIDATED_BY_CAMPAIGNS_R2_R3",

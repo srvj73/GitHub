@@ -46,7 +46,9 @@
       "pending_journal_residue": "ATTRIBUTED_BY_INSTRUMENTED_PROOF_TO_NON_RUNTIME_MULTI_INSTANT_CAPTURE",
       "native": "PENDING_OWNER_WINDOWS_CAMPAIGN",
       "exit_boundary": "CLOSED_V008R2: classify_exit/EXIT_CLASSES (0 PASS;2 BLOCKED;3 FAIL;130 SAFE_STOP; ausente/nao-inteiro=>FAIL_CLOSED); _run_supervised grava exit_code/exit_class; main() exceção técnica=>3",
-      "safe_stop_platform_exit": "CLOSED_V008R4: is_cooperative_stop_exit (130 POSIX / 1|0xC000013A Windows) + evidencia independente; Q03 nativo destravado"
+      "safe_stop_platform_exit": "CLOSED_V008R4: is_cooperative_stop_exit (130 POSIX / 1|0xC000013A Windows) + evidencia independente; Q03 nativo destravado",
+      "native_campaign_r4": "Q03 SAFE_STOP e Q04 retomada PASS NATIVOS (correcao de plataforma R4 confirmada); Q05-Q09 e Q12 PASS nativos",
+      "safe_stop_redelivery": "CLOSED_V008R5: reentrega cooperativa do Ctrl+C ate STATUS.STOP_REQUESTED=True ou filho sair (cobre corrida com spawn de workers em Q12b); nunca mata"
     },
     "G5_INTEGRATED_NATIVE_WIN": {
       "state": "CAMPAIGN_READY_NOT_EXECUTED",
@@ -62,7 +64,7 @@
       "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)",
       "exit_code_boundary": "CLOSED_V008R2 (bootstrap+UAC+subprocess+watchdog+supervisor; sem falso PASS)",
       "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
-      "offline_test_counts": "unit 63/63 (SafeStopExitPlatform+CustodyLifecycleContract); supervisor mutants 22/22; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP"
+      "offline_test_counts": "unit 69/69 (SafeStopRedelivery incl.); supervisor mutants 23/23; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP"
     }
   },
   "boundaries": {
@@ -77,10 +79,10 @@
     "independent_audit": "NOT_STARTED"
   },
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
-  "revision": "V008R4",
+  "revision": "V008R5",
   "supersedes": {
-    "v008r3_zip_sha256": "46E4D3313020316044D3D4F0DC6D3A2D6EFA1CB5718722B57340BD86149C17B7",
-    "reason": "SAFE_STOP confirmation made platform-correct (child exit 130 was a POSIX artifact; native Windows cooperative Ctrl+C exits 1 or 0xC000013A)"
+    "v008r4_zip_sha256": "9B2D3820F36174FB1050F6C4AE03E70DF644FB9C41FCCB7184028E5E57358C61",
+    "reason": "cooperative SAFE_STOP re-delivery (single Ctrl+C lost during worker spawn left the run hung at Q12b)"
   },
   "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
   "native_campaign_r2_result": {
@@ -98,5 +100,12 @@
     "native_cases_pass": "Q01,Q02",
     "blocker": "Q03 SAFE_STOP required child_exit==130 (POSIX-only) -> fixed V008R4",
     "job_handle_fix": "CONFIRMED_NATIVE"
+  },
+  "native_campaign_r4_result": {
+    "verify": "PASS",
+    "qualifynative_exit": 3,
+    "native_cases_pass": "Q01-Q09,Q12 (incl. Q03 SAFE_STOP, Q04 resume exactly-once)",
+    "blocker": "Q12b run-full SAFE_STOP hung 1800s (Ctrl+C lost during worker spawn) -> fixed V008R5",
+    "safe_stop_platform_fix": "CONFIRMED_NATIVE"
   }
 }
