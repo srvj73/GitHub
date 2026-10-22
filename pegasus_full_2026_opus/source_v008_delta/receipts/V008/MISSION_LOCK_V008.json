@@ -1,0 +1,19 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008_MISSION_LOCK",
+  "mission_id": "PEGASUS_ORIGINAL_FULL_ENGENHARIA_FINAL_INTEGRADA_OPUS_20261022",
+  "project": "Pegasus Original",
+  "thread": "Implementação Runner Paralelo 14",
+  "handoff_reconstructed": {
+    "file": "PEGASUS_OPUS_FULL_ENGENHARIA_HANDOFF_UNICO_V003_FISICO_20261022.zip",
+    "sha256": "EC24BA6D8A95743559782AFF75087B240ACECB152CE880FC07FD2F7370ED45D2",
+    "bytes": 202576567,
+    "parts_verified": "8_OF_8",
+    "inner_manifest": "25_OF_25"
+  },
+  "policy_custody": "EXCLUSIVE_TO_ORIGIN; NOT_CONSULTED_NOT_VALIDATED_BY_DESTINATION",
+  "policy_snapshot_files_opened": "NONE",
+  "allowed_effects": ["new run roots under C:\\Users\\silvi\\Downloads\\PEGASUS_FULL_2026_RUNS", "new install root C:\\ProgramData\\PEGASUS_FULL_2026_V008_<SHA16> (Install mode only)", "rename of the V008 root on Rollback"],
+  "forbidden_effects": ["QS4 execution", "FULL economic", "Phase B/C economic", "reselection 2026", "D: writes or ACL changes", "deletion of historical roots/locks/journals", "permanent ExecutionPolicy change", "paid credits"],
+  "no_rerun": ["80/80 QS4 R001 Linux", "V002 retirement", "V007 identity probe", "R14R2 cause", "R14R3 smoke", "V003 RunLock delta 8 controls", "G4 historical suites"],
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

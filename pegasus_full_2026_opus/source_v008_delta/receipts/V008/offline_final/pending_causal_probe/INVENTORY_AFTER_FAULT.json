@@ -1,0 +1,707 @@
+{
+ "CHECKPOINT.json": {
+  "bytes": 14368,
+  "dev": 65024,
+  "ino": 722048,
+  "sha256": "64EAF8988AD5201E0417BC063D31B777657E51639FE6B4625D1D63BFDF5D0B54",
+  "type": "file"
+ },
+ "MINOTAURO_RUN_MUTEX": {
+  "bytes": 0,
+  "dev": 65024,
+  "ino": 721951,
+  "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+  "type": "file"
+ },
+ "TELEMETRY": {
+  "dev": 65024,
+  "ino": 721953,
+  "type": "dir"
+ },
+ "TELEMETRY/R1R11_SCHEDULER_STATE.json": {
+  "bytes": 34,
+  "dev": 65024,
+  "ino": 722049,
+  "sha256": "47EFE8A3BCB903066F45F861C561AF23BD34C75055257B76F48AEAD4EACC98C4",
+  "type": "file"
+ },
+ "TELEMETRY/R1R11_STATUS.json": {
+  "bytes": 919,
+  "dev": 65024,
+  "ino": 722072,
+  "sha256": "4E8DE215EC29EA522768A4402ECD82C1CB763FAFE9F0D6CAAC4EBC80F7E422EB",
+  "type": "file"
+ },
+ "TELEMETRY/R1R11_TRANSPORT.jsonl": {
+  "bytes": 25741,
+  "dev": 65024,
+  "ino": 721961,
+  "sha256": "AC16EBB3CC66F724898689511D250A608AE71B1F5E60D9655B93A220E316ACD0",
+  "type": "file"
+ },
+ "TELEMETRY/SESSION_SEALS": {
+  "dev": 65024,
+  "ino": 722045,
+  "type": "dir"
+ },
+ "TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882": {
+  "dev": 65024,
+  "ino": 722046,
+  "type": "dir"
+ },
+ "TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/1999-12-31.json": {
+  "bytes": 608,
+  "dev": 65024,
+  "ino": 722047,
+  "sha256": "1A491C152A968EC543455DEF0AC79BF2F5318A1962C38697291975BA83FB28E6",
+  "type": "file"
+ },
+ "TELEMETRY/memory.jsonl": {
+  "bytes": 17289,
+  "dev": 65024,
+  "ino": 722041,
+  "sha256": "330A1185FE88D7DB5CEDA5B21D95F9DF224A03A12A7E8735504DF4B7EFCDEB10",
+  "type": "file"
+ },
+ "_commit_journal": {
+  "dev": 65024,
+  "ino": 721959,
+  "type": "dir"
+ },
+ "_commit_journal/2000-01-06.554_1792668208159708493.json": {
+  "bytes": 25415,
+  "dev": 65024,
+  "ino": 722070,
+  "sha256": "C496991F798AA8BEC3C5E1DD536FE9C23349A2F331E5602B96B9ED7668263684",
+  "type": "file"
+ },
+ "_journal_history": {
+  "dev": 65024,
+  "ino": 721955,
+  "type": "dir"
+ },
+ "_journal_history/1999-12-31.554_1792668208159708493.json.COMMITTED": {
+  "bytes": 15640,
+  "dev": 65024,
+  "ino": 721956,
+  "sha256": "3D708F12D4262789DC6BC1C246B957DA2C96E9EA4FF79622CFD426F19FDCA492",
+  "type": "file"
+ },
+ "_scratch": {
+  "dev": 65024,
+  "ino": 721954,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493": {
+  "dev": 65024,
+  "ino": 721957,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06": {
+  "dev": 65024,
+  "ino": 721962,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_0": {
+  "dev": 65024,
+  "ino": 721977,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_0/equity.jsonl": {
+  "bytes": 503,
+  "dev": 65024,
+  "ino": 721982,
+  "sha256": "2B0527BD38289E6765AE3951A12FFCC548F6AF2B93E8BE6A9830D7025B65060E",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_0/equity_reconciliation.jsonl": {
+  "bytes": 307,
+  "dev": 65024,
+  "ino": 721983,
+  "sha256": "36BA40F75C86A6315969077EDE274F7C07DF83E6313F1EC0F7DF7F9A65120CED",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_0/events.jsonl": {
+  "bytes": 879,
+  "dev": 65024,
+  "ino": 721980,
+  "sha256": "7F1762A8590E03A84A407D660DD3EDB9A47BF11E0E1C688916D648481B63B438",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_0/trades.jsonl": {
+  "bytes": 1192,
+  "dev": 65024,
+  "ino": 721978,
+  "sha256": "74682968774BC0E4D18BD2C551BB961BDA64A9DA3A9519E719B0A5B9A79A74E5",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_1": {
+  "dev": 65024,
+  "ino": 721966,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_1/equity.jsonl": {
+  "bytes": 503,
+  "dev": 65024,
+  "ino": 721969,
+  "sha256": "42098B4CBFF91BA79464549A4E8DB18741CC83FBD1498AD98A6DB5BAEECC34B6",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_1/equity_reconciliation.jsonl": {
+  "bytes": 307,
+  "dev": 65024,
+  "ino": 721970,
+  "sha256": "0CBBA67ECD30D05C5888F3DE2CAD968DF21A61D5C2E45D20C7D97028AB14F39D",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_1/events.jsonl": {
+  "bytes": 882,
+  "dev": 65024,
+  "ino": 721968,
+  "sha256": "1A2E4AEE01A03CD04456DE418F1B21898C0D4CD73B76807F7058603E319E1BFC",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_1/trades.jsonl": {
+  "bytes": 1193,
+  "dev": 65024,
+  "ino": 721967,
+  "sha256": "18868C5A7BCACAD2C6DA5A2419FCC5AEC2F5AB3A16DBE5E4522730ABED14D81C",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_2": {
+  "dev": 65024,
+  "ino": 721986,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_2/equity.jsonl": {
+  "bytes": 503,
+  "dev": 65024,
+  "ino": 721990,
+  "sha256": "E5897EFBAC1C19BDF23133B7802B24CDF7FC897242B8887BE236FF747742FB8F",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_2/equity_reconciliation.jsonl": {
+  "bytes": 307,
+  "dev": 65024,
+  "ino": 721992,
+  "sha256": "5E75BA18F45F23502C485DFD630C258906B2E30EA6BA0F18582AED540AEBBB37",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_2/events.jsonl": {
+  "bytes": 881,
+  "dev": 65024,
+  "ino": 721989,
+  "sha256": "C4B8FBB4B5B1CA88514CDD7C8B5437766F0A8C63587C7D6774AE45E4667D4B24",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_2/trades.jsonl": {
+  "bytes": 1193,
+  "dev": 65024,
+  "ino": 721988,
+  "sha256": "E50961D0D3B1AE45CC6EA2D6826CD1174D0E9E1CBCEA9036E0089425F45CA501",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_3": {
+  "dev": 65024,
+  "ino": 721972,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_3/equity.jsonl": {
+  "bytes": 503,
+  "dev": 65024,
+  "ino": 721975,
+  "sha256": "5321A04168BD80B979C1F7454D1E8ED0617CE6ACF8171C6DE2BD3554239C9226",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_3/equity_reconciliation.jsonl": {
+  "bytes": 307,
+  "dev": 65024,
+  "ino": 721976,
+  "sha256": "C7EB3456DF76037E08C07EE277C7F71D5CAD47F043FA9CE2149642FE3FC56CFC",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_3/events.jsonl": {
+  "bytes": 881,
+  "dev": 65024,
+  "ino": 721974,
+  "sha256": "228A356E326E524E7C24D61306FF148358B609CC85C1FCD85EB28E8D64667737",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_3/trades.jsonl": {
+  "bytes": 1194,
+  "dev": 65024,
+  "ino": 721973,
+  "sha256": "868EE6A79191CCFA760A3DEF630E7B958E17453EEB3133AA4A82FD199C1EFC2F",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_4": {
+  "dev": 65024,
+  "ino": 721995,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_4/equity.jsonl": {
+  "bytes": 503,
+  "dev": 65024,
+  "ino": 722000,
+  "sha256": "0E5DCFF3CBA344558D99FD6CDDD06684831A47772F8FF68DF8F22E20DA568872",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_4/equity_reconciliation.jsonl": {
+  "bytes": 263,
+  "dev": 65024,
+  "ino": 722001,
+  "sha256": "349BC4052EB05BC2E19D60FF952594D6CEC6B31D629C2352744287801F5E276E",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_4/events.jsonl": {
+  "bytes": 703,
+  "dev": 65024,
+  "ino": 721999,
+  "sha256": "1217783908959D3FF33DAECB07409BA54456DFC1C78832F47BBC353543385AA1",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/0_4/trades.jsonl": {
+  "bytes": 1194,
+  "dev": 65024,
+  "ino": 721997,
+  "sha256": "9B20A9DA42DC1B88FA58264883A16459E20EEAD60DBA4D2A6C8DC27927F7C03F",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_0": {
+  "dev": 65024,
+  "ino": 721979,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_0/equity.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 721985,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_0/equity_reconciliation.jsonl": {
+  "bytes": 269,
+  "dev": 65024,
+  "ino": 721987,
+  "sha256": "D079530C90961AF6FEE55176FBF3DE4754953B9F4F4F728842C7C11350C14EDE",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_0/events.jsonl": {
+  "bytes": 231,
+  "dev": 65024,
+  "ino": 721984,
+  "sha256": "4B46A9A32E78F76D4F2E452DC81D293474554AA4A066656C6C49A69317E3F246",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_0/trades.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 721981,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_1": {
+  "dev": 65024,
+  "ino": 722004,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_1/equity.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722010,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_1/equity_reconciliation.jsonl": {
+  "bytes": 269,
+  "dev": 65024,
+  "ino": 722012,
+  "sha256": "F35E38A4974040BF989751FA9BF9983AD94588503A1DAF01155EED7FF4C5DE14",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_1/events.jsonl": {
+  "bytes": 231,
+  "dev": 65024,
+  "ino": 722008,
+  "sha256": "6947949001FCF57A996BB150AABBF4DFDB1C9889226C660DC5B39ECA74508C59",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_1/trades.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722006,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_2": {
+  "dev": 65024,
+  "ino": 721991,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_2/equity.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 721996,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_2/equity_reconciliation.jsonl": {
+  "bytes": 269,
+  "dev": 65024,
+  "ino": 721998,
+  "sha256": "9D960E2231BEB5117CCCB596E25984835FC8817C74A390933155BBF5379D8453",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_2/events.jsonl": {
+  "bytes": 231,
+  "dev": 65024,
+  "ino": 721994,
+  "sha256": "14E3D0DFF8801DC89F8550D8C000631349C271CCB653C52773C11B8ADAA675F3",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_2/trades.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 721993,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_3": {
+  "dev": 65024,
+  "ino": 722015,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_3/equity.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722020,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_3/equity_reconciliation.jsonl": {
+  "bytes": 268,
+  "dev": 65024,
+  "ino": 722021,
+  "sha256": "66B32CAAC7BA8C8E796454A80BD4978FFA81908605B45349D132C9840C20B348",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_3/events.jsonl": {
+  "bytes": 231,
+  "dev": 65024,
+  "ino": 722018,
+  "sha256": "F12713F0120C3A2E51649903DF831EEC549BF67525C58B387E6BE2CA9A8B81B5",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_3/trades.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722016,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_4": {
+  "dev": 65024,
+  "ino": 722002,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_4/equity.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722007,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_4/equity_reconciliation.jsonl": {
+  "bytes": 249,
+  "dev": 65024,
+  "ino": 722009,
+  "sha256": "7D89B22E4D5211A7F54682DA25171734A7AF70E906A84D3A9CE73C6B1CCF8C20",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_4/events.jsonl": {
+  "bytes": 220,
+  "dev": 65024,
+  "ino": 722005,
+  "sha256": "445FFF9BF84E7FA1A85245F8F0F4CFBE6510B6162553021B8C7C87F9BB0C6B7D",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/1_4/trades.jsonl": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722003,
+  "sha256": "5056F057A3DB1A5D162027040C57EA09D087DEE3CDA8BA2D42D0F556B7E7F007",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_0": {
+  "dev": 65024,
+  "ino": 722024,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_0/equity.jsonl": {
+  "bytes": 827,
+  "dev": 65024,
+  "ino": 722029,
+  "sha256": "E6F89C62CF68D936568D49280CF4CF0A5A632284ABBB1923954098BFBC72DA0E",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_0/equity_reconciliation.jsonl": {
+  "bytes": 322,
+  "dev": 65024,
+  "ino": 722058,
+  "sha256": "3648369CF235BEAA0DF973E6AF5199BC324152CB346D7494FA28FDEBE0AF7C4A",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_0/events.jsonl": {
+  "bytes": 885,
+  "dev": 65024,
+  "ino": 722027,
+  "sha256": "22B03C46AAEDD3981BA1C4C3DE8FE9654424BBC3BD8060D7AD64A773D23C1E65",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_0/trades.jsonl": {
+  "bytes": 1342,
+  "dev": 65024,
+  "ino": 722025,
+  "sha256": "26AFCB1DCB99AEC66E3D06FC5BFC18B0104FFB590453182943E2851E32C543CA",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_1": {
+  "dev": 65024,
+  "ino": 722011,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_1/equity.jsonl": {
+  "bytes": 826,
+  "dev": 65024,
+  "ino": 722017,
+  "sha256": "41AD9379B5CD838B175018A92ECB34F17F93AA564F5B1F4FE65AD957AF0E4501",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_1/equity_reconciliation.jsonl": {
+  "bytes": 321,
+  "dev": 65024,
+  "ino": 722019,
+  "sha256": "11E684586E0EB46ED9AEA71A562077BF2B8D3DD966A98FB638A3E408FB9566CB",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_1/events.jsonl": {
+  "bytes": 885,
+  "dev": 65024,
+  "ino": 722014,
+  "sha256": "64A1051426845528648933AD244468E7F514958CB84038FF6D4418517A0D8343",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_1/trades.jsonl": {
+  "bytes": 1342,
+  "dev": 65024,
+  "ino": 722013,
+  "sha256": "4ED2AE959C80C5BC761C9A4DE56575B44843F35637516653D7D1D0ADCBE07374",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_2": {
+  "dev": 65024,
+  "ino": 722059,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_2/equity.jsonl": {
+  "bytes": 827,
+  "dev": 65024,
+  "ino": 722062,
+  "sha256": "7DFF9E9FCB3F02DC9239018F3AD87048480E575D37A6EE8B05356820A16F70E9",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_2/equity_reconciliation.jsonl": {
+  "bytes": 322,
+  "dev": 65024,
+  "ino": 722063,
+  "sha256": "4CF2A3BB7BF356FE557F5D931E000CB933746B821C92F44CEC04551F5800EFC2",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_2/events.jsonl": {
+  "bytes": 881,
+  "dev": 65024,
+  "ino": 722061,
+  "sha256": "95F7F081967692DB093BA81D5E82820B3D4F233B353ECC15A98970B304D11C2B",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_2/trades.jsonl": {
+  "bytes": 1341,
+  "dev": 65024,
+  "ino": 722060,
+  "sha256": "E5BBD72E6B174649524F1EE0621FE4699018CEEA3C4EB345099D69F8A2CE93DD",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_3": {
+  "dev": 65024,
+  "ino": 722022,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_3/equity.jsonl": {
+  "bytes": 826,
+  "dev": 65024,
+  "ino": 722028,
+  "sha256": "F5B55CEC32B7583C52651BAD5C339FA43C146AC426BEA7B08EE9F8C2A43807D3",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_3/equity_reconciliation.jsonl": {
+  "bytes": 322,
+  "dev": 65024,
+  "ino": 722057,
+  "sha256": "D96080782F5F2148174313C08C40D87292B5A88C1BC87E19271B87B3F90B1667",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_3/events.jsonl": {
+  "bytes": 883,
+  "dev": 65024,
+  "ino": 722026,
+  "sha256": "6418BAB914BFEEFA270D8A8017F7756F8801579867356E10C207E0CF7426D642",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_3/trades.jsonl": {
+  "bytes": 1341,
+  "dev": 65024,
+  "ino": 722023,
+  "sha256": "3DACC093B30EDE9D7D1274E727B9464573F9E0AC1B320F3EC6D5870ABD8BE877",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_4": {
+  "dev": 65024,
+  "ino": 722064,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_4/equity.jsonl": {
+  "bytes": 826,
+  "dev": 65024,
+  "ino": 722067,
+  "sha256": "C0713967AFA36A8BCAA2C0B6AFC5DEA4555E4A92EFD60FA21142DBDFB23DACE8",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_4/equity_reconciliation.jsonl": {
+  "bytes": 270,
+  "dev": 65024,
+  "ino": 722068,
+  "sha256": "AC2F13CF1A9312911D36BE806B8211597A84F0E1D28C52E94187285A044CBEB8",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_4/events.jsonl": {
+  "bytes": 705,
+  "dev": 65024,
+  "ino": 722066,
+  "sha256": "4D0AF4720B86D61FB16664228B8F891EAC355A60B14D6E1AE4B31A908F29AE94",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/2_4/trades.jsonl": {
+  "bytes": 1342,
+  "dev": 65024,
+  "ino": 722065,
+  "sha256": "B8BDF3EBBFB4A719678D94822EA287BC575E67DD66CE1366201F57BE7924A6EC",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/_canonical_stage": {
+  "dev": 65024,
+  "ino": 722069,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/_canonical_stage/equity.jsonl.gz.sealed": {
+  "bytes": 2782,
+  "dev": 65024,
+  "ino": 722081,
+  "sha256": "DA7D28F3914C704906BBD3F34A80F80B26B1B454CA42DA59F45D7FB99BB7EFEE",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/_canonical_stage/equity_reconciliation.jsonl.gz.sealed": {
+  "bytes": 1685,
+  "dev": 65024,
+  "ino": 722082,
+  "sha256": "6CA80A7494937CA6D0C9475985D4ADC88D72B62CB769AF1A336C49BE71BF542E",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/_canonical_stage/events.jsonl.gz.sealed": {
+  "bytes": 4109,
+  "dev": 65024,
+  "ino": 722080,
+  "sha256": "B0923818005B922477016E6B12422E43E19F4B381FED34EF88CCE9607B7A3557",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/worker_0": {
+  "dev": 65024,
+  "ino": 721964,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/worker_0/worker.json": {
+  "bytes": 152,
+  "dev": 65024,
+  "ino": 721971,
+  "sha256": "1038A75A1F949CD3A9929B2B328819471ADDE8EFBD215FE7157D3C86C8964D9B",
+  "type": "file"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/worker_1": {
+  "dev": 65024,
+  "ino": 721963,
+  "type": "dir"
+ },
+ "_scratch/554_1792668208159708493/2000-01-06/worker_1/worker.json": {
+  "bytes": 152,
+  "dev": 65024,
+  "ino": 721965,
+  "sha256": "E46F8C10E3CF63FF4C352244BB70C8AE1905B67AF612EE774238BDBC484AB0A6",
+  "type": "file"
+ },
+ "sessions": {
+  "dev": 65024,
+  "ino": 721960,
+  "type": "dir"
+ },
+ "sessions/1999-12-31": {
+  "dev": 65024,
+  "ino": 722043,
+  "type": "dir"
+ },
+ "sessions/1999-12-31/equity.jsonl.gz": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722055,
+  "sha256": "18CC39FCE6D400D61490AF9D0EE22138F8E8B0050AE6EF1BA78DC6CA38D611CA",
+  "type": "file"
+ },
+ "sessions/1999-12-31/equity_reconciliation.jsonl.gz": {
+  "bytes": 1491,
+  "dev": 65024,
+  "ino": 722054,
+  "sha256": "151502D6310A67C29687DA6F0F4F08B958E413C9826B56C9B17A446FCDEC9D57",
+  "type": "file"
+ },
+ "sessions/1999-12-31/events.jsonl.gz": {
+  "bytes": 985,
+  "dev": 65024,
+  "ino": 722051,
+  "sha256": "568EE24DE1730CA9388FDFED1ECB0A9D803697530988CD1047B50AFD80E47EA7",
+  "type": "file"
+ },
+ "sessions/1999-12-31/session_receipt.json": {
+  "bytes": 6298,
+  "dev": 65024,
+  "ino": 722044,
+  "sha256": "BF1D995B934BA9B47DC2AFCFD74EEC0C5825473DA3F7428738E9A824A392D91E",
+  "type": "file"
+ },
+ "sessions/1999-12-31/trades.jsonl.gz": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722053,
+  "sha256": "18CC39FCE6D400D61490AF9D0EE22138F8E8B0050AE6EF1BA78DC6CA38D611CA",
+  "type": "file"
+ },
+ "sessions/2000-01-06.pending": {
+  "dev": 65024,
+  "ino": 722071,
+  "type": "dir"
+ },
+ "sessions/2000-01-06.pending/trades.jsonl.gz": {
+  "bytes": 4628,
+  "dev": 65024,
+  "ino": 722078,
+  "sha256": "C859078A01A8FD897F7797B62B686B7A76AF484E5FCF66B65E30544F065ED930",
+  "type": "file"
+ }
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "PEGASUS_OPUS_FULL_TRANSPORT_8PART_RECEIVE_EVIDENCE_V001",
+  "received_parts": [
+    "04",
+    "05",
+    "06",
+    "07",
+    "08"
+  ],
+  "missing_parts": [
+    "01",
+    "02",
+    "03"
+  ],
+  "reconstruction_possible": false,
+  "reconstruction_tooling_and_manifest_location": "PARTE_01/TRANSPORTE (ABSENT)",
+  "parts": {
+    "BLOCOS/PARTE_06_DE_08.bin": {
+      "zip_name": "183f4cf3-PEGASUS_OPUS_FULL_20261022_PARTE_06_DE_08.zip",
+      "zip_sha256": "2980BC54790CCF998CE8407F64373488BA4DB35A058B4BAB46B8DA0EB00099B8",
+      "zip_bytes": 28000148,
+      "payload": "BLOCOS/PARTE_06_DE_08.bin",
+      "payload_bytes": 28000000,
+      "payload_sha256": "4134E41ECB0589B1DC042D47D3C64B2B23919FAB2EC35B0E0940F5EE57BB7752"
+    },
+    "BLOCOS/PARTE_08_DE_08.bin": {
+      "zip_name": "4503a816-PEGASUS_OPUS_FULL_20261022_PARTE_08_DE_08.zip",
+      "zip_sha256": "230453156CFAE95105C5B55035CC5B75D12FBE2A4259FF2341B04881956AF073",
+      "zip_bytes": 6576715,
+      "payload": "BLOCOS/PARTE_08_DE_08.bin",
+      "payload_bytes": 6576567,
+      "payload_sha256": "29F7BB949CD5422089704889B4025C81CA371838B025311748CA67CFFBE8708C"
+    },
+    "BLOCOS/PARTE_05_DE_08.bin": {
+      "zip_name": "7692acb6-PEGASUS_OPUS_FULL_20261022_PARTE_05_DE_08.zip",
+      "zip_sha256": "F9C442B3B94BA59D17793816FBB2162156D6C9180ACC5FEBADF6C0E98751021C",
+      "zip_bytes": 28000148,
+      "payload": "BLOCOS/PARTE_05_DE_08.bin",
+      "payload_bytes": 28000000,
+      "payload_sha256": "CF3E2D7F4E3E045E498BEBEB9E5B9B1FEF2414963786D9042981EC04F9949A67"
+    },
+    "BLOCOS/PARTE_07_DE_08.bin": {
+      "zip_name": "b8330ddb-PEGASUS_OPUS_FULL_20261022_PARTE_07_DE_08.zip",
+      "zip_sha256": "AFAE370D56B1D58355E5CC1EE40B92601B4D3C2FC7D9F01CD57CF8698FD1E671",
+      "zip_bytes": 28000148,
+      "payload": "BLOCOS/PARTE_07_DE_08.bin",
+      "payload_bytes": 28000000,
+      "payload_sha256": "41986796DAD29101BD1D29D779F85BAD8005C7785F6A69A9CC66AD629AD75142"
+    },
+    "BLOCOS/PARTE_04_DE_08.bin": {
+      "zip_name": "d395ef72-PEGASUS_OPUS_FULL_20261022_PARTE_04_DE_08.zip",
+      "zip_sha256": "2052D60FAFE15294ADAA3F9219A12D8E1EBBE9A5B5383F3AE73FFD8B441B0BC0",
+      "zip_bytes": 28000148,
+      "payload": "BLOCOS/PARTE_04_DE_08.bin",
+      "payload_bytes": 28000000,
+      "payload_sha256": "5383564D030E160E8FE0F159BD09B2ADC073BFB48AB7052808DBB93BEDF97CAA"
+    }
+  },
+  "already_verified_single_handoff": {
+    "name": "882df5b2-PEGASUS_OPUS_HANDOFF_FULL_ENGENHARIA_INEGOCIAVEL_20261022.zip",
+    "members": 22,
+    "all_member_sha256": "VERIFIED_PASS_EARLIER_THIS_SESSION",
+    "note": "Mesma missão/lineage; serve de base física para a engenharia."
+  },
+  "result": "TRANSPORT_INCOMPLETE_HEAD_MISSING;CONTINUE_ON_VERIFIED_28MB_HANDOFF"
+}

@@ -1,0 +1,1164 @@
+{"event": "os.mkdir", "paths": ["/reference_w1"], "pid": 524, "ppid": 520, "t_ns": 434719053934}
+{"event": "os.mkdir", "paths": ["/reference_w1"], "pid": 524, "ppid": 520, "t_ns": 434741564285}
+{"event": "open", "paths": ["/reference_w1/MINOTAURO_RUN_MUTEX", "/"], "pid": 524, "ppid": 520, "t_ns": 434741682416}
+{"event": "os.mkdir", "paths": ["/reference_w1"], "pid": 524, "ppid": 520, "t_ns": 434741762870}
+{"event": "open", "paths": ["/reference_w1/RUN.lock", "/"], "pid": 524, "ppid": 520, "t_ns": 434751502091}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 434751888178}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 434752260032}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 434753520386}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 434753587015}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 434753649514}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 434753720777}
+{"event": "os.mkdir", "paths": ["/reference_w1"], "pid": 524, "ppid": 520, "t_ns": 434754807502}
+{"event": "open", "paths": ["/reference_w1/CHECKPOINT.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 434755177244}
+{"event": "os.rename", "paths": ["/reference_w1/CHECKPOINT.json.tmp", "/reference_w1/CHECKPOINT.json"], "pid": 524, "ppid": 520, "t_ns": 434755298136}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 434755472500}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 434755507035}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 434755560399}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 434755628250}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 434762361295}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587"], "pid": 524, "ppid": 520, "t_ns": 434762446620}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch"], "pid": 524, "ppid": 520, "t_ns": 434762478311}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587"], "pid": 524, "ppid": 520, "t_ns": 434762543113}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 434762582220}
+{"event": "os.mkdir", "paths": ["/reference_w1/_commit_journal"], "pid": 524, "ppid": 520, "t_ns": 434762766453}
+{"event": "os.mkdir", "paths": ["/reference_w1/sessions"], "pid": 524, "ppid": 520, "t_ns": 434762908413}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 434763053878}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 434766413289}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 434766521710}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 434785004996}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 434785104607}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 435238409593}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 435238533872}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 435269267290}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 435269363376}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_canonical_stage"], "pid": 524, "ppid": 520, "t_ns": 435271014290}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435271497676}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435279707463}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_528.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 435279820967}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_528.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_528.helper.json"], "pid": 524, "ppid": 520, "t_ns": 435279893925}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435297471995}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_529.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 435297562352}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_529.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_529.helper.json"], "pid": 524, "ppid": 520, "t_ns": 435297624011}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435315394119}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_530.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 435315510772}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_530.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_530.helper.json"], "pid": 524, "ppid": 520, "t_ns": 435315629188}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435350126135}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_531.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 435350250315}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_531.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_531.helper.json"], "pid": 524, "ppid": 520, "t_ns": 435350421240}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435395167114}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_532.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 435395302558}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_532.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_532.helper.json"], "pid": 524, "ppid": 520, "t_ns": 435395516466}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435449434430}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_533.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 435449564105}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_533.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_533.helper.json"], "pid": 524, "ppid": 520, "t_ns": 435449762468}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435489043050}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_534.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 435489219034}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_534.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_534.helper.json"], "pid": 524, "ppid": 520, "t_ns": 435489319090}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 435533102418}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_535.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 435533194198}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_535.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_535.helper.json"], "pid": 524, "ppid": 520, "t_ns": 435533325712}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 435981371872}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 435981493245}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 435981626249}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 435981661628}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436146425052}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436146513693}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436147638584}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436147733142}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 436147808211}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 436147987576}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436158327025}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436158408362}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436158490439}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436158518006}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436311317928}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436311405633}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436352266102}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436352367749}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436352452509}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436352482101}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436504634189}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436504716176}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436506512374}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436506570440}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436506744309}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436506778611}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436506859165}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436506889627}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436506953138}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436506977993}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436507036885}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436507060228}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436507358462}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436507578074}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436507686781}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436507727369}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436507818249}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436507862546}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_528.helper.json"], "pid": 524, "ppid": 520, "t_ns": 436601449780}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 436601552121}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_529.helper.json"], "pid": 524, "ppid": 520, "t_ns": 436601725519}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 436601753870}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_530.helper.json"], "pid": 524, "ppid": 520, "t_ns": 436601867480}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 436601891634}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_531.helper.json"], "pid": 524, "ppid": 520, "t_ns": 436601982055}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 436602003377}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_532.helper.json"], "pid": 524, "ppid": 520, "t_ns": 436603013652}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 436603057341}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_533.helper.json"], "pid": 524, "ppid": 520, "t_ns": 436603200031}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 436603226269}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_534.helper.json"], "pid": 524, "ppid": 520, "t_ns": 436605960708}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 436606015595}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry/stream_535.helper.json"], "pid": 524, "ppid": 520, "t_ns": 436606210207}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 436606257732}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436606964457}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436607020639}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436607171388}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436607206624}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436653344843}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436653445757}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436655291021}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436655395039}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436656260271}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference"], "pid": 524, "ppid": 520, "t_ns": 436656332110}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436656379531}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436656426842}
+{"event": "open", "paths": ["/reference_w1/reference/1999-12-31/trades.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 436656464001}
+{"event": "os.rename", "paths": ["/reference_w1/reference/1999-12-31/trades.jsonl.gz.tmp", "/reference_w1/reference/1999-12-31/trades.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 436656659475}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436656786927}
+{"event": "open", "paths": ["/reference_w1/reference/1999-12-31/events.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 436656818835}
+{"event": "os.rename", "paths": ["/reference_w1/reference/1999-12-31/events.jsonl.gz.tmp", "/reference_w1/reference/1999-12-31/events.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 436657186885}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436657291400}
+{"event": "open", "paths": ["/reference_w1/reference/1999-12-31/equity.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 436657321554}
+{"event": "os.rename", "paths": ["/reference_w1/reference/1999-12-31/equity.jsonl.gz.tmp", "/reference_w1/reference/1999-12-31/equity.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 436657395087}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436657474554}
+{"event": "open", "paths": ["/reference_w1/reference/1999-12-31/equity_reconciliation.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 436657500794}
+{"event": "os.rename", "paths": ["/reference_w1/reference/1999-12-31/equity_reconciliation.jsonl.gz.tmp", "/reference_w1/reference/1999-12-31/equity_reconciliation.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 436659561186}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436676932043}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436677020305}
+{"event": "open", "paths": ["/reference_w1/_commit_journal/1999-12-31.524_1792668202231581587.json", "/"], "pid": 524, "ppid": 520, "t_ns": 436678394439}
+{"event": "os.mkdir", "paths": ["/reference_w1/sessions/1999-12-31.pending"], "pid": 524, "ppid": 520, "t_ns": 436680276831}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_canonical_stage/trades.jsonl.gz.sealed", "/reference_w1/sessions/1999-12-31.pending/trades.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 436680693867}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_canonical_stage/events.jsonl.gz.sealed", "/reference_w1/sessions/1999-12-31.pending/events.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 436680842743}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_canonical_stage/equity.jsonl.gz.sealed", "/reference_w1/sessions/1999-12-31.pending/equity.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 436680938146}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31/_canonical_stage/equity_reconciliation.jsonl.gz.sealed", "/reference_w1/sessions/1999-12-31.pending/equity_reconciliation.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 436681026192}
+{"event": "open", "paths": ["/reference_w1/sessions/1999-12-31.pending/session_receipt.json", "/"], "pid": 524, "ppid": 520, "t_ns": 436681060751}
+{"event": "open", "paths": ["/reference_w1/sessions/1999-12-31.pending/trades.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 436684201165}
+{"event": "open", "paths": ["/reference_w1/sessions/1999-12-31.pending/equity.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 436684869710}
+{"event": "open", "paths": ["/reference_w1/sessions/1999-12-31.pending/events.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 436685445894}
+{"event": "open", "paths": ["/reference_w1/sessions/1999-12-31.pending/equity_reconciliation.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 436686137126}
+{"event": "open", "paths": ["/reference_w1/sessions/1999-12-31.pending/session_receipt.json", "/"], "pid": 524, "ppid": 520, "t_ns": 436687061272}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433"], "pid": 524, "ppid": 520, "t_ns": 436687851703}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS"], "pid": 524, "ppid": 520, "t_ns": 436687930525}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433"], "pid": 524, "ppid": 520, "t_ns": 436687988348}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/1999-12-31.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 436688136562}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/1999-12-31.json.tmp", "/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/1999-12-31.json"], "pid": 524, "ppid": 520, "t_ns": 436688440511}
+{"event": "os.rename", "paths": ["/reference_w1/sessions/1999-12-31.pending", "/reference_w1/sessions/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436688501582}
+{"event": "open", "paths": ["/reference_w1/CHECKPOINT.json.v004-next", "/"], "pid": 524, "ppid": 520, "t_ns": 436689476608}
+{"event": "os.rename", "paths": ["/reference_w1/CHECKPOINT.json.v004-next", "/reference_w1/CHECKPOINT.json"], "pid": 524, "ppid": 520, "t_ns": 436690365592}
+{"event": "open", "paths": ["/reference_w1/CHECKPOINT.json", "/"], "pid": 524, "ppid": 520, "t_ns": 436690513624}
+{"event": "os.mkdir", "paths": ["/reference_w1/_journal_history"], "pid": 524, "ppid": 520, "t_ns": 436691226202}
+{"event": "os.rename", "paths": ["/reference_w1/_commit_journal/1999-12-31.524_1792668202231581587.json", "/reference_w1/_journal_history/1999-12-31.524_1792668202231581587.json.COMMITTED"], "pid": 524, "ppid": 520, "t_ns": 436691376325}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436709667166}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436709741010}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436710315439}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436710399439}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436710473307}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 436710526331}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json"], "pid": 524, "ppid": 520, "t_ns": 436710596906}
+{"event": "shutil.rmtree", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436712531948}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/1999-12-31"], "pid": 524, "ppid": 520, "t_ns": 436716858264}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436717217163}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436717284852}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 436717372747}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 436717458139}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 436721045918}
+{"event": "os.mkdir", "paths": ["/reference_w1/_commit_journal"], "pid": 524, "ppid": 520, "t_ns": 436721373571}
+{"event": "os.mkdir", "paths": ["/reference_w1/sessions"], "pid": 524, "ppid": 520, "t_ns": 436721513802}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 436721607152}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436722413872}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436722510876}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436740730056}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436740806366}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 436997373442}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 436997486714}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437024966607}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 437025043502}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_canonical_stage"], "pid": 524, "ppid": 520, "t_ns": 437026110565}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437026223581}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437035506986}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_537.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437035605776}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_537.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_537.helper.json"], "pid": 524, "ppid": 520, "t_ns": 437035679028}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437052675653}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_538.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437052773718}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_538.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_538.helper.json"], "pid": 524, "ppid": 520, "t_ns": 437052854618}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437070350586}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_539.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437070456125}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_539.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_539.helper.json"], "pid": 524, "ppid": 520, "t_ns": 437070529433}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437095840576}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_540.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437095941903}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_540.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_540.helper.json"], "pid": 524, "ppid": 520, "t_ns": 437100140705}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437138757628}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_541.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437138881590}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_541.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_541.helper.json"], "pid": 524, "ppid": 520, "t_ns": 437138970209}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437186389708}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_542.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437186499516}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_542.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_542.helper.json"], "pid": 524, "ppid": 520, "t_ns": 437186590266}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437219940220}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_543.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437224244681}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_543.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_543.helper.json"], "pid": 524, "ppid": 520, "t_ns": 437224344111}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 437273622535}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_544.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437273749182}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_544.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_544.helper.json"], "pid": 524, "ppid": 520, "t_ns": 437273835546}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437458138217}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 437458245734}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437458369566}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 437458402144}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437623747398}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 437623836463}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437631193718}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437631296170}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 437631371933}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 437631466504}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437667774096}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 437667880500}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437811313392}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 437811403534}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437834782797}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 437834879970}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 437834975058}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 437835003307}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438014301610}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438014401218}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438016124640}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438016205015}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438016320923}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438016352497}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438016425324}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438016453332}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438016518686}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438016546304}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438016610974}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438016637969}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438016700857}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438016726368}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438016788101}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438016813994}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438016872391}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438016897984}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438075387616}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438075492506}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438075611339}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438075644246}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438217847488}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438217932058}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438219849559}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438219942007}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438220193532}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438220250893}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438220354916}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438220383869}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438220449941}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438220475364}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438220534925}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438220558145}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438220617500}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438220640166}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438220697284}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438220720425}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438220779309}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438220802936}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_537.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438281871070}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438281979383}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_538.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438282233110}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438282274055}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_539.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438310431572}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438310915919}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_540.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438317051155}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438317183114}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_541.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438319940319}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438320130542}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_542.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438320366999}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438320409179}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_543.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438320523073}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438320547757}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry/stream_544.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438320645712}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438320669522}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438321288938}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438321370013}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438321531876}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438321577159}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438373374593}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438373469439}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438374370662}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438374481706}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 438375518478}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 438375639955}
+{"event": "open", "paths": ["/reference_w1/reference/2000-01-06/trades.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438375686687}
+{"event": "os.rename", "paths": ["/reference_w1/reference/2000-01-06/trades.jsonl.gz.tmp", "/reference_w1/reference/2000-01-06/trades.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 438383343938}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 438383526152}
+{"event": "open", "paths": ["/reference_w1/reference/2000-01-06/events.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438383569204}
+{"event": "os.rename", "paths": ["/reference_w1/reference/2000-01-06/events.jsonl.gz.tmp", "/reference_w1/reference/2000-01-06/events.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 438386797789}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 438386953552}
+{"event": "open", "paths": ["/reference_w1/reference/2000-01-06/equity.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438386993084}
+{"event": "os.rename", "paths": ["/reference_w1/reference/2000-01-06/equity.jsonl.gz.tmp", "/reference_w1/reference/2000-01-06/equity.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 438392111601}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 438392277252}
+{"event": "open", "paths": ["/reference_w1/reference/2000-01-06/equity_reconciliation.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438392320063}
+{"event": "os.rename", "paths": ["/reference_w1/reference/2000-01-06/equity_reconciliation.jsonl.gz.tmp", "/reference_w1/reference/2000-01-06/equity_reconciliation.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 438394638010}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438410367311}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438410432487}
+{"event": "open", "paths": ["/reference_w1/_commit_journal/2000-01-06.524_1792668202231581587.json", "/"], "pid": 524, "ppid": 520, "t_ns": 438411566781}
+{"event": "os.mkdir", "paths": ["/reference_w1/sessions/2000-01-06.pending"], "pid": 524, "ppid": 520, "t_ns": 438412486315}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_canonical_stage/trades.jsonl.gz.sealed", "/reference_w1/sessions/2000-01-06.pending/trades.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 438412708324}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_canonical_stage/events.jsonl.gz.sealed", "/reference_w1/sessions/2000-01-06.pending/events.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 438412835785}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_canonical_stage/equity.jsonl.gz.sealed", "/reference_w1/sessions/2000-01-06.pending/equity.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 438412935865}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06/_canonical_stage/equity_reconciliation.jsonl.gz.sealed", "/reference_w1/sessions/2000-01-06.pending/equity_reconciliation.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 438413021104}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-06.pending/session_receipt.json", "/"], "pid": 524, "ppid": 520, "t_ns": 438413056161}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-06.pending/trades.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 438413933224}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-06.pending/equity.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 438414541582}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-06.pending/events.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 438414974916}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-06.pending/equity_reconciliation.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 438415278118}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-06.pending/session_receipt.json", "/"], "pid": 524, "ppid": 520, "t_ns": 438415636746}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433"], "pid": 524, "ppid": 520, "t_ns": 438415973500}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/2000-01-06.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438416142902}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/2000-01-06.json.tmp", "/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/2000-01-06.json"], "pid": 524, "ppid": 520, "t_ns": 438416229337}
+{"event": "os.rename", "paths": ["/reference_w1/sessions/2000-01-06.pending", "/reference_w1/sessions/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 438416266882}
+{"event": "open", "paths": ["/reference_w1/CHECKPOINT.json.v004-next", "/"], "pid": 524, "ppid": 520, "t_ns": 438417400794}
+{"event": "os.rename", "paths": ["/reference_w1/CHECKPOINT.json.v004-next", "/reference_w1/CHECKPOINT.json"], "pid": 524, "ppid": 520, "t_ns": 438418032935}
+{"event": "open", "paths": ["/reference_w1/CHECKPOINT.json", "/"], "pid": 524, "ppid": 520, "t_ns": 438418307689}
+{"event": "os.mkdir", "paths": ["/reference_w1/_journal_history"], "pid": 524, "ppid": 520, "t_ns": 438418690976}
+{"event": "os.rename", "paths": ["/reference_w1/_commit_journal/2000-01-06.524_1792668202231581587.json", "/reference_w1/_journal_history/2000-01-06.524_1792668202231581587.json.COMMITTED"], "pid": 524, "ppid": 520, "t_ns": 438418752230}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438432312037}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438432371310}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438433110254}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438433156878}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438433194058}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438433227793}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json"], "pid": 524, "ppid": 520, "t_ns": 438433282663}
+{"event": "shutil.rmtree", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 438434999408}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-06"], "pid": 524, "ppid": 520, "t_ns": 438438516730}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438438761883}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438438802914}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438438877177}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 438438938822}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 438441701702}
+{"event": "os.mkdir", "paths": ["/reference_w1/_commit_journal"], "pid": 524, "ppid": 520, "t_ns": 438441937478}
+{"event": "os.mkdir", "paths": ["/reference_w1/sessions"], "pid": 524, "ppid": 520, "t_ns": 438442045512}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 438442159913}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438442642612}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438442694569}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438456175238}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438456242236}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438780113641}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438780232345}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 438810822989}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 438810900728}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_canonical_stage"], "pid": 524, "ppid": 520, "t_ns": 438811564385}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438811664053}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438819513854}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_546.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438819607768}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_546.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_546.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438819674319}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438833817967}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_547.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438833906117}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_547.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_547.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438833979293}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438847918505}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_548.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438848038451}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_548.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_548.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438848148034}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438870823176}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_549.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438870910793}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_549.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_549.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438870976027}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438914277568}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_550.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438914377971}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_550.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_550.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438914454328}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 438960371163}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_551.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 438960511900}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_551.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_551.helper.json"], "pid": 524, "ppid": 520, "t_ns": 438960627188}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 439013582999}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_552.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 439013713811}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_552.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_552.helper.json"], "pid": 524, "ppid": 520, "t_ns": 439013809995}
+{"event": "os.mkdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 439066492847}
+{"event": "open", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_553.helper.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 439066627949}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_553.helper.json.tmp", "/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_553.helper.json"], "pid": 524, "ppid": 520, "t_ns": 439066743134}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439249884419}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439250004788}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439250179056}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439250240708}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439450013016}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439450147529}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439451137122}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439451224327}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 439451299489}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 439451390747}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439468182033}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439468296911}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439608588107}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439608676380}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439614376605}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439614466918}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439614542753}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439614570819}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439765568066}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439765670600}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439767118143}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439767211228}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439767342157}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439767376747}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439767458673}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439767489018}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439767560339}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439767589897}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439767670778}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439767697620}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439767757656}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439767791808}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439767860114}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439767886022}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439767945320}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439767968372}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439790117711}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439790244904}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439790437355}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439790558938}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439942392431}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439942480407}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439943924963}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439943981445}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439944144275}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439944197712}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439944283719}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439944311863}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439944378627}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439944405410}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439944469449}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439944494118}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439944553389}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439944576124}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439944631653}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439944654083}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 439944720606}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 439944744989}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_546.helper.json"], "pid": 524, "ppid": 520, "t_ns": 440000948888}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 440001100003}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_547.helper.json"], "pid": 524, "ppid": 520, "t_ns": 440033965957}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 440034088684}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_548.helper.json"], "pid": 524, "ppid": 520, "t_ns": 440034311581}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 440034349340}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_549.helper.json"], "pid": 524, "ppid": 520, "t_ns": 440035365346}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 440035414466}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_550.helper.json"], "pid": 524, "ppid": 520, "t_ns": 440035618809}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 440035656404}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_551.helper.json"], "pid": 524, "ppid": 520, "t_ns": 440035753224}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 440035775036}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_552.helper.json"], "pid": 524, "ppid": 520, "t_ns": 440039659327}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 440039759184}
+{"event": "os.remove", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry/stream_553.helper.json"], "pid": 524, "ppid": 520, "t_ns": 440041197033}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_helper_registry"], "pid": 524, "ppid": 520, "t_ns": 440041275304}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440042103603}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 440042201557}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440042342219}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 440042373608}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440086880476}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 440086965340}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440088169284}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 440088316797}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 440090300206}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 440090548802}
+{"event": "open", "paths": ["/reference_w1/reference/2000-01-11/trades.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440090618538}
+{"event": "os.rename", "paths": ["/reference_w1/reference/2000-01-11/trades.jsonl.gz.tmp", "/reference_w1/reference/2000-01-11/trades.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 440090830019}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 440090976728}
+{"event": "open", "paths": ["/reference_w1/reference/2000-01-11/events.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440091019358}
+{"event": "os.rename", "paths": ["/reference_w1/reference/2000-01-11/events.jsonl.gz.tmp", "/reference_w1/reference/2000-01-11/events.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 440094980070}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 440095202568}
+{"event": "open", "paths": ["/reference_w1/reference/2000-01-11/equity.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440095247308}
+{"event": "os.rename", "paths": ["/reference_w1/reference/2000-01-11/equity.jsonl.gz.tmp", "/reference_w1/reference/2000-01-11/equity.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 440095379249}
+{"event": "os.mkdir", "paths": ["/reference_w1/reference/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 440095468227}
+{"event": "open", "paths": ["/reference_w1/reference/2000-01-11/equity_reconciliation.jsonl.gz.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440095496833}
+{"event": "os.rename", "paths": ["/reference_w1/reference/2000-01-11/equity_reconciliation.jsonl.gz.tmp", "/reference_w1/reference/2000-01-11/equity_reconciliation.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 440097657751}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440113144757}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 440113238291}
+{"event": "open", "paths": ["/reference_w1/_commit_journal/2000-01-11.524_1792668202231581587.json", "/"], "pid": 524, "ppid": 520, "t_ns": 440114436202}
+{"event": "os.mkdir", "paths": ["/reference_w1/sessions/2000-01-11.pending"], "pid": 524, "ppid": 520, "t_ns": 440115774388}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_canonical_stage/trades.jsonl.gz.sealed", "/reference_w1/sessions/2000-01-11.pending/trades.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 440116114778}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_canonical_stage/events.jsonl.gz.sealed", "/reference_w1/sessions/2000-01-11.pending/events.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 440116260984}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_canonical_stage/equity.jsonl.gz.sealed", "/reference_w1/sessions/2000-01-11.pending/equity.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 440116377983}
+{"event": "os.rename", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11/_canonical_stage/equity_reconciliation.jsonl.gz.sealed", "/reference_w1/sessions/2000-01-11.pending/equity_reconciliation.jsonl.gz"], "pid": 524, "ppid": 520, "t_ns": 440116471161}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-11.pending/session_receipt.json", "/"], "pid": 524, "ppid": 520, "t_ns": 440116509894}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-11.pending/trades.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 440118574248}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-11.pending/equity.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 440119633016}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-11.pending/events.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 440120427466}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-11.pending/equity_reconciliation.jsonl.gz", "/"], "pid": 524, "ppid": 520, "t_ns": 440120932286}
+{"event": "open", "paths": ["/reference_w1/sessions/2000-01-11.pending/session_receipt.json", "/"], "pid": 524, "ppid": 520, "t_ns": 440121768781}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433"], "pid": 524, "ppid": 520, "t_ns": 440122313432}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/2000-01-11.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440122424583}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/2000-01-11.json.tmp", "/reference_w1/TELEMETRY/SESSION_SEALS/505a77e7e7fad188ba3d74c17ee45e49492554dc962400d06d92164d84051433/2000-01-11.json"], "pid": 524, "ppid": 520, "t_ns": 440122549245}
+{"event": "os.rename", "paths": ["/reference_w1/sessions/2000-01-11.pending", "/reference_w1/sessions/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 440122597739}
+{"event": "open", "paths": ["/reference_w1/CHECKPOINT.json.v004-next", "/"], "pid": 524, "ppid": 520, "t_ns": 440123680510}
+{"event": "os.rename", "paths": ["/reference_w1/CHECKPOINT.json.v004-next", "/reference_w1/CHECKPOINT.json"], "pid": 524, "ppid": 520, "t_ns": 440124546765}
+{"event": "open", "paths": ["/reference_w1/CHECKPOINT.json", "/"], "pid": 524, "ppid": 520, "t_ns": 440126634485}
+{"event": "os.mkdir", "paths": ["/reference_w1/_journal_history"], "pid": 524, "ppid": 520, "t_ns": 440127689379}
+{"event": "os.rename", "paths": ["/reference_w1/_commit_journal/2000-01-11.524_1792668202231581587.json", "/reference_w1/_journal_history/2000-01-11.524_1792668202231581587.json.COMMITTED"], "pid": 524, "ppid": 520, "t_ns": 440127815099}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440155840141}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/memory.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 440155926442}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440156688625}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 440156763447}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440156825296}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440156873024}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/reference_w1/TELEMETRY/R1R11_SCHEDULER_STATE.json"], "pid": 524, "ppid": 520, "t_ns": 440156959312}
+{"event": "shutil.rmtree", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 440159047122}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587/2000-01-11"], "pid": 524, "ppid": 520, "t_ns": 440162852080}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440163157849}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440163213018}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440163295025}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 440163372043}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440163775993}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440163826982}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440163894718}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 440163963111}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440379302436}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 524, "ppid": 520, "t_ns": 440379450325}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440379579194}
+{"event": "os.mkdir", "paths": ["/reference_w1/TELEMETRY"], "pid": 524, "ppid": 520, "t_ns": 440379606422}
+{"event": "open", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 524, "ppid": 520, "t_ns": 440379670924}
+{"event": "os.rename", "paths": ["/reference_w1/TELEMETRY/R1R11_STATUS.json.tmp", "/reference_w1/TELEMETRY/R1R11_STATUS.json"], "pid": 524, "ppid": 520, "t_ns": 440379744560}
+{"event": "os.rmdir", "paths": ["/reference_w1/_scratch/524_1792668202231581587"], "pid": 524, "ppid": 520, "t_ns": 440380447631}
+{"event": "os.remove", "paths": ["/reference_w1/RUN.lock"], "pid": 524, "ppid": 520, "t_ns": 440380851967}
+{"event": "os.mkdir", "paths": ["/fault_during_pending"], "pid": 554, "ppid": 520, "t_ns": 440647863469}
+{"event": "os.mkdir", "paths": ["/fault_during_pending"], "pid": 554, "ppid": 520, "t_ns": 440662908617}
+{"event": "open", "paths": ["/fault_during_pending/MINOTAURO_RUN_MUTEX", "/"], "pid": 554, "ppid": 520, "t_ns": 440663002607}
+{"event": "os.mkdir", "paths": ["/fault_during_pending"], "pid": 554, "ppid": 520, "t_ns": 440665230952}
+{"event": "open", "paths": ["/fault_during_pending/RUN.lock", "/"], "pid": 554, "ppid": 520, "t_ns": 440685521853}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440685976810}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440686360638}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440687669080}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440687745265}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 440687824317}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 554, "ppid": 520, "t_ns": 440687935980}
+{"event": "os.mkdir", "paths": ["/fault_during_pending"], "pid": 554, "ppid": 520, "t_ns": 440689247392}
+{"event": "open", "paths": ["/fault_during_pending/CHECKPOINT.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 440689601229}
+{"event": "os.rename", "paths": ["/fault_during_pending/CHECKPOINT.json.tmp", "/fault_during_pending/CHECKPOINT.json"], "pid": 554, "ppid": 520, "t_ns": 440689757609}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440689946822}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440689986326}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 440690040829}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 554, "ppid": 520, "t_ns": 440690196547}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31"], "pid": 554, "ppid": 520, "t_ns": 440697176450}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493"], "pid": 554, "ppid": 520, "t_ns": 440697296617}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch"], "pid": 554, "ppid": 520, "t_ns": 440697333820}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493"], "pid": 554, "ppid": 520, "t_ns": 440697423477}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31"], "pid": 554, "ppid": 520, "t_ns": 440697475535}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_commit_journal"], "pid": 554, "ppid": 520, "t_ns": 440697655490}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/sessions"], "pid": 554, "ppid": 520, "t_ns": 440697780603}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31"], "pid": 554, "ppid": 520, "t_ns": 440697869666}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440700408160}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 440700488438}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440720752861}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 440720825667}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 440978893673}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 440978992327}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441027680662}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441027766802}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_canonical_stage"], "pid": 554, "ppid": 520, "t_ns": 441029113310}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441029288797}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441039631751}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_559.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441039755409}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_559.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_559.helper.json"], "pid": 554, "ppid": 520, "t_ns": 441039873167}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441056746408}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_560.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441056835136}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_560.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_560.helper.json"], "pid": 554, "ppid": 520, "t_ns": 441056927931}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441076929494}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_561.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441077042479}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_561.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_561.helper.json"], "pid": 554, "ppid": 520, "t_ns": 441077191084}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441109689764}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_562.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441109789519}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_562.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_562.helper.json"], "pid": 554, "ppid": 520, "t_ns": 441109876064}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441147267417}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_563.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441147383080}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_563.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_563.helper.json"], "pid": 554, "ppid": 520, "t_ns": 441147487275}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441191443893}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_564.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441191570110}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_564.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_564.helper.json"], "pid": 554, "ppid": 520, "t_ns": 441191712500}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441241431786}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_565.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441241523156}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_565.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_565.helper.json"], "pid": 554, "ppid": 520, "t_ns": 441241663673}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 441290908070}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_566.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441291066292}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_566.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_566.helper.json"], "pid": 554, "ppid": 520, "t_ns": 441291258686}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441548603617}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441548714802}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441548843835}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441548877342}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441718319131}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441718423301}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441722703681}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441722834609}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 441722946313}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 554, "ppid": 520, "t_ns": 441723130790}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441727795814}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441727912644}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441728315338}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441728445389}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441901520645}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441901600510}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441923483856}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441923569453}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 441923635352}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 441923663289}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442069691799}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442069784866}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442071528188}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442071583015}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442071673204}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442071700446}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442071768184}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442071794871}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442071854395}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442071878069}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442071944951}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442071968925}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442072063797}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442072114535}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442072202388}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442072233156}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442072302272}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442072329117}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_559.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442116531662}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442116635785}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_560.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442147300311}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442147399863}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_561.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442147606711}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442147650035}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_562.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442147766089}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442147791701}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_563.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442147902373}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442147927330}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_564.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442150937435}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442151031500}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_565.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442151234780}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442151268739}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry/stream_566.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442151374128}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442151400317}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442152239983}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442152342077}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442152492731}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442152530308}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442204309366}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442204413134}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442205356456}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442205451401}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442223055672}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442223162553}
+{"event": "open", "paths": ["/fault_during_pending/_commit_journal/1999-12-31.554_1792668208159708493.json", "/"], "pid": 554, "ppid": 520, "t_ns": 442224306254}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/sessions/1999-12-31.pending"], "pid": 554, "ppid": 520, "t_ns": 442225323876}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_canonical_stage/trades.jsonl.gz.sealed", "/fault_during_pending/sessions/1999-12-31.pending/trades.jsonl.gz"], "pid": 554, "ppid": 520, "t_ns": 442225692256}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_canonical_stage/events.jsonl.gz.sealed", "/fault_during_pending/sessions/1999-12-31.pending/events.jsonl.gz"], "pid": 554, "ppid": 520, "t_ns": 442225873403}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_canonical_stage/equity.jsonl.gz.sealed", "/fault_during_pending/sessions/1999-12-31.pending/equity.jsonl.gz"], "pid": 554, "ppid": 520, "t_ns": 442225972928}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31/_canonical_stage/equity_reconciliation.jsonl.gz.sealed", "/fault_during_pending/sessions/1999-12-31.pending/equity_reconciliation.jsonl.gz"], "pid": 554, "ppid": 520, "t_ns": 442226063646}
+{"event": "open", "paths": ["/fault_during_pending/sessions/1999-12-31.pending/session_receipt.json", "/"], "pid": 554, "ppid": 520, "t_ns": 442226173747}
+{"event": "open", "paths": ["/fault_during_pending/sessions/1999-12-31.pending/trades.jsonl.gz", "/"], "pid": 554, "ppid": 520, "t_ns": 442227309702}
+{"event": "open", "paths": ["/fault_during_pending/sessions/1999-12-31.pending/equity.jsonl.gz", "/"], "pid": 554, "ppid": 520, "t_ns": 442227797878}
+{"event": "open", "paths": ["/fault_during_pending/sessions/1999-12-31.pending/events.jsonl.gz", "/"], "pid": 554, "ppid": 520, "t_ns": 442228394325}
+{"event": "open", "paths": ["/fault_during_pending/sessions/1999-12-31.pending/equity_reconciliation.jsonl.gz", "/"], "pid": 554, "ppid": 520, "t_ns": 442228677399}
+{"event": "open", "paths": ["/fault_during_pending/sessions/1999-12-31.pending/session_receipt.json", "/"], "pid": 554, "ppid": 520, "t_ns": 442229359839}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882"], "pid": 554, "ppid": 520, "t_ns": 442229913617}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS"], "pid": 554, "ppid": 520, "t_ns": 442230061485}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882"], "pid": 554, "ppid": 520, "t_ns": 442230175997}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/1999-12-31.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442230279622}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/1999-12-31.json.tmp", "/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/1999-12-31.json"], "pid": 554, "ppid": 520, "t_ns": 442230374390}
+{"event": "os.rename", "paths": ["/fault_during_pending/sessions/1999-12-31.pending", "/fault_during_pending/sessions/1999-12-31"], "pid": 554, "ppid": 520, "t_ns": 442230422128}
+{"event": "open", "paths": ["/fault_during_pending/CHECKPOINT.json.v004-next", "/"], "pid": 554, "ppid": 520, "t_ns": 442231274421}
+{"event": "os.rename", "paths": ["/fault_during_pending/CHECKPOINT.json.v004-next", "/fault_during_pending/CHECKPOINT.json"], "pid": 554, "ppid": 520, "t_ns": 442232236363}
+{"event": "open", "paths": ["/fault_during_pending/CHECKPOINT.json", "/"], "pid": 554, "ppid": 520, "t_ns": 442232426448}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_journal_history"], "pid": 554, "ppid": 520, "t_ns": 442233609953}
+{"event": "os.rename", "paths": ["/fault_during_pending/_commit_journal/1999-12-31.554_1792668208159708493.json", "/fault_during_pending/_journal_history/1999-12-31.554_1792668208159708493.json.COMMITTED"], "pid": 554, "ppid": 520, "t_ns": 442233756110}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442250167678}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442250249387}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442251064094}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442251172333}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442251223327}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442251268682}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json"], "pid": 554, "ppid": 520, "t_ns": 442251357279}
+{"event": "shutil.rmtree", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31"], "pid": 554, "ppid": 520, "t_ns": 442253338180}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/1999-12-31"], "pid": 554, "ppid": 520, "t_ns": 442268448287}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442269130880}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442269235685}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442269333475}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 554, "ppid": 520, "t_ns": 442269448234}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06"], "pid": 554, "ppid": 520, "t_ns": 442273186872}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_commit_journal"], "pid": 554, "ppid": 520, "t_ns": 442273412485}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/sessions"], "pid": 554, "ppid": 520, "t_ns": 442273517554}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06"], "pid": 554, "ppid": 520, "t_ns": 442273590827}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442274289276}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442274375143}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442292914691}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442292998169}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442506529052}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442506887867}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442549809412}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442549886807}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_canonical_stage"], "pid": 554, "ppid": 520, "t_ns": 442550625937}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442550758209}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442557943618}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_569.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442558026990}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_569.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_569.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442558134968}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442571351155}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_570.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442571432537}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_570.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_570.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442571509589}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442584821255}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_571.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442584902218}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_571.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_571.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442584981253}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442606906901}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_572.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442606998142}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_572.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_572.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442607107593}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442633845572}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_573.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442633932515}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_573.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_573.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442634014307}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442669767342}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_574.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442669859565}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_574.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_574.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442669945029}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442718519250}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_575.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442718614801}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_575.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_575.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442718708741}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 442765544929}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_576.helper.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 442765639912}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_576.helper.json.tmp", "/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_576.helper.json"], "pid": 554, "ppid": 520, "t_ns": 442765726555}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442935994599}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442936184460}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 442936307893}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 442936341933}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443081062264}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443081163577}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443082952172}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443083038046}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 443083183785}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 554, "ppid": 520, "t_ns": 443083303167}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443096264410}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443096354615}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443262479732}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443262558175}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443280184634}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443280269000}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443280351475}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443280396655}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443465153573}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443465239541}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443466571701}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443466670331}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443466797881}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443466833318}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443466908453}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443466935645}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443467017710}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443467047497}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443467170508}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443467207635}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443467273653}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443467297615}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443467355342}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443467378232}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443467456659}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443467481381}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443499716522}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443499803893}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443499872590}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443499913630}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443665123340}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443665227921}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443666902601}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443666963607}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443667053853}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443667106154}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443667183305}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443667210960}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443667269584}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443667294375}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443667361343}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443667385478}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443667439446}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443667461793}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443667516581}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443667539414}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443667593283}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443667615781}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_569.helper.json"], "pid": 554, "ppid": 520, "t_ns": 443720465941}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 443720565225}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_570.helper.json"], "pid": 554, "ppid": 520, "t_ns": 443743041967}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 443743202014}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_571.helper.json"], "pid": 554, "ppid": 520, "t_ns": 443758873968}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 443758963619}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_572.helper.json"], "pid": 554, "ppid": 520, "t_ns": 443759183186}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 443759228110}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_573.helper.json"], "pid": 554, "ppid": 520, "t_ns": 443759340608}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 443759363841}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_574.helper.json"], "pid": 554, "ppid": 520, "t_ns": 443759500482}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 443759536362}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_575.helper.json"], "pid": 554, "ppid": 520, "t_ns": 443759642146}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 443759665595}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry/stream_576.helper.json"], "pid": 554, "ppid": 520, "t_ns": 443759760524}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_helper_registry"], "pid": 554, "ppid": 520, "t_ns": 443759782691}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443760352681}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443760422590}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443760566768}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443760598313}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443815090047}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443815176584}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443816251957}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443816332902}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443830602590}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443830670184}
+{"event": "open", "paths": ["/fault_during_pending/_commit_journal/2000-01-06.554_1792668208159708493.json", "/"], "pid": 554, "ppid": 520, "t_ns": 443832004768}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/sessions/2000-01-06.pending"], "pid": 554, "ppid": 520, "t_ns": 443834164270}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493/2000-01-06/_canonical_stage/trades.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-06.pending/trades.jsonl.gz"], "pid": 554, "ppid": 520, "t_ns": 443834550271}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443974435787}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 554, "ppid": 520, "t_ns": 443974560717}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443974715490}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 554, "ppid": 520, "t_ns": 443974752894}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 554, "ppid": 520, "t_ns": 443974846609}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 554, "ppid": 520, "t_ns": 443975000046}
+{"event": "os.remove", "paths": ["/fault_during_pending/RUN.lock"], "pid": 554, "ppid": 520, "t_ns": 443976215168}
+{"event": "os.mkdir", "paths": ["/fault_during_pending"], "pid": 577, "ppid": 520, "t_ns": 444294398608}
+{"event": "os.mkdir", "paths": ["/fault_during_pending"], "pid": 577, "ppid": 520, "t_ns": 444307839570}
+{"event": "open", "paths": ["/fault_during_pending/MINOTAURO_RUN_MUTEX", "/"], "pid": 577, "ppid": 520, "t_ns": 444307952033}
+{"event": "os.mkdir", "paths": ["/fault_during_pending"], "pid": 577, "ppid": 520, "t_ns": 444308061613}
+{"event": "open", "paths": ["/fault_during_pending/RUN.lock", "/"], "pid": 577, "ppid": 520, "t_ns": 444337124119}
+{"event": "shutil.rmtree", "paths": ["/fault_during_pending/sessions/2000-01-06.pending"], "pid": 577, "ppid": 520, "t_ns": 444339928837}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/sessions/2000-01-06.pending"], "pid": 577, "ppid": 520, "t_ns": 444340182215}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_journal_history"], "pid": 577, "ppid": 520, "t_ns": 444340788576}
+{"event": "os.rename", "paths": ["/fault_during_pending/_commit_journal/2000-01-06.554_1792668208159708493.json", "/fault_during_pending/_journal_history/2000-01-06.554_1792668208159708493.json.RECOVERED_REQUEUE"], "pid": 577, "ppid": 520, "t_ns": 444340881193}
+{"event": "shutil.rmtree", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493"], "pid": 577, "ppid": 520, "t_ns": 444344557431}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/554_1792668208159708493"], "pid": 577, "ppid": 520, "t_ns": 444350571917}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444350912633}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444351282382}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444352651002}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444352730724}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444352824249}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 577, "ppid": 520, "t_ns": 444352947486}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444356834997}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444356907246}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444356978140}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 577, "ppid": 520, "t_ns": 444357125636}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06"], "pid": 577, "ppid": 520, "t_ns": 444364614832}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631"], "pid": 577, "ppid": 520, "t_ns": 444364724125}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06"], "pid": 577, "ppid": 520, "t_ns": 444364824490}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_commit_journal"], "pid": 577, "ppid": 520, "t_ns": 444365023505}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/sessions"], "pid": 577, "ppid": 520, "t_ns": 444365174586}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06"], "pid": 577, "ppid": 520, "t_ns": 444365255280}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444367012523}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 444367146121}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444386598657}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 444386683199}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444621971488}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 444622120856}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 444665435902}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 444665543917}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_canonical_stage"], "pid": 577, "ppid": 520, "t_ns": 444666690341}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444666946581}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444676422948}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_582.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444676532260}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_582.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_582.helper.json"], "pid": 577, "ppid": 520, "t_ns": 444676647314}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444693114770}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_583.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444693208971}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_583.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_583.helper.json"], "pid": 577, "ppid": 520, "t_ns": 444693314733}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444709341456}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_584.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444709432389}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_584.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_584.helper.json"], "pid": 577, "ppid": 520, "t_ns": 444709534956}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444741365396}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_585.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444741451386}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_585.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_585.helper.json"], "pid": 577, "ppid": 520, "t_ns": 444741540518}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444777960275}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_586.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444778053044}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_586.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_586.helper.json"], "pid": 577, "ppid": 520, "t_ns": 444778196267}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444823266729}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_587.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444823396636}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_587.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_587.helper.json"], "pid": 577, "ppid": 520, "t_ns": 444823512022}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444866515651}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_588.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444866628273}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_588.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_588.helper.json"], "pid": 577, "ppid": 520, "t_ns": 444866740484}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 444910108904}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_589.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 444910227663}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_589.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_589.helper.json"], "pid": 577, "ppid": 520, "t_ns": 444910340038}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445108419847}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445108529643}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445108643396}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445108679081}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445358181208}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445358293997}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445359499710}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445359613960}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 445359711658}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 577, "ppid": 520, "t_ns": 445359926357}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445376425467}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445376532917}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445598982553}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445599105834}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445610969936}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445611062427}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445611198232}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445611231228}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445766584073}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445766674256}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445768134723}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445768249532}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445768379079}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445768417827}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445768496895}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445768526075}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445768593403}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445768623907}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445768687504}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445768713109}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445768785979}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445768819728}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445768881576}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445768917781}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445768991044}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445769018636}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445788967936}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445789062663}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445789177503}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445789212645}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445953804576}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445953880450}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445956360506}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445956432810}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445956542120}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445956577078}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445956646362}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445956672341}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445956742698}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445956766961}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445956825324}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445956847984}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445956899544}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445956921726}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445956976046}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445956998066}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 445957050522}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 445957099721}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_582.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446008138170}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446008255896}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_583.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446008474890}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446008507161}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_584.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446034564002}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446034653295}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_585.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446034814237}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446034849769}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_586.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446050685744}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446050768735}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_587.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446050921871}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446050947914}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_588.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446051046741}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446051105216}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry/stream_589.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446051212343}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446051236451}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446051856975}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446051928789}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446052120232}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446052167879}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446101738350}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446101832419}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446102698200}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446102797614}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446118019013}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446118110404}
+{"event": "open", "paths": ["/fault_during_pending/_commit_journal/2000-01-06.577_1792668211806768631.json", "/"], "pid": 577, "ppid": 520, "t_ns": 446118897736}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/sessions/2000-01-06.pending"], "pid": 577, "ppid": 520, "t_ns": 446120165406}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_canonical_stage/trades.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-06.pending/trades.jsonl.gz"], "pid": 577, "ppid": 520, "t_ns": 446120551679}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_canonical_stage/events.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-06.pending/events.jsonl.gz"], "pid": 577, "ppid": 520, "t_ns": 446120750279}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_canonical_stage/equity.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-06.pending/equity.jsonl.gz"], "pid": 577, "ppid": 520, "t_ns": 446120958515}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06/_canonical_stage/equity_reconciliation.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-06.pending/equity_reconciliation.jsonl.gz"], "pid": 577, "ppid": 520, "t_ns": 446121158534}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-06.pending/session_receipt.json", "/"], "pid": 577, "ppid": 520, "t_ns": 446121206869}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-06.pending/trades.jsonl.gz", "/"], "pid": 577, "ppid": 520, "t_ns": 446122414374}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-06.pending/equity.jsonl.gz", "/"], "pid": 577, "ppid": 520, "t_ns": 446123240512}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-06.pending/events.jsonl.gz", "/"], "pid": 577, "ppid": 520, "t_ns": 446123635725}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-06.pending/equity_reconciliation.jsonl.gz", "/"], "pid": 577, "ppid": 520, "t_ns": 446124058390}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-06.pending/session_receipt.json", "/"], "pid": 577, "ppid": 520, "t_ns": 446124592636}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882"], "pid": 577, "ppid": 520, "t_ns": 446124908683}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/2000-01-06.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446124971513}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/2000-01-06.json.tmp", "/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/2000-01-06.json"], "pid": 577, "ppid": 520, "t_ns": 446125060066}
+{"event": "os.rename", "paths": ["/fault_during_pending/sessions/2000-01-06.pending", "/fault_during_pending/sessions/2000-01-06"], "pid": 577, "ppid": 520, "t_ns": 446125144547}
+{"event": "open", "paths": ["/fault_during_pending/CHECKPOINT.json.v004-next", "/"], "pid": 577, "ppid": 520, "t_ns": 446125868869}
+{"event": "os.rename", "paths": ["/fault_during_pending/CHECKPOINT.json.v004-next", "/fault_during_pending/CHECKPOINT.json"], "pid": 577, "ppid": 520, "t_ns": 446126460877}
+{"event": "open", "paths": ["/fault_during_pending/CHECKPOINT.json", "/"], "pid": 577, "ppid": 520, "t_ns": 446126738159}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_journal_history"], "pid": 577, "ppid": 520, "t_ns": 446127126441}
+{"event": "os.rename", "paths": ["/fault_during_pending/_commit_journal/2000-01-06.577_1792668211806768631.json", "/fault_during_pending/_journal_history/2000-01-06.577_1792668211806768631.json.COMMITTED"], "pid": 577, "ppid": 520, "t_ns": 446127193098}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446139745842}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446139807562}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446140431489}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446140489797}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446140528117}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446140562747}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json"], "pid": 577, "ppid": 520, "t_ns": 446140643869}
+{"event": "shutil.rmtree", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06"], "pid": 577, "ppid": 520, "t_ns": 446142177557}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-06"], "pid": 577, "ppid": 520, "t_ns": 446148260988}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446148533168}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446148576000}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446148641902}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 577, "ppid": 520, "t_ns": 446148717200}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11"], "pid": 577, "ppid": 520, "t_ns": 446151132770}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_commit_journal"], "pid": 577, "ppid": 520, "t_ns": 446151339910}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/sessions"], "pid": 577, "ppid": 520, "t_ns": 446151424547}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11"], "pid": 577, "ppid": 520, "t_ns": 446151478000}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446151887357}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446151927886}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446165337900}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446165422298}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446369692064}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446369801315}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446438278319}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446438406821}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_canonical_stage"], "pid": 577, "ppid": 520, "t_ns": 446439215119}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446439484455}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446454163218}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_592.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446454362876}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_592.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_592.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446454566944}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446481758682}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_593.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446481891693}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_593.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_593.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446482046372}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446509164146}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_594.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446509289330}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_594.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_594.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446509421464}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446549765390}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_595.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446549920577}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_595.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_595.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446550059938}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446609991065}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_596.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446610126320}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_596.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_596.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446610250141}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446640169397}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_597.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446640288089}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_597.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_597.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446640442408}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446665295721}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_598.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446665387398}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_598.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_598.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446665474133}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 446701188662}
+{"event": "open", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_599.helper.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 446701301011}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_599.helper.json.tmp", "/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_599.helper.json"], "pid": 577, "ppid": 520, "t_ns": 446701416217}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446863246261}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446863355274}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 446863455360}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 446863485736}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447049716046}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447049798574}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447051228849}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447051304378}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 447051374142}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 577, "ppid": 520, "t_ns": 447051505210}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447061480174}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447061581349}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447221616524}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447221698615}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447230431435}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447230556395}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447230686746}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447230754135}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447388356989}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447388459421}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447390183438}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447390269098}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447390380873}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447390410131}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447390476831}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447390503803}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447390564332}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447390588714}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447390643157}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447390666406}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447390732803}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447390758429}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447390824766}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447390848198}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447390908518}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447390932647}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447402254833}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447402343671}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447402407655}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447402434418}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447589716677}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447589825917}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447592093650}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447592178979}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447592313748}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447592352531}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447592457413}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447592493525}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447592598229}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447592634942}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447592711581}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447592757957}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447592880630}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447592924545}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447593012034}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447593044147}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447593180105}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447593222240}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_592.helper.json"], "pid": 577, "ppid": 520, "t_ns": 447677796030}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 447677913186}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_593.helper.json"], "pid": 577, "ppid": 520, "t_ns": 447688543038}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 447688655541}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_594.helper.json"], "pid": 577, "ppid": 520, "t_ns": 447688903776}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 447688952066}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_595.helper.json"], "pid": 577, "ppid": 520, "t_ns": 447689175315}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 447689245056}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_596.helper.json"], "pid": 577, "ppid": 520, "t_ns": 447690398269}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 447690476779}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_597.helper.json"], "pid": 577, "ppid": 520, "t_ns": 447690630359}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 447690657296}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_598.helper.json"], "pid": 577, "ppid": 520, "t_ns": 447690752501}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 447690774888}
+{"event": "os.remove", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry/stream_599.helper.json"], "pid": 577, "ppid": 520, "t_ns": 447690864048}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_helper_registry"], "pid": 577, "ppid": 520, "t_ns": 447690886992}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447691646729}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447691724465}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447691854379}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447691885026}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447735839114}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447735920180}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447736955468}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447737061822}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447751175333}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447751252702}
+{"event": "open", "paths": ["/fault_during_pending/_commit_journal/2000-01-11.577_1792668211806768631.json", "/"], "pid": 577, "ppid": 520, "t_ns": 447752554017}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/sessions/2000-01-11.pending"], "pid": 577, "ppid": 520, "t_ns": 447754325519}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_canonical_stage/trades.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-11.pending/trades.jsonl.gz"], "pid": 577, "ppid": 520, "t_ns": 447754638804}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_canonical_stage/events.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-11.pending/events.jsonl.gz"], "pid": 577, "ppid": 520, "t_ns": 447754773938}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_canonical_stage/equity.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-11.pending/equity.jsonl.gz"], "pid": 577, "ppid": 520, "t_ns": 447754866941}
+{"event": "os.rename", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11/_canonical_stage/equity_reconciliation.jsonl.gz.sealed", "/fault_during_pending/sessions/2000-01-11.pending/equity_reconciliation.jsonl.gz"], "pid": 577, "ppid": 520, "t_ns": 447754953748}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-11.pending/session_receipt.json", "/"], "pid": 577, "ppid": 520, "t_ns": 447754999826}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-11.pending/trades.jsonl.gz", "/"], "pid": 577, "ppid": 520, "t_ns": 447756519096}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-11.pending/equity.jsonl.gz", "/"], "pid": 577, "ppid": 520, "t_ns": 447757336264}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-11.pending/events.jsonl.gz", "/"], "pid": 577, "ppid": 520, "t_ns": 447757752774}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-11.pending/equity_reconciliation.jsonl.gz", "/"], "pid": 577, "ppid": 520, "t_ns": 447758200076}
+{"event": "open", "paths": ["/fault_during_pending/sessions/2000-01-11.pending/session_receipt.json", "/"], "pid": 577, "ppid": 520, "t_ns": 447758626463}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882"], "pid": 577, "ppid": 520, "t_ns": 447758912125}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/2000-01-11.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 447758975723}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/2000-01-11.json.tmp", "/fault_during_pending/TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/2000-01-11.json"], "pid": 577, "ppid": 520, "t_ns": 447759097967}
+{"event": "os.rename", "paths": ["/fault_during_pending/sessions/2000-01-11.pending", "/fault_during_pending/sessions/2000-01-11"], "pid": 577, "ppid": 520, "t_ns": 447759140365}
+{"event": "open", "paths": ["/fault_during_pending/CHECKPOINT.json.v004-next", "/"], "pid": 577, "ppid": 520, "t_ns": 447759774139}
+{"event": "os.rename", "paths": ["/fault_during_pending/CHECKPOINT.json.v004-next", "/fault_during_pending/CHECKPOINT.json"], "pid": 577, "ppid": 520, "t_ns": 447760533043}
+{"event": "open", "paths": ["/fault_during_pending/CHECKPOINT.json", "/"], "pid": 577, "ppid": 520, "t_ns": 447760802885}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/_journal_history"], "pid": 577, "ppid": 520, "t_ns": 447761252514}
+{"event": "os.rename", "paths": ["/fault_during_pending/_commit_journal/2000-01-11.577_1792668211806768631.json", "/fault_during_pending/_journal_history/2000-01-11.577_1792668211806768631.json.COMMITTED"], "pid": 577, "ppid": 520, "t_ns": 447761309767}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447775038981}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/memory.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447775130895}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447776132379}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447776184842}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447776230388}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 447776268331}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_SCHEDULER_STATE.json"], "pid": 577, "ppid": 520, "t_ns": 447776354973}
+{"event": "shutil.rmtree", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11"], "pid": 577, "ppid": 520, "t_ns": 447778247235}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631/2000-01-11"], "pid": 577, "ppid": 520, "t_ns": 447782357317}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447782620705}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447782663708}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 447782741972}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 577, "ppid": 520, "t_ns": 447782837286}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447783175344}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447783209300}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 447783276909}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 577, "ppid": 520, "t_ns": 447783365352}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447912585838}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_TRANSPORT.jsonl", "/"], "pid": 577, "ppid": 520, "t_ns": 447912708845}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447912881132}
+{"event": "os.mkdir", "paths": ["/fault_during_pending/TELEMETRY"], "pid": 577, "ppid": 520, "t_ns": 447912926700}
+{"event": "open", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/"], "pid": 577, "ppid": 520, "t_ns": 447913003891}
+{"event": "os.rename", "paths": ["/fault_during_pending/TELEMETRY/R1R11_STATUS.json.tmp", "/fault_during_pending/TELEMETRY/R1R11_STATUS.json"], "pid": 577, "ppid": 520, "t_ns": 447913183652}
+{"event": "os.rmdir", "paths": ["/fault_during_pending/_scratch/577_1792668211806768631"], "pid": 577, "ppid": 520, "t_ns": 447913925254}
+{"event": "os.remove", "paths": ["/fault_during_pending/RUN.lock"], "pid": 577, "ppid": 520, "t_ns": 447914438780}

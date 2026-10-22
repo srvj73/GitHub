@@ -1,0 +1,181 @@
+{
+  "cases": [
+    {
+      "hardware_24_workers_executed": false,
+      "name": "AUTOCPU_BOUNDS_CPU_RAM_IO_CAUSAL",
+      "result": "PASS"
+    },
+    {
+      "name": "PID_CREATION_TIME_REUSE_AND_MEMORY",
+      "result": "PASS"
+    },
+    {
+      "name": "FROZEN_MONO_CORE_VS_PRODUCTION_STREAM_BYTES",
+      "result": "PASS"
+    },
+    {
+      "grants": [
+        2,
+        1,
+        2
+      ],
+      "name": "WORKER_1_VS_MULTI_FULL_BYTE_EQUALITY",
+      "result": "PASS"
+    },
+    {
+      "name": "FROZEN_BASELINE_ONE_CAUSAL_GROUP",
+      "result": "PASS"
+    },
+    {
+      "committed_unchanged": true,
+      "first_rc": 1,
+      "name": "RECOVERY_before_journal",
+      "result": "PASS"
+    },
+    {
+      "committed_unchanged": true,
+      "first_rc": 1,
+      "name": "RECOVERY_after_journal",
+      "result": "PASS"
+    },
+    {
+      "committed_unchanged": true,
+      "first_rc": 1,
+      "name": "RECOVERY_during_pending",
+      "result": "PASS"
+    },
+    {
+      "committed_unchanged": true,
+      "first_rc": 1,
+      "name": "RECOVERY_after_pending",
+      "result": "PASS"
+    },
+    {
+      "committed_unchanged": true,
+      "first_rc": 1,
+      "name": "RECOVERY_before_publish",
+      "result": "PASS"
+    },
+    {
+      "committed_unchanged": true,
+      "first_rc": 1,
+      "name": "RECOVERY_after_commit_before_checkpoint",
+      "result": "PASS"
+    },
+    {
+      "committed_unchanged": true,
+      "first_rc": 1,
+      "name": "RECOVERY_during_checkpoint_replace",
+      "result": "PASS"
+    },
+    {
+      "committed_unchanged": true,
+      "first_rc": 1,
+      "name": "RECOVERY_after_checkpoint_before_cleanup",
+      "result": "PASS"
+    },
+    {
+      "exit_code": 87,
+      "name": "PROCESS_EXIT_COMMIT_CHECKPOINT_GAP_RECOVERY",
+      "result": "PASS"
+    },
+    {
+      "name": "DOUBLE_SIGINT_COOPERATIVE_130_AND_RESUME_EXACTLY_ONCE",
+      "result": "PASS"
+    },
+    {
+      "name": "COMMITTED_TAMPER_REJECTED",
+      "result": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "CONFIG_FINGERPRINT_DRIFT_REJECTED",
+      "result": "PASS",
+      "returncode": 1
+    },
+    {
+      "name": "PHASE_B_C_RELEASE_FAIL_CLOSED",
+      "result": "PASS"
+    },
+    {
+      "name": "PROGRESS_ETA_FINAL_TREE_RECONCILIATION",
+      "result": "PASS"
+    }
+  ],
+  "code_sha256": {
+    "ff_cutoff_r3_runtime.py": "e71ae1c43eb416d3d3ebfdfa0157bd64556bd4b4d9a36c93561df39517fbc962",
+    "minotauro_v004_core.py": "c458d871906788bbc6b1313ebf78ac69c36d98c5713de226f3500251c29827c7",
+    "minotauro_v004_io.py": "dc816c617aa6586828cec769b21741d5bc4106fa8a72b933f1be76d4e1bcaf4f",
+    "minotauro_v004_metrics.py": "8ce1292f5e0580e98dcb3743350416c0c559f6c6189305250371f2e05d22970f",
+    "minotauro_v004_preflight.py": "3a2398fd86f93c1ebd8af5c1bd64d4bc839185ac26faba775c8152fd29750390",
+    "minotauro_v004_runner.py": "fb33dd83897fe35bec072e225cff18ee3ed357aff5cc9cf2fa1cbeb78345c0e7",
+    "minotauro_v005r1_r1r10_memory.py": "020fab452c16c7017fad645f2a423cdf68362bd0b9e065cbd8ddad11da5c3c50",
+    "minotauro_v005r1_r23_binding.py": "641d07c6b2700251a4186889d2cae920c9baafa5cb66c41ba6238b4278cfce27",
+    "minotauro_v005r1_r23_contract.py": "fa3c677bb7dc690644a2a1464a0c99fae0530e9f3b83c49f7829e795729c3ad1",
+    "minotauro_v005r1_r23_gates.py": "f6cca729e84b0e1907a423f789cefad5b9c2ed0e10fca4d214c24ff1da333591",
+    "minotauro_v005r1_r23_outputs.py": "4507a1d9479e3eabc3fa74204d708f6b67f9884321d2d9d46cf12bdc48c48124",
+    "minotauro_v005r1_r23_reference.py": "bfcd4eb4017a97fe06f97903287c1a87ca16bf85c97023465d7e0a6ed16a175d",
+    "pegasus_entry.py": "f77b52669ff5d98bd9d8ac7afbfb1483bf8cae3aa7cb61f5242830bf3e43a7fb",
+    "r1r11_a0.py": "0b8568c817f29fd49a453305345b183194f681437e5445fd91d92116be92bae0",
+    "r1r11_activation_controller.py": "647c0e6d7635b6130fca13db428ff50de5cab9faf2fc40d2088c169ce4655e7e",
+    "r1r11_bind_final_audit.py": "7f1ea4c9d0c336ddff1f2e7a622250fdc369df0b7d2cc0ad7d4394e760da4b6a",
+    "r1r11_bounded_telemetry.py": "14f7562ac51bfe761a79196e0771d5fa448915450e14c022b39f608ec2a2e323",
+    "r1r11_contract.py": "71837de29540a430052e3da225bcd45dd67a4c0ea9dff9aa7d53e7bf6293729a",
+    "r1r11_coordinator.py": "b67332a32e5ab8c5bdb2d6f321dc95b8b430458c18bb5ae2f7472d3bc23a6d2b",
+    "r1r11_correct_full_controller.py": "70de4895d8e139c88c20c6cffa2b70613b9e90682fc044c14428d039239fc8f5",
+    "r1r11_coverage.py": "ea0aece8cd52716efac6826a0cef339b8cc3cebf39f4e8af8205643c32dc9401",
+    "r1r11_dev_benchmark.py": "9dc64674dce99f5ab14a39fc1ec4e8442c023a2e94a23164bf788e7be1c2fd11",
+    "r1r11_fast_resume.py": "6729451e96de204518f1139c05c6942419c898d516a45c7b2973c6ff2e55a710",
+    "r1r11_final_audit_pack.py": "7a18ed2d9d16ef7611033360758a880ee1af6333998da7e3ed9ebaf3857f1578",
+    "r1r11_fixtures.py": "c01802ec4d0f11a650247cb8a85bad3e72d1dbb4fb9bff7f9730b295bdc4851c",
+    "r1r11_full_2026.py": "b848b409984aa39a55c8070122031d2c6faed8c2a5f427caccca4b80903e9c8b",
+    "r1r11_full_homologation.py": "04776c26f44c17ef16ac6fd703f2d9171049cb80b7884823c4187732b6f88248",
+    "r1r11_g4_controller.py": "4b6b61a08387b90e143f220187b5e677e4e0410bada3cdb7b5001b2d7094af42",
+    "r1r11_owner_authorize.py": "da394b094002c5d32e5f8401aeed1a9ede3a8553c79de691e3b4f88a05331c19",
+    "r1r11_owner_gates.py": "100b26f54e81e49b1a47cd7aaa142f12aebeb3070c8466c824b8716ca2ee8710",
+    "r1r11_perf_fixtures.py": "b11c258fb5422f9a01d28d97f427013b8e15419b1199c8d9ad32b268489a1abe",
+    "r1r11_perf_next_controller.py": "8226fb6d8ad339633aa5e79cc83fba85869c2ffa848ec4f858764717f969b053",
+    "r1r11_postpilot_promotion.py": "a9a2c810e5d287f6745bdba6877ae6d8fd2a49372c32c35013e881d47a880b33",
+    "r1r11_prefix.py": "009046bbe28c76416bafb966975dd04c9633f8ce18aaf9e094d80f8f94273974",
+    "r1r11_preflight_2026_resumable.py": "8e96b2ac20d1f02887b1389c1177576cb78e9fc4dfd2e946d4673f3f4fc64b66",
+    "r1r11_resources.py": "719988e114acc60236e7d9ffc23f7c59bc1c48b13822e8ddda79200a21e1801e",
+    "r1r11_resume_import.py": "b6a3ed236461b46e0b0ede9a49cd0e19369faef18d34feb15956a2ff0699060c",
+    "r1r11_revision.py": "262ebd26436248ddd537f7c85eb449f7f1a8a8a8af4b5e06637a28682ef4d595",
+    "r1r11_runtime_status.py": "aacb9983403fb7f638917bdcb98fc0b78c7f53d252428ce8e7c415e7f10fa389",
+    "r1r11_signal.py": "ce57ae9c7943415828fefdb6c2a86edf89951cf07ca47bfb74c5d0671057ab52",
+    "r1r11_transport.py": "6d10296e82bfb8eab9fa9eae33f54c67ca45913fea7bda33a8daa8f6b3e34b27",
+    "r1r11_v4_custody.py": "87e798911c988cd7e65c4e7c4f5005f0da5b6cf23e7deed7b779451ab743c366",
+    "r1r11_v4_stage.py": "bb556de6799833b069c4d0ab95256c4619094c9a94c9d0ef587994425c79283a",
+    "r1r11_v4_transaction.py": "a03bcd448c1e656554194cd577eea2ef94200ff142deb19702a965a8e9badbd2",
+    "r1r11_v5_stream.py": "4a0c4c8fbec073b46ba676a9a302fa0a41ffd511de6420d50592bc158ed96134",
+    "r1r11_worker.py": "802900141aaff16ae6480c82743d4846e7ba802d007ddc66e964a55eae7e38d7",
+    "run_v4_checks.py": "34e686ca8148387547ea191029ba596230b81e54e36bad122f591eda81ef3b75",
+    "test_ff_cutoff_r3_release.py": "cc7cd9b57e49ab056f5086346df60019ed8878f9ce6275a64dee10e5e18e5f22",
+    "test_full_2026_v001.py": "1b5edd9a1b42ecfde219b25e03b2bd3b4ebaf60b04f02fbedccdb49dd1bcc92e",
+    "test_minotauro_v004.py": "b5eb9cffd3c9188d668cf77ec58a056c14d8b93825e1cead624ac84b3c70520d",
+    "test_minotauro_v005r1_r23_gates.py": "328b87117e7953cd789655b2c856d87e924745fd079dbfe92754de245db48645",
+    "test_minotauro_v005r1_r23_operational.py": "0512d4031e7c530b81027fdfd8b85e1f83d24b6f44fff8879c898909b3d4ae34",
+    "test_perf_next_v001.py": "8a3ffb87422b9138b35495c954136c59f8dd44c523d801bc4c4065e54fc1f99a",
+    "test_perf_next_v002.py": "2d943f6ac490983c624bc57bf19bb29cbe2ba07a70002568b0b2cfc4b723b79c",
+    "test_perf_next_v003.py": "d465ba8b7cc2f854982d8e28c9cbff0fe8d58962f05ae11389423fc55b261589",
+    "test_perf_resume_v002r1.py": "c0280eebc62d92bc10626c0563cb06c44fb0ed0fde1115931131bf74d55d8731",
+    "test_preflight_2026_resumable.py": "7236766e86bd292f22b9c17b008d8e160d9622f5791fd7e7c03831dd1e4a47c2",
+    "test_r1r11_guards.py": "4382139a643112ce3c05858e567ee349ecfe08220cf9f412f178a3532fa38b50",
+    "test_r1r11_integration.py": "a868b1917d83dfd2e4fbb158bb187c2580b748015afd4a2e08a5b1d16fcefb74",
+    "test_r1r11_revision.py": "2a970a2768df1473507280539e8e2edf675f4656beff6be035ce0af60a86e9cd",
+    "test_r1r11_targeted.py": "19dc3781e97bf26a122d0a9ee444563376a229608efcfaa9afa9b9c29922fbc8",
+    "test_r1r11_v4.py": "2d5c8c1bc3cd02af25042b7d12c467b5fb801e2bb841fe48039e74a92a0a7a4c",
+    "test_r1r11_v4_negative_recovery.py": "803d97d9911081e19900a267a86eaef4ed334e30531ffa186cc6ede3cc699bec",
+    "test_r1r11_v5.py": "ddd3ec90f661eba451094a70efdd72fb598d5a041e94334f86295545e044bb3a",
+    "test_r1r11_v5_static.py": "edfe0c90d00335f53414ed02b66793f6aef33ac96a55d5b61728434efd24c2fe"
+  },
+  "economic_full_executed": false,
+  "full_qualified": false,
+  "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+  "result": "PASS_OFFLINE_DELTAS",
+  "role": "CANDIDATE_PRODUCER",
+  "schema": "PEGASUS_OFFLINE_DELTA_V002",
+  "seconds": 78.14138174057007,
+  "started": 1792668323.436653,
+  "windows_target": false
+}

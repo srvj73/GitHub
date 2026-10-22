@@ -1,0 +1,52 @@
+test_run_modes_blocked_before_any_effect (__main__.CliFailClosed.test_run_modes_blocked_before_any_effect) ... ok
+test_verify_package (__main__.CliFailClosed.test_verify_package) ... ok
+test_jit_child_before_arm (__main__.JitAndLineage.test_jit_child_before_arm) ... ok
+test_jit_disarm_before_tree_empty (__main__.JitAndLineage.test_jit_disarm_before_tree_empty) ... ok
+test_jit_missing (__main__.JitAndLineage.test_jit_missing) ... ok
+test_jit_non_monotonic (__main__.JitAndLineage.test_jit_non_monotonic) ... ok
+test_jit_ok_even_with_equal_timestamps (__main__.JitAndLineage.test_jit_ok_even_with_equal_timestamps) ... ok
+test_lineage_breakaway (__main__.JitAndLineage.test_lineage_breakaway) ... ok
+test_lineage_gap (__main__.JitAndLineage.test_lineage_gap) ... ok
+test_lineage_gapless (__main__.JitAndLineage.test_lineage_gapless) ... ok
+test_lineage_not_empty (__main__.JitAndLineage.test_lineage_not_empty) ... ok
+test_lineage_pid_reuse_counts_twice (__main__.JitAndLineage.test_lineage_pid_reuse_counts_twice) ... ok
+test_lineage_posix_is_observational (__main__.JitAndLineage.test_lineage_posix_is_observational) ... ok
+test_bound_when_pinned_and_hooks (__main__.QS4Binding.test_bound_when_pinned_and_hooks) ... ok
+test_mismatch_blocks (__main__.QS4Binding.test_mismatch_blocks) ... ok
+test_missing_durable_hooks_blocks (__main__.QS4Binding.test_missing_durable_hooks_blocks) ... ok
+test_packaged_r001_harness_blocked_by_adapter_pin (__main__.QS4Binding.test_packaged_r001_harness_blocked_by_adapter_pin) ... ok
+test_required_adapter_is_v003_g4 (__main__.QS4Binding.test_required_adapter_is_v003_g4) ... ok
+test_safestop_adapter_wired_on_orchestrator (__main__.QS4Binding.test_safestop_adapter_wired_on_orchestrator) ... ok
+test_supervised_main_blocks_without_external_admission (__main__.QS4Binding.test_supervised_main_blocks_without_external_admission) ... QS4_SUPERVISED=BLOCKED QS4_EXECUTION_FORBIDDEN_NO_EXTERNAL_ADMISSION
+ok
+test_tampered_harness_blocks (__main__.QS4Binding.test_tampered_harness_blocks) ... ok
+test_child_self_claim_not_enough (__main__.SafeStopCompletion.test_child_self_claim_not_enough) ... ok
+test_completion_ok (__main__.SafeStopCompletion.test_completion_ok) ... ok
+test_completion_refuses_lock_multi_instant_capture (__main__.SafeStopCompletion.test_completion_refuses_lock_multi_instant_capture) ... ok
+test_confirmed (__main__.SafeStopCompletion.test_confirmed) ... ok
+test_eta (__main__.SafeStopCompletion.test_eta) ... ok
+test_exit_not_130 (__main__.SafeStopCompletion.test_exit_not_130) ... ok
+test_lock_and_w04 (__main__.SafeStopCompletion.test_lock_and_w04) ... ok
+test_not_drained (__main__.SafeStopCompletion.test_not_drained) ... ok
+test_census_external_writer (__main__.W04Verdict.test_census_external_writer) ... ok
+test_census_truncated (__main__.W04Verdict.test_census_truncated) ... ok
+test_dirs (__main__.W04Verdict.test_dirs) ... ok
+test_hardlink_count (__main__.W04Verdict.test_hardlink_count) ... ok
+test_identity_change (__main__.W04Verdict.test_identity_change) ... ok
+test_lease_errors (__main__.W04Verdict.test_lease_errors) ... ok
+test_non_native_never_attests (__main__.W04Verdict.test_non_native_never_attests) ... ok
+test_partial_lease (__main__.W04Verdict.test_partial_lease) ... ok
+test_pass_native_and_unknown_reported_not_absence (__main__.W04Verdict.test_pass_native_and_unknown_reported_not_absence) ... ok
+test_preexisting_writer (__main__.W04Verdict.test_preexisting_writer) ... ok
+test_protected_modified_new_name_or_alias (__main__.W04Verdict.test_protected_modified_new_name_or_alias) ... ok
+test_released_early (__main__.W04Verdict.test_released_early) ... ok
+test_reparse (__main__.W04Verdict.test_reparse) ... ok
+test_revalidation (__main__.W04Verdict.test_revalidation) ... ok
+test_usn_incomplete (__main__.W04Verdict.test_usn_incomplete) ... ok
+test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
+test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
+
+----------------------------------------------------------------------
+Ran 46 tests in 3.399s
+
+OK

@@ -1,0 +1,248 @@
+{
+ "CHECKPOINT.json": {
+  "bytes": 24144,
+  "dev": 65024,
+  "ino": 722179,
+  "sha256": "0CCCC422007FBB2F724E1D0B345672118DFF6D9FBDCB9B52A8E8707289167E31",
+  "type": "file"
+ },
+ "MINOTAURO_RUN_MUTEX": {
+  "bytes": 0,
+  "dev": 65024,
+  "ino": 721951,
+  "sha256": "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855",
+  "type": "file"
+ },
+ "TELEMETRY": {
+  "dev": 65024,
+  "ino": 721953,
+  "type": "dir"
+ },
+ "TELEMETRY/R1R11_SCHEDULER_STATE.json": {
+  "bytes": 34,
+  "dev": 65024,
+  "ino": 722168,
+  "sha256": "EEB825E574622D8E644EEF3072E1FD79292B382F6DCDB1BDF0A9512D96B7FEEB",
+  "type": "file"
+ },
+ "TELEMETRY/R1R11_STATUS.json": {
+  "bytes": 871,
+  "dev": 65024,
+  "ino": 722048,
+  "sha256": "5EEC03596124C8E727DF445DC9EB17C6C2257EEFDE91097BC50A6F26EEB04E47",
+  "type": "file"
+ },
+ "TELEMETRY/R1R11_TRANSPORT.jsonl": {
+  "bytes": 54858,
+  "dev": 65024,
+  "ino": 721961,
+  "sha256": "BC6F35FC044BD327F89ED17CE26BCEE52F829B72A31F14BB1C7D435FDC47CD17",
+  "type": "file"
+ },
+ "TELEMETRY/SESSION_SEALS": {
+  "dev": 65024,
+  "ino": 722045,
+  "type": "dir"
+ },
+ "TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882": {
+  "dev": 65024,
+  "ino": 722046,
+  "type": "dir"
+ },
+ "TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/1999-12-31.json": {
+  "bytes": 608,
+  "dev": 65024,
+  "ino": 722047,
+  "sha256": "1A491C152A968EC543455DEF0AC79BF2F5318A1962C38697291975BA83FB28E6",
+  "type": "file"
+ },
+ "TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/2000-01-06.json": {
+  "bytes": 608,
+  "dev": 65024,
+  "ino": 722167,
+  "sha256": "1567CDC77D18EC85172227B93C572C61E5AE1345786CFC30DAF09B255299D145",
+  "type": "file"
+ },
+ "TELEMETRY/SESSION_SEALS/82e257f68f8caeac8d3d6ace7f1da4c17352b3f6b3ab09bd5e31c23ed01b9882/2000-01-11.json": {
+  "bytes": 608,
+  "dev": 65024,
+  "ino": 722178,
+  "sha256": "1AA4BA6FB22FF0CACB0E081D7DE75F5EB46268CAEDF4F6D7E73880C1C3C1EF3B",
+  "type": "file"
+ },
+ "TELEMETRY/memory.jsonl": {
+  "bytes": 36987,
+  "dev": 65024,
+  "ino": 722041,
+  "sha256": "ADF6E064D918161F3054A85166163D51EA6A2D978E5A8582B1F7E2E14BA77044",
+  "type": "file"
+ },
+ "_commit_journal": {
+  "dev": 65024,
+  "ino": 721959,
+  "type": "dir"
+ },
+ "_journal_history": {
+  "dev": 65024,
+  "ino": 721955,
+  "type": "dir"
+ },
+ "_journal_history/1999-12-31.554_1792668208159708493.json.COMMITTED": {
+  "bytes": 15640,
+  "dev": 65024,
+  "ino": 721956,
+  "sha256": "3D708F12D4262789DC6BC1C246B957DA2C96E9EA4FF79622CFD426F19FDCA492",
+  "type": "file"
+ },
+ "_journal_history/2000-01-06.554_1792668208159708493.json.RECOVERED_REQUEUE": {
+  "bytes": 25415,
+  "dev": 65024,
+  "ino": 722070,
+  "sha256": "C496991F798AA8BEC3C5E1DD536FE9C23349A2F331E5602B96B9ED7668263684",
+  "type": "file"
+ },
+ "_journal_history/2000-01-06.577_1792668211806768631.json.COMMITTED": {
+  "bytes": 25415,
+  "dev": 65024,
+  "ino": 722164,
+  "sha256": "DCD8FFD37E0D43F27D84D68F42F2480D2C2F8DBDA06F04851123094295BD09F2",
+  "type": "file"
+ },
+ "_journal_history/2000-01-11.577_1792668211806768631.json.COMMITTED": {
+  "bytes": 25420,
+  "dev": 65024,
+  "ino": 722169,
+  "sha256": "3C6339907E12E04D29BB4F2EC03EEC3A62949667B157ACD46DE30DF566491A01",
+  "type": "file"
+ },
+ "_scratch": {
+  "dev": 65024,
+  "ino": 721954,
+  "type": "dir"
+ },
+ "sessions": {
+  "dev": 65024,
+  "ino": 721960,
+  "type": "dir"
+ },
+ "sessions/1999-12-31": {
+  "dev": 65024,
+  "ino": 722043,
+  "type": "dir"
+ },
+ "sessions/1999-12-31/equity.jsonl.gz": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722055,
+  "sha256": "18CC39FCE6D400D61490AF9D0EE22138F8E8B0050AE6EF1BA78DC6CA38D611CA",
+  "type": "file"
+ },
+ "sessions/1999-12-31/equity_reconciliation.jsonl.gz": {
+  "bytes": 1491,
+  "dev": 65024,
+  "ino": 722054,
+  "sha256": "151502D6310A67C29687DA6F0F4F08B958E413C9826B56C9B17A446FCDEC9D57",
+  "type": "file"
+ },
+ "sessions/1999-12-31/events.jsonl.gz": {
+  "bytes": 985,
+  "dev": 65024,
+  "ino": 722051,
+  "sha256": "568EE24DE1730CA9388FDFED1ECB0A9D803697530988CD1047B50AFD80E47EA7",
+  "type": "file"
+ },
+ "sessions/1999-12-31/session_receipt.json": {
+  "bytes": 6298,
+  "dev": 65024,
+  "ino": 722044,
+  "sha256": "BF1D995B934BA9B47DC2AFCFD74EEC0C5825473DA3F7428738E9A824A392D91E",
+  "type": "file"
+ },
+ "sessions/1999-12-31/trades.jsonl.gz": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722053,
+  "sha256": "18CC39FCE6D400D61490AF9D0EE22138F8E8B0050AE6EF1BA78DC6CA38D611CA",
+  "type": "file"
+ },
+ "sessions/2000-01-06": {
+  "dev": 65024,
+  "ino": 722165,
+  "type": "dir"
+ },
+ "sessions/2000-01-06/equity.jsonl.gz": {
+  "bytes": 2782,
+  "dev": 65024,
+  "ino": 722174,
+  "sha256": "DA7D28F3914C704906BBD3F34A80F80B26B1B454CA42DA59F45D7FB99BB7EFEE",
+  "type": "file"
+ },
+ "sessions/2000-01-06/equity_reconciliation.jsonl.gz": {
+  "bytes": 1685,
+  "dev": 65024,
+  "ino": 722176,
+  "sha256": "6CA80A7494937CA6D0C9475985D4ADC88D72B62CB769AF1A336C49BE71BF542E",
+  "type": "file"
+ },
+ "sessions/2000-01-06/events.jsonl.gz": {
+  "bytes": 4109,
+  "dev": 65024,
+  "ino": 722175,
+  "sha256": "B0923818005B922477016E6B12422E43E19F4B381FED34EF88CCE9607B7A3557",
+  "type": "file"
+ },
+ "sessions/2000-01-06/session_receipt.json": {
+  "bytes": 16055,
+  "dev": 65024,
+  "ino": 722166,
+  "sha256": "6012B25EAEDD2108350F240DEEE5B68D8F610B9286A85E01FFE05A428289995F",
+  "type": "file"
+ },
+ "sessions/2000-01-06/trades.jsonl.gz": {
+  "bytes": 4628,
+  "dev": 65024,
+  "ino": 722171,
+  "sha256": "C859078A01A8FD897F7797B62B686B7A76AF484E5FCF66B65E30544F065ED930",
+  "type": "file"
+ },
+ "sessions/2000-01-11": {
+  "dev": 65024,
+  "ino": 722170,
+  "type": "dir"
+ },
+ "sessions/2000-01-11/equity.jsonl.gz": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722186,
+  "sha256": "18CC39FCE6D400D61490AF9D0EE22138F8E8B0050AE6EF1BA78DC6CA38D611CA",
+  "type": "file"
+ },
+ "sessions/2000-01-11/equity_reconciliation.jsonl.gz": {
+  "bytes": 1675,
+  "dev": 65024,
+  "ino": 722187,
+  "sha256": "A6DD087753450C38E6FE99A2EBC5481A81F557F786A9665CDD05D20BF3263AB4",
+  "type": "file"
+ },
+ "sessions/2000-01-11/events.jsonl.gz": {
+  "bytes": 4139,
+  "dev": 65024,
+  "ino": 722182,
+  "sha256": "D7DB25995F8C0816A94C699E224964D6ABF63EE8CA6BA92CDA505FE68C8AB4A3",
+  "type": "file"
+ },
+ "sessions/2000-01-11/session_receipt.json": {
+  "bytes": 16053,
+  "dev": 65024,
+  "ino": 722172,
+  "sha256": "72B9676ACBBE1270C0DDD752ACCB47C8D3716E1873CE1404BB97E1B73814BACD",
+  "type": "file"
+ },
+ "sessions/2000-01-11/trades.jsonl.gz": {
+  "bytes": 25,
+  "dev": 65024,
+  "ino": 722180,
+  "sha256": "18CC39FCE6D400D61490AF9D0EE22138F8E8B0050AE6EF1BA78DC6CA38D611CA",
+  "type": "file"
+ }
+}

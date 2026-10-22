@@ -1,0 +1,35 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008_G0_OFFLINE_RECEIPT",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008_20261022.zip",
+      "sha256": "31713EBFE68EA046C16C2D5AD58036A5C35A192DB96C4A2A63136B8D26599510",
+      "bytes": 87349074,
+      "members": 2945
+    },
+    "manifest_sha256": "57250071B9B8FBB99F7EE7C8AEC5876BF7C0D4F72B32A3269A293AE021289EF5",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008_PS51.ps1",
+      "sha256": "DFBEC3C15218CFD6245E9CEAC1DA8BB77A481EB4C1EF4CD1A267A9086E7233B0",
+      "bytes": 15276
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "zip_crc": "PASS",
+  "zip_member_safety": "PASS",
+  "delivered_extract_verify": "PASS_PACKAGE_VERIFIED",
+  "delivered_manifest_sha256": "57250071B9B8FBB99F7EE7C8AEC5876BF7C0D4F72B32A3269A293AE021289EF5",
+  "python_compile_new_code": "8_OF_8_ON_3.12.3_AND_3.13.16",
+  "powershell_parse": "PASS_PWSH_7.4.6_LINUX_LIMITED_EVIDENCE",
+  "windows_ps51_parse": "PENDING_OWNER_CAMPAIGN_STEP_1",
+  "windows_python_3_14_7": "PENDING_OWNER_CAMPAIGN",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED"
+}

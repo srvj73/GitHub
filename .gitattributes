@@ -1,2 +1,4 @@
 # Preserve exact hash-bound bytes (CRLF .ps1, LF .py/.md/.json): no EOL conversion.
 perseu_hd1_g0_v002/** -text
+# PEGASUS V008: preserve exact hash-bound bytes (CRLF .ps1 bootstrap, LF elsewhere); no EOL conversion.
+pegasus_full_2026_opus/** -text

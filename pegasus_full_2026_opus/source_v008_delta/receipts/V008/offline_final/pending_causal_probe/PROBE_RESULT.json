@@ -1,0 +1,41 @@
+{
+  "economic_equal_to_clean": true,
+  "economic_execution": false,
+  "fault_state_active_journals": [
+    "_commit_journal/2000-01-06.554_1792668208159708493.json"
+  ],
+  "fault_state_pending": [
+    "sessions/2000-01-06.pending",
+    "sessions/2000-01-06.pending/trades.jsonl.gz"
+  ],
+  "fault_state_run_lock": false,
+  "leftovers_after_resume": {
+    "active_journals": [],
+    "journal_history": [
+      "_journal_history/1999-12-31.554_1792668208159708493.json.COMMITTED",
+      "_journal_history/2000-01-06.554_1792668208159708493.json.RECOVERED_REQUEUE",
+      "_journal_history/2000-01-06.577_1792668211806768631.json.COMMITTED",
+      "_journal_history/2000-01-11.577_1792668211806768631.json.COMMITTED"
+    ],
+    "pending_dirs": [],
+    "run_lock_present": false
+  },
+  "package": "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/v003/payload",
+  "phases": {
+    "fault_during_pending": {
+      "log": "fault_during_pending.fault1792668207949568903.log",
+      "rc": 1
+    },
+    "reference_w1": {
+      "log": "reference_w1.run1792668201977649415.log",
+      "rc": 0
+    },
+    "resume_during_pending": {
+      "log": "fault_during_pending.run1792668211552127406.log",
+      "rc": 0
+    }
+  },
+  "python": "3.12.3",
+  "schema": "PEGASUS_V008_PENDING_CAUSAL_PROBE_V001",
+  "synthetic_only": true
+}

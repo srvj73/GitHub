@@ -1,0 +1,64 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008_SUPERVISOR_MUTATION_V001",
+ "mutants": 14,
+ "killed": 14,
+ "results": [
+  {
+   "mutant": "ignore_sharing_violation",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "ignore_lease_release_early",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "ignore_usn_records",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "ignore_usn_purge",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "ignore_census_writer",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "non_native_attests",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "jit_order_unchecked",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "lineage_gap_unchecked",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "breakaway_allowed",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "safestop_any_exit",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "safestop_ignore_lock",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "completion_ignore_lock",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "completion_ignore_unstable_inventory",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "eta_from_attempts",
+   "result": "KILLED"
+  }
+ ],
+ "result": "PASS_ALL_MUTANTS_KILLED"
+}
