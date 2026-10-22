@@ -360,6 +360,30 @@ class RunPathWiring(unittest.TestCase):
                 sup._run_supervised({"schema": "WRONG"}, evidence=Path(t) / "ev", entry=entry)
 
 
+class ExitClassification(unittest.TestCase):
+    def test_known_codes(self):
+        self.assertEqual(sup.classify_exit(0), "PASS")
+        self.assertEqual(sup.classify_exit(2), "BLOCKED_FAIL_CLOSED_NO_EFFECT")
+        self.assertEqual(sup.classify_exit(3), "FAIL_TECHNICAL_AFTER_EFFECT_START")
+        self.assertEqual(sup.classify_exit(130), "SAFE_STOP_CONFIRMED_RESUMABLE")
+
+    def test_absent_or_bogus_code_never_pass(self):
+        for bogus in (None, True, False, "0", 0.0):
+            self.assertEqual(sup.classify_exit(bogus), "EXIT_UNKNOWN_FAIL_CLOSED", bogus)
+        for code in (1, 9, 87, 255, -2, 3221225786):
+            self.assertEqual(sup.classify_exit(code), "UNCLASSIFIED_NONZERO_FAIL", code)
+
+    def test_main_technical_failure_exits_3_not_1(self):
+        with tempfile.TemporaryDirectory() as t:
+            adm = Path(t) / "raise_admission.py"
+            adm.write_text("class A:\n    schema='X'\n    def admit(self, **k):\n        raise RuntimeError('boom')\nADMISSION=A()\n",
+                           encoding="utf-8")
+            p = subprocess.run([sys.executable, "-I", "-B", str(SUP / "pegasus_supervisor_v008.py"), "run-b",
+                                "--admission", str(adm)], capture_output=True, text=True, timeout=300)
+            self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
+            self.assertIn("PEGASUS_SUPERVISOR=FAIL_TECHNICAL RuntimeError: boom", p.stdout)
+
+
 class CliFailClosed(unittest.TestCase):
     def _run(self, *args):
         return subprocess.run([sys.executable, "-I", "-B", str(SUP / "pegasus_supervisor_v008.py"), *args],

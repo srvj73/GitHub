@@ -18,6 +18,9 @@ Parametrização por variáveis de ambiente (apenas o arranjo sintético; nada p
   PEGASUS_SYN_STOP     se '1', injeta SAFE_STOP após o 1º commit (prova de parada)
   PEGASUS_SYN_TRY_ECONOMIC  se '1', tenta (e deve falhar) marcar o plano como econômico
   PEGASUS_SYN_TARGET_ECONOMIC_ENTRY  se '1', aponta argv ao executor econômico real
+  PEGASUS_SYN_RAISE    se '1', a admissão levanta exceção técnica (classificação => exit 3)
+  PEGASUS_SYN_CHILD_EXIT  se definido (int), o filho supervisionado é um processo trivial que
+                       sai com esse código (classificação de filho falho => exit 3)
 """
 from __future__ import annotations
 
@@ -36,6 +39,8 @@ class SyntheticAdmission:
     schema = "PEGASUS_FULL_2026_V008_SYNTHETIC_ADMISSION_ISOLATED_NON_ECONOMIC"
 
     def admit(self, *, phase, package_root, entry, ns):
+        if os.environ.get("PEGASUS_SYN_RAISE") == "1":
+            raise RuntimeError("SYNTHETIC_ADMISSION_TECHNICAL_FAILURE")
         inputs = Path(os.environ["PEGASUS_SYN_INPUTS"]).resolve()
         out = Path(os.environ["PEGASUS_SYN_OUT"]).resolve()
         workers = int(os.environ.get("PEGASUS_SYN_WORKERS", "3"))
@@ -53,6 +58,13 @@ class SyntheticAdmission:
             return sup.make_run_plan(label="SYN_ECONOMIC_ENTRY", argv=argv, protected_root=inputs,
                                      out_root=out, economic=True, external_authorization_proven=False,
                                      admission_schema=self.schema, admission_sha256=getattr(self, "injected_sha256", ""))
+        child_exit = os.environ.get("PEGASUS_SYN_CHILD_EXIT")
+        if child_exit is not None:
+            argv = [sys.executable, "-I", "-c", "import sys; sys.exit(%d)" % int(child_exit)]
+            out.mkdir(parents=True, exist_ok=True)
+            return sup.make_run_plan(label="SYN_CHILD_EXIT", argv=argv, protected_root=inputs, out_root=out,
+                                     economic=False, admission_schema=self.schema,
+                                     admission_sha256=getattr(self, "injected_sha256", ""), timeout_s=300.0)
         economic = os.environ.get("PEGASUS_SYN_TRY_ECONOMIC") == "1"
         stop_after = 1 if os.environ.get("PEGASUS_SYN_STOP") == "1" else None
         return sup.make_run_plan(label="SYN_SUPERVISED", argv=argv, protected_root=inputs, out_root=out,

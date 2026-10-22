@@ -48,6 +48,21 @@ SCHEMA = "PEGASUS_FULL_2026_SUPERVISOR_V008"
 HEARTBEAT_S = 10.0
 EXIT_PASS, EXIT_BLOCKED, EXIT_FAIL, EXIT_SAFE_STOP = 0, 2, 3, 130
 
+# Classificação única de exit codes do PEGASUS (supervisor, bootstrap e recibos usam a mesma).
+EXIT_CLASSES = {
+    EXIT_PASS: "PASS",
+    EXIT_BLOCKED: "BLOCKED_FAIL_CLOSED_NO_EFFECT",
+    EXIT_FAIL: "FAIL_TECHNICAL_AFTER_EFFECT_START",
+    EXIT_SAFE_STOP: "SAFE_STOP_CONFIRMED_RESUMABLE",
+}
+
+
+def classify_exit(code) -> str:
+    """Nunca converte ausência de código em sucesso: None/bool/não-int => EXIT_UNKNOWN."""
+    if isinstance(code, bool) or not isinstance(code, int):
+        return "EXIT_UNKNOWN_FAIL_CLOSED"
+    return EXIT_CLASSES.get(code, "UNCLASSIFIED_NONZERO_FAIL" if code != 0 else "PASS")
+
 GATES = {"g4": "FROZEN", "qs4": "NO", "full_economic": "NO", "phase_c": "FORBIDDEN",
          "reselection_2026": "FORBIDDEN", "run_released": "NO", "full_released": "NO"}
 
@@ -652,17 +667,33 @@ def _run_supervised(plan, *, evidence: Path, entry, log=print) -> int:
            "OPENBLAS_NUM_THREADS": "1", "OMP_NUM_THREADS": "1"}
     env.pop("PYTHONPATH", None)
     env.pop("PYTHONHOME", None)
-    result = s.run(plan["argv"], env, timeout_s=plan.get("timeout_s"))
+    try:
+        result = s.run(plan["argv"], env, timeout_s=plan.get("timeout_s"))
+    except SupervisorBlocked as exc:
+        # O filho já foi criado: bloqueio aqui é falha APÓS início de efeito (exit 3), com
+        # recibo; o supervisor não mata processo e exige reconciliação.
+        fail = {"schema": "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT", "result": "FAIL_SUPERVISED_RUN",
+                "cause": str(exc), "exit_code": EXIT_FAIL, "exit_class": classify_exit(EXIT_FAIL),
+                "plan": {k: plan[k] for k in ("label", "economic", "admission_schema", "admission_sha256")}}
+        write_json_atomic(evidence / (plan["label"] + "_SUPERVISED_RUN_RESULT.json"), fail)
+        print(json.dumps({"schema": fail["schema"], "result": fail["result"], "cause": fail["cause"]}, sort_keys=True))
+        return EXIT_FAIL
     result["schema"] = "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT"
     result["plan"] = {k: plan[k] for k in ("label", "economic", "admission_schema", "admission_sha256")}
-    ok = (result.get("completion", {}).get("completed") is True
-          or (result.get("safe_stop", {}) or {}).get("safe_stop", "").startswith("CONFIRMED_BY_SUPERVISOR"))
-    result["result"] = "PASS_SUPERVISED_RUN" if ok else "BLOCKED_SUPERVISED_RUN"
+    completed = result.get("completion", {}).get("completed") is True
+    stopped = (result.get("safe_stop", {}) or {}).get("safe_stop", "").startswith("CONFIRMED_BY_SUPERVISOR")
+    # Desfecho real -> exit: concluído 0; SAFE_STOP confirmado 130 (retomável); qualquer
+    # outro desfecho (filho falhou, parada não confirmada) é falha após início de efeito: 3.
+    code = EXIT_PASS if completed else (EXIT_SAFE_STOP if stopped else EXIT_FAIL)
+    result["exit_code"] = code
+    result["exit_class"] = classify_exit(code)
+    result["result"] = ("PASS_SUPERVISED_RUN" if completed else
+                        "SAFE_STOP_CONFIRMED_SUPERVISED_RUN" if stopped else "FAIL_SUPERVISED_RUN")
     write_json_atomic(evidence / (plan["label"] + "_SUPERVISED_RUN_RESULT.json"), result)
     print(json.dumps({k: result[k] for k in ("schema", "result", "label", "child_exit") if k in result}
                      | {"w04_full": result.get("w04", {}).get("w04_full"),
                         "lineage": result.get("lineage", {}).get("lineage")}, sort_keys=True))
-    return EXIT_PASS if ok else EXIT_BLOCKED
+    return code
 
 
 def cmd_run(ns) -> int:
@@ -739,7 +770,11 @@ def main(argv=None) -> int:
         if type(exc).__name__ in ("Blocked", "SupervisorBlocked"):
             print("PEGASUS_SUPERVISOR=BLOCKED " + str(exc), flush=True)
             return EXIT_BLOCKED
-        raise
+        # Falha técnica não prevista: nunca sai com código não documentado (1) nem 0.
+        import traceback
+        traceback.print_exc()
+        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)
+        return EXIT_FAIL
     return EXIT_BLOCKED
 
 

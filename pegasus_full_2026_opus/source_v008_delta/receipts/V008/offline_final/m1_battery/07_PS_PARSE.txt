@@ -1,1 +1,2 @@
-PARSE_OK tokens=2350 BOOTSTRAP_PEGASUS_FULL_2026_V008_PS51.template.ps1
+PARSE_OK tokens=3532 BOOTSTRAP_PEGASUS_FULL_2026_V008_PS51.template.ps1
+PARSE_OK tokens=1330 test_bootstrap_exit_boundary_v008.ps1

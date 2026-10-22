@@ -1,0 +1,47 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R2_G0_OFFLINE_RECEIPT",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R2_20261022.zip",
+      "sha256": "4A1676816C81DB5CA343261712238DCCBEA1F9C6ECBDE1AA8013307D8514EFE2",
+      "bytes": 87368861,
+      "members": 2944
+    },
+    "manifest_sha256": "9FA39FC91CD3B46A263E62628BF005CBDB4F1871BDA3B77B991616DA9A5C7C02",
+    "tested_manifest_sha256_m1": "165BE55F17160ECB260F0DA5AC74F6092C78E00D99B45F5350ED67BA7B780A25",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R2_PS51.ps1",
+      "sha256": "DF1DF8C3145378E58E4A1779E97B1658A00CF3C5DD3A069C1240B2B26A1C901E",
+      "bytes": 22858
+    },
+    "supersedes_v008r1": {
+      "zip_sha256": "912A7A1DE17F82A644829FB531B91C88621884E1912DF4FC77E41FF68B51BEB5",
+      "reason": "exit-code execution/propagation boundary closed"
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "zip_crc": "PASS",
+  "zip_member_safety": "PASS",
+  "delivered_extract_verify": "PASS_ALL_DELIVERED_BYTES_MATCH_MANIFEST",
+  "delivered_manifest_sha256": "9FA39FC91CD3B46A263E62628BF005CBDB4F1871BDA3B77B991616DA9A5C7C02",
+  "delivered_files_checked": 2943,
+  "exit_boundary_tests": {
+    "bootstrap_exit_boundary": "PASS_ALL passed=20",
+    "bootstrap_mutation": "8_OF_8_KILLED",
+    "supervisor_unit": "55_OF_55",
+    "supervisor_mutation": "20_OF_20_KILLED"
+  },
+  "python_compile_new_code": "PASS_ON_3.13 (campanha nativa usa Python 3.14.7 do titular)",
+  "powershell_parse": "PASS_PWSH_7.4.6_LINUX_LIMITED_EVIDENCE",
+  "windows_ps51_parse": "PENDING_OWNER_CAMPAIGN_STEP_VERIFY",
+  "windows_python_3_14_7": "PENDING_OWNER_CAMPAIGN",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED"
+}

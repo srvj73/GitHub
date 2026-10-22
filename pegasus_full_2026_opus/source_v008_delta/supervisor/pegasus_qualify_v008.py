@@ -50,6 +50,51 @@ def _committed_files(out: Path) -> dict:
             for p in sorted((out / "sessions").rglob("*")) if p.is_file() and ".pending" not in p.as_posix()}
 
 
+NATIVE_REQUIRED_CASES = (
+    "Q01_REFERENCE_SUPERVISED_COMPLETED", "Q02_MULTIWORK_BYTES_EQUAL_REFERENCE",
+    "Q03_SAFE_STOP_CONFIRMED_BY_SUPERVISOR", "Q04_RESUME_EXACTLY_ONCE_AFTER_SAFE_STOP",
+    "Q05_GAP1_JOURNAL_WITHOUT_PENDING", "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
+    "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE", "Q08_DUPLICATE_JOURNAL_FAIL_CLOSED",
+    "Q09_EVIDENCE_GATE_REFUSES_ORPHAN_LOCK_STATE",
+    "Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE", "Q10b_PREEXISTING_WRITER_BLOCKS",
+    "Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS", "Q10D_NEW_NAME_NEVER_PASSES",
+    "Q10E_ALTERNATE_STREAM_NEVER_PASSES", "Q10F_HARDLINK_NEVER_PASSES",
+    "Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
+    "Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES", "Q12b_CMD_RUN_SAFESTOP_THEN_RESUME_EXACTLY_ONCE",
+    "Q13a_DEFAULT_ADMISSION_BLOCKS_ALL_RUN_MODES", "Q13b_ECONOMIC_PLAN_REFUSED", "Q13c_ECONOMIC_ENTRY_ARGV_BLOCKED",
+    "Q14_SUBPROCESS_EXIT_PROPAGATION_MATRIX_UNDER_CUSTODY", "Q15_TECHNICAL_FAILURE_CLASSIFICATION",
+)
+
+
+def native_completeness_evaluation(receipt: dict) -> dict:
+    """Critérios objetivos para as partes 3-4 do CANDIDATE_COMPLETENESS, avaliados SOBRE os
+    resultados deste próprio run. Fora do Windows nativo o veredito é sempre NOT_MET."""
+    by = {c.get("case"): c for c in receipt.get("cases", [])}
+    unmet = []
+    if not receipt.get("native_windows"):
+        unmet.append("NOT_NATIVE_WINDOWS_HOST")
+    if receipt.get("result") != "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC":
+        unmet.append("QUALIFICATION_CHAIN_NOT_PASS")
+    for name in NATIVE_REQUIRED_CASES:
+        if by.get(name, {}).get("result") != "PASS":
+            unmet.append("CASE_NOT_PASS:" + name)
+    w04_native = [c for c in receipt.get("cases", []) if isinstance(c.get("w04"), dict)
+                  and c["w04"].get("w04_full") == "PASS_NATIVE_SAME_ATTEMPT"]
+    lineage_native = [c for c in receipt.get("cases", []) if isinstance(c.get("lineage"), dict)
+                      and c["lineage"].get("lineage") == "GAPLESS_NATIVE_JOB"]
+    if receipt.get("native_windows"):
+        if len(w04_native) < 4:
+            unmet.append("W04_PASS_NATIVE_SAME_ATTEMPT_COUNT<4:%d" % len(w04_native))
+        if len(lineage_native) < 3:
+            unmet.append("GAPLESS_NATIVE_JOB_COUNT<3:%d" % len(lineage_native))
+        if "NATIVE" not in str(by.get("Q03_SAFE_STOP_CONFIRMED_BY_SUPERVISOR", {}).get("w04", {}).get("w04_full", "")):
+            unmet.append("SAFE_STOP_W04_NOT_NATIVE")
+    return {"schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
+            "required_cases": len(NATIVE_REQUIRED_CASES), "w04_native_pass_cases": len(w04_native),
+            "gapless_native_job_cases": len(lineage_native), "unmet": unmet,
+            "verdict": "MET" if not unmet else "NOT_MET"}
+
+
 def run_qualification(evidence: Path, workers_ref: int = 1, workers_multi: int = 3) -> int:
     evidence = Path(evidence).resolve()
     if evidence.is_relative_to(ROOT):
@@ -203,6 +248,7 @@ def run_qualification(evidence: Path, workers_ref: int = 1, workers_multi: int =
         rc = sup.EXIT_FAIL
     finally:
         receipt["seconds"] = round(time.time() - started, 3)
+        receipt["native_completeness_evaluation"] = native_completeness_evaluation(receipt)
         sup.write_json_new(evidence / "V008_QUALIFICATION_RECEIPT.json", receipt)
     log("V008_QUALIFICATION=" + receipt["result"])
     return rc
@@ -346,7 +392,7 @@ def _supervised_run_path_cases(evidence, inputs, env, case, log):
     res12_path = evidence / "Q12_supervised_run_EV" / "SYN_SUPERVISED_SUPERVISED_RUN_RESULT.json"
     res12 = json.loads(res12_path.read_text()) if res12_path.is_file() else {}
     case("Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
-         p12.returncode == 0 and res12.get("result") == "PASS_SUPERVISED_RUN"
+         p12.returncode == 0 and res12.get("result") == "PASS_SUPERVISED_RUN" and res12.get("exit_code") == 0
          and res12.get("completion", {}).get("completed") is True
          and res12.get("jit", {}).get("jit", "").startswith("W04_ARMED_BEFORE")
          and _economic(out12) == _economic(evidence / "Q01_reference_w1"),
@@ -362,10 +408,11 @@ def _supervised_run_path_cases(evidence, inputs, env, case, log):
                                 "PEGASUS_SYN_WORKERS": "3"}, "Q12c_supervised_resume")
     res12c = json.loads((evidence / "Q12c_supervised_resume_EV" / "SYN_SUPERVISED_SUPERVISED_RUN_RESULT.json").read_text())
     case("Q12b_CMD_RUN_SAFESTOP_THEN_RESUME_EXACTLY_ONCE",
-         (res12b.get("safe_stop", {}) or {}).get("safe_stop", "").startswith("CONFIRMED_BY_SUPERVISOR")
+         p12b.returncode == 130 and res12b.get("exit_code") == 130
+         and (res12b.get("safe_stop", {}) or {}).get("safe_stop", "").startswith("CONFIRMED_BY_SUPERVISOR")
          and p12c.returncode == 0 and res12c.get("completion", {}).get("completed") is True
          and _economic(out12b) == _economic(evidence / "Q01_reference_w1"),
-         safe_stop=res12b.get("safe_stop"), resume_completion=res12c.get("completion"))
+         safe_stop_exit=p12b.returncode, safe_stop=res12b.get("safe_stop"), resume_completion=res12c.get("completion"))
 
     # Q13a: admissão de produção (sem --admission) bloqueia run-b/-c/-full com causa G00.
     blocked = {}
@@ -393,3 +440,29 @@ def _supervised_run_path_cases(evidence, inputs, env, case, log):
          and "ECONOMIC_RUN_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION" in (p13c.stdout + p13c.stderr)
          and not out13c.exists(),
          returncode=p13c.returncode)
+
+
+    # Q14: matriz de propagação de exit por subprocesso sob a custódia (Job no Windows;
+    # sessão POSIX aqui). Filhos de saída RÁPIDA — o caso que o bootstrap R1 lia como 0.
+    observed = {}
+    for code in (0, 1, 2, 3, 7, 19, 37, 130):
+        s14 = sup.Supervision(evidence=evidence, protected_root=inputs, out_root=evidence / ("Q14_exit_%d" % code),
+                              label="Q14_exit_%d" % code, log=log)
+        (evidence / ("Q14_exit_%d" % code)).mkdir()
+        r14 = s14.run([py, "-I", "-c", "import sys; sys.exit(%d)" % code], env, timeout_s=120)
+        observed[code] = r14["child_exit"]
+    case("Q14_SUBPROCESS_EXIT_PROPAGATION_MATRIX_UNDER_CUSTODY",
+         all(isinstance(v, int) and v == k for k, v in observed.items()), observed=observed)
+
+    # Q15: classificação técnica — exceção na admissão => 3 (nunca 1/0); filho falho => 3.
+    p15a = run_cmd("run-b", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(evidence / "Q15a_out"),
+                             "PEGASUS_SYN_RAISE": "1"}, "Q15a_admission_exception")
+    p15b = run_cmd("run-b", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(evidence / "Q15b_out"),
+                             "PEGASUS_SYN_CHILD_EXIT": "9"}, "Q15b_child_exit_9")
+    r15b_path = evidence / "Q15b_child_exit_9_EV" / "SYN_CHILD_EXIT_SUPERVISED_RUN_RESULT.json"
+    r15b = json.loads(r15b_path.read_text()) if r15b_path.is_file() else {}
+    case("Q15_TECHNICAL_FAILURE_CLASSIFICATION",
+         p15a.returncode == 3 and "FAIL_TECHNICAL" in p15a.stdout
+         and p15b.returncode == 3 and r15b.get("child_exit") == 9 and r15b.get("result") == "FAIL_SUPERVISED_RUN"
+         and r15b.get("exit_class") == "FAIL_TECHNICAL_AFTER_EFFECT_START",
+         admission_exception_exit=p15a.returncode, child_fail_exit=p15b.returncode, child_exit=r15b.get("child_exit"))

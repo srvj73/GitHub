@@ -39,9 +39,15 @@ MUTANTS = [
      'if False:\n            raise SupervisorBlocked("ECONOMIC_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")'),
     ("default_admission_returns_plan", 'entry.release_admission({}, phase)  # sempre levanta entry.Blocked neste artefato\n        raise SupervisorBlocked("RELEASE_ADMISSION_RETURNED_WITHOUT_EXTERNAL_MODULE")',
      'return make_run_plan(label="L", argv=["x"], protected_root="/i", out_root="/o", economic=True, external_authorization_proven=True, admission_schema="x", admission_sha256="h")'),
+    ("absent_exit_classified_pass", 'if isinstance(code, bool) or not isinstance(code, int):\n        return "EXIT_UNKNOWN_FAIL_CLOSED"',
+     'if isinstance(code, bool) or not isinstance(code, int):\n        return "PASS"'),
+    ("unknown_nonzero_classified_pass", 'return EXIT_CLASSES.get(code, "UNCLASSIFIED_NONZERO_FAIL" if code != 0 else "PASS")',
+     'return EXIT_CLASSES.get(code, "PASS")'),
+    ("technical_failure_exits_zero", '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        return EXIT_FAIL',
+     '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        return EXIT_PASS'),
 ]
 
-SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "RunPathWiring"]
+SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "RunPathWiring", "ExitClassification"]
 
 
 def main() -> int:

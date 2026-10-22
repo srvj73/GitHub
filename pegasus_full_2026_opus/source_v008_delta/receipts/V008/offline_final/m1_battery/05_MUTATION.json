@@ -1,7 +1,7 @@
 {
  "schema": "PEGASUS_FULL_2026_V008_SUPERVISOR_MUTATION_V001",
- "mutants": 17,
- "killed": 17,
+ "mutants": 20,
+ "killed": 20,
  "results": [
   {
    "mutant": "ignore_sharing_violation",
@@ -69,6 +69,18 @@
   },
   {
    "mutant": "default_admission_returns_plan",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "absent_exit_classified_pass",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "unknown_nonzero_classified_pass",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "technical_failure_exits_zero",
    "result": "KILLED"
   }
  ],

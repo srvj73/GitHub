@@ -22,7 +22,7 @@
       ],
       "qs4_harness_binding": "BLOCKED_PROVEN_ADAPTER_PIN_MISMATCH",
       "qs4_detail": "Harness R001 E52AF782 exige adaptador 05A0CF3D; adaptador G4 do V003 é EC96FE9A. Sucessor vinculado exige qualificação QS4 própria (QS4=NO nesta missão).",
-      "supervised_run_path": "CLOSED_V008R1 (admission is single gate; economic triple-blocked: Q13a/b/c PASS)"
+      "supervised_run_path": "CLOSED_V008R1_AND_EXIT_BOUNDARY_CLOSED_V008R2 (admission single gate; economic triple-blocked Q13a/b/c; exit classification exact Q14/Q15)"
     },
     "G2_W04_FULL": {
       "state": "IMPLEMENTED_OFFLINE_DECISION_QUALIFIED_NATIVE_PENDING",
@@ -41,17 +41,22 @@
         "V008 supervisionado 9/9 (SAFE_STOP confirmado pelo supervisor, retomada exactly-once, duas lacunas, RUN.lock órfão reconciliado, journal duplicado fail-closed, porta de evidência)"
       ],
       "pending_journal_residue": "ATTRIBUTED_BY_INSTRUMENTED_PROOF_TO_NON_RUNTIME_MULTI_INSTANT_CAPTURE",
-      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN"
+      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN",
+      "exit_boundary": "CLOSED_V008R2: classify_exit/EXIT_CLASSES (0 PASS;2 BLOCKED;3 FAIL;130 SAFE_STOP; ausente/nao-inteiro=>FAIL_CLOSED); _run_supervised grava exit_code/exit_class; main() exceção técnica=>3"
     },
     "G5_INTEGRATED_NATIVE_WIN": {
       "state": "CAMPAIGN_READY_NOT_EXECUTED",
-      "detail": "Bootstrap único hash-bound; parse PS7 7.4.6 PASS (evidência limitada); parse/execução PS 5.1 e Python 3.14.7 no alvo pendentes"
+      "detail": "Bootstrap único hash-bound; parse PS7 7.4.6 PASS (evidência limitada); parse/execução PS 5.1 e Python 3.14.7 no alvo pendentes",
+      "bootstrap_exit_boundary": "REWRITTEN_V008R2: Process.Start+Handle, Get-PegasusExitCode fail-closed, ReadToEndAsync, watchdog no-kill, UAC relay reconcile; test 20/20 + mutation 8/8 sobre bytes reais do template (pwsh 7.4.6)"
     },
     "G6_CANDIDATE_COMPLETENESS": {
       "state": "NOT_PASS_PENDING_G2_G3_G5_NATIVE_EVIDENCE",
       "implementation_completeness": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED",
       "tested_equals_packaged": "PROVEN_OFFLINE_BY_SHA (ver recibo externo)",
-      "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)"
+      "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)",
+      "exit_code_boundary": "CLOSED_V008R2 (bootstrap+UAC+subprocess+watchdog+supervisor; sem falso PASS)",
+      "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
+      "offline_test_counts": "unit 55/55; supervisor mutants 20/20; bootstrap boundary 20/20; bootstrap mutants 8/8; V003 chain 19/19 (imutavel); supervised qualification 16/16 PASS + 2 SKIPPED_NON_NATIVE"
     }
   },
   "boundaries": {
@@ -66,5 +71,10 @@
     "independent_audit": "NOT_STARTED"
   },
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
-  "revision": "V008R1"
+  "revision": "V008R2",
+  "supersedes": {
+    "v008r1_zip_sha256": "912A7A1DE17F82A644829FB531B91C88621884E1912DF4FC77E41FF68B51BEB5",
+    "reason": "exit-code execution/propagation boundary closed (bootstrap PS5.1 null-exit false-PASS vector, UAC relay, subprocess, watchdog, supervisor classification)"
+  },
+  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida."
 }

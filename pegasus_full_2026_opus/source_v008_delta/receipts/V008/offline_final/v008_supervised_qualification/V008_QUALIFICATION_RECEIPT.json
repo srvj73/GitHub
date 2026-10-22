@@ -5,15 +5,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 53,
-        "inventory_sha256": "4CB554974F47B88FEEC3BA62691A84DD0DE8E78AE038C527E6E7881832327105"
+        "inventory_sha256": "3386166A1C3A502468F2EBB5B4FA2CD21B6057C599380EE10D4F154AC301460D"
       },
       "jit": {
-        "child_created_ns": 660483073332,
-        "child_resumed_ns": 660484108646,
+        "child_created_ns": 476466045263,
+        "child_resumed_ns": 476466863469,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 667322602979,
-        "w04_arm_ns": 660482915250,
-        "w04_disarm_ns": 667325903552
+        "tree_empty_ns": 486452883324,
+        "w04_arm_ns": 476465742618,
+        "w04_disarm_ns": 486455960206
       },
       "lineage": {
         "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF",
@@ -60,7 +60,7 @@
     },
     {
       "active_journals": [
-        "2000-01-06.1097_1792672501507444679.json"
+        "2000-01-06.800_1792684801822882819.json"
       ],
       "case": "Q05_GAP1_JOURNAL_WITHOUT_PENDING",
       "child_exit": 1,
@@ -74,7 +74,7 @@
     {
       "case": "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
       "child_exit": 87,
-      "orphan_run_lock_pid": 1124,
+      "orphan_run_lock_pid": 825,
       "result": "PASS"
     },
     {
@@ -90,10 +90,10 @@
     {
       "case": "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
       "journal_history": [
-        "1999-12-31.1097_1792672501507444679.json.COMMITTED",
-        "2000-01-06.1097_1792672501507444679.json.RECOVERED_REQUEUE",
-        "2000-01-06.1124_1792672506775725646.json.RECOVERED_COMMITTED",
-        "2000-01-11.1137_1792672510598648297.json.COMMITTED"
+        "1999-12-31.800_1792684801822882819.json.COMMITTED",
+        "2000-01-06.800_1792684801822882819.json.RECOVERED_REQUEUE",
+        "2000-01-06.825_1792684809520383642.json.RECOVERED_COMMITTED",
+        "2000-01-11.838_1792684815032273317.json.COMMITTED"
       ],
       "result": "PASS"
     },
@@ -102,15 +102,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 37,
-        "inventory_sha256": "E839CCC3DAA43C86E9A7038EE2236CA610381CB731AD1EFD6E934B8DFF569996"
+        "inventory_sha256": "AF5B5BBC90EF587342AC6233E6F941A1E859F6669DEC16AACC5002991D5E0F64"
       },
       "jit": {
-        "child_created_ns": 697445065848,
-        "child_resumed_ns": 697446012908,
+        "child_created_ns": 529148166230,
+        "child_resumed_ns": 529149073683,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 704405750460,
-        "w04_arm_ns": 697444600686,
-        "w04_disarm_ns": 704408916916
+        "tree_empty_ns": 539699562849,
+        "w04_arm_ns": 529147982949,
+        "w04_disarm_ns": 539702936574
       },
       "lineage": {
         "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF",
@@ -130,12 +130,13 @@
       "resume_completion": {
         "completed": true,
         "inventory_entries": 37,
-        "inventory_sha256": "6FC0F374FF0B5879022834BE496D40F97612A593C00461AEA185485C732E1FF9"
+        "inventory_sha256": "C8898E340261CAECAE3E8C82C84D4945F7936F57C6E9FE85AB0106A575B9950C"
       },
       "safe_stop": {
         "committed_at_stop": 2,
         "safe_stop": "CONFIRMED_BY_SUPERVISOR_NON_NATIVE_W04"
-      }
+      },
+      "safe_stop_exit": 130
     },
     {
       "blocked": {
@@ -172,6 +173,27 @@
       "returncode": 2
     },
     {
+      "case": "Q14_SUBPROCESS_EXIT_PROPAGATION_MATRIX_UNDER_CUSTODY",
+      "observed": {
+        "0": 0,
+        "1": 1,
+        "2": 2,
+        "3": 3,
+        "7": 7,
+        "19": 19,
+        "37": 37,
+        "130": 130
+      },
+      "result": "PASS"
+    },
+    {
+      "admission_exception_exit": 3,
+      "case": "Q15_TECHNICAL_FAILURE_CLASSIFICATION",
+      "child_exit": 9,
+      "child_fail_exit": 3,
+      "result": "PASS"
+    },
+    {
       "case": "Q10_W04_NATIVE_NEGATIVES",
       "reason": "Lease de compartilhamento/USN existem só no Windows; não promove G2.",
       "result": "SKIPPED_NON_NATIVE"
@@ -186,18 +208,35 @@
   "full_economic": "NO",
   "full_released": "NO",
   "g4": "FROZEN",
+  "native_completeness_evaluation": {
+    "gapless_native_job_cases": 0,
+    "required_cases": 23,
+    "schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
+    "unmet": [
+      "NOT_NATIVE_WINDOWS_HOST",
+      "CASE_NOT_PASS:Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE",
+      "CASE_NOT_PASS:Q10b_PREEXISTING_WRITER_BLOCKS",
+      "CASE_NOT_PASS:Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS",
+      "CASE_NOT_PASS:Q10D_NEW_NAME_NEVER_PASSES",
+      "CASE_NOT_PASS:Q10E_ALTERNATE_STREAM_NEVER_PASSES",
+      "CASE_NOT_PASS:Q10F_HARDLINK_NEVER_PASSES",
+      "CASE_NOT_PASS:Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED"
+    ],
+    "verdict": "NOT_MET",
+    "w04_native_pass_cases": 0
+  },
   "native_windows": false,
   "os_name": "posix",
-  "package_manifest_sha256": "C68AD34A2C8EC05D3B8D6957AC2CFA811FD5BECD1572B8800FE7B6A2A4D2B592",
+  "package_manifest_sha256": "165BE55F17160ECB260F0DA5AC74F6092C78E00D99B45F5350ED67BA7B780A25",
   "phase_c": "FORBIDDEN",
   "platform": "Linux-6.18.44-fc-v140-x86_64-with-glibc2.39",
-  "python": "3.12.3",
+  "python": "3.13.16",
   "qs4": "NO",
   "reselection_2026": "FORBIDDEN",
   "result": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC",
   "run_released": "NO",
   "schema": "PEGASUS_FULL_2026_V008_INTEGRATED_QUALIFICATION_V001",
-  "seconds": 59.08,
+  "seconds": 87.578,
   "supervisor_parents": {
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152"
@@ -274,8 +313,8 @@
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_binding_v008.py": "7FBE02BAAD077CAF37BCC394452657F84D8F115DC3FFE67413CBAAAE3DC2BB7A",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152",
-    "pegasus_qualify_v008.py": "DD90EBDE05B6588FD2C1EC6033D8965E5F0927AE873585F0F2D0C8BCB5928902",
-    "pegasus_supervisor_v008.py": "30B8C1ECE771E10266175BEF973F9992A7F28CDFE5030BC338637F9C0B2452F7",
+    "pegasus_qualify_v008.py": "B97879963DEF6266415767B4C81096FEC16C7E164515950D1B6FD2B400CE14BD",
+    "pegasus_supervisor_v008.py": "DAEF8A5EEDC8D592F39CF0DB0DCDC9DE72FA6B9D0F75071B1F2FC3300FF90399",
     "pegasus_win_native_v008.py": "FD4E60031653822BE787AF394FE35F9CB0B37F56748960FDF593FE8C9F56139A"
   },
   "w04_g2_g3_native": "NOT_NATIVE_HOST_NOT_PROMOTED"

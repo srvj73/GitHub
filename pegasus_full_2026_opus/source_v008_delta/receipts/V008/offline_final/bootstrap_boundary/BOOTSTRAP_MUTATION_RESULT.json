@@ -1,0 +1,40 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R2_BOOTSTRAP_MUTATION",
+ "mutants": 8,
+ "killed": 8,
+ "results": [
+  {
+   "mutant": "null_exit_coerced_to_zero",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "exit_read_before_exit_allowed",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "relay_trusts_process_on_mismatch",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "relay_null_becomes_zero",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "expected_ignored",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "pythonpath_leaks",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "watchdog_kills_child",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "stderr_not_drained",
+   "result": "KILLED"
+  }
+ ],
+ "result": "PASS_ALL_MUTANTS_KILLED"
+}

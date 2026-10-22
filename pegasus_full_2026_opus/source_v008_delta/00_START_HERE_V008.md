@@ -26,6 +26,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads
 
 Log sempre em `C:\Users\silvi\Downloads\PEGASUS_FULL_2026_RUNS\<MODO>_<yyyyMMdd_HHmmss_fff>_<PID>\RUN_LOG.txt`, independentemente da pasta atual; a instância elevada (UAC) usa a mesma pasta. O resultado é um `..._RESULT.zip` ao lado da pasta da execução.
 
+## Revisão V008R2 — fronteira de exit codes fechada
+
+A campanha nativa R1 terminou `EXIT=3` por um defeito do PowerShell 5.1: `Start-Process -PassThru` não retém o handle, e o `ExitCode` `$null` de um filho rápido era coagido a `0` — falso PASS. O bootstrap foi reescrito para capturar o processo nativo com handle retido, exit **fail-closed** (ausente/não encerrado nunca vira 0), dreno assíncrono de stdout/stderr, watchdog que não mata o filho (grava recibo de reconciliação) e relé do UAC que confronta o exit do processo elevado com o exit gravado. O supervisor classifica exit de forma exata (0/2/3/130; desconhecido ⇒ fail-closed). Controles: `test_bootstrap_exit_boundary_v008.ps1` 20/20 e `mutation_bootstrap_exit_boundary_v008.py` 8/8 sobre os bytes reais do template; unit 55/55; mutantes do supervisor 20/20; qualificação acrescida de Q14/Q15. O recibo de qualificação passa a embutir `native_completeness_evaluation` (NOT_MET fora do Windows nativo).
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

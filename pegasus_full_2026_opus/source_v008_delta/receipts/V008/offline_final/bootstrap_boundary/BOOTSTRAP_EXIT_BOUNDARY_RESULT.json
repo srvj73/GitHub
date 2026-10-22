@@ -1,0 +1,163 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R2_BOOTSTRAP_EXIT_BOUNDARY_TEST",
+  "template_sha256": "B5CECF290152F85C258F0597E16C7FFA17D9038A78CB9BE62746BA88CC01B24F",
+  "runtime": "7.4.6",
+  "edition": "Core",
+  "cases": [
+    {
+      "case": "FAST_EXIT_0",
+      "result": "PASS",
+      "detail": {
+        "observed": 0
+      }
+    },
+    {
+      "case": "FAST_EXIT_1",
+      "result": "PASS",
+      "detail": {
+        "observed": 1
+      }
+    },
+    {
+      "case": "FAST_EXIT_2",
+      "result": "PASS",
+      "detail": {
+        "observed": 2
+      }
+    },
+    {
+      "case": "FAST_EXIT_3",
+      "result": "PASS",
+      "detail": {
+        "observed": 3
+      }
+    },
+    {
+      "case": "FAST_EXIT_7",
+      "result": "PASS",
+      "detail": {
+        "observed": 7
+      }
+    },
+    {
+      "case": "FAST_EXIT_19",
+      "result": "PASS",
+      "detail": {
+        "observed": 19
+      }
+    },
+    {
+      "case": "FAST_EXIT_37",
+      "result": "PASS",
+      "detail": {
+        "observed": 37
+      }
+    },
+    {
+      "case": "FAST_EXIT_87",
+      "result": "PASS",
+      "detail": {
+        "observed": 87
+      }
+    },
+    {
+      "case": "FAST_EXIT_130",
+      "result": "PASS",
+      "detail": {
+        "observed": 130
+      }
+    },
+    {
+      "case": "FAST_EXIT_255",
+      "result": "PASS",
+      "detail": {
+        "observed": 255
+      }
+    },
+    {
+      "case": "MISMATCH_RECORDED",
+      "result": "PASS",
+      "detail": {
+        "observed": 3
+      }
+    },
+    {
+      "case": "EXPECT_MISMATCH_THROWS_TAG",
+      "result": "PASS",
+      "detail": null
+    },
+    {
+      "case": "CHILD_EXCEPTION_EXIT_1_AND_STDERR",
+      "result": "PASS",
+      "detail": {
+        "observed": 1
+      }
+    },
+    {
+      "case": "STREAMS_2MB_NO_DEADLOCK_EXACT_BYTES",
+      "result": "PASS",
+      "detail": {
+        "out": 2097152,
+        "err": 2097152
+      }
+    },
+    {
+      "case": "SLOW_CHILD_HEARTBEAT_AND_EXIT",
+      "result": "PASS",
+      "detail": {
+        "observed": 4,
+        "heartbeats": 1
+      }
+    },
+    {
+      "case": "WATCHDOG_THROWS_NO_KILL_RECONCILE_RECEIPT",
+      "result": "PASS",
+      "detail": {
+        "message": "NATIVE_TIMEOUT_NO_KILL_RECONCILE label=WATCHDOG pid=1863",
+        "child_finished_naturally": true
+      }
+    },
+    {
+      "case": "ARGV_EXACT_AND_EXIT_37",
+      "result": "PASS",
+      "detail": {
+        "argv": [
+          "space value",
+          "literal\"quote",
+          "tail\\"
+        ]
+      }
+    },
+    {
+      "case": "ENV_HYGIENE",
+      "result": "PASS",
+      "detail": {
+        "env": {
+          "PYTHONPATH": null,
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "PYTHONIOENCODING": "utf-8"
+        }
+      }
+    },
+    {
+      "case": "NULL_EXIT_FAIL_CLOSED",
+      "result": "PASS",
+      "detail": {
+        "t2": "NATIVE_EXIT_READ_BEFORE_EXIT",
+        "t3": "NATIVE_PROCESS_OBJECT_NULL",
+        "t1": "NATIVE_EXIT_NULL"
+      }
+    },
+    {
+      "case": "UAC_RELAY_RULES",
+      "result": "PASS",
+      "detail": {
+        "results": "0,3,2,3,3,3,3"
+      }
+    }
+  ],
+  "passed": 20,
+  "failed": 0,
+  "result": "PASS_ALL"
+}
