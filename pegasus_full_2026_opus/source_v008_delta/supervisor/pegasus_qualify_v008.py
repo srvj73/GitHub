@@ -25,6 +25,7 @@ import hashlib
 import json
 import os
 import platform
+import re
 import shutil
 import sys
 import time
@@ -282,15 +283,21 @@ print('MAPPED', flush=True)
 time.sleep(float(sys.argv[2]))
 """
 _JOB_CHILD = r"""
-import subprocess, sys, ctypes
+import subprocess, sys
 CREATE_BREAKAWAY_FROM_JOB = 0x01000000
 kids = [subprocess.Popen([sys.executable, '-c', 'pass']) for _ in range(5)]
 for k in kids: k.wait()
+# Tenta escapar da custodia via CREATE_BREAKAWAY_FROM_JOB. No Win8+ (jobs aninhados) o SO pode
+# NAO lancar e mesmo assim manter o neto no Job; o invariante real de custodia e a CONTENCAO
+# (o neto permanece na contabilidade do Job), nao o lancamento. O neto fica vivo ~3s para o
+# supervisor registrar sua pertenca (NEW_PROCESS/IOCP + sample).
 try:
-    subprocess.Popen([sys.executable, '-c', 'pass'], creationflags=CREATE_BREAKAWAY_FROM_JOB).wait()
-    print('BREAKAWAY_SUCCEEDED')
+    p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(3)'],
+                         creationflags=CREATE_BREAKAWAY_FROM_JOB)
+    print('BREAKAWAY_CREATEPROCESS=OK pid=%d' % p.pid, flush=True)
+    p.wait()
 except OSError as e:
-    print('BREAKAWAY_DENIED winerror=%s' % getattr(e, 'winerror', None))
+    print('BREAKAWAY_DENIED winerror=%s' % getattr(e, 'winerror', None), flush=True)
 """
 
 
@@ -355,10 +362,23 @@ def _windows_native_negatives(evidence, inputs, env, case, log):
     (evidence / "Q11_job").mkdir()
     r = s.run([py, "-I", "-B", "-c", _JOB_CHILD], env)
     child_log = (evidence / "Q11_job.child.log").read_text(errors="replace")
+    # Contencao do breakaway: o neto NAO escapa da custodia. Vale se o SO negou o flag
+    # (BREAKAWAY_DENIED) OU se, apesar de o CreateProcess nao lancar, o neto permaneceu na
+    # contabilidade do Job (seu PID aparece em job_pids, registrado por NEW_PROCESS/IOCP+sample).
+    # Escape real = CreateProcess OK e PID fora do Job.
+    m = re.search(r"BREAKAWAY_CREATEPROCESS=OK pid=(\d+)", child_log)
+    job_pids = set(r.get("job_pids") or [])
+    if "BREAKAWAY_DENIED" in child_log:
+        breakaway_contained, detail = True, "DENIED_BY_OS"
+    elif m:
+        breakaway_contained = int(m.group(1)) in job_pids
+        detail = "OK_pid=%s_in_job=%s" % (m.group(1), breakaway_contained)
+    else:
+        breakaway_contained, detail = False, "NO_BREAKAWAY_MARKER"
     case("Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
          r["lineage"]["lineage"] == "GAPLESS_NATIVE_JOB" and r["lineage"]["processes"] >= 6
-         and "BREAKAWAY_DENIED" in child_log and r["child_exit"] == 0,
-         lineage=r["lineage"], jit=r["jit"])
+         and breakaway_contained and r["child_exit"] == 0,
+         lineage=r["lineage"], jit=r["jit"], breakaway_contained=breakaway_contained, breakaway=detail)
 
 
 # =====================================================================================

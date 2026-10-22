@@ -46,6 +46,10 @@ A campanha nativa R4 confirmou o SAFE_STOP por plataforma: **Q01–Q09 e Q12 pas
 
 A campanha nativa R5 mostrou que reentregar o Ctrl+C (R5) nao resolve: em Q03 as reentregas mantiveram `STATUS.STOP_REQUESTED=False` ate o timeout. Causa: o Ctrl+C vai ao grupo do console; entregue com `ACTIVE=0` (spawn/import dos workers) ele mata os workers em import e encrava o coordenador. Corrigido em V008R6: no Windows o supervisor so entrega o SAFE_STOP com workers em execucao (`ACTIVE>0`), fora da janela de import; no POSIX entrega direto ao coordenador (os.kill). Encrave vira falha-fechada em 180 s (`SAFE_STOP_NOT_HONORED`), sem pendurar. Regressao `SafeStopRedelivery` (janela segura); unit 70/70; mutantes 24/24.
 
+## Revisão V008R7 — contenção de breakaway do Job
+
+A campanha nativa R6 provou **22 de 23 casos nativos** (Q01–Q15 + W04 Q10a–f, incl. Q03/Q04 SAFE_STOP/retomada e Q12b). Resta Q11: o neto imprimiu `BREAKAWAY_SUCCEEDED` porque o `CreateProcess` com `CREATE_BREAKAWAY_FROM_JOB` nao lancou — proxy incorreto no Win8+ (jobs aninhados), onde o SO pode nao lancar e ainda assim manter o processo no Job. Corrigido em V008R7: Q11 verifica **contencao real** (o PID do neto permanece em `job_pids` registrado pelo kernel) em vez do proxy; escape real = FAIL. `Supervision.run` passa a expor `job_pids`. Unit 71/71; mutantes 24/24.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

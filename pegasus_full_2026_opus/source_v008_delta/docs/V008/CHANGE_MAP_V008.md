@@ -115,3 +115,18 @@ Correção (no supervisor; V003 intocado):
 - **Falha-fechada rápida**: `SAFE_STOP_HONOR_DEADLINE_S=180 s`. Se o pedido for feito mas o coordenador nunca registrar (encrave), o supervisor levanta `SAFE_STOP_NOT_HONORED_NO_LATCH_RECONCILE_REQUIRED` — diagnóstico claro em ~180 s em vez de pendurar até o timeout total. Jamais termina processo.
 
 Regressão offline: `SafeStopRedelivery` passa a cobrir a janela segura (entrega imediata com `ACTIVE>0`; recusa em `ACTIVE=0` no Windows; POSIX entrega independente de `ACTIVE`) + mutante `safestop_delivers_in_spawn_window`. Unit do supervisor **70/70**; mutantes do supervisor **24/24**; fronteira do bootstrap 20/20 + 8/8 (template inalterado); cadeia V003 19/19 imutável; qualificação supervisionada 16/16 PASS + 2 SKIPPED_NON_NATIVE.
+
+
+## Contenção de breakaway do Job V008R7 (achado da campanha nativa R6)
+
+A campanha nativa R6 provou **22 de 23 casos nativos** (Q01–Q15 e os negativos W04 Q10a–f, incl. Q03 SAFE_STOP, Q04 retomada e Q12b — o que pendurava na R5). Único resíduo: **Q11** (linhagem Job + breakaway). Linhagem OK (`GAPLESS_NATIVE_JOB`, 15 processos); o neto imprimiu `BREAKAWAY_SUCCEEDED` — ou seja, `CreateProcess` com `CREATE_BREAKAWAY_FROM_JOB` **não lançou**.
+
+Causa: no Windows 8+ (jobs aninhados) o `CreateProcess` com esse flag pode **não lançar** e, ainda assim, o SO manter o processo no Job. O proxy antigo do teste (“lançou ⇒ negado; não lançou ⇒ escapou”) é **incorreto** nesse regime: ele não mede a propriedade de segurança real, que é a **contenção** (o processo não sai da contabilidade do Job, de onde valem o gate de árvore-vazia e o fail-safe `KILL_ON_JOB_CLOSE`).
+
+Correção (no teste de qualificação e no resultado do supervisor; V003 intocado):
+
+- `_JOB_CHILD` mantém o neto de breakaway vivo ~3 s e reporta seu PID.
+- `Supervision.run` passa a expor `job_pids` (o conjunto de PIDs que o kernel registrou no Job via NEW_PROCESS/IOCP + amostragem).
+- **Q11 verifica contenção real**: PASS se o SO negou o flag (`BREAKAWAY_DENIED`) **ou** se, apesar de o `CreateProcess` não lançar, o PID do neto permaneceu em `job_pids` (contido pelo kernel). FAIL só no escape real (CreateProcess OK e PID **fora** do Job). Isso é um critério **mais rigoroso** que o proxy anterior — mede o escape de custódia de fato, não o valor de retorno do `CreateProcess`.
+
+Observação de validação: Q11 é nativo (offline `SKIPPED_NON_NATIVE`), então esta lógica é exercida apenas na campanha do titular; o campo `job_pids` é exercido também no POSIX pelos casos Q01–Q12 da qualificação offline. Unit do supervisor 71/71; mutantes 24/24; fronteira do bootstrap 20/20 + 8/8 (template inalterado); cadeia V003 19/19 imutável.

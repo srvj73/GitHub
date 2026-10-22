@@ -636,6 +636,7 @@ class Supervision:
         inv_b = inventory(self.out_root)
         result = {"label": self.label, "child_pid": pid, "child_exit": rc, "w04_arm": arm,
                   "w04": w04, "jit": jit, "lineage": lineage, "run_lock_present": run_lock,
+                  "job_pids": sorted({int(e["pid"]) for e in new_proc_events}),
                   "status": self._status(), "stop_requested": self.stop_requested}
         if self.stop_requested:
             result["safe_stop"] = safestop_verdict(

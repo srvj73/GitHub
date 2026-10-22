@@ -35,7 +35,9 @@
       "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q01-Q09 sob Job real + Q11 netos/breakaway)",
       "native_campaign_r2": "EXECUTED: W04 armou nativo (43 files, 0 violations, usn_hits=0); Job accounting-after-close corrigido em V008R3 (handle lifecycle)",
       "job_handle_lifecycle": "CLOSED_V008R3: evidência terminal capturada antes de close(); custodiantes recusam consulta pós-close; regressão CustodyLifecycleContract",
-      "native_campaign_r3": "Q01/Q02 PASS nativos (handle do Job R3 confirmado); cadeia parou em Q03 (SAFE_STOP POSIX-only), corrigido R4"
+      "native_campaign_r3": "Q01/Q02 PASS nativos (handle do Job R3 confirmado); cadeia parou em Q03 (SAFE_STOP POSIX-only), corrigido R4",
+      "native_campaign_r6": "22/23 casos nativos PASS (Q01-Q15 + W04 Q10a-f); Q11 breakaway: proxy do CreateProcess incorreto no Win8+ (jobs aninhados)",
+      "breakaway_containment": "CLOSED_V008R7: Q11 verifica CONTENCAO real (PID do neto permanece em job_pids do kernel) em vez do proxy de excecao; escape real = FAIL"
     },
     "G4_SAFESTOP_RESUME": {
       "state": "OFFLINE_PASS_ON_REAL_RUNTIME_SYNTHETIC_NATIVE_PENDING",
@@ -65,7 +67,8 @@
       "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)",
       "exit_code_boundary": "CLOSED_V008R2 (bootstrap+UAC+subprocess+watchdog+supervisor; sem falso PASS)",
       "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
-      "offline_test_counts": "unit 70/70 (SafeStopRedelivery janela segura incl.); supervisor mutants 24/24; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP"
+      "offline_test_counts": "unit 70/70 (SafeStopRedelivery janela segura incl.); supervisor mutants 24/24; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP",
+      "native_campaign_r6": "22/23 nativos PASS; so Q11 breakaway restante, criterio corrigido para contencao real em R7"
     }
   },
   "boundaries": {
@@ -80,10 +83,10 @@
     "independent_audit": "NOT_STARTED"
   },
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
-  "revision": "V008R6",
+  "revision": "V008R7",
   "supersedes": {
-    "v008r5_zip_sha256": "A7957E699B9BCFA2F0B9F0B4792C9120E05D803321DE22EAA028C079EC865223",
-    "reason": "SAFE_STOP delivered only in a safe window (ACTIVE>0) to avoid killing workers mid-import; re-delivery alone did not recover the wedge (R5 Q03 hung)"
+    "v008r6_zip_sha256": "4B8DF8B9C178B4DD19565992BF0B0DC5D90FB8B1E4E10C816AF724F7ED1E8360",
+    "reason": "Q11 breakaway asserts true containment (PID stays in Job accounting) instead of the CreateProcess-throws proxy, which is wrong on Win8+ nested jobs"
   },
   "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
   "native_campaign_r2_result": {
@@ -114,5 +117,11 @@
     "qualifynative_exit": 3,
     "native_cases_pass": "Q01,Q02",
     "blocker": "Q03 SAFE_STOP wedged: Ctrl+C in worker-spawn window (ACTIVE=0) killed workers mid-import; 8+ re-deliveries did not latch -> fixed V008R6 (safe-window delivery + fail-closed honor deadline)"
+  },
+  "native_campaign_r6_result": {
+    "verify": "PASS",
+    "qualifynative_exit": 3,
+    "native_cases_pass": "22_of_23 (Q01-Q15, Q10a-f; incl. Q03/Q04 SAFE_STOP/resume, Q12b)",
+    "blocker": "Q11 breakaway proxy (CreateProcess did not throw on Win8+ nested jobs) -> criterion corrected to real containment in V008R7"
   }
 }

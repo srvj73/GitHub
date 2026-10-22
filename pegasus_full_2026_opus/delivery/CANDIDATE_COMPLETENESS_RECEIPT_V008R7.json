@@ -1,31 +1,31 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R6_CANDIDATE_COMPLETENESS_FIVE_PART",
+  "schema": "PEGASUS_FULL_2026_V008R7_CANDIDATE_COMPLETENESS_FIVE_PART",
   "final_bytes": {
     "zip": {
-      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R6_20261022.zip",
-      "sha256": "4B8DF8B9C178B4DD19565992BF0B0DC5D90FB8B1E4E10C816AF724F7ED1E8360",
-      "bytes": 87391500,
-      "members": 2949
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R7_20261022.zip",
+      "sha256": "FDFCEDB59BB361C05B9900FFE4697B5C9496159C546CB379C10E82ECB1002F7F",
+      "bytes": 87388961,
+      "members": 2947
     },
-    "manifest_sha256": "186E8A0F9F3E46290F64D20CC713DF63043D5DB4120AA21097128443C0D9963D",
-    "tested_manifest_sha256_m1": "EA3AF7FB29F96D035F48066A8BF9244A56F08B95185AFB0EA16FF4EB8A215E9A",
+    "manifest_sha256": "055A9276EEDAD7931A95C65EA6173BA271B29C6E455D8D8939F94DE7627232C3",
+    "tested_manifest_sha256_m1": "1F8415010BC31A525244B38EE7F8D9FABF92520088483FD9A8B230E3E3A5E26C",
     "bootstrap": {
-      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R6_PS51.ps1",
-      "sha256": "B90A86FA37538C07669C469EC29D483256D72378333798D7A4BD13C73AC8D89F",
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R7_PS51.ps1",
+      "sha256": "D90799137B56AFDAAA88B16A196804DD325595944E016B4C216FA8C1B6E0D324",
       "bytes": 22858
     },
-    "supersedes_v008r5": {
-      "zip_sha256": "A7957E699B9BCFA2F0B9F0B4792C9120E05D803321DE22EAA028C079EC865223",
-      "reason": "SAFE_STOP delivered only in a safe window (ACTIVE>0); re-delivery alone did not recover the wedge (R5 Q03 hung)"
+    "supersedes_v008r6": {
+      "zip_sha256": "4B8DF8B9C178B4DD19565992BF0B0DC5D90FB8B1E4E10C816AF724F7ED1E8360",
+      "reason": "Q11 breakaway asserts true containment (grandchild PID stays in Job accounting) instead of the CreateProcess-throws proxy, wrong on Win8+ nested jobs"
     },
     "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
   },
   "parts": {
     "1_source_and_lineage": "PASS (V003 fisico byte-identico; entrypoint testado=empacotado=entregue); QS4 sucessor ausente provado",
     "2_consumers_implemented_wired_and_blocked": "PASS (W04/Job/SAFE_STOP/porta; cmd_run->admission->_run_supervised; fronteira de exit exata; handle do Job e SAFE_STOP corretos por plataforma; FULL B/C e QS4 fail-closed)",
-    "3_offline_qualification_final_bytes": "PASS (19/19 V003 imutavel; V008R6 16 PASS + 2 SKIPPED_NON_NATIVE incl. Q14/Q15; 71/71 unit incl. SafeStopExitPlatform+CustodyLifecycleContract; 24/24 mutantes supervisor; 20/20 bootstrap boundary; 8/8 bootstrap mutantes)",
+    "3_offline_qualification_final_bytes": "PASS (19/19 V003 imutavel; V008R7 16 PASS + 2 SKIPPED_NON_NATIVE incl. Q14/Q15; 71/71 unit incl. SafeStopExitPlatform+CustodyLifecycleContract; 24/24 mutantes supervisor; 20/20 bootstrap boundary; 8/8 bootstrap mutantes)",
     "4_native_target_qualification": "PENDING_RERUN (R2 fronteira de exit; R3 handle do Job; R4 Q01-Q09+Q12 PASS nativos incl. Q03 SAFE_STOP/Q04 retomada, Q12b expos a corrida de reentrega, agora corrigida; faltam Q12b em diante, W04 Q10a-f, Job Q11; native_completeness_evaluation=NOT_MET)",
-    "5_tested_packaged_installed_delivered": "PASS offline (2948 arquivos conferidos); instalado PENDENTE (modo Install)"
+    "5_tested_packaged_installed_delivered": "PASS offline (2946 arquivos conferidos); instalado PENDENTE (modo Install)"
   },
   "candidate_completeness": "NOT_PASS",
   "single_external_blocker": "Re-execucao nativa da campanha unica no PC do titular (efeito fisico Windows indisponivel ao implementador)",
