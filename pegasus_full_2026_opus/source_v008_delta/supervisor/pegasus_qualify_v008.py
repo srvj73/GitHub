@@ -183,6 +183,10 @@ def run_qualification(evidence: Path, workers_ref: int = 1, workers_multi: int =
              and any(h.endswith(".RECOVERED_COMMITTED") for h in hist)
              and not (gap / "RUN.lock").exists(),
              journal_history=hist)
+        # Q12/Q13 — caminho executável supervisionado via cmd_run + admissão (fecha a lacuna
+        # estrutural). Mesma via de produção run-b/-c/-full; aqui com admissão sintética
+        # isolada e não econômica, e com os negativos que mantêm o econômico fail-closed.
+        _supervised_run_path_cases(evidence, inputs, env, case, log)
         if os.name == "nt":
             _windows_native_negatives(evidence, inputs, env, case, log)
         else:
@@ -308,3 +312,84 @@ def _windows_native_negatives(evidence, inputs, env, case, log):
          r["lineage"]["lineage"] == "GAPLESS_NATIVE_JOB" and r["lineage"]["processes"] >= 6
          and "BREAKAWAY_DENIED" in child_log and r["child_exit"] == 0,
          lineage=r["lineage"], jit=r["jit"])
+
+
+# =====================================================================================
+# Q12/Q13 — caminho executável supervisionado (run-b/-c/-full) via admissão
+# =====================================================================================
+def _supervised_run_path_cases(evidence, inputs, env, case, log):
+    import subprocess
+    admission = HERE / "tests" / "pegasus_synthetic_admission_v008.py"
+    sup_py = HERE / "pegasus_supervisor_v008.py"
+    py = sys.executable
+
+    def run_cmd(cmd, extra_env, label):
+        e = {**env, **extra_env}
+        out = evidence / (label + ".run.log")
+        p = subprocess.run([py, "-I", "-B", str(sup_py), cmd, "--admission", str(admission),
+                            "--evidence", str(evidence / (label + "_EV"))],
+                           capture_output=True, text=True, env=e, timeout=1800)
+        out.write_text(p.stdout + "\n--- stderr ---\n" + p.stderr, encoding="utf-8")
+        return p
+
+    def run_default(cmd, label):
+        out = evidence / (label + ".run.log")
+        p = subprocess.run([py, "-I", "-B", str(sup_py), cmd], capture_output=True, text=True,
+                           env=env, timeout=300)
+        out.write_text(p.stdout + "\n--- stderr ---\n" + p.stderr, encoding="utf-8")
+        return p
+
+    # Q12: run-b com admissão sintética -> caminho supervisionado completo até COMPLETED.
+    out12 = evidence / "Q12_out"
+    p12 = run_cmd("run-b", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(out12),
+                            "PEGASUS_SYN_WORKERS": "3"}, "Q12_supervised_run")
+    res12_path = evidence / "Q12_supervised_run_EV" / "SYN_SUPERVISED_SUPERVISED_RUN_RESULT.json"
+    res12 = json.loads(res12_path.read_text()) if res12_path.is_file() else {}
+    case("Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
+         p12.returncode == 0 and res12.get("result") == "PASS_SUPERVISED_RUN"
+         and res12.get("completion", {}).get("completed") is True
+         and res12.get("jit", {}).get("jit", "").startswith("W04_ARMED_BEFORE")
+         and _economic(out12) == _economic(evidence / "Q01_reference_w1"),
+         returncode=p12.returncode, completion=res12.get("completion"), jit=res12.get("jit"),
+         w04=res12.get("w04"), lineage=res12.get("lineage"))
+
+    # Q12b: run-full com admissão sintética + SAFE_STOP injetado -> parada confirmada, retomada.
+    out12b = evidence / "Q12b_out"
+    p12b = run_cmd("run-full", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(out12b),
+                                "PEGASUS_SYN_WORKERS": "2", "PEGASUS_SYN_STOP": "1"}, "Q12b_supervised_safestop")
+    res12b = json.loads((evidence / "Q12b_supervised_safestop_EV" / "SYN_SUPERVISED_SUPERVISED_RUN_RESULT.json").read_text())
+    p12c = run_cmd("run-full", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(out12b),
+                                "PEGASUS_SYN_WORKERS": "3"}, "Q12c_supervised_resume")
+    res12c = json.loads((evidence / "Q12c_supervised_resume_EV" / "SYN_SUPERVISED_SUPERVISED_RUN_RESULT.json").read_text())
+    case("Q12b_CMD_RUN_SAFESTOP_THEN_RESUME_EXACTLY_ONCE",
+         (res12b.get("safe_stop", {}) or {}).get("safe_stop", "").startswith("CONFIRMED_BY_SUPERVISOR")
+         and p12c.returncode == 0 and res12c.get("completion", {}).get("completed") is True
+         and _economic(out12b) == _economic(evidence / "Q01_reference_w1"),
+         safe_stop=res12b.get("safe_stop"), resume_completion=res12c.get("completion"))
+
+    # Q13a: admissão de produção (sem --admission) bloqueia run-b/-c/-full com causa G00.
+    blocked = {}
+    for cmd in ("run-b", "run-c", "run-full"):
+        p = run_default(cmd, "Q13a_default_" + cmd)
+        doc = json.loads(p.stdout.strip().splitlines()[-1])
+        blocked[cmd] = (p.returncode, doc.get("result"), doc.get("cause", ""), doc.get("effects"))
+    case("Q13a_DEFAULT_ADMISSION_BLOCKS_ALL_RUN_MODES",
+         all(v[0] == 2 and v[1] == "BLOCKED" and "G00_RUN_RELEASE_DISABLED" in v[2] and v[3] == "NONE"
+             for v in blocked.values()), blocked=blocked)
+
+    # Q13b: admissão sintética que tenta marcar plano econômico -> recusa (make_run_plan).
+    p13b = run_cmd("run-b", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(evidence / "Q13b_out"),
+                             "PEGASUS_SYN_TRY_ECONOMIC": "1"}, "Q13b_economic_plan_refused")
+    case("Q13b_ECONOMIC_PLAN_REFUSED",
+         p13b.returncode == 2 and "ECONOMIC_RUN_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION" in (p13b.stdout + p13b.stderr),
+         returncode=p13b.returncode)
+
+    # Q13c: admissão que aponta argv ao executor econômico real -> bloqueado antes de efeito.
+    out13c = evidence / "Q13c_out"
+    p13c = run_cmd("run-b", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(out13c),
+                             "PEGASUS_SYN_TARGET_ECONOMIC_ENTRY": "1"}, "Q13c_economic_entry_blocked")
+    case("Q13c_ECONOMIC_ENTRY_ARGV_BLOCKED",
+         p13c.returncode == 2
+         and "ECONOMIC_RUN_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION" in (p13c.stdout + p13c.stderr)
+         and not out13c.exists(),
+         returncode=p13c.returncode)

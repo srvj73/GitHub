@@ -1,5 +1,5 @@
 {
- "members": 2911,
+ "members": 2912,
  "v003_members_preserved": 2867,
  "added": [
   "00_START_HERE_V008.md",
@@ -45,8 +45,9 @@
   "supervisor/pegasus_supervisor_v008.py",
   "supervisor/pegasus_win_native_v008.py",
   "supervisor/tests/mutation_supervisor_v008.py",
+  "supervisor/tests/pegasus_synthetic_admission_v008.py",
   "supervisor/tests/test_supervisor_v008.py"
  ],
- "manifest_sha256": "8719A2144ED6E2D20DF9296BAD0CD10074758CC61AFDDD03F4EEFD59011BF268",
+ "manifest_sha256": "C68AD34A2C8EC05D3B8D6957AC2CFA811FD5BECD1572B8800FE7B6A2A4D2B592",
  "parent_v003_manifest_sha256": "701DF5ECE97948F275C22919E39D2AB1366BDFC77B78CF6C441AF4BB50266AF1"
 }

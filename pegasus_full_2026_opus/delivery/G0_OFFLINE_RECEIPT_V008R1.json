@@ -1,0 +1,39 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R1_G0_OFFLINE_RECEIPT",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R1_20261022.zip",
+      "sha256": "912A7A1DE17F82A644829FB531B91C88621884E1912DF4FC77E41FF68B51BEB5",
+      "bytes": 87350085,
+      "members": 2938
+    },
+    "manifest_sha256": "A47F76466EE96959DC3E1EAFDF95C3540F94E04CE34CBB903795CA8F419AD762",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R1_PS51.ps1",
+      "sha256": "93B535336F9168BF69E014A8402C863E4B14CC690E2F683E4594C574F1B0D83C",
+      "bytes": 15278
+    },
+    "supersedes_v008": {
+      "zip_sha256": "31713EBFE68EA046C16C2D5AD58036A5C35A192DB96C4A2A63136B8D26599510",
+      "manifest_sha256": "57250071B9B8FBB99F7EE7C8AEC5876BF7C0D4F72B32A3269A293AE021289EF5",
+      "reason": "cmd_run supervised executable path wired (structural gap closed)"
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "zip_crc": "PASS",
+  "delivered_extract_verify": "PASS_PACKAGE_VERIFIED",
+  "delivered_manifest_sha256": "A47F76466EE96959DC3E1EAFDF95C3540F94E04CE34CBB903795CA8F419AD762",
+  "python_compile_new_code": "ALL_ON_3.12_AND_3.13",
+  "powershell_parse": "PASS_PWSH_7.4.6_LINUX_LIMITED_EVIDENCE",
+  "windows_ps51_parse": "PENDING_OWNER_CAMPAIGN_STEP_1",
+  "windows_python_3_14_7": "PENDING_OWNER_CAMPAIGN",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED"
+}

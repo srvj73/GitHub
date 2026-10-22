@@ -1,0 +1,43 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R1_CANDIDATE_COMPLETENESS_FIVE_PART",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R1_20261022.zip",
+      "sha256": "912A7A1DE17F82A644829FB531B91C88621884E1912DF4FC77E41FF68B51BEB5",
+      "bytes": 87350085,
+      "members": 2938
+    },
+    "manifest_sha256": "A47F76466EE96959DC3E1EAFDF95C3540F94E04CE34CBB903795CA8F419AD762",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R1_PS51.ps1",
+      "sha256": "93B535336F9168BF69E014A8402C863E4B14CC690E2F683E4594C574F1B0D83C",
+      "bytes": 15278
+    },
+    "supersedes_v008": {
+      "zip_sha256": "31713EBFE68EA046C16C2D5AD58036A5C35A192DB96C4A2A63136B8D26599510",
+      "manifest_sha256": "57250071B9B8FBB99F7EE7C8AEC5876BF7C0D4F72B32A3269A293AE021289EF5",
+      "reason": "cmd_run supervised executable path wired (structural gap closed)"
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "parts": {
+    "1_source_and_lineage": "PASS (V003 físico byte-idêntico; entrypoint testado=empacotado); QS4 sucessor ausente provado",
+    "2_consumers_implemented_wired_and_blocked": "PASS (supervisor W04/Job/SAFE_STOP/porta; cmd_run percorre o caminho supervisionado após admissão; FULL B/C e QS4 fail-closed)",
+    "3_offline_qualification_final_bytes": "PASS (19/19 V003; 16/16 V008R1 incl. Q12/Q13; 52/52; 17/17 mutantes)",
+    "4_native_target_qualification": "PENDING (campanha QualifyNative: PS5.1, Python 3.14.7, W04 Q10a-f, Job Q11, Q01-Q13 sob Job real)",
+    "5_tested_packaged_installed_delivered": "PASS offline p/ testado=empacotado=entregue; instalado PENDENTE (modo Install)"
+  },
+  "candidate_completeness": "NOT_PASS",
+  "single_external_blocker": "Execução nativa da campanha única no PC do titular (efeito físico Windows indisponível ao implementador)",
+  "out_of_mission_gate": "Harness QS4 sucessor vinculado ao adaptador EC96FE9A exige qualificação QS4 (QS4=NO)",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

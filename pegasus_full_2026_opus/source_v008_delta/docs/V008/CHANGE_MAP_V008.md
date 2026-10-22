@@ -36,3 +36,15 @@
 ## Custos e efeitos
 
 Nenhum crédito pago; nenhuma execução econômica; nenhuma escrita em D:, ACL produtiva, serviço ou tarefa. Downloads de terceiros no ambiente de build: apenas o PowerShell 7.4.6 oficial (hash da release conferido), usado só para análise sintática.
+
+
+## Fecho estrutural V008R1 (achado da origem)
+
+A origem apontou que `cmd_run()` terminava em `RELEASE_ADMISSION_RETURNED_WITHOUT_EXTERNAL_MODULE` — o caminho executável supervisionado não era percorrido após admissão válida. Fechado:
+
+- `cmd_run` agora é **admissão → plano → `_run_supervised`**. A admissão é a única porta; `make_run_plan` recusa plano econômico sem prova de autorização externa; `_run_supervised` executa o argv admitido sob W04/Job/SAFE_STOP/retomada/porta de conclusão.
+- `DefaultReleaseAdmission` (produção, default de `run-b/-c/-full`) delega ao `release_admission` selado do V003 → sempre `entry.Blocked` (causa G00), sem efeito.
+- `supervisor/tests/pegasus_synthetic_admission_v008.py`: admissão sintética isolada (não econômica) usada só via `--admission`, para exercitar o caminho com o `synthetic_chain.py`.
+- Barreiras econômicas em profundidade: (1) admissão default bloqueia; (2) `make_run_plan`/`_run_supervised` recusam plano econômico sem prova externa; (3) o executor econômico real revalida `release_admission` por dentro.
+
+Qualificação acrescida: **Q12** (`cmd_run` percorre o caminho supervisionado até COMPLETED, bytes iguais à referência), **Q12b** (SAFE_STOP via `cmd_run` + retomada exactly-once), **Q13a** (admissão default bloqueia os 3 modos, causa G00, efeito NONE), **Q13b** (plano econômico recusado), **Q13c** (argv ao executor econômico real recusado, sem criar saída). Testes unitários 52/52; mutantes 17/17; parse PS 5.1-safe pelo pwsh 7.4.6.

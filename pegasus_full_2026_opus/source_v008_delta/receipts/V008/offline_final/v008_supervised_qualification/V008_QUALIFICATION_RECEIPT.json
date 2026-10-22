@@ -5,15 +5,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 53,
-        "inventory_sha256": "F1142DC314E669834840C4EB84DFA909F44EE5627D057A8D1E048A1A72021088"
+        "inventory_sha256": "4CB554974F47B88FEEC3BA62691A84DD0DE8E78AE038C527E6E7881832327105"
       },
       "jit": {
-        "child_created_ns": 2006793083623,
-        "child_resumed_ns": 2006794161891,
+        "child_created_ns": 660483073332,
+        "child_resumed_ns": 660484108646,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 2013743878282,
-        "w04_arm_ns": 2006793012277,
-        "w04_disarm_ns": 2013747260016
+        "tree_empty_ns": 667322602979,
+        "w04_arm_ns": 660482915250,
+        "w04_disarm_ns": 667325903552
       },
       "lineage": {
         "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF",
@@ -60,7 +60,7 @@
     },
     {
       "active_journals": [
-        "2000-01-06.2385_1792669797551894915.json"
+        "2000-01-06.1097_1792672501507444679.json"
       ],
       "case": "Q05_GAP1_JOURNAL_WITHOUT_PENDING",
       "child_exit": 1,
@@ -74,7 +74,7 @@
     {
       "case": "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
       "child_exit": 87,
-      "orphan_run_lock_pid": 2412,
+      "orphan_run_lock_pid": 1124,
       "result": "PASS"
     },
     {
@@ -90,12 +90,86 @@
     {
       "case": "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
       "journal_history": [
-        "1999-12-31.2385_1792669797551894915.json.COMMITTED",
-        "2000-01-06.2385_1792669797551894915.json.RECOVERED_REQUEUE",
-        "2000-01-06.2412_1792669802805544274.json.RECOVERED_COMMITTED",
-        "2000-01-11.2425_1792669806671336866.json.COMMITTED"
+        "1999-12-31.1097_1792672501507444679.json.COMMITTED",
+        "2000-01-06.1097_1792672501507444679.json.RECOVERED_REQUEUE",
+        "2000-01-06.1124_1792672506775725646.json.RECOVERED_COMMITTED",
+        "2000-01-11.1137_1792672510598648297.json.COMMITTED"
       ],
       "result": "PASS"
+    },
+    {
+      "case": "Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
+      "completion": {
+        "completed": true,
+        "inventory_entries": 37,
+        "inventory_sha256": "E839CCC3DAA43C86E9A7038EE2236CA610381CB731AD1EFD6E934B8DFF569996"
+      },
+      "jit": {
+        "child_created_ns": 697445065848,
+        "child_resumed_ns": 697446012908,
+        "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
+        "tree_empty_ns": 704405750460,
+        "w04_arm_ns": 697444600686,
+        "w04_disarm_ns": 704408916916
+      },
+      "lineage": {
+        "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF",
+        "processes_observed": 33
+      },
+      "result": "PASS",
+      "returncode": 0,
+      "w04": {
+        "hash_continuity": "UNCHANGED",
+        "reason": "Somente Windows nativo produz lease de compartilhamento + USN.",
+        "w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"
+      }
+    },
+    {
+      "case": "Q12b_CMD_RUN_SAFESTOP_THEN_RESUME_EXACTLY_ONCE",
+      "result": "PASS",
+      "resume_completion": {
+        "completed": true,
+        "inventory_entries": 37,
+        "inventory_sha256": "6FC0F374FF0B5879022834BE496D40F97612A593C00461AEA185485C732E1FF9"
+      },
+      "safe_stop": {
+        "committed_at_stop": 2,
+        "safe_stop": "CONFIRMED_BY_SUPERVISOR_NON_NATIVE_W04"
+      }
+    },
+    {
+      "blocked": {
+        "run-b": [
+          2,
+          "BLOCKED",
+          "G00_RUN_RELEASE_DISABLED; QS2/QS3/QS4/QS5_B06_AND_R01_R06_PENDING",
+          "NONE"
+        ],
+        "run-c": [
+          2,
+          "BLOCKED",
+          "G00_RUN_RELEASE_DISABLED; QS2/QS3/QS4/QS5_B06_AND_R01_R06_PENDING",
+          "NONE"
+        ],
+        "run-full": [
+          2,
+          "BLOCKED",
+          "G00_RUN_RELEASE_DISABLED; QS2/QS3/QS4/QS5_B06_AND_R01_R06_PENDING",
+          "NONE"
+        ]
+      },
+      "case": "Q13a_DEFAULT_ADMISSION_BLOCKS_ALL_RUN_MODES",
+      "result": "PASS"
+    },
+    {
+      "case": "Q13b_ECONOMIC_PLAN_REFUSED",
+      "result": "PASS",
+      "returncode": 2
+    },
+    {
+      "case": "Q13c_ECONOMIC_ENTRY_ARGV_BLOCKED",
+      "result": "PASS",
+      "returncode": 2
     },
     {
       "case": "Q10_W04_NATIVE_NEGATIVES",
@@ -114,7 +188,7 @@
   "g4": "FROZEN",
   "native_windows": false,
   "os_name": "posix",
-  "package_manifest_sha256": "8719A2144ED6E2D20DF9296BAD0CD10074758CC61AFDDD03F4EEFD59011BF268",
+  "package_manifest_sha256": "C68AD34A2C8EC05D3B8D6957AC2CFA811FD5BECD1572B8800FE7B6A2A4D2B592",
   "phase_c": "FORBIDDEN",
   "platform": "Linux-6.18.44-fc-v140-x86_64-with-glibc2.39",
   "python": "3.12.3",
@@ -123,7 +197,7 @@
   "result": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC",
   "run_released": "NO",
   "schema": "PEGASUS_FULL_2026_V008_INTEGRATED_QUALIFICATION_V001",
-  "seconds": 36.0,
+  "seconds": 59.08,
   "supervisor_parents": {
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152"
@@ -200,8 +274,8 @@
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_binding_v008.py": "7FBE02BAAD077CAF37BCC394452657F84D8F115DC3FFE67413CBAAAE3DC2BB7A",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152",
-    "pegasus_qualify_v008.py": "BE6AFA506D5FFA13DEC7D22DBC6DEF0DF9D72773269B269289D96A27851CE8D7",
-    "pegasus_supervisor_v008.py": "848314C2E844E68FB7189BA66291F1CCD27996CC769659AD12BF13FC24FCEA5F",
+    "pegasus_qualify_v008.py": "DD90EBDE05B6588FD2C1EC6033D8965E5F0927AE873585F0F2D0C8BCB5928902",
+    "pegasus_supervisor_v008.py": "30B8C1ECE771E10266175BEF973F9992A7F28CDFE5030BC338637F9C0B2452F7",
     "pegasus_win_native_v008.py": "FD4E60031653822BE787AF394FE35F9CB0B37F56748960FDF593FE8C9F56139A"
   },
   "w04_g2_g3_native": "NOT_NATIVE_HOST_NOT_PROMOTED"

@@ -33,9 +33,15 @@ MUTANTS = [
      'if False:\n        gaps.append("RUN_LOCK_PRESENT")'),
     ("completion_ignore_unstable_inventory", 'if dict(inventory_a) != dict(inventory_b):', 'if False:'),
     ("eta_from_attempts", 'if delta <= 0:', 'if False:'),
+    ("run_plan_allows_economic", 'if economic and not external_authorization_proven:\n        # Um plano econômico só pode existir com prova de autorização externa.\n        raise SupervisorBlocked("ECONOMIC_RUN_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")',
+     'if False:\n        # Um plano econômico só pode existir com prova de autorização externa.\n        raise SupervisorBlocked("ECONOMIC_RUN_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")'),
+    ("run_supervised_runs_economic", 'if not plan.get("external_authorization_proven"):\n            raise SupervisorBlocked("ECONOMIC_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")',
+     'if False:\n            raise SupervisorBlocked("ECONOMIC_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")'),
+    ("default_admission_returns_plan", 'entry.release_admission({}, phase)  # sempre levanta entry.Blocked neste artefato\n        raise SupervisorBlocked("RELEASE_ADMISSION_RETURNED_WITHOUT_EXTERNAL_MODULE")',
+     'return make_run_plan(label="L", argv=["x"], protected_root="/i", out_root="/o", economic=True, external_authorization_proven=True, admission_schema="x", admission_sha256="h")'),
 ]
 
-SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion"]
+SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "RunPathWiring"]
 
 
 def main() -> int:

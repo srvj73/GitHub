@@ -322,6 +322,44 @@ class QS4Binding(unittest.TestCase):
             self.assertEqual(Orchestrator.run_case.__name__, "run_case")
 
 
+class RunPathWiring(unittest.TestCase):
+    def test_make_run_plan_refuses_economic_without_proof(self):
+        with self.assertRaises(sup.SupervisorBlocked):
+            sup.make_run_plan(label="x", argv=["a"], protected_root="/i", out_root="/o",
+                              economic=True, admission_schema="s", admission_sha256="h")
+
+    def test_make_run_plan_allows_non_economic(self):
+        plan = sup.make_run_plan(label="x", argv=["a"], protected_root="/i", out_root="/o",
+                                 economic=False, admission_schema="s", admission_sha256="h")
+        self.assertEqual(plan["schema"], sup.RUN_PLAN_SCHEMA)
+        self.assertFalse(plan["economic"])
+
+    def test_make_run_plan_economic_with_proof_is_marked(self):
+        plan = sup.make_run_plan(label="x", argv=["a"], protected_root="/i", out_root="/o",
+                                 economic=True, external_authorization_proven=True,
+                                 admission_schema="s", admission_sha256="h")
+        self.assertTrue(plan["economic"] and plan["external_authorization_proven"])
+
+    def test_default_admission_always_blocks(self):
+        entry = sup._import_entry()
+        with self.assertRaises(entry.Blocked):
+            sup.DefaultReleaseAdmission().admit(phase="B", package_root=sup.ROOT, entry=entry, ns=None)
+
+    def test_run_supervised_refuses_economic_plan(self):
+        entry = sup._import_entry()
+        plan = {"schema": sup.RUN_PLAN_SCHEMA, "label": "e", "argv": ["run-b"], "protected_root": "/i",
+                "out_root": "/o", "economic": True, "external_authorization_proven": False}
+        with tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(sup.SupervisorBlocked):
+                sup._run_supervised(plan, evidence=Path(t) / "ev", entry=entry)
+
+    def test_run_supervised_rejects_bad_schema(self):
+        entry = sup._import_entry()
+        with tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(sup.SupervisorBlocked):
+                sup._run_supervised({"schema": "WRONG"}, evidence=Path(t) / "ev", entry=entry)
+
+
 class CliFailClosed(unittest.TestCase):
     def _run(self, *args):
         return subprocess.run([sys.executable, "-I", "-B", str(SUP / "pegasus_supervisor_v008.py"), *args],

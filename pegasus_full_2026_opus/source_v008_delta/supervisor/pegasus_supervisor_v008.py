@@ -574,21 +574,118 @@ def cmd_verify(_ns) -> int:
     return EXIT_PASS
 
 
+# =====================================================================================
+# ADMISSÃO -> PLANO -> CAMINHO EXECUTÁVEL SUPERVISIONADO
+# =====================================================================================
+# Contrato de admissão (fecha a lacuna estrutural da V008): a porta única para QUALQUER
+# execução supervisionada. Uma admissão `admit(...)` ou LEVANTA `entry.Blocked`
+# (fail-closed) ou devolve um RunPlan que `_run_supervised` executa sob W04/Job/SAFE_STOP.
+# Nenhum plano econômico roda sem (a) uma autorização externa comprovada que só o módulo
+# revisado da origem pode emitir (ausente neste artefato) E (b) o próprio
+# `pegasus_entry`/`r1r11_full_2026` liberar `release_admission` (sempre BLOCKED aqui).
+RUN_PLAN_SCHEMA = "PEGASUS_FULL_2026_V008_RUN_PLAN"
+
+
+def make_run_plan(*, label, argv, protected_root, out_root, economic,
+                  external_authorization_proven=False, admission_schema, admission_sha256,
+                  stop_after_committed=None, timeout_s=None):
+    if economic and not external_authorization_proven:
+        # Um plano econômico só pode existir com prova de autorização externa.
+        raise SupervisorBlocked("ECONOMIC_RUN_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")
+    return {"schema": RUN_PLAN_SCHEMA, "label": str(label), "argv": [str(a) for a in argv],
+            "protected_root": str(protected_root), "out_root": str(out_root),
+            "economic": bool(economic), "external_authorization_proven": bool(external_authorization_proven),
+            "admission_schema": admission_schema, "admission_sha256": admission_sha256,
+            "stop_after_committed": stop_after_committed, "timeout_s": timeout_s}
+
+
+class DefaultReleaseAdmission:
+    """Admissão de produção: delega ao `release_admission` selado do V003. Nunca devolve
+    plano — levanta `entry.Blocked` com a causa G00. É a admissão default de run-b/-c/-full."""
+    schema = "PEGASUS_FULL_2026_V008_DEFAULT_RELEASE_ADMISSION"
+
+    def admit(self, *, phase, package_root, entry, ns):
+        entry.release_admission({}, phase)  # sempre levanta entry.Blocked neste artefato
+        raise SupervisorBlocked("RELEASE_ADMISSION_RETURNED_WITHOUT_EXTERNAL_MODULE")
+
+
+def _load_admission(ns):
+    """Default: DefaultReleaseAdmission. `--admission <arquivo.py>` injeta um módulo de
+    admissão — permitido SOMENTE para qualificação sintética isolada; um módulo injetado
+    jamais pode produzir um plano econômico (make_run_plan recusa)."""
+    path = getattr(ns, "admission", None)
+    if not path:
+        return DefaultReleaseAdmission()
+    import importlib.util
+    # Identidade única de módulo: quando rodando como script (__main__), registra este
+    # módulo sob o nome canônico para que o `import pegasus_supervisor_v008` do módulo de
+    # admissão injetado resolva PARA ESTE, evitando duas classes SupervisorBlocked/RunPlan.
+    sys.modules.setdefault("pegasus_supervisor_v008", sys.modules[__name__])
+    p = Path(path).resolve()
+    spec = importlib.util.spec_from_file_location("pegasus_injected_admission", str(p))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    adm = mod.ADMISSION
+    adm.injected_from = str(p)
+    adm.injected_sha256 = sha256_file(p)
+    return adm
+
+
+def _run_supervised(plan, *, evidence: Path, entry, log=print) -> int:
+    """Executa o argv admitido sob supervisão plena: W04 armado antes do filho, Job com
+    linhagem, SAFE_STOP cooperativo, watchdog, retomada e porta de conclusão/evidência."""
+    if plan.get("schema") != RUN_PLAN_SCHEMA:
+        raise SupervisorBlocked("RUN_PLAN_SCHEMA_INVALID")
+    if plan["economic"]:
+        if not plan.get("external_authorization_proven"):
+            raise SupervisorBlocked("ECONOMIC_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")
+        # Dupla barreira: mesmo com plano econômico "autorizado", o executor econômico real
+        # revalida `release_admission` por dentro; neste artefato isso bloqueia de novo.
+        entry.release_admission({}, "C" if "run-c" in plan["argv"] else "B")
+        raise SupervisorBlocked("ECONOMIC_EXECUTION_STILL_BLOCKED_BY_ENTRY_RELEASE_ADMISSION")
+    evidence = Path(evidence)
+    evidence.mkdir(parents=True, exist_ok=True)
+    out_root = Path(plan["out_root"])
+    s = Supervision(evidence=evidence, protected_root=Path(plan["protected_root"]), out_root=out_root,
+                    label=plan["label"], stop_after_committed=plan.get("stop_after_committed"), log=log)
+    env = {**os.environ, "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1",
+           "OPENBLAS_NUM_THREADS": "1", "OMP_NUM_THREADS": "1"}
+    env.pop("PYTHONPATH", None)
+    env.pop("PYTHONHOME", None)
+    result = s.run(plan["argv"], env, timeout_s=plan.get("timeout_s"))
+    result["schema"] = "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT"
+    result["plan"] = {k: plan[k] for k in ("label", "economic", "admission_schema", "admission_sha256")}
+    ok = (result.get("completion", {}).get("completed") is True
+          or (result.get("safe_stop", {}) or {}).get("safe_stop", "").startswith("CONFIRMED_BY_SUPERVISOR"))
+    result["result"] = "PASS_SUPERVISED_RUN" if ok else "BLOCKED_SUPERVISED_RUN"
+    write_json_atomic(evidence / (plan["label"] + "_SUPERVISED_RUN_RESULT.json"), result)
+    print(json.dumps({k: result[k] for k in ("schema", "result", "label", "child_exit") if k in result}
+                     | {"w04_full": result.get("w04", {}).get("w04_full"),
+                        "lineage": result.get("lineage", {}).get("lineage")}, sort_keys=True))
+    return EXIT_PASS if ok else EXIT_BLOCKED
+
+
 def cmd_run(ns) -> int:
-    """Caminho FULL B/C: admissão externa SEMPRE antes de W04/Job/filho."""
+    """Caminho FULL B/C/FULL: admissão (única porta) -> plano -> execução supervisionada.
+    W04/Job/SAFE_STOP/retomada ficam ANTES de qualquer efeito; econômico fica fail-closed."""
     entry = _import_entry()
     entry.verify_tree(ROOT)
     verify_supervisor_parents()
     phase = "C" if ns.cmd == "run-c" else "B"
+    admission = _load_admission(ns)
     try:
-        entry.release_admission({}, phase)
+        plan = admission.admit(phase=phase, package_root=ROOT, entry=entry, ns=ns)
     except entry.Blocked as exc:
         print(json.dumps({"schema": SCHEMA, "result": "BLOCKED", "cause": str(exc),
+                          "admission": getattr(admission, "schema", type(admission).__name__),
                           "effects": "NONE", **GATES}, sort_keys=True))
         return EXIT_BLOCKED
-    # Inalcançável no artefato atual (RELEASE_STATE fixo em QUALIFICATION_ONLY_RUN_DISABLED);
-    # mantido explícito para que a futura admissão revisada seja a única porta.
-    raise SupervisorBlocked("RELEASE_ADMISSION_RETURNED_WITHOUT_EXTERNAL_MODULE")
+    # Admissão concedida: percorre o caminho executável supervisionado (fecha a lacuna).
+    if getattr(ns, "evidence", None):
+        evidence = Path(ns.evidence)
+    else:
+        evidence = Path(plan["out_root"]).parent / (plan["label"] + "_EVIDENCE")
+    return _run_supervised(plan, evidence=evidence, entry=entry)
 
 
 def cmd_bind_qs4(ns) -> int:
@@ -608,7 +705,11 @@ def build_parser():
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("verify")
     for c in ("run-b", "run-c", "run-full"):
-        sub.add_parser(c)
+        rp = sub.add_parser(c)
+        # Admissão default = produção (bloqueia). --admission injeta um módulo SOMENTE para
+        # qualificação sintética isolada; nunca pode produzir plano econômico.
+        rp.add_argument("--admission", default=None)
+        rp.add_argument("--evidence", default=None)
     b = sub.add_parser("bind-qs4")
     b.add_argument("--harness-dir", required=True)
     q = sub.add_parser("qualify")
@@ -633,8 +734,9 @@ def main(argv=None) -> int:
         print("PEGASUS_SUPERVISOR=BLOCKED " + str(exc), flush=True)
         return EXIT_BLOCKED
     except Exception as exc:
-        # pegasus_entry.Blocked (verify/admissão do V003) e qualquer falha técnica: fail-closed.
-        if type(exc).__name__ == "Blocked":
+        # pegasus_entry.Blocked e SupervisorBlocked (inclusive vindo de um módulo de admissão
+        # injetado, com outra identidade de classe): fail-closed por nome.
+        if type(exc).__name__ in ("Blocked", "SupervisorBlocked"):
             print("PEGASUS_SUPERVISOR=BLOCKED " + str(exc), flush=True)
             return EXIT_BLOCKED
         raise

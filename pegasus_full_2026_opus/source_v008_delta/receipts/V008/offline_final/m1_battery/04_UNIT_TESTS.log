@@ -20,6 +20,12 @@ test_safestop_adapter_wired_on_orchestrator (__main__.QS4Binding.test_safestop_a
 test_supervised_main_blocks_without_external_admission (__main__.QS4Binding.test_supervised_main_blocks_without_external_admission) ... QS4_SUPERVISED=BLOCKED QS4_EXECUTION_FORBIDDEN_NO_EXTERNAL_ADMISSION
 ok
 test_tampered_harness_blocks (__main__.QS4Binding.test_tampered_harness_blocks) ... ok
+test_default_admission_always_blocks (__main__.RunPathWiring.test_default_admission_always_blocks) ... ok
+test_make_run_plan_allows_non_economic (__main__.RunPathWiring.test_make_run_plan_allows_non_economic) ... ok
+test_make_run_plan_economic_with_proof_is_marked (__main__.RunPathWiring.test_make_run_plan_economic_with_proof_is_marked) ... ok
+test_make_run_plan_refuses_economic_without_proof (__main__.RunPathWiring.test_make_run_plan_refuses_economic_without_proof) ... ok
+test_run_supervised_refuses_economic_plan (__main__.RunPathWiring.test_run_supervised_refuses_economic_plan) ... ok
+test_run_supervised_rejects_bad_schema (__main__.RunPathWiring.test_run_supervised_rejects_bad_schema) ... ok
 test_child_self_claim_not_enough (__main__.SafeStopCompletion.test_child_self_claim_not_enough) ... ok
 test_completion_ok (__main__.SafeStopCompletion.test_completion_ok) ... ok
 test_completion_refuses_lock_multi_instant_capture (__main__.SafeStopCompletion.test_completion_refuses_lock_multi_instant_capture) ... ok
@@ -47,6 +53,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 46 tests in 3.399s
+Ran 52 tests in 3.475s
 
 OK

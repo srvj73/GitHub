@@ -15,9 +15,14 @@
   "gates": {
     "G1_SOURCE_BINDING": {
       "state": "PASS_SOURCE_CONSOLIDATION",
-      "evidence": ["V003 físico como base única, byte-idêntico", "pegasus_entry F77B5266 testado=empacotado (cadeia 19/19 sobre os bytes)", "DEPENDENCY-02: native_admission_gate/driver sem chamador no harness QS4 nem no V003 (inspeção de chamadas)"],
+      "evidence": [
+        "V003 físico como base única, byte-idêntico",
+        "pegasus_entry F77B5266 testado=empacotado (cadeia 19/19 sobre os bytes)",
+        "DEPENDENCY-02: native_admission_gate/driver sem chamador no harness QS4 nem no V003 (inspeção de chamadas)"
+      ],
       "qs4_harness_binding": "BLOCKED_PROVEN_ADAPTER_PIN_MISMATCH",
-      "qs4_detail": "Harness R001 E52AF782 exige adaptador 05A0CF3D; adaptador G4 do V003 é EC96FE9A. Sucessor vinculado exige qualificação QS4 própria (QS4=NO nesta missão)."
+      "qs4_detail": "Harness R001 E52AF782 exige adaptador 05A0CF3D; adaptador G4 do V003 é EC96FE9A. Sucessor vinculado exige qualificação QS4 própria (QS4=NO nesta missão).",
+      "supervised_run_path": "CLOSED_V008R1 (admission is single gate; economic triple-blocked: Q13a/b/c PASS)"
     },
     "G2_W04_FULL": {
       "state": "IMPLEMENTED_OFFLINE_DECISION_QUALIFIED_NATIVE_PENDING",
@@ -31,7 +36,10 @@
     },
     "G4_SAFESTOP_RESUME": {
       "state": "OFFLINE_PASS_ON_REAL_RUNTIME_SYNTHETIC_NATIVE_PENDING",
-      "offline": ["cadeia V003 19/19 (8 faults, gap commit->checkpoint exit 87, duplo SIGINT 130 + retomada, adulteração, drift)", "V008 supervisionado 9/9 (SAFE_STOP confirmado pelo supervisor, retomada exactly-once, duas lacunas, RUN.lock órfão reconciliado, journal duplicado fail-closed, porta de evidência)"],
+      "offline": [
+        "cadeia V003 19/19 (8 faults, gap commit->checkpoint exit 87, duplo SIGINT 130 + retomada, adulteração, drift)",
+        "V008 supervisionado 9/9 (SAFE_STOP confirmado pelo supervisor, retomada exactly-once, duas lacunas, RUN.lock órfão reconciliado, journal duplicado fail-closed, porta de evidência)"
+      ],
       "pending_journal_residue": "ATTRIBUTED_BY_INSTRUMENTED_PROOF_TO_NON_RUNTIME_MULTI_INSTANT_CAPTURE",
       "native": "PENDING_OWNER_WINDOWS_CAMPAIGN"
     },
@@ -42,11 +50,21 @@
     "G6_CANDIDATE_COMPLETENESS": {
       "state": "NOT_PASS_PENDING_G2_G3_G5_NATIVE_EVIDENCE",
       "implementation_completeness": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED",
-      "tested_equals_packaged": "PROVEN_OFFLINE_BY_SHA (ver recibo externo)"
+      "tested_equals_packaged": "PROVEN_OFFLINE_BY_SHA (ver recibo externo)",
+      "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)"
     }
   },
-  "boundaries": {"g4": "FROZEN", "qs4": "NO", "full_economic": "NO", "phase_c": "FORBIDDEN",
-                 "reselection_2026": "FORBIDDEN", "run_released": "NO", "full_released": "NO",
-                 "paid_credit": "NOT_USED", "independent_audit": "NOT_STARTED"},
-  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+  "boundaries": {
+    "g4": "FROZEN",
+    "qs4": "NO",
+    "full_economic": "NO",
+    "phase_c": "FORBIDDEN",
+    "reselection_2026": "FORBIDDEN",
+    "run_released": "NO",
+    "full_released": "NO",
+    "paid_credit": "NOT_USED",
+    "independent_audit": "NOT_STARTED"
+  },
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
+  "revision": "V008R1"
 }

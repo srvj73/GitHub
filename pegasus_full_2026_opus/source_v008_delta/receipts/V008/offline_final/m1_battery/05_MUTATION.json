@@ -1,7 +1,7 @@
 {
  "schema": "PEGASUS_FULL_2026_V008_SUPERVISOR_MUTATION_V001",
- "mutants": 14,
- "killed": 14,
+ "mutants": 17,
+ "killed": 17,
  "results": [
   {
    "mutant": "ignore_sharing_violation",
@@ -57,6 +57,18 @@
   },
   {
    "mutant": "eta_from_attempts",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "run_plan_allows_economic",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "run_supervised_runs_economic",
+   "result": "KILLED"
+  },
+  {
+   "mutant": "default_admission_returns_plan",
    "result": "KILLED"
   }
  ],
