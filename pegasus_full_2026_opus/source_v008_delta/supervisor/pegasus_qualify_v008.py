@@ -9,7 +9,8 @@ W04/Job é marcado como não nativo e jamais promove G2/G3.
 Casos (todos no mesmo processo de qualificação, roots novos, nada é apagado):
   Q01 referência mono-worker (limpa) sob supervisão
   Q02 multi-worker: bytes econômicos == Q01 (comparação A/B determinística)
-  Q03 SAFE_STOP injetado pelo supervisor após 1º commit -> 130 confirmado pelo supervisor
+  Q03 SAFE_STOP injetado pelo supervisor após 1º commit -> parada cooperativa confirmada pela
+      evidência independente (exit de interrupção por plataforma: 130 POSIX / 1|0xC000013A Windows)
   Q04 retomada de Q03 -> bytes == Q01 (exactly-once, nada COMMITTED repetido)
   Q05 lacuna 1: fault after_journal (journal ativo, sem pending)
   Q06 lacuna 2 na retomada: crash after_commit_before_checkpoint (exit 87, RUN.lock órfão)

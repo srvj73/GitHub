@@ -26,7 +26,10 @@ MUTANTS = [
     ("jit_order_unchecked", 'if [idx[o] for o in order] != sorted(idx[o] for o in order):', 'if False:'),
     ("lineage_gap_unchecked", 'if int(accounting.get("TotalProcesses", -1)) != len(idents):', 'if False:'),
     ("breakaway_allowed", 'if breakaway_allowed:\n        raise', 'if False:\n        raise'),
-    ("safestop_any_exit", 'if child_exit != EXIT_SAFE_STOP:', 'if False:'),
+    ("safestop_any_exit", 'if not is_cooperative_stop_exit(child_exit):', 'if False:'),
+    ("safestop_windows_accepts_any_code", 'return code in (1, EXIT_CTRL_C_WINDOWS)', 'return True'),
+    ("custody_guard_after_close_disabled", '    def close(self) -> None:\n        self._closed = True',
+     '    def close(self) -> None:\n        self._closed = False'),
     ("safestop_ignore_lock", 'if run_lock_present:\n        gaps.append("RUN_LOCK_STILL_PRESENT")',
      'if False:\n        gaps.append("RUN_LOCK_STILL_PRESENT")'),
     ("completion_ignore_lock", 'if run_lock_present:\n        gaps.append("RUN_LOCK_PRESENT")',
@@ -47,7 +50,8 @@ MUTANTS = [
      '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        return EXIT_PASS'),
 ]
 
-SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "RunPathWiring", "ExitClassification"]
+SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlatform",
+          "CustodyLifecycleContract", "RunPathWiring", "ExitClassification"]
 
 
 def main() -> int:

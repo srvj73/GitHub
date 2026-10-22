@@ -34,6 +34,10 @@ A campanha nativa R1 terminou `EXIT=3` por um defeito do PowerShell 5.1: `Start-
 
 A campanha nativa R2 **validou a fronteira de exit no Windows real** (canários S00 e o probe S03 ARGV=37 todos MATCH; sem falso PASS) e, por isso, **expôs** um defeito real em S07: `JOB_ACCOUNTING_FAILED winerror=6` (`ERROR_INVALID_HANDLE`). Causa: o supervisor consultava a contabilidade do Job **depois** de `cust.close()` fechar o handle. Corrigido em V008R3: a evidência terminal é capturada antes de `close()`, e os custodiantes (Windows e POSIX) passam a **recusar** consultas pós-close — o que torna o erro reproduzível offline no POSIX. Regressão `CustodyLifecycleContract`; unit 56/56; qualificação 16/16 PASS + 2 SKIP com `error=None`. Bootstrap inalterado (template `B5CECF29…`), já provado nativo.
 
+## Revisão V008R4 — SAFE_STOP correto por plataforma
+
+A campanha nativa R3 confirmou o fix do handle do Job (Q01/Q02 PASS nativos) e parou em Q03: `safestop_verdict` exigia `child_exit == 130`, um artefato POSIX. No Windows o Ctrl+C cooperativo honrado sai 1 (ou `0xC000013A`). Corrigido em V008R4: `is_cooperative_stop_exit` aceita o código de interrupção da plataforma, com a confirmação do SAFE_STOP ancorada na evidência independente (STATUS `SAFE_STOP=YES` + árvore drenada + checkpoint válido + sem `RUN.lock` + W04) e no Q04 (retomada exactly-once). Regressão `SafeStopExitPlatform`; unit 63/63; mutantes do supervisor 22/22.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

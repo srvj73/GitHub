@@ -63,6 +63,27 @@ def classify_exit(code) -> str:
         return "EXIT_UNKNOWN_FAIL_CLOSED"
     return EXIT_CLASSES.get(code, "UNCLASSIFIED_NONZERO_FAIL" if code != 0 else "PASS")
 
+
+# Código de saída de um Ctrl+C cooperativo HONRADO pelo filho — dependente de plataforma.
+# POSIX: o CPython restaura o SIGINT ao default e o re-ergue, então o processo morre por
+# SIGINT (128+2 = 130). Windows NÃO tem essa semântica: o CTRL_C_EVENT vira KeyboardInterrupt
+# e, ao desenrolar o processo (ex.: InterruptedError no multiprocessing), sai 1; quando o
+# handler de console do próprio Windows encerra o processo, sai 0xC000013A (STATUS_CONTROL_C_EXIT).
+# O código de saída é apenas CORROBORAÇÃO: a confirmação do SAFE_STOP exige, além dele, a
+# evidência independente (STATUS do filho SAFE_STOP=YES + árvore drenada + checkpoint válido +
+# RUN.lock ausente + continuidade W04), e o Q04 prova a retomada exactly-once.
+EXIT_CTRL_C_WINDOWS = 0xC000013A  # STATUS_CONTROL_C_EXIT (3221225786)
+
+
+def is_cooperative_stop_exit(code) -> bool:
+    if isinstance(code, bool) or not isinstance(code, int):
+        return False
+    if code == EXIT_SAFE_STOP:            # 130 — convenção POSIX de SIGINT
+        return True
+    if os.name == "nt":                   # manifestações nativas do Ctrl+C cooperativo
+        return code in (1, EXIT_CTRL_C_WINDOWS)
+    return False
+
 GATES = {"g4": "FROZEN", "qs4": "NO", "full_economic": "NO", "phase_c": "FORBIDDEN",
          "reselection_2026": "FORBIDDEN", "run_released": "NO", "full_released": "NO"}
 
@@ -231,8 +252,8 @@ def safestop_verdict(*, stop_requested: bool, child_exit: Optional[int], tree_em
     gaps = []
     if not stop_requested:
         gaps.append("STOP_NOT_REQUESTED")
-    if child_exit != EXIT_SAFE_STOP:
-        gaps.append("CHILD_EXIT_NOT_130:%s" % child_exit)
+    if not is_cooperative_stop_exit(child_exit):
+        gaps.append("CHILD_EXIT_NOT_COOPERATIVE_STOP:%s" % child_exit)
     if not tree_empty:
         gaps.append("PROCESS_TREE_NOT_DRAINED")
     if status.get("SAFE_STOP") != "YES" or status.get("PROCESS_TREE_CLEAN") != "YES":

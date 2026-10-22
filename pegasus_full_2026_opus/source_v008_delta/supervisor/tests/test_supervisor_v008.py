@@ -15,6 +15,7 @@ import tempfile
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 SUP = HERE.parent
@@ -401,6 +402,65 @@ class CliFailClosed(unittest.TestCase):
         p = self._run("verify")
         self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
         self.assertIn("PASS_PACKAGE_VERIFIED", p.stdout)
+
+
+class SafeStopExitPlatform(unittest.TestCase):
+    """O codigo de saida de um Ctrl+C cooperativo HONRADO e dependente de plataforma: 130 no
+    POSIX (CPython re-ergue o SIGINT); 1 ou 0xC000013A no Windows (KeyboardInterrupt desenrolado
+    ou STATUS_CONTROL_C_EXIT). Exigir literalmente 130 era um artefato POSIX que derrubou o Q03
+    na campanha nativa. O codigo e corroboracao; a confirmacao exige a evidencia independente
+    (STATUS SAFE_STOP=YES + arvore drenada + checkpoint valido + sem RUN.lock + W04), e o Q04
+    prova a retomada exactly-once."""
+    CLEAN = dict(stop_requested=True, tree_empty=True,
+                 status={"SAFE_STOP": "YES", "PROCESS_TREE_CLEAN": "YES", "COMMITTED": 1},
+                 checkpoint_valid=True, run_lock_present=False, w04={"w04_full": "PASS_NATIVE_SAME_ATTEMPT"})
+
+    def _v(self, code):
+        return sup.safestop_verdict(child_exit=code, **self.CLEAN)
+
+    def test_helper_posix_only_130(self):
+        with mock.patch.object(sup.os, "name", "posix"):
+            self.assertTrue(sup.is_cooperative_stop_exit(130))
+            for bad in (0, 1, 2, 87, sup.EXIT_CTRL_C_WINDOWS, None, True):
+                self.assertFalse(sup.is_cooperative_stop_exit(bad), bad)
+
+    def test_helper_windows_interrupt_codes(self):
+        with mock.patch.object(sup.os, "name", "nt"):
+            for ok in (130, 1, sup.EXIT_CTRL_C_WINDOWS):
+                self.assertTrue(sup.is_cooperative_stop_exit(ok), ok)
+            for bad in (0, 2, 87, None, True):
+                self.assertFalse(sup.is_cooperative_stop_exit(bad), bad)
+
+    def test_windows_ctrl_c_confirms_with_independent_evidence(self):
+        with mock.patch.object(sup.os, "name", "nt"):
+            self.assertTrue(self._v(1)["safe_stop"].startswith("CONFIRMED_BY_SUPERVISOR"))
+            self.assertTrue(self._v(sup.EXIT_CTRL_C_WINDOWS)["safe_stop"].startswith("CONFIRMED_BY_SUPERVISOR"))
+
+    def test_posix_exit_1_not_confirmed_but_130_is(self):
+        with mock.patch.object(sup.os, "name", "posix"):
+            self.assertEqual(self._v(1)["safe_stop"], "NOT_CONFIRMED")
+            self.assertEqual(self._v(130)["safe_stop"], "CONFIRMED_BY_SUPERVISOR")
+
+    def test_completion_exit_never_confirms_stop(self):
+        for name in ("posix", "nt"):
+            with mock.patch.object(sup.os, "name", name):
+                self.assertEqual(self._v(0)["safe_stop"], "NOT_CONFIRMED")
+
+    def test_crash_code_not_confirmed_even_on_windows(self):
+        with mock.patch.object(sup.os, "name", "nt"):
+            v = self._v(87)
+            self.assertEqual(v["safe_stop"], "NOT_CONFIRMED")
+            self.assertIn("CHILD_EXIT_NOT_COOPERATIVE_STOP:87", v["gaps"])
+
+    def test_windows_interrupt_code_without_child_status_still_rejected(self):
+        # codigo de interrupcao sozinho nao basta: sem STATUS SAFE_STOP=YES, continua NOT_CONFIRMED
+        with mock.patch.object(sup.os, "name", "nt"):
+            v = sup.safestop_verdict(stop_requested=True, child_exit=1, tree_empty=True,
+                                     status={"SAFE_STOP": "NO", "PROCESS_TREE_CLEAN": "YES"},
+                                     checkpoint_valid=True, run_lock_present=False,
+                                     w04={"w04_full": "PASS_NATIVE_SAME_ATTEMPT"})
+            self.assertEqual(v["safe_stop"], "NOT_CONFIRMED")
+            self.assertIn("CHILD_STATUS_NOT_SAFE", v["gaps"])
 
 
 class CustodyLifecycleContract(unittest.TestCase):

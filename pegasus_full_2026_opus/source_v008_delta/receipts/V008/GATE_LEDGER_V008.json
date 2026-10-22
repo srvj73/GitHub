@@ -34,7 +34,8 @@
       "offline": "ordem JIT provada nas 9 execuções supervisionadas; linhagem POSIX observacional (não promove)",
       "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q01-Q09 sob Job real + Q11 netos/breakaway)",
       "native_campaign_r2": "EXECUTED: W04 armou nativo (43 files, 0 violations, usn_hits=0); Job accounting-after-close corrigido em V008R3 (handle lifecycle)",
-      "job_handle_lifecycle": "CLOSED_V008R3: evidência terminal capturada antes de close(); custodiantes recusam consulta pós-close; regressão CustodyLifecycleContract"
+      "job_handle_lifecycle": "CLOSED_V008R3: evidência terminal capturada antes de close(); custodiantes recusam consulta pós-close; regressão CustodyLifecycleContract",
+      "native_campaign_r3": "Q01/Q02 PASS nativos (handle do Job R3 confirmado); cadeia parou em Q03 (SAFE_STOP POSIX-only), corrigido R4"
     },
     "G4_SAFESTOP_RESUME": {
       "state": "OFFLINE_PASS_ON_REAL_RUNTIME_SYNTHETIC_NATIVE_PENDING",
@@ -44,7 +45,8 @@
       ],
       "pending_journal_residue": "ATTRIBUTED_BY_INSTRUMENTED_PROOF_TO_NON_RUNTIME_MULTI_INSTANT_CAPTURE",
       "native": "PENDING_OWNER_WINDOWS_CAMPAIGN",
-      "exit_boundary": "CLOSED_V008R2: classify_exit/EXIT_CLASSES (0 PASS;2 BLOCKED;3 FAIL;130 SAFE_STOP; ausente/nao-inteiro=>FAIL_CLOSED); _run_supervised grava exit_code/exit_class; main() exceção técnica=>3"
+      "exit_boundary": "CLOSED_V008R2: classify_exit/EXIT_CLASSES (0 PASS;2 BLOCKED;3 FAIL;130 SAFE_STOP; ausente/nao-inteiro=>FAIL_CLOSED); _run_supervised grava exit_code/exit_class; main() exceção técnica=>3",
+      "safe_stop_platform_exit": "CLOSED_V008R4: is_cooperative_stop_exit (130 POSIX / 1|0xC000013A Windows) + evidencia independente; Q03 nativo destravado"
     },
     "G5_INTEGRATED_NATIVE_WIN": {
       "state": "CAMPAIGN_READY_NOT_EXECUTED",
@@ -60,7 +62,7 @@
       "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)",
       "exit_code_boundary": "CLOSED_V008R2 (bootstrap+UAC+subprocess+watchdog+supervisor; sem falso PASS)",
       "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
-      "offline_test_counts": "unit 56/56; supervisor mutants 20/20; bootstrap boundary 20/20 (template inalterado, provado nativo); bootstrap mutants 8/8; V003 chain 19/19; supervised qualification 16/16 PASS + 2 SKIPPED_NON_NATIVE (error=None)"
+      "offline_test_counts": "unit 63/63 (SafeStopExitPlatform+CustodyLifecycleContract); supervisor mutants 22/22; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP"
     }
   },
   "boundaries": {
@@ -75,10 +77,10 @@
     "independent_audit": "NOT_STARTED"
   },
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
-  "revision": "V008R3",
+  "revision": "V008R4",
   "supersedes": {
-    "v008r2_zip_sha256": "4A1676816C81DB5CA343261712238DCCBEA1F9C6ECBDE1AA8013307D8514EFE2",
-    "reason": "Job Object handle lifecycle fixed (accounting/tree_empty queried after CloseHandle -> ERROR_INVALID_HANDLE on native Windows)"
+    "v008r3_zip_sha256": "46E4D3313020316044D3D4F0DC6D3A2D6EFA1CB5718722B57340BD86149C17B7",
+    "reason": "SAFE_STOP confirmation made platform-correct (child exit 130 was a POSIX artifact; native Windows cooperative Ctrl+C exits 1 or 0xC000013A)"
   },
   "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
   "native_campaign_r2_result": {
@@ -89,5 +91,12 @@
     "primary_failure": "S07 JOB_ACCOUNTING_FAILED winerror=6 (handle closed before accounting) -> fixed V008R3",
     "ps_version": "5.1.26100.9711",
     "python": "3.14.7"
+  },
+  "native_campaign_r3_result": {
+    "verify": "PASS",
+    "qualifynative_exit": 3,
+    "native_cases_pass": "Q01,Q02",
+    "blocker": "Q03 SAFE_STOP required child_exit==130 (POSIX-only) -> fixed V008R4",
+    "job_handle_fix": "CONFIRMED_NATIVE"
   }
 }

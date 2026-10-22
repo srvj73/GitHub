@@ -77,3 +77,16 @@ Correção (três frentes):
 - **Teste de regressão** (`CustodyLifecycleContract`): prova que a evidência terminal é capturável enquanto aberto e recusada após `close()`.
 
 Validação offline: unit do supervisor **56/56** (inclui o novo contrato); mutantes do supervisor 20/20; a qualificação supervisionada **16/16 PASS + 2 SKIPPED_NON_NATIVE** com `error=None` — o guarda POSIX **não** dispara, provando que o supervisor honra o contrato (se a reordenação estivesse incompleta, Q01 falharia com `CUSTODY_QUERIED_AFTER_CLOSE`). Bootstrap inalterado (template `B5CECF29…`): fronteira de exit 20/20 e mutantes 8/8 reaproveitados (bytes idênticos; já provados nativamente pelos canários S00 e pelo S03). Cadeia V003 19/19 imutável.
+
+
+## Confirmação de SAFE_STOP por plataforma V008R4 (achado da campanha nativa R3)
+
+A campanha nativa R3 **confirmou a correção do handle do Job** (R3): no Windows real, **Q01 e Q02 passaram nativamente** (W04 armou por caso — 43 arquivos, 0 violações, `usn_hits=0`; contabilidade do Job lida sem `ERROR_INVALID_HANDLE`). A cadeia avançou e parou em **Q03 (SAFE_STOP)**: `safestop_verdict` exigia `child_exit == 130`, mas o Ctrl+C cooperativo honrado pelo coordenador saiu **1** no Windows.
+
+Causa-raiz: o `130` é um **artefato POSIX** — o CPython restaura o SIGINT ao default e o re-ergue, e o processo morre por SIGINT (128+2). O Windows não tem essa semântica: o `CTRL_C_EVENT` vira `KeyboardInterrupt` e, ao desenrolar o processo (aqui `InterruptedError` no `multiprocessing`), sai 1; quando o handler de console do Windows encerra o processo, sai `0xC000013A` (STATUS_CONTROL_C_EXIT). O STATUS do próprio filho já reportava `SAFE_STOP=YES`, `PROCESS_TREE_CLEAN=YES`, `COMMITTED=1/3`, checkpoint válido e sem `RUN.lock` — parada cooperativa limpa e retomável; o único descompasso era o código literal.
+
+Correção (sem enfraquecer a garantia):
+
+- `is_cooperative_stop_exit(code)`: aceita o código de interrupção **da plataforma** — `130` no POSIX; `1` ou `EXIT_CTRL_C_WINDOWS` (`0xC000013A`) no Windows. `safestop_verdict` passa a usá-lo no lugar de `child_exit != EXIT_SAFE_STOP`. O código de saída é **corroboração**: a confirmação do SAFE_STOP continua exigindo a evidência independente (STATUS `SAFE_STOP=YES` + árvore drenada sem kill + checkpoint válido + `RUN.lock` ausente + continuidade W04), e o **Q04** prova a retomada exactly-once. Exit 0 (completou) e códigos de crash (ex.: 87) permanecem recusados — inclusive no Windows.
+
+Regressão offline: `SafeStopExitPlatform` (7 casos, `os.name` mockado para `nt`/`posix`) prova que exit 1/`0xC000013A` confirmam no Windows mas não no POSIX, que exit 0 nunca confirma, que crash 87 não confirma, e que um código de interrupção **sozinho** (sem STATUS `SAFE_STOP=YES`) continua `NOT_CONFIRMED`. Mutantes do supervisor **22/22** (novos `safestop_windows_accepts_any_code` e `custody_guard_after_close_disabled`); unit **63/63**. Fronteira do bootstrap inalterada (20/20 + 8/8). Cadeia V003 19/19 imutável.

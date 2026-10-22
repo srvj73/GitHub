@@ -1,0 +1,43 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R4_CANDIDATE_COMPLETENESS_FIVE_PART",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R4_20261022.zip",
+      "sha256": "9B2D3820F36174FB1050F6C4AE03E70DF644FB9C41FCCB7184028E5E57358C61",
+      "bytes": 87386885,
+      "members": 2949
+    },
+    "manifest_sha256": "7F7ADC5784F56C93AD8A1D7587D400D5FB579CA846FF0B1B18F631498CCAF9AF",
+    "tested_manifest_sha256_m1": "E0B2119B7A81F1BF2466B91C23CA1B2CD84D9FA5CDE17A31A3BD53B2D8162DA4",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R4_PS51.ps1",
+      "sha256": "E5D5803D07EC756E56597101D8B1E446F14A1737DAFE2DE0A25ADFBE044DE97D",
+      "bytes": 22858
+    },
+    "supersedes_v008r3": {
+      "zip_sha256": "46E4D3313020316044D3D4F0DC6D3A2D6EFA1CB5718722B57340BD86149C17B7",
+      "reason": "SAFE_STOP confirmation made platform-correct"
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "parts": {
+    "1_source_and_lineage": "PASS (V003 fisico byte-identico; entrypoint testado=empacotado=entregue); QS4 sucessor ausente provado",
+    "2_consumers_implemented_wired_and_blocked": "PASS (W04/Job/SAFE_STOP/porta; cmd_run->admission->_run_supervised; fronteira de exit exata; handle do Job e SAFE_STOP corretos por plataforma; FULL B/C e QS4 fail-closed)",
+    "3_offline_qualification_final_bytes": "PASS (19/19 V003 imutavel; V008R4 16 PASS + 2 SKIPPED_NON_NATIVE incl. Q14/Q15; 63/63 unit incl. SafeStopExitPlatform+CustodyLifecycleContract; 22/22 mutantes supervisor; 20/20 bootstrap boundary; 8/8 bootstrap mutantes)",
+    "4_native_target_qualification": "PENDING_RERUN (R2 validou a fronteira de exit; R3 confirmou o fix do handle do Job com Q01/Q02 PASS nativos e expos o SAFE_STOP POSIX-only, agora corrigido; faltam Q03/Q04 SAFE_STOP, W04 Q10a-f, Job Q11, ate o fim; native_completeness_evaluation=NOT_MET)",
+    "5_tested_packaged_installed_delivered": "PASS offline (2948 arquivos conferidos); instalado PENDENTE (modo Install)"
+  },
+  "candidate_completeness": "NOT_PASS",
+  "single_external_blocker": "Re-execucao nativa da campanha unica no PC do titular (efeito fisico Windows indisponivel ao implementador)",
+  "out_of_mission_gate": "Harness QS4 sucessor vinculado ao adaptador EC96FE9A exige qualificacao QS4 (QS4=NO)",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}
