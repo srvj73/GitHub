@@ -1,0 +1,351 @@
+{
+ "checks": {
+  "all_38_commits_closed_bound_v005_and_physical": {
+   "detail": "38",
+   "status": "PASS"
+  },
+  "candidate_sha": {
+   "detail": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145",
+   "status": "PASS"
+  },
+  "census_38_lists_each_commit_owner": {
+   "detail": "[]",
+   "status": "PASS"
+  },
+  "commits_equal_frozen_plan_38": {
+   "detail": "38",
+   "status": "PASS"
+  },
+  "delta_13_pass_required_not_skipped": {
+   "detail": "13",
+   "status": "PASS"
+  },
+  "enviar_members": {
+   "detail": "['B2D_NATIVE_FIXED_LAYOUT.log', 'B2D_NATIVE_R1_LAYOUT.log', 'CDT21_G5_V005_RETURN.zip', 'QUALIFICATION_RESULT.json', 'RUN_LOG.txt', 'RUN_LOG_ELEVATED.txt', 'SUPERVISOR_RESULT.json']",
+   "status": "PASS"
+  },
+  "excluded_duplicates_identity": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "final_engineering_status": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "five_parts_pass_and_physically_present": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "four_findings_pass": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "frozen_verify_final_zip": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "frozen_verify_native_campaign": {
+   "detail": "PASS_NATIVE_INTEGRATED_PRE_B06",
+   "status": "PASS"
+  },
+  "journal_single_attempt_of_this_supervisor": {
+   "detail": "['CDT21_SUPERVISOR_JOURNAL/ATTEMPT_20261022063025_4f934f.json']",
+   "status": "PASS"
+  },
+  "ledger_38_equals_plan_and_bound": {
+   "detail": "{'entries': 38, 'bases': ['OBSERVED_COMMITTED_LINE']}",
+   "status": "PASS"
+  },
+  "linux_recomputation_matches_windows": {
+   "detail": "[]",
+   "status": "PASS"
+  },
+  "linux_recomputed_close_pass": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "native_return_sha": {
+   "detail": "F7E5E879395768ECE664D1FF757FABBCE74D622B928D85943814B53A5898089A",
+   "status": "PASS"
+  },
+  "new_campaign_no_reuse": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "no_interrupted_attempts": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "no_owned_orphans": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "phase_q_of_this_run_pass": {
+   "detail": "19",
+   "status": "PASS"
+  },
+  "preexisting_roots_unchanged": {
+   "detail": "{'added': ['d_lab/R08_Q1_20261022063029_348b83753194', 'run/R08_Q1_20261022063029_348b83753194'], 'pre_existing': 26, 'unchanged': 26}",
+   "status": "PASS"
+  },
+  "production_unchanged": {
+   "detail": "{'entries': 14514, 'exists': True, 'sha256': '1FD27FDB0496CCCB2554BC2153FDB713F4E1C2D5E860C7414DD9185A5E857967'}",
+   "status": "PASS"
+  },
+  "return_index_members": {
+   "detail": "137",
+   "status": "PASS"
+  },
+  "return_zip_sha_matches_supervisor": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "supervisor_binding": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "supervisor_embedded_in_return": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "supervisor_identity": {
+   "detail": "363D1654681D690C247903F440568238E678FC04B22F6F0DB62462B85458700A",
+   "status": "PASS"
+  },
+  "supervisor_status_pass": {
+   "detail": "PASS_NATIVE_V005_G5_TECHNICAL_FIVE_PART []",
+   "status": "PASS"
+  },
+  "unit_census_complete_no_error": {
+   "detail": "",
+   "status": "PASS"
+  },
+  "v005_regression_tests_7_native_ok": {
+   "detail": "[]",
+   "status": "PASS"
+  },
+  "windows_completeness_binding": {
+   "detail": "",
+   "status": "PASS"
+  }
+ },
+ "d4_successor_artifact_probe": {
+  "expected_single_identity_sha256": "8A05E76189E63379A60E2447DAA313765D30A2EAB78EAF4E9D91AA19CBFE3E73",
+  "path": "D:\\Base CSV\\Scripts\\TICKSTORE_R9_DEV\\TICKSTORE_D4_RESUMABLE_V002R22\\artifacts\\TICKSTORE_V004R1_D4_RESUMABLE_V002R24_PACKAGE.zip",
+  "present": false,
+  "read_only": true,
+  "successor_package_dir_present": true
+ },
+ "diagnostic_skips_disclosed": {
+  "DELTA_test_cdt19_r06_integrated_contract.py": {
+   "skipped": true,
+   "test_count": 16
+  }
+ },
+ "enviar": {
+  "bytes": 56901872,
+  "name": "ENVIAR_AO_OPUS_CDT21_G5_V005_20261022_063004_747_43284.zip",
+  "sha256": "AB0E34CFA12212B9E333D1618429A9336AE778567B0486CDC765CDD88696B07C"
+ },
+ "five_parts": {
+  "adversarial_false_completeness_check": {
+   "evidence": {
+    "ADVERSARIAL_CLOSURE": {
+     "member": "FINAL_G5/INPUTS/ADVERSARIAL.json",
+     "sha256": "2A420F3001CE12F9F9211F15C1BE53BB146925A77A5D06A00D70D849E50044CB"
+    },
+    "FINAL_PACKAGE_ZIP": {
+     "member": "EXCLUDED_DUPLICATE:FINAL_PACKAGE.zip",
+     "sha256": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145"
+    },
+    "G5_D4_REAL_ISOLATED_PATH_NATIVE": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PROOFS/D4_REAL_ISOLATED_PATH_NATIVE/PROOF_RECEIPT.json",
+     "sha256": "E565BAD6616499B5CA704EF059B67EB359F869B4FA40BDCAC7F7263BCCEF9F13"
+    },
+    "PRE_B06_11_CHAIN": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PRE_B06/ELEVEN_CONSUMERS.json",
+     "sha256": "DF955D5C71042E78B2ED564CA0F0AE58C953EAFEA6FA1A36A4D9C57087972037"
+    },
+    "SUITE_test_b2d_origin_decision_binder.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_b2d_origin_decision_binder.py.log",
+     "sha256": "181E7BB9C442B2CDF45E5341694A851F839027B0B38E79E704136C1CC3CAEB2B"
+    },
+    "SUITE_test_operator_entry_points.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_operator_entry_points.py.log",
+     "sha256": "EE7B5A02BC50E0A218DA562F63431A1C0FC7AA9AD641664D9597515AE63B8A9F"
+    }
+   },
+   "proof_sha256": "DAF434D45C7F172F18CD533EB537E2D7145A4E41E56F78ECF8178E2BDD077882",
+   "status": "PASS"
+  },
+  "all_implementations_integrated": {
+   "evidence": {
+    "ADVERSARIAL_CLOSURE": {
+     "member": "FINAL_G5/INPUTS/ADVERSARIAL.json",
+     "sha256": "2A420F3001CE12F9F9211F15C1BE53BB146925A77A5D06A00D70D849E50044CB"
+    },
+    "FINAL_PACKAGE_ZIP": {
+     "member": "EXCLUDED_DUPLICATE:FINAL_PACKAGE.zip",
+     "sha256": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145"
+    },
+    "G5_PROCESS_TREE_CRASH_CONTAINMENT": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PROOFS/PROCESS_TREE_CRASH_CONTAINMENT/PROOF_RECEIPT.json",
+     "sha256": "130D3616DF79E14C1B10E0C677135B6141AA756A3C1E854AFD34DE55847106E4"
+    },
+    "G5_SAFE_STOP_RESUME_ROW_GROUP": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PROOFS/SAFE_STOP_RESUME_ROW_GROUP/PROOF_RECEIPT.json",
+     "sha256": "DB114DE4C7687F13074A8BEEF7052FD7264C1E30E9AD91F9FE0BE76E5375478B"
+    },
+    "PRE_B06_11_CHAIN": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PRE_B06/ELEVEN_CONSUMERS.json",
+     "sha256": "DF955D5C71042E78B2ED564CA0F0AE58C953EAFEA6FA1A36A4D9C57087972037"
+    },
+    "SUITE_adapter_tests.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_adapter_tests.py.log",
+     "sha256": "A8F5EE41AD9105522CDFB324CC02C497F54C0C27EF517C4B276B6432DB2A47E6"
+    },
+    "SUITE_test_full_multiwork.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_full_multiwork.py.log",
+     "sha256": "92EC74B588D3ED4E42BFFD1FAB181A50EAE23285456028A41A3868FD74273049"
+    }
+   },
+   "proof_sha256": "29A73743C3E855B806B11AAAF2B1F16CB0D0FCCFF6CF7211CC9BF57136D63C58",
+   "status": "PASS"
+  },
+  "all_known_fixable_blockers_closed": {
+   "evidence": {
+    "ADVERSARIAL_CLOSURE": {
+     "member": "FINAL_G5/INPUTS/ADVERSARIAL.json",
+     "sha256": "2A420F3001CE12F9F9211F15C1BE53BB146925A77A5D06A00D70D849E50044CB"
+    },
+    "FINAL_PACKAGE_ZIP": {
+     "member": "EXCLUDED_DUPLICATE:FINAL_PACKAGE.zip",
+     "sha256": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145"
+    },
+    "PRE_B06_11_CHAIN": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PRE_B06/ELEVEN_CONSUMERS.json",
+     "sha256": "DF955D5C71042E78B2ED564CA0F0AE58C953EAFEA6FA1A36A4D9C57087972037"
+    },
+    "SUITE_test_official_writer_effectful.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_official_writer_effectful.py.log",
+     "sha256": "08AABB4DD3A87E998F6CA7B9C0466C59C2D758D5D439F11825DF8D3C082B15EC"
+    },
+    "SUITE_test_scratch_powerloss_debris.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_scratch_powerloss_debris.py.log",
+     "sha256": "324D171228F0DF988BB074F2BC4439FC70BABAE71889A78CE299221B36A86C16"
+    },
+    "SUITE_test_state_cas_recovery.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_state_cas_recovery.py.log",
+     "sha256": "B105BFE9BBA059BC80800BF497F84C5C42FFB276228272D19CBD54102AEB529F"
+    }
+   },
+   "proof_sha256": "514D2198EBA6176FAB33A53D88501CA45F193184EDC52D2A9F18F11CE6076190",
+   "status": "PASS"
+  },
+  "frozen_for_independent_audit": {
+   "evidence": {
+    "ADVERSARIAL_CLOSURE": {
+     "member": "FINAL_G5/INPUTS/ADVERSARIAL.json",
+     "sha256": "2A420F3001CE12F9F9211F15C1BE53BB146925A77A5D06A00D70D849E50044CB"
+    },
+    "FINAL_PACKAGE_ZIP": {
+     "member": "EXCLUDED_DUPLICATE:FINAL_PACKAGE.zip",
+     "sha256": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145"
+    },
+    "G5_POWERLOSS_EMULATED": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PROOFS/POWERLOSS_EMULATED/PROOF_RECEIPT.json",
+     "sha256": "C130CD77F65F63760F2C93D1219B4AF0A9DFF7D2288A67B95920EAAAF4F9599F"
+    },
+    "PRE_B06_11_CHAIN": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PRE_B06/ELEVEN_CONSUMERS.json",
+     "sha256": "DF955D5C71042E78B2ED564CA0F0AE58C953EAFEA6FA1A36A4D9C57087972037"
+    },
+    "SUITE_test_cdt16_held_rename_failure.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_cdt16_held_rename_failure.py.log",
+     "sha256": "672552CE0E4E9D95533190B10BD907B8735A7B860376FB7D0EB5E7CA77D854AB"
+    },
+    "SUITE_test_cdt16_native_pin_contract.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_cdt16_native_pin_contract.py.log",
+     "sha256": "F0154370EA1F7DE40CB1FEB620D2143685B4ACDCC6759FC743A0054D9DB81528"
+    }
+   },
+   "proof_sha256": "BFC168963FB4A8AFFC2D3CB316CEB36BF695850130854ACCA04DEC7D2B831BE2",
+   "status": "PASS"
+  },
+  "tested_equals_packaged_new_final_code": {
+   "evidence": {
+    "ADVERSARIAL_CLOSURE": {
+     "member": "FINAL_G5/INPUTS/ADVERSARIAL.json",
+     "sha256": "2A420F3001CE12F9F9211F15C1BE53BB146925A77A5D06A00D70D849E50044CB"
+    },
+    "FINAL_PACKAGE_ZIP": {
+     "member": "EXCLUDED_DUPLICATE:FINAL_PACKAGE.zip",
+     "sha256": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145"
+    },
+    "G5_PS51_INSTALL_MENU": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PROOFS/PS51_INSTALL_MENU/PROOF_RECEIPT.json",
+     "sha256": "293F7CD8517700829FE8492A2979A91441124D969490D76245D60A5FD621B825"
+    },
+    "PRE_B06_11_CHAIN": {
+     "member": "FINAL_G5/PROOF_NATIVE/EVIDENCE/PRE_B06/ELEVEN_CONSUMERS.json",
+     "sha256": "DF955D5C71042E78B2ED564CA0F0AE58C953EAFEA6FA1A36A4D9C57087972037"
+    },
+    "SUITE_test_cdt17_final_g5_complete_proof_gate.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_cdt17_final_g5_complete_proof_gate.py.log",
+     "sha256": "A287E896D034B484509AFAB09537C4C5D11CF3BA1F2F8162075E28C1D2E4C4ED"
+    },
+    "SUITE_test_g5_proof_runner_contract.py": {
+     "member": "FINAL_G5/PROOF_NATIVE/LOGS/SUITE_test_g5_proof_runner_contract.py.log",
+     "sha256": "FCCB9A08694234EBC4904C514A2C82695E4FDA6EBC4ECBD77A9BD2A4C4134744"
+    }
+   },
+   "proof_sha256": "69B283075B63F0C50314B89FFC5EC63C6CDFAE15EE82BAB86BB0806023EC72DF",
+   "status": "PASS"
+  }
+ },
+ "ledger_bases": [
+  "OBSERVED_COMMITTED_LINE"
+ ],
+ "linux_recomputation_equal": {
+  "FOUR_PRE_B06_FINDINGS.json": true,
+  "G5_EVIDENCE_PACK.json": true,
+  "G5_INTEGRATION_MANIFEST.json": true,
+  "G5_INTEGRATION_SOURCE.py": true,
+  "G5_STAGE_COMPLETENESS.json": true,
+  "INPUTS/ADVERSARIAL.json": true,
+  "five_part:adversarial_false_completeness_check": true,
+  "five_part:all_implementations_integrated": true,
+  "five_part:all_known_fixable_blockers_closed": true,
+  "five_part:frozen_for_independent_audit": true,
+  "five_part:tested_equals_packaged_new_final_code": true
+ },
+ "native": {
+  "live_committed_units": 31,
+  "native_members": 2049,
+  "native_return_sha256": "F7E5E879395768ECE664D1FF757FABBCE74D622B928D85943814B53A5898089A",
+  "roles": 31,
+  "run_id": "R08_Q1_20261022063029_348b83753194"
+ },
+ "pass": true,
+ "schema": "CDT21_G5_V005_NATIVE_RETURN_VERIFICATION_V001",
+ "supervisor_result": {
+  "campaign_status": "PASS_NATIVE_INTEGRATED_PRE_B06",
+  "engineering_completeness_sha256": "8BA377D498DF904536C8C295B0DB6C28BF74F461D6F386DE1E94F2631D6FFB95",
+  "exit_code": 0,
+  "final_engineering_status": "EVIDENCE_READY_ORIGIN_G5_NOT_ISSUED",
+  "final_engineering_status_sha256": "BC9B41BC0B5166FE235FFA93B79C5A326493D992B6E030019132ACE9205BA725",
+  "mode": "NEW_RUN_V005",
+  "native_return_sha256": "F7E5E879395768ECE664D1FF757FABBCE74D622B928D85943814B53A5898089A",
+  "return_sha256": "A1B8064A9046B8E42A69CA094BFC5DB2EAB857848EDDD9EE5501BA95829EFDAF",
+  "run_id": "R08_Q1_20261022063029_348b83753194",
+  "seconds": 711.656,
+  "status": "PASS_NATIVE_V005_G5_TECHNICAL_FIVE_PART"
+ },
+ "units": {
+  "commits": 38,
+  "contracted_roles": 31,
+  "delta_units": 13,
+  "planned": 38,
+  "reused": 0
+ }
+}

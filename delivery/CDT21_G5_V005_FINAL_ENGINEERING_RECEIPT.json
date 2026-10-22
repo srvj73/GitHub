@@ -1,0 +1,68 @@
+{
+ "candidate_sha256": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145",
+ "code_manifest_sha256": "63CBA7065A719CBCF58F1EB1F088D090B87AE7ABBAF37BE03856619CE1D0D74E",
+ "d4_successor_artifact_probe": {
+  "expected_single_identity_sha256": "8A05E76189E63379A60E2447DAA313765D30A2EAB78EAF4E9D91AA19CBFE3E73",
+  "path": "D:\\Base CSV\\Scripts\\TICKSTORE_R9_DEV\\TICKSTORE_D4_RESUMABLE_V002R22\\artifacts\\TICKSTORE_V004R1_D4_RESUMABLE_V002R24_PACKAGE.zip",
+  "present": false,
+  "read_only": true,
+  "successor_package_dir_present": true
+ },
+ "diagnostic_skips_disclosed": {
+  "DELTA_test_cdt19_r06_integrated_contract.py": {
+   "skipped": true,
+   "test_count": 16
+  }
+ },
+ "engineering_completeness_sha256": "8BA377D498DF904536C8C295B0DB6C28BF74F461D6F386DE1E94F2631D6FFB95",
+ "five_part_completeness": {
+  "adversarial_false_completeness_check": "PASS",
+  "all_implementations_integrated": "PASS",
+  "all_known_fixable_blockers_closed": "PASS",
+  "frozen_for_independent_audit": "PASS",
+  "tested_equals_packaged_new_final_code": "PASS"
+ },
+ "gates_after_this_receipt": {
+  "B06": "NOT_STARTED (independent Work, origin dispatch)",
+  "B07": "NOT_STARTED",
+  "CANARY": "NOT_STARTED",
+  "D4": "NOT_STARTED",
+  "D5": "NOT_STARTED",
+  "FULL": "NOT_STARTED",
+  "FULL_ADMISSION": "NOT_STARTED",
+  "FULL_PREP": "NOT_STARTED",
+  "G5_origin_decision_and_stage_receipt": "NOT_ISSUED (origin)",
+  "G5_technical_native_V005": "PASS_NATIVE_V005_G5_TECHNICAL_FIVE_PART"
+ },
+ "independent_b06_audit": false,
+ "issuer": "IMPLEMENTER_ENGINEERING_RECEIPT_NOT_AUDIT",
+ "ledger_bases": [
+  "OBSERVED_COMMITTED_LINE"
+ ],
+ "linux_recomputation_equal": true,
+ "native_return": {
+  "enviar": {
+   "bytes": 56901872,
+   "name": "ENVIAR_AO_OPUS_CDT21_G5_V005_20261022_063004_747_43284.zip",
+   "sha256": "AB0E34CFA12212B9E333D1618429A9336AE778567B0486CDC765CDD88696B07C"
+  },
+  "native_r08_return_sha256": "F7E5E879395768ECE664D1FF757FABBCE74D622B928D85943814B53A5898089A",
+  "run_id": "R08_Q1_20261022063029_348b83753194",
+  "seconds": 711.656,
+  "supervisor_return_sha256": "A1B8064A9046B8E42A69CA094BFC5DB2EAB857848EDDD9EE5501BA95829EFDAF"
+ },
+ "physical_powerloss": "NOT_TESTED_PHYSICAL_POWERLOSS",
+ "schema": "CDT21_G5_V005_FINAL_ENGINEERING_RECEIPT_V001",
+ "status": "PASS_NATIVE_V005_G5_TECHNICAL_FIVE_PART",
+ "tested_code_equals_packaged_code": "PASS (frozen verify_package in every unit + frozen verify_final_zip)",
+ "units": {
+  "commits": 38,
+  "contracted_roles": 31,
+  "delta_units": 13,
+  "planned": 38,
+  "reused": 0
+ },
+ "v005_regression_tests_native": "7/7 ok",
+ "verification_checks_pass": "32/32",
+ "verifier_negative_controls_refused": "5/5"
+}

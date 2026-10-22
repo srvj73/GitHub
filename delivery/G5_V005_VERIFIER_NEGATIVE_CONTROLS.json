@@ -1,0 +1,44 @@
+{
+ "schema": "CDT21_G5_V005_VERIFIER_NEGATIVE_CONTROLS_V001",
+ "enviar_sha256": "AB0E34CFA12212B9E333D1618429A9336AE778567B0486CDC765CDD88696B07C",
+ "verifier_sha256": "5A76256A677F4E151AB828816480A10306239D448161DD9BC9B9E88ED12EAA58",
+ "controls": [
+  {
+   "id": "NC-A_candidate_swapped_for_v004_parent",
+   "expected_refusal": "candidate_sha",
+   "refused": true,
+   "blocker": "candidate_sha:AD33486954F1248AF28A78677377E83AB979AB86EDD5F71F5B7D108CBA8F99DD",
+   "exit": 2
+  },
+  {
+   "id": "NC-B_native_commit_altered_not_resealed",
+   "expected_refusal": "return_zip_sha_matches_supervisor|native_return_sha",
+   "refused": true,
+   "blocker": "return_zip_sha_matches_supervisor:",
+   "exit": 2
+  },
+  {
+   "id": "NC-C_native_log_flipped_outer_hashes_resealed",
+   "expected_refusal": "FROZEN_CODE_REFUSED:G5Incomplete|frozen_verify_native_campaign|COMMIT_ARTIFACT",
+   "refused": true,
+   "blocker": "FROZEN_CODE_REFUSED:G5Incomplete:G5_FINAL_NATIVE_SUITE_LOG:test_operator_entry_points.py",
+   "exit": 2
+  },
+  {
+   "id": "NC-D_five_part_proof_forged_outer_hashes_resealed",
+   "expected_refusal": "FIVE_PART_READBACK",
+   "refused": true,
+   "blocker": "FIVE_PART_READBACK:tested_equals_packaged_new_final_code",
+   "exit": 2
+  },
+  {
+   "id": "NC-E_commit_rebound_to_v004_outer_hashes_resealed",
+   "expected_refusal": "frozen_verify_native_campaign|COMMIT_NOT_CLOSED",
+   "refused": true,
+   "blocker": "COMMIT_NOT_CLOSED:SUITE_test_cdt18_stage_proof_integrated_reconcile.py",
+   "exit": 2
+  }
+ ],
+ "refused": 5,
+ "total": 5
+}

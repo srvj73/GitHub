@@ -1,0 +1,199 @@
+{
+ "b06": "NOT_STARTED",
+ "candidate_sha256": "E3F1F4790D6AE6E5639F137FAEE3E91B2B8E6FFB51A95F18078DF734553CB145",
+ "items": [
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "all_38_commits_closed_bound_v005_and_physical",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "candidate_sha",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "census_38_lists_each_commit_owner",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "commits_equal_frozen_plan_38",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "delta_13_pass_required_not_skipped",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "enviar_members",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "excluded_duplicates_identity",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "final_engineering_status",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "five_parts_pass_and_physically_present",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "four_findings_pass",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "frozen_verify_final_zip",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "frozen_verify_native_campaign",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "journal_single_attempt_of_this_supervisor",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "ledger_38_equals_plan_and_bound",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "linux_recomputation_matches_windows",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "linux_recomputed_close_pass",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "native_return_sha",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "new_campaign_no_reuse",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "no_interrupted_attempts",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "no_owned_orphans",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "phase_q_of_this_run_pass",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "preexisting_roots_unchanged",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "production_unchanged",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "return_index_members",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "return_zip_sha_matches_supervisor",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "supervisor_binding",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "supervisor_embedded_in_return",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "supervisor_identity",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "supervisor_status_pass",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "unit_census_complete_no_error",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "v005_regression_tests_7_native_ok",
+   "status": "PASS"
+  },
+  {
+   "basis": "verificacao com o codigo congelado do V005 / hash",
+   "item": "windows_completeness_binding",
+   "status": "PASS"
+  },
+  {
+   "basis": "G5_V005_VERIFIER_NEGATIVE_CONTROLS.json",
+   "item": "verifier_negative_controls",
+   "status": "5/5 REFUSED"
+  },
+  {
+   "basis": "emitida pela origem; o implementador nao a emite",
+   "item": "g5_origin_decision_and_stage_receipt",
+   "status": "ORIGIN_DECISION"
+  },
+  {
+   "basis": "nao lida pelo implementador nem pelo auditor",
+   "item": "policy_custody_and_live_revalidation",
+   "status": "ORIGIN_ONLY"
+  },
+  {
+   "basis": "INDEPENDENCE_PRE_DISPATCH emitido pela origem",
+   "item": "auditor_independence",
+   "status": "ORIGIN_TO_ADMIT"
+  },
+  {
+   "basis": "o implementador nao despacha nem audita",
+   "item": "formal_audit_dispatch",
+   "status": "ORIGIN_DECISION"
+  },
+  {
+   "basis": "dispensado; recuperacao de falha de processo provada nativamente",
+   "item": "physical_powerloss",
+   "status": "NOT_TESTED_PHYSICAL_POWERLOSS"
+  }
+ ],
+ "overall": "READY_FOR_ORIGIN_B06_DISPATCH",
+ "schema": "CDT21_B06_DISPATCH_ADMISSION_MATRIX_V003",
+ "self_approval": false
+}
