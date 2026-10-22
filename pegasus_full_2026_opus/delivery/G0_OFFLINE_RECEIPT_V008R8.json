@@ -1,30 +1,30 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R7_G0_OFFLINE_RECEIPT",
+  "schema": "PEGASUS_FULL_2026_V008R8_G0_OFFLINE_RECEIPT",
   "final_bytes": {
     "zip": {
-      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R7_20261022.zip",
-      "sha256": "FDFCEDB59BB361C05B9900FFE4697B5C9496159C546CB379C10E82ECB1002F7F",
-      "bytes": 87388961,
-      "members": 2947
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R8_20261022.zip",
+      "sha256": "17A9FB12168F88CBF5CFC4454D211AB773C30E63AEEB95E529899597693DF411",
+      "bytes": 87389458,
+      "members": 2946
     },
-    "manifest_sha256": "055A9276EEDAD7931A95C65EA6173BA271B29C6E455D8D8939F94DE7627232C3",
-    "tested_manifest_sha256_m1": "1F8415010BC31A525244B38EE7F8D9FABF92520088483FD9A8B230E3E3A5E26C",
+    "manifest_sha256": "3BA34A1D1C6F6B1D2C55D6AFE53564E38813F2D1DFD988CFA7C93BE90A1B396C",
+    "tested_manifest_sha256_m1": "9B5F91DC21BD98554FAA9B968BCBB02542AE046D0EA4C0538F054CD976E4C66A",
     "bootstrap": {
-      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R7_PS51.ps1",
-      "sha256": "D90799137B56AFDAAA88B16A196804DD325595944E016B4C216FA8C1B6E0D324",
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R8_PS51.ps1",
+      "sha256": "F499D48C0A93065E273D564ABEF8768CEAACEE5DC87A12B7CB79DFA120F56E0C",
       "bytes": 22858
     },
-    "supersedes_v008r6": {
-      "zip_sha256": "4B8DF8B9C178B4DD19565992BF0B0DC5D90FB8B1E4E10C816AF724F7ED1E8360",
-      "reason": "Q11 breakaway asserts true containment (grandchild PID stays in Job accounting) instead of the CreateProcess-throws proxy, wrong on Win8+ nested jobs"
+    "supersedes_v008r7": {
+      "zip_sha256": "FDFCEDB59BB361C05B9900FFE4697B5C9496159C546CB379C10E82ECB1002F7F",
+      "reason": "bounded retry of the corroboration handle census (intermittent truncation blocked Q10a in R7); fail-closed unchanged"
     },
     "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
   },
   "zip_crc": "PASS",
   "zip_member_safety": "PASS",
   "delivered_extract_verify": "PASS_ALL_DELIVERED_BYTES_MATCH_MANIFEST",
-  "delivered_manifest_sha256": "055A9276EEDAD7931A95C65EA6173BA271B29C6E455D8D8939F94DE7627232C3",
-  "delivered_files_checked": 2946,
+  "delivered_manifest_sha256": "3BA34A1D1C6F6B1D2C55D6AFE53564E38813F2D1DFD988CFA7C93BE90A1B396C",
+  "delivered_files_checked": 2945,
   "offline_tests": {
     "supervisor_unit": "71_OF_71",
     "supervisor_mutation": "24_OF_24_KILLED",
@@ -32,8 +32,8 @@
     "bootstrap_mutation": "8_OF_8_KILLED",
     "supervised_qualification": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=16; SKIPPED_NON_NATIVE=2; error=None"
   },
-  "native_campaign_r6": {
-    "zip_sha256": "4F6FA5857C378CCC4B0ED377F240FDBDB521D51B7A442365364C6B13B12D9FDA",
+  "native_campaign_r7": {
+    "zip_sha256": "AD7D815615D199E17E1AD31EAF0B6AB46131FF9FCD9E9B38614B83989831D1D7",
     "exit_boundary_steps": {
       "S00_CANARY_EXIT_0": "MATCH",
       "S00_CANARY_EXIT_2": "MATCH",
@@ -53,9 +53,9 @@
       "S06_OFFLINE_NUMPY": "MATCH",
       "S07_SUPERVISED_NATIVE_QUALIFICATION": "MISMATCH"
     },
-    "advanced_to": "22/23 nativos PASS (Q01-Q15, Q10a-f)",
-    "blocker": "Q11 breakaway: proxy do CreateProcess (nao lancou) incorreto no Win8+ jobs aninhados; criterio corrigido p/ contencao real",
-    "resolved_in": "V008R7_JOB_BREAKAWAY_CONTAINMENT"
+    "advanced_to": "16 casos (Q01-Q15) PASS antes de Q10a",
+    "blocker": "Q10a W04 BLOCKED por CENSUS_TRUNCATED intermitente (passou na R6); prova primaria do kernel OK",
+    "resolved_in": "V008R8_CENSUS_BOUNDED_RETRY"
   },
   "python_compile_new_code": "PASS_ON_3.13 (campanha nativa usa Python 3.14.7 do titular)",
   "powershell_parse": "PASS_PWSH_7.4.6_LINUX; PS5.1_NATIVE_VALIDATED_BY_CAMPAIGNS_R2_R3",

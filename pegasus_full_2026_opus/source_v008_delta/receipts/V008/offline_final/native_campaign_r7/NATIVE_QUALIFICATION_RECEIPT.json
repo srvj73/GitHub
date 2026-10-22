@@ -5,15 +5,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 52,
-        "inventory_sha256": "901FB2C228C70FD186EE0420F582952EE59829E2976E4B01126EFAC31A853DA4"
+        "inventory_sha256": "9DA808A10099EDEFC1E0663EF242C80A81F240ADD8C0707BBB201F8CBBBF5F08"
       },
       "jit": {
-        "child_created_ns": 210716236833100,
-        "child_resumed_ns": 210716313364100,
+        "child_created_ns": 211937913227400,
+        "child_resumed_ns": 211937994411000,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 210722558208300,
-        "w04_arm_ns": 210716236525300,
-        "w04_disarm_ns": 210723646462300
+        "tree_empty_ns": 211944335954100,
+        "w04_arm_ns": 211937912947600,
+        "w04_disarm_ns": 211945298338600
       },
       "lineage": {
         "identity_unresolved_short_lived": 0,
@@ -22,14 +22,14 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 7199,
+        "census_unresolved_reported": 7158,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64285119520,
+          "end_usn": 64293525128,
           "journal_id": 133708975302158387,
-          "start_usn": 64284946160
+          "start_usn": 64293350360
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -43,14 +43,14 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 7184,
+        "census_unresolved_reported": 7157,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64285288712,
+          "end_usn": 64293694104,
           "journal_id": 133708975302158387,
-          "start_usn": 64285122104
+          "start_usn": 64293528072
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -64,14 +64,14 @@
         "safe_stop": "CONFIRMED_BY_SUPERVISOR"
       },
       "w04": {
-        "census_unresolved_reported": 7175,
+        "census_unresolved_reported": 7157,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64285407048,
+          "end_usn": 64293813504,
           "journal_id": 133708975302158387,
-          "start_usn": 64285292648
+          "start_usn": 64293696504
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -83,7 +83,7 @@
     },
     {
       "active_journals": [
-        "2000-01-06.48524_1792708009878563000.json"
+        "2000-01-06.33468_1792709230303410600.json"
       ],
       "case": "Q05_GAP1_JOURNAL_WITHOUT_PENDING",
       "child_exit": 1,
@@ -97,7 +97,7 @@
     {
       "case": "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
       "child_exit": 87,
-      "orphan_run_lock_pid": 35080,
+      "orphan_run_lock_pid": 25156,
       "result": "PASS"
     },
     {
@@ -113,10 +113,10 @@
     {
       "case": "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
       "journal_history": [
-        "1999-12-31.48524_1792708009878563000.json.COMMITTED",
-        "2000-01-06.35080_1792708021177651700.json.RECOVERED_COMMITTED",
-        "2000-01-06.48524_1792708009878563000.json.RECOVERED_REQUEUE",
-        "2000-01-11.25580_1792708027530201300.json.COMMITTED"
+        "1999-12-31.33468_1792709230303410600.json.COMMITTED",
+        "2000-01-06.25156_1792709243557416800.json.RECOVERED_COMMITTED",
+        "2000-01-06.33468_1792709230303410600.json.RECOVERED_REQUEUE",
+        "2000-01-11.8168_1792709252144379400.json.COMMITTED"
       ],
       "result": "PASS"
     },
@@ -125,15 +125,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 36,
-        "inventory_sha256": "0FB690A9F9755AAD0D2F63B09B0C33ABAA4E4BFF3885C4C908BBDD102AEB960B"
+        "inventory_sha256": "727F89CA7AAC2386C89131CD21C2564D22BB92F20CD0E5291BEB3BDBB8AAABAB"
       },
       "jit": {
-        "child_created_ns": 210773707211600,
-        "child_resumed_ns": 210773780342600,
+        "child_created_ns": 211998827631500,
+        "child_resumed_ns": 211998909327300,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 210779626170700,
-        "w04_arm_ns": 210773706860000,
-        "w04_disarm_ns": 210781243671800
+        "tree_empty_ns": 212004042800500,
+        "w04_arm_ns": 211998827140900,
+        "w04_disarm_ns": 212006822665400
       },
       "lineage": {
         "identity_unresolved_short_lived": 0,
@@ -143,14 +143,14 @@
       "result": "PASS",
       "returncode": 0,
       "w04": {
-        "census_unresolved_reported": 7188,
+        "census_unresolved_reported": 7166,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64285952384,
+          "end_usn": 64294373808,
           "journal_id": 133708975302158387,
-          "start_usn": 64285783272
+          "start_usn": 64294196128
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -161,7 +161,7 @@
       "resume_completion": {
         "completed": true,
         "inventory_entries": 36,
-        "inventory_sha256": "8D1FA062DBF52B2124383104DC4828FF429DC9C6A95C32F54A15E864CCCD7686"
+        "inventory_sha256": "FCF0BC2E48D539D4D019671A106DE73741F95C459FD78CAB49302A07270C30D8"
       },
       "safe_stop": {
         "committed_at_stop": 2,
@@ -227,118 +227,41 @@
     {
       "case": "Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE",
       "rename": "RENAME_DENIED winerror=32",
-      "result": "PASS",
-      "w04": {
-        "census_unresolved_reported": 7141,
-        "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
-        "directories": 1,
-        "targets": 43,
-        "usn": {
-          "end_usn": 64286476504,
-          "journal_id": 133708975302158387,
-          "start_usn": 64286469960
-        },
-        "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
-      },
-      "writer": "WRITE_DENIED winerror=None"
-    },
-    {
-      "case": "Q10b_PREEXISTING_WRITER_BLOCKS",
-      "result": "PASS",
+      "result": "FAIL",
       "w04": {
         "gaps": [
-          "LEASE_NOT_ACQUIRED_ON_ALL_TARGETS",
-          "PREEXISTING_WRITER_OR_WRITABLE_MAPPING:1",
-          "CENSUS_EXTERNAL_WRITER_UNDER_TARGET:2"
-        ],
-        "w04_full": "BLOCKED"
-      }
-    },
-    {
-      "case": "Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS",
-      "result": "PASS",
-      "w04": {
-        "gaps": [
-          "LEASE_NOT_ACQUIRED_ON_ALL_TARGETS",
-          "PREEXISTING_WRITER_OR_WRITABLE_MAPPING:1",
-          "PROTECTED_SET_MODIFIED:1",
-          "CENSUS_EXTERNAL_WRITER_UNDER_TARGET:2"
-        ],
-        "w04_full": "BLOCKED"
-      }
-    },
-    {
-      "actor": "DONE",
-      "case": "Q10D_NEW_NAME_NEVER_PASSES",
-      "result": "PASS",
-      "w04": {
-        "gaps": [
-          "PROTECTED_SET_MODIFIED:3",
           "CENSUS_TRUNCATED"
         ],
         "w04_full": "BLOCKED"
-      }
-    },
-    {
-      "actor": "DONE",
-      "case": "Q10E_ALTERNATE_STREAM_NEVER_PASSES",
-      "result": "PASS",
-      "w04": {
-        "gaps": [
-          "PROTECTED_SET_MODIFIED:2"
-        ],
-        "w04_full": "BLOCKED"
-      }
-    },
-    {
-      "actor": "DONE",
-      "case": "Q10F_HARDLINK_NEVER_PASSES",
-      "result": "PASS",
-      "w04": {
-        "gaps": [
-          "PROTECTED_SET_MODIFIED:1",
-          "IDENTITY_LINK_COUNT_CHANGES:1"
-        ],
-        "w04_full": "BLOCKED"
-      }
-    },
-    {
-      "case": "Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
-      "jit": {
-        "child_created_ns": 210974228493500,
-        "child_resumed_ns": 210974334761500,
-        "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 210974639340400,
-        "w04_arm_ns": 210974228144200,
-        "w04_disarm_ns": 210985846690200
       },
-      "lineage": {
-        "identity_unresolved_short_lived": 0,
-        "lineage": "GAPLESS_NATIVE_JOB",
-        "processes": 15
-      },
-      "result": "FAIL"
+      "writer": "WRITE_DENIED winerror=None"
     }
   ],
   "economic_execution": false,
-  "error": "AssertionError('Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED {\"jit\": {\"child_created_ns\": 210974228493500, \"child_resumed_ns\": 210974334761500, \"jit\": \"W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY\", \"tree_empty_ns\": 210974639340400, \"w04_arm_ns\": 210974228144200, \"w04_disarm_ns\": 210985846690200}, \"lineage\": {\"identity_unresolved_short_lived\": 0, \"lineage\": \"GAPLESS_NATIVE_JOB\", \"processes\": 15}}')",
+  "error": "AssertionError('Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE {\"rename\": \"RENAME_DENIED winerror=32\", \"w04\": {\"gaps\": [\"CENSUS_TRUNCATED\"], \"w04_full\": \"BLOCKED\"}, \"writer\": \"WRITE_DENIED winerror=None\"}')",
   "full_economic": "NO",
   "full_released": "NO",
   "g4": "FROZEN",
   "native_completeness_evaluation": {
-    "gapless_native_job_cases": 4,
+    "gapless_native_job_cases": 3,
     "required_cases": 23,
     "schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
     "unmet": [
       "QUALIFICATION_CHAIN_NOT_PASS",
+      "CASE_NOT_PASS:Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE",
+      "CASE_NOT_PASS:Q10b_PREEXISTING_WRITER_BLOCKS",
+      "CASE_NOT_PASS:Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS",
+      "CASE_NOT_PASS:Q10D_NEW_NAME_NEVER_PASSES",
+      "CASE_NOT_PASS:Q10E_ALTERNATE_STREAM_NEVER_PASSES",
+      "CASE_NOT_PASS:Q10F_HARDLINK_NEVER_PASSES",
       "CASE_NOT_PASS:Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED"
     ],
     "verdict": "NOT_MET",
-    "w04_native_pass_cases": 5
+    "w04_native_pass_cases": 4
   },
   "native_windows": true,
   "os_name": "nt",
-  "package_manifest_sha256": "186E8A0F9F3E46290F64D20CC713DF63043D5DB4120AA21097128443C0D9963D",
+  "package_manifest_sha256": "055A9276EEDAD7931A95C65EA6173BA271B29C6E455D8D8939F94DE7627232C3",
   "phase_c": "FORBIDDEN",
   "platform": "Windows-11-10.0.26200-SP0",
   "python": "3.14.7",
@@ -347,7 +270,7 @@
   "result": "FAIL_STOP_CHAIN",
   "run_released": "NO",
   "schema": "PEGASUS_FULL_2026_V008_INTEGRATED_QUALIFICATION_V001",
-  "seconds": 270.624,
+  "seconds": 223.779,
   "supervisor_parents": {
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152"
@@ -424,8 +347,8 @@
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_binding_v008.py": "7FBE02BAAD077CAF37BCC394452657F84D8F115DC3FFE67413CBAAAE3DC2BB7A",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152",
-    "pegasus_qualify_v008.py": "63D3EEDD7B3FF4C6506A4283524C0207EFAEF2D77ECB30C4D74183D2D6766833",
-    "pegasus_supervisor_v008.py": "041022153ADDBFAFDE57178C43D26BBF9D9A9313BA6E931571D90ED7D1A67C0D",
+    "pegasus_qualify_v008.py": "6B0CB5410F16F5055DA65E445B3C95B5941B0C6BFA931144A3CB5F0414F18572",
+    "pegasus_supervisor_v008.py": "1DEA8B7BD088EE37DE6EFCD3F8B09F01FDD087463EAE232AE4E50607A5ADCFED",
     "pegasus_win_native_v008.py": "0F8012B75887F061D053C602A31CC696AF5FEDECCF1C13159C357506F11DAE58"
   }
 }

@@ -43,6 +43,7 @@ JOB_OBJECT_LIMIT_BREAKAWAY_OK = 0x00000800
 JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK = 0x00001000
 JobObjectBasicAccountingInformation = 1
 JobObjectBasicProcessIdList = 3
+CENSUS_MAX_ATTEMPTS = 3      # novas tentativas do census (corroboração) se a enumeração vier truncada
 JobObjectAssociateCompletionPortInformation = 7
 JobObjectExtendedLimitInformation = 9
 MSG_ACTIVE_PROCESS_ZERO, MSG_NEW_PROCESS, MSG_EXIT_PROCESS, MSG_ABNORMAL_EXIT = 4, 6, 7, 8
@@ -456,7 +457,15 @@ class W04NativeLease:
     def _census(self):
         import native_handle_backend_v001 as nhb
         nhb.enable_se_debug_privilege()
-        enum = nhb.enumerate_file_handle_observations()
+        # Truncamento é intermitente: consultas de nome que travam são abandonadas e, acima de
+        # 8 por chamada, a enumeração vem truncada (contador por chamada). Nova tentativa
+        # limitada; se TODAS truncarem, o resultado segue truncado e o W04 bloqueia
+        # (fail-closed inalterado). Corroboração apenas; a prova primária é a lease do kernel.
+        attempts = 0
+        for attempts in range(1, CENSUS_MAX_ATTEMPTS + 1):
+            enum = nhb.enumerate_file_handle_observations()
+            if not enum["enumeration_truncated"]:
+                break
         me = (os.getpid(), process_ctime(os.getpid()))
         owned = {me}
         root = str(self.root)
@@ -477,7 +486,8 @@ class W04NativeLease:
             else:
                 ext_readers += 1
         return {"truncated": bool(enum["enumeration_truncated"]), "external_writers_under_target": ext_writers,
-                "external_readers_under_target": ext_readers, "unresolved": unresolved, "stats": enum.get("stats")}
+                "external_readers_under_target": ext_readers, "unresolved": unresolved, "stats": enum.get("stats"),
+                "attempts": attempts}
 
     # ---- ciclo
     def arm(self) -> dict:
@@ -554,7 +564,8 @@ class W04NativeLease:
                        "external_writers_under_target": self.census_start["external_writers_under_target"]
                        + census_end["external_writers_under_target"],
                        "unresolved": max(self.census_start["unresolved"], census_end["unresolved"]),
-                       "stats_start": self.census_start["stats"], "stats_end": census_end["stats"]},
+                       "stats_start": self.census_start["stats"], "stats_end": census_end["stats"],
+                       "attempts": [self.census_start.get("attempts"), census_end.get("attempts")]},
         }
         for h, _i in list(self.files.values()) + list(self.dirs.values()):
             CloseHandle(h)

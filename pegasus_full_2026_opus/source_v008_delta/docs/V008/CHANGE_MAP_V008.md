@@ -130,3 +130,12 @@ Correção (no teste de qualificação e no resultado do supervisor; V003 intoca
 - **Q11 verifica contenção real**: PASS se o SO negou o flag (`BREAKAWAY_DENIED`) **ou** se, apesar de o `CreateProcess` não lançar, o PID do neto permaneceu em `job_pids` (contido pelo kernel). FAIL só no escape real (CreateProcess OK e PID **fora** do Job). Isso é um critério **mais rigoroso** que o proxy anterior — mede o escape de custódia de fato, não o valor de retorno do `CreateProcess`.
 
 Observação de validação: Q11 é nativo (offline `SKIPPED_NON_NATIVE`), então esta lógica é exercida apenas na campanha do titular; o campo `job_pids` é exercido também no POSIX pelos casos Q01–Q12 da qualificação offline. Unit do supervisor 71/71; mutantes 24/24; fronteira do bootstrap 20/20 + 8/8 (template inalterado); cadeia V003 19/19 imutável.
+
+
+## Robustez do census de corroboração V008R8 (achado da campanha nativa R7)
+
+Na campanha nativa R7 a cadeia parou em **Q10a**, caso que havia **passado na R6**. A prova primária do kernel funcionou (escritor externo negado; rename negado com `winerror=32`), mas o veredito W04 ficou `BLOCKED` por `CENSUS_TRUNCATED`: o census de handles do sistema (R14R3, apenas corroboração) veio incompleto. O backend pinado (`8FEF1313…`, não alterável) declara a enumeração truncada quando mais de 8 consultas de nome travam numa mesma chamada — condição intermitente, dependente da carga de handles do Windows no momento. O contador é por chamada.
+
+Correção (em `pegasus_win_native_v008._census`; backend e V003 intocados): **nova tentativa limitada** do census (`CENSUS_MAX_ATTEMPTS=3`). Retorna a primeira enumeração completa; se **todas** truncarem, o resultado segue truncado e o W04 continua **bloqueando** — a regra fail-closed não foi afrouxada. As tentativas ficam registradas na evidência (`census.attempts`).
+
+Validação: código nativo (o módulo só carrega no Windows); exercido pela campanha do titular. Offline: unit 71/71; mutantes 24/24; fronteira do bootstrap 20/20 + 8/8; V003 19/19; qualificação 16/16 PASS + 2 SKIPPED_NON_NATIVE. A correção de Q11 da R7 (contenção real) segue pendente de execução nativa (a R7 parou antes de Q11).

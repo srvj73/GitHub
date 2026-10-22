@@ -27,7 +27,8 @@
     "G2_W04_FULL": {
       "state": "IMPLEMENTED_OFFLINE_DECISION_QUALIFIED_NATIVE_PENDING",
       "offline": "w04_verdict testado (positivos/negativos) e 6 mutantes W04 mortos",
-      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q10a-f: escritor externo, renomeação, escritor pré-existente, mapeamento gravável, novo nome, stream alternado, hardlink)"
+      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q10a-f: escritor externo, renomeação, escritor pré-existente, mapeamento gravável, novo nome, stream alternado, hardlink)",
+      "census_retry": "CLOSED_V008R8: census de corroboracao com ate 3 tentativas se truncado; se todas truncarem, W04 continua BLOCKED (fail-closed inalterado)"
     },
     "G3_W04_JIT_JOB": {
       "state": "IMPLEMENTED_OFFLINE_ORCHESTRATION_QUALIFIED_NATIVE_PENDING",
@@ -83,10 +84,10 @@
     "independent_audit": "NOT_STARTED"
   },
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
-  "revision": "V008R7",
+  "revision": "V008R8",
   "supersedes": {
-    "v008r6_zip_sha256": "4B8DF8B9C178B4DD19565992BF0B0DC5D90FB8B1E4E10C816AF724F7ED1E8360",
-    "reason": "Q11 breakaway asserts true containment (PID stays in Job accounting) instead of the CreateProcess-throws proxy, which is wrong on Win8+ nested jobs"
+    "v008r7_zip_sha256": "FDFCEDB59BB361C05B9900FFE4697B5C9496159C546CB379C10E82ECB1002F7F",
+    "reason": "bounded retry of the corroboration handle census (intermittent truncation blocked Q10a in R7; fail-closed unchanged)"
   },
   "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
   "native_campaign_r2_result": {
@@ -123,5 +124,12 @@
     "qualifynative_exit": 3,
     "native_cases_pass": "22_of_23 (Q01-Q15, Q10a-f; incl. Q03/Q04 SAFE_STOP/resume, Q12b)",
     "blocker": "Q11 breakaway proxy (CreateProcess did not throw on Win8+ nested jobs) -> criterion corrected to real containment in V008R7"
+  },
+  "native_campaign_r7_result": {
+    "verify": "PASS",
+    "qualifynative_exit": 3,
+    "native_cases_pass": "16 (Q01-Q15 chain) before Q10a",
+    "blocker": "Q10a W04 BLOCKED by CENSUS_TRUNCATED (intermittent; passed in R6); kernel lease proof OK -> bounded census retry V008R8",
+    "q11": "NOT_REACHED"
   }
 }
