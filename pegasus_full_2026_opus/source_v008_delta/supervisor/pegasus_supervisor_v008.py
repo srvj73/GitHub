@@ -275,6 +275,32 @@ def custody_finalize_decision(*, tree_empty: bool, reconcile_deadline_reached: b
     return "RESERVED_DECISION_FAIL_CLOSED_NO_KILL"
 
 
+def reconcile_step_action(*, tree_empty: bool, deadline_reached: bool, production: bool,
+                          reserved_reported: bool) -> str:
+    """R13-ORIGIN-01 (revisão da origem sobre R12): ação PURA por iteração do laço de reconciliação
+    com custódia preservada. A custódia durável exige que o supervisor permaneça VIVO enquanto a
+    árvore estiver viva — reter handles só até o encerramento do supervisor NÃO é custódia, pois no
+    encerramento o `KILL_ON_JOB_CLOSE` ativo mataria a árvore e, removido, a deixaria órfã sem W04.
+    Por isso esta função NUNCA retorna uma ação que mate, feche handles ou ENCERRE o supervisor com
+    a árvore viva: a decisão reservada à origem é SURFACED e MANTIDA (hold com o custodiante vivo),
+    jamais convertida em término/kill (não é autorização implícita para matar).
+
+    Deriva a classificação de `custody_finalize_decision` e mapeia para a ação do laço:
+    - FINALIZE_TREE_EMPTY_SAFE (árvore vazia) -> 'FINALIZE_SAFE' (ÚNICO caminho de saída do hold; só
+      então fechar o Job é inofensivo).
+    - RESERVED_DECISION_FAIL_CLOSED_NO_KILL, ainda não reportada -> 'REPORT_RESERVED_THEN_HOLD' (surge
+      à origem UMA vez; o custodiante continua VIVO, W04+Job retidos, NO_KILL).
+    - HOLD_SUPERVISE_UNTIL_TREE_EMPTY_NO_KILL, ou reservada já reportada -> 'HOLD' (segue vivo)."""
+    decision = custody_finalize_decision(tree_empty=tree_empty,
+                                         reconcile_deadline_reached=deadline_reached,
+                                         production=production)
+    if decision == "FINALIZE_TREE_EMPTY_SAFE":
+        return "FINALIZE_SAFE"
+    if decision == "RESERVED_DECISION_FAIL_CLOSED_NO_KILL" and not reserved_reported:
+        return "REPORT_RESERVED_THEN_HOLD"
+    return "HOLD"
+
+
 def job_close_plan(active_processes: int, clear_kill_ok: bool) -> dict:
     """R11-ORIGIN-01: plano PURO de ações ao fechar a custódia do Job, honrando NO_KILL.
 
@@ -766,9 +792,16 @@ class Supervision:
             # (custodiante vivo = custódia durável); na qualificação, esgotado o prazo com árvore
             # viva, é decisão reservada à origem (fail-closed, sem kill, sem soltar W04).
             reconcile_deadline = time.monotonic() + RECONCILE_HOLD_S
-            while not cust.tree_empty():
-                cust.sample()
+            reserved_reported = False
+            while True:
                 now = time.monotonic()
+                action = reconcile_step_action(tree_empty=cust.tree_empty(),
+                                               deadline_reached=(now > reconcile_deadline),
+                                               production=(timeout_s is None),
+                                               reserved_reported=reserved_reported)
+                if action == "FINALIZE_SAFE":
+                    break  # ÚNICA saída do hold: árvore vazia -> fechar é inofensivo.
+                cust.sample()
                 st = self._status()
                 latched = bool(st.get("STOP_REQUESTED"))
                 if should_deliver_safe_stop(stop_requested=self.stop_requested, child_running=True,
@@ -778,13 +811,30 @@ class Supervision:
                     cust.request_stop()
                     stop_deliveries += 1
                     last_stop_delivery = now
-                guard.revalidate()  # W04 mantida durante toda a vida da árvore
-                dec = custody_finalize_decision(tree_empty=False,
-                                                reconcile_deadline_reached=(now > reconcile_deadline),
-                                                production=(timeout_s is None))
-                if dec == "RESERVED_DECISION_FAIL_CLOSED_NO_KILL":
-                    raise SupervisorBlocked("CUSTODY_RECONCILE_DEADLINE_RESERVED_DECISION_NO_KILL:%s_PID_%d"
-                                            % (reconcile_reason or "DRAIN", pid))
+                guard.revalidate()  # W04 mantida durante TODA a vida da árvore; NUNCA mata/fecha handle
+                if action == "REPORT_RESERVED_THEN_HOLD":
+                    # R13-ORIGIN-01: a decisão reservada à origem NÃO encerra o supervisor. Com a
+                    # árvore viva, levantar/retornar faria o processo terminar e seus handles fecharem
+                    # -> com KILL_ON_JOB_CLOSE ativo mataria a árvore; removido, a deixaria órfã sem
+                    # W04. Então o custodiante PERMANECE VIVO (W04 + Job retidos, handle do Job ABERTO
+                    # => KILL_ON_JOB_CLOSE, ativo ou removido, NÃO dispara) e apenas SURGE a decisão à
+                    # origem UMA vez; a saída do hold só ocorre em TREE_EMPTY (ou disposição autorizada
+                    # pela origem). Nunca mata, nunca solta W04, nunca autoriza kill implícito.
+                    reserved_reported = True
+                    reconcile_reason = (reconcile_reason or "DRAIN") + "+RESERVED_DECISION_HELD_ALIVE_NO_KILL"
+                    try:
+                        write_json_atomic(self.evidence / (self.label + "_W04_NOKILL_RESERVED_DECISION.json"), {
+                            "schema": "PEGASUS_FULL_2026_V008_W04_NOKILL_LIVE_TREE_RESERVED_DECISION",
+                            "label": self.label, "child_pid": pid, "reconcile_reason": reconcile_reason,
+                            "custodian": "ALIVE_SUPERVISING_HOLDS_W04_AND_JOB_NO_KILL",
+                            "disposition": "RESERVED_FOR_ORIGIN (drenar ate TREE_EMPTY / autorizar kill / handoff de custodia)",
+                            "supervisor_never": ["KILL", "CLOSE_JOB_HANDLE_ON_LIVE_TREE",
+                                                 "RELEASE_W04_ON_LIVE_TREE", "SELF_TERMINATE_ON_LIVE_TREE"],
+                            "kill_on_job_close_note": "handle do Job mantido ABERTO pelo custodiante vivo => KILL_ON_JOB_CLOSE (ativo ou removido) NAO dispara"})
+                    except Exception:
+                        pass
+                    self.log("CUSTODY_RECONCILE_DEADLINE_RESERVED_DECISION_NO_KILL pid=%d: supervisor permanece VIVO "
+                             "(W04+Job retidos, NO_KILL); aguarda TREE_EMPTY ou disposicao da origem" % pid)
                 time.sleep(0.2)
             cust.mark("TREE_EMPTY")
             w04 = guard.disarm(tree_empty=True)

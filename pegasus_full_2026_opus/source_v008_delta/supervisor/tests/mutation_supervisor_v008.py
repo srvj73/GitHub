@@ -72,12 +72,17 @@ MUTANTS = [
     # R12-ORIGIN-01: a decisão de finalização não pode fechar/abandonar uma árvore viva.
     ("custody_finalize_abandons_live_tree", '    if tree_empty:\n        return "FINALIZE_TREE_EMPTY_SAFE"',
      '    if True:\n        return "FINALIZE_TREE_EMPTY_SAFE"'),
+    # R13-ORIGIN-01: a decisão reservada NÃO pode encerrar a custódia (finalizar) com a árvore viva;
+    # deve surgir à origem e MANTER o hold (custodiante vivo). Mutante faz a reservada finalizar.
+    ("reconcile_step_reserved_finalizes_live_tree",
+     'if decision == "RESERVED_DECISION_FAIL_CLOSED_NO_KILL" and not reserved_reported:\n        return "REPORT_RESERVED_THEN_HOLD"',
+     'if decision == "RESERVED_DECISION_FAIL_CLOSED_NO_KILL" and not reserved_reported:\n        return "FINALIZE_SAFE"'),
 ]
 
 SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlatform",
           "SafeStopRedelivery", "CustodyLifecycleContract", "RunPathWiring", "ExitClassification",
           "W04PrespawnGate", "LineageUnresolvedIdentity", "JobCloseNoKill",
-          "JobClosePlan", "GrandchildContained", "CustodyFinalizeDecision"]
+          "JobClosePlan", "GrandchildContained", "CustodyFinalizeDecision", "ReconcileStepAction"]
 
 
 def main() -> int:

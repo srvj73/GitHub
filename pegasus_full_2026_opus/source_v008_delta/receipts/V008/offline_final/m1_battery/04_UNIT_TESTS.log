@@ -47,6 +47,11 @@ test_required_adapter_is_v003_g4 (__main__.QS4Binding.test_required_adapter_is_v
 test_safestop_adapter_wired_on_orchestrator (__main__.QS4Binding.test_safestop_adapter_wired_on_orchestrator) ... ok
 test_supervised_main_blocks_without_external_admission (__main__.QS4Binding.test_supervised_main_blocks_without_external_admission) ... ok
 test_tampered_harness_blocks (__main__.QS4Binding.test_tampered_harness_blocks) ... ok
+test_empty_tree_is_the_only_finalize (__main__.ReconcileStepAction.test_empty_tree_is_the_only_finalize) ... ok
+test_live_before_deadline_holds (__main__.ReconcileStepAction.test_live_before_deadline_holds) ... ok
+test_live_production_holds_after_deadline (__main__.ReconcileStepAction.test_live_production_holds_after_deadline) ... ok
+test_live_tree_never_terminates_custody (__main__.ReconcileStepAction.test_live_tree_never_terminates_custody) ... ok
+test_qualification_deadline_reports_reserved_once_then_holds (__main__.ReconcileStepAction.test_qualification_deadline_reports_reserved_once_then_holds) ... ok
 test_default_admission_always_blocks (__main__.RunPathWiring.test_default_admission_always_blocks) ... ok
 test_make_run_plan_allows_non_economic (__main__.RunPathWiring.test_make_run_plan_allows_non_economic) ... ok
 test_make_run_plan_economic_with_proof_is_marked (__main__.RunPathWiring.test_make_run_plan_economic_with_proof_is_marked) ... ok
@@ -79,6 +84,7 @@ test_posix_delivers_regardless_of_active (__main__.SafeStopRedelivery.test_posix
 test_waits_interval_between_deliveries (__main__.SafeStopRedelivery.test_waits_interval_between_deliveries) ... ok
 test_close_once_on_prespawn_block (__main__.SupervisionPrespawnLifecycle.test_close_once_on_prespawn_block) ... ok
 test_close_once_on_start_exception (__main__.SupervisionPrespawnLifecycle.test_close_once_on_start_exception) ... ok
+test_reserved_deadline_holds_then_finalizes_on_tree_empty (__main__.SupervisionReconcileHold.test_reserved_deadline_holds_then_finalizes_on_tree_empty) ... ok
 test_clean_acquisition_allows_spawn (__main__.W04PrespawnGate.test_clean_acquisition_allows_spawn) ... ok
 test_open_error_and_reparse_block_spawn (__main__.W04PrespawnGate.test_open_error_and_reparse_block_spawn) ... ok
 test_sharing_violation_blocks_spawn (__main__.W04PrespawnGate.test_sharing_violation_blocks_spawn) ... ok
@@ -101,6 +107,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 100 tests in 3.311s
+Ran 106 tests in 4.544s
 
 OK

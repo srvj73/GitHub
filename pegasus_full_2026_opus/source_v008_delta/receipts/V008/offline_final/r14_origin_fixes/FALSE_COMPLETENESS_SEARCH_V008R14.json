@@ -1,0 +1,147 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R14_FALSE_COMPLETENESS_SEARCH",
+ "method": "adversarial enumeration of contracted engineering-milestone consumers bound to the final bytes",
+ "economic_fail_closed_anchors_in_source": {
+  "make_run_plan_refuses_economic": true,
+  "default_admission_always_blocks": true,
+  "run_supervised_reblocks_economic": true,
+  "native_negatives_rc_gate": true,
+  "f01_completion_w04_gate": true,
+  "f02_prespawn_no_spawn_gate": true,
+  "f03_lineage_unresolved_gate": true,
+  "f04_job_close_no_kill": true,
+  "o01_job_close_plan_live_no_close": true,
+  "o01_reserved_decision_receipt": true,
+  "o02_grandchild_temporal_identity": true,
+  "o03_prespawn_lifecycle_marker": true,
+  "r12o1_custody_finalize_hold_no_kill": true,
+  "r12o1_reconcile_reserved_no_kill": true,
+  "r12o2_independent_ctime_divergent_guard": true,
+  "r12o2_no_independent_ctime_guard": true,
+  "r13o1_reconcile_step_report_and_hold": true,
+  "r13o1_report_and_hold_loop": true
+ },
+ "consumers": [
+  {
+   "consumer": "source_lineage_v003_byte_identical",
+   "wired_at": "pegasus_entry.verify_tree; PARENT_V003_MANIFEST",
+   "qualified_by": "V003 chain 19/19; manifest preserved",
+   "status": "PASS"
+  },
+  {
+   "consumer": "W04_full_lease_dirs_usn_identity_census",
+   "wired_at": "Supervision arms W04 before child; w04_verdict",
+   "qualified_by": "offline w04_verdict tests + 6 W04 mutants; native R9 Q01/Q02/Q03/Q12 PASS_NATIVE + Q10a-f negatives",
+   "status": "IMPLEMENTED_NATIVE_MET",
+   "offline_cases": true,
+   "native_q10a": "PASS"
+  },
+  {
+   "consumer": "job_custody_jit_lineage_breakaway_containment",
+   "wired_at": "Supervision.run Job create-suspended/assign/resume; job_pids",
+   "qualified_by": "jit_verdict tests + mutants; native R9 Q01/Q02/Q11/Q12 GAPLESS_NATIVE_JOB",
+   "status": "IMPLEMENTED_NATIVE_MET",
+   "native_q11": "PASS"
+  },
+  {
+   "consumer": "safe_stop_cooperative_safe_window_resume",
+   "wired_at": "should_deliver_safe_stop; honor deadline",
+   "qualified_by": "SafeStop* tests + mutants; native R9 Q03/Q04/Q12b",
+   "status": "IMPLEMENTED_NATIVE_MET",
+   "native_q03": "PASS"
+  },
+  {
+   "consumer": "completion_evidence_gate",
+   "wired_at": "completion_verdict",
+   "qualified_by": "Q09 orphan-lock refused; completion tests + mutants",
+   "status": "IMPLEMENTED",
+   "case": "PASS"
+  },
+  {
+   "consumer": "exit_boundary_bootstrap_uac_subprocess_supervisor",
+   "wired_at": "bootstrap Get-PegasusExitCode; classify_exit; _run_supervised mapping",
+   "qualified_by": "S00 canaries + S03 ARGV=37 (native R9); Q14 matrix; Q15 technical; bootstrap 20/20+8/8; ExitClassification mutants",
+   "status": "IMPLEMENTED_NATIVE",
+   "q14": "PASS",
+   "q15": "PASS"
+  },
+  {
+   "consumer": "supervised_run_path_cmd_run_admission_run_supervised",
+   "wired_at": "cmd_run -> _load_admission -> _run_supervised",
+   "qualified_by": "Q12/Q12b PASS (native R9)",
+   "status": "IMPLEMENTED",
+   "q12": "PASS"
+  },
+  {
+   "consumer": "economic_full_bc_triple_terminal_block",
+   "wired_at": "make_run_plan + DefaultReleaseAdmission.admit + _run_supervised",
+   "qualified_by": "Q13a/b/c; mutants run_plan_allows_economic, run_supervised_runs_economic, default_admission_returns_plan",
+   "status": "BLOCKED_PROVEN_TERMINAL",
+   "cases": true,
+   "mutants_killed": true
+  },
+  {
+   "consumer": "qs4_harness_binding",
+   "wired_at": "bind-qs4",
+   "qualified_by": "binding BLOCKED (adapter pin 05A0CF3D vs V003 EC96FE9A)",
+   "status": "BLOCKED_PROVEN",
+   "binding": "BLOCKED"
+  },
+  {
+   "consumer": "fresh_process_native_negatives_acceptance_gate",
+   "wired_at": "_native_negatives_in_fresh_process (rc==0 required) + _replay_case_records",
+   "qualified_by": "NativeNegativesReplay + NativeNegativesFreshProcess (R10 negative control)",
+   "status": "IMPLEMENTED_HARDENED_R10",
+   "negative_control": "reproduced_and_closed"
+  },
+  {
+   "consumer": "audit_findings_f01_f04_integrated_gates",
+   "wired_at": "completion_verdict(w04); Supervision pre-spawn; lineage_verdict unresolved; job_close_disposition",
+   "qualified_by": "CompletionW04 + W04PrespawnGate + LineageUnresolvedIdentity + JobCloseNoKill units; Q16 integrated; mutants completion_ignores_w04/prespawn_accepts_sharing_violation/lineage_accepts_unresolved_identity/job_close_kills_live_tree",
+   "status": "IMPLEMENTED_HARDENED_R11",
+   "findings_closed": "F01,F02,F03,F04"
+  },
+  {
+   "consumer": "origin_review_fixes_r11_origin_01_02_03",
+   "wired_at": "WindowsJobCustody.close via job_close_plan (no close/kill on live tree); Q11 via grandchild_contained; Supervision.run try widened over arm/prespawn/start",
+   "qualified_by": "JobClosePlan + GrandchildContained + SupervisionPrespawnLifecycle units; mutants job_close_plan_closes_live_tree/grandchild_contained_accepts_divergent_ctime; ORIGIN_FIXES_CLOSURE_V008R12",
+   "status": "IMPLEMENTED_HARDENED_R12",
+   "findings_closed": "R11-ORIGIN-01,R11-ORIGIN-02,R11-ORIGIN-03"
+  },
+  {
+   "consumer": "origin_review_fixes_r12_origin_01_02",
+   "wired_at": "custody_finalize_decision + RECONCILE_HOLD_S + Supervision.run reconciliação custódia-preservada (W04+Job vivos até TREE_EMPTY, NO_KILL); grandchild_contained(gpid,gctime,job_idents) com ctime INDEPENDENTE do neto; Q11 injeta _JOB_GRANDCHILD e grava grandchild_self_identity",
+   "qualified_by": "CustodyFinalizeDecision (inclui test_never_finalizes_live_tree) + GrandchildContained (match/divergent/none/ambiguous/absent) + JobClosePlan units; mutants custody_finalize_abandons_live_tree/grandchild_contained_accepts_divergent_ctime; ORIGIN_FIXES_CLOSURE_V008R14",
+   "status": "IMPLEMENTED_HARDENED_R13",
+   "findings_closed": "R12-ORIGIN-01,R12-ORIGIN-02",
+   "mutants_killed": true
+  },
+  {
+   "consumer": "origin_review_fixes_r13_origin_01",
+   "wired_at": "reconcile_step_action (puro) + laço report-and-hold em Supervision.run: decisão reservada SURGE à origem uma vez e o custodiante permanece VIVO (W04+Job retidos, handle do Job ABERTO => KILL_ON_JOB_CLOSE ativo/removido não dispara), NO_KILL; única saída = TREE_EMPTY; removido o raise que encerrava a custódia",
+   "qualified_by": "ReconcileStepAction (empty->FINALIZE_SAFE; live nunca finaliza; reservada=REPORT_RESERVED_THEN_HOLD->HOLD) + SupervisionReconcileHold (dupla: sem raise; close só com árvore vazia; W04 disarm só em TREE_EMPTY; sem kill) units; mutante reconcile_step_reserved_finalizes_live_tree; ORIGIN_FIXES_CLOSURE_V008R14",
+   "status": "IMPLEMENTED_HARDENED_R14",
+   "findings_closed": "R13-ORIGIN-01",
+   "mutants_killed": true
+  }
+ ],
+ "mandatory_integration_unimplemented": [],
+ "policy_boundaries_out_of_scope": {
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "independent_audit": "NOT_STARTED",
+  "note": "estes são limites de política sob custódia da origem, não engenharia por implementar"
+ },
+ "native_completeness_evaluation_r9": {
+  "gapless_native_job_cases": 4,
+  "required_cases": 23,
+  "schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
+  "unmet": [],
+  "verdict": "MET",
+  "w04_native_pass_cases": 5
+ },
+ "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

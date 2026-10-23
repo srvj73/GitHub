@@ -735,6 +735,149 @@ class CustodyFinalizeDecision(unittest.TestCase):
                                                                   production=prod), "FINALIZE_TREE_EMPTY_SAFE")
 
 
+class ReconcileStepAction(unittest.TestCase):
+    """R13-ORIGIN-01: a ação por iteração do laço de reconciliação NUNCA encerra a custódia com a
+    árvore viva (nem finaliza, nem mata, nem solta W04). A decisão reservada é SURGIDA e MANTIDA."""
+
+    def test_empty_tree_is_the_only_finalize(self):
+        for dl in (True, False):
+            for prod in (True, False):
+                for rep in (True, False):
+                    self.assertEqual(sup.reconcile_step_action(tree_empty=True, deadline_reached=dl,
+                                                               production=prod, reserved_reported=rep),
+                                     "FINALIZE_SAFE")
+
+    def test_live_before_deadline_holds(self):
+        self.assertEqual(sup.reconcile_step_action(tree_empty=False, deadline_reached=False,
+                                                   production=False, reserved_reported=False), "HOLD")
+
+    def test_live_production_holds_after_deadline(self):
+        self.assertEqual(sup.reconcile_step_action(tree_empty=False, deadline_reached=True,
+                                                   production=True, reserved_reported=False), "HOLD")
+
+    def test_qualification_deadline_reports_reserved_once_then_holds(self):
+        self.assertEqual(sup.reconcile_step_action(tree_empty=False, deadline_reached=True,
+                                                   production=False, reserved_reported=False),
+                         "REPORT_RESERVED_THEN_HOLD")
+        # já reportada -> apenas segue viva (hold), sem re-reportar e sem encerrar
+        self.assertEqual(sup.reconcile_step_action(tree_empty=False, deadline_reached=True,
+                                                   production=False, reserved_reported=True), "HOLD")
+
+    def test_live_tree_never_terminates_custody(self):
+        # Invariante central: com árvore viva, a única ação possível é continuar vivo (HOLD) ou
+        # surgir a reservada (que também segue viva). JAMAIS finalizar/encerrar.
+        for dl in (True, False):
+            for prod in (True, False):
+                for rep in (True, False):
+                    act = sup.reconcile_step_action(tree_empty=False, deadline_reached=dl,
+                                                    production=prod, reserved_reported=rep)
+                    self.assertIn(act, ("HOLD", "REPORT_RESERVED_THEN_HOLD"))
+                    self.assertNotEqual(act, "FINALIZE_SAFE")
+
+
+class _ReconcileCustody:
+    """Dupla de custódia que mantém a árvore VIVA por N amostragens após o prazo e depois esvazia.
+    Registra fechamentos e prova que NENHUM kill foi solicitado (não há método de kill)."""
+    native_job = False
+    breakaway_allowed = False
+
+    def __init__(self, live_polls):
+        self._left = live_polls
+        self.closed = 0
+        self.closed_while_live = 0
+        self.marks = []
+        self._empty = False
+
+    def start(self, *a, **k):
+        self.mark("CHILD_CREATED")
+        self.mark("CHILD_RESUMED")
+        return 9777
+
+    def mark(self, n):
+        self.marks.append({"mark": n, "mono_ns": 1})
+
+    def poll(self):
+        return None  # filho "vivo" no laço principal; a saída se dá por timeout_s
+
+    def sample(self):
+        pass
+
+    def tree_empty(self):
+        if self._left > 0:
+            self._left -= 1
+            return False
+        self._empty = True
+        return True
+
+    def request_stop(self):
+        pass
+
+    def accounting(self):
+        return {"TotalProcesses": 1, "ActiveProcesses": 0}
+
+    def new_process_events(self):
+        return [{"pid": 9777, "ctime": 5}]
+
+    def close(self):
+        self.closed += 1
+        if not self._empty:
+            self.closed_while_live += 1
+
+
+class _ReconcileGuard:
+    def __init__(self):
+        self.disarmed = None
+
+    def arm(self):
+        return {"armed": "X"}
+
+    def prespawn_verdict(self):
+        return {"prespawn": "ACQUIRED_CLEAN"}
+
+    def release(self):
+        pass
+
+    def revalidate(self):
+        pass
+
+    def disarm(self, tree_empty):
+        self.disarmed = tree_empty
+        return {"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
+
+
+class SupervisionReconcileHold(unittest.TestCase):
+    """R13-ORIGIN-01: no esgotamento do prazo de reconciliação com a árvore viva, Supervision.run
+    NÃO levanta nem encerra a custódia — permanece vivo (report-and-hold) e só finaliza/fecha quando
+    a árvore esvazia. Prova com dupla de custódia e RECONCILE_HOLD_S=0 (sem matar processo real)."""
+
+    def test_reserved_deadline_holds_then_finalizes_on_tree_empty(self):
+        cust = _ReconcileCustody(live_polls=2)   # vive 2 amostragens após o prazo, depois esvazia
+        guard = _ReconcileGuard()
+        with mock.patch.object(sup, "make_custody", lambda log: cust), \
+                mock.patch.object(sup, "W04Guard", lambda root, log: guard), \
+                mock.patch.object(sup, "RECONCILE_HOLD_S", 0.0):
+            with tempfile.TemporaryDirectory() as t:
+                ev = Path(t) / "ev"; ev.mkdir()
+                s = sup.Supervision(evidence=ev, protected_root=Path(t) / "prot",
+                                    out_root=Path(t) / "out", label="L", log=lambda *a, **k: None)
+                # timeout_s pequeno: o laço principal cai na reconciliação com a árvore viva
+                result = s.run(["x"], {}, timeout_s=0.15)
+                # (1) NÃO levantou; retornou um veredito
+                self.assertIsInstance(result, dict)
+                # (2) a decisão reservada foi SURGIDA à origem enquanto vivo (uma vez)
+                self.assertTrue((ev / "L_W04_NOKILL_RESERVED_DECISION.json").exists())
+                rec = json.loads((ev / "L_W04_NOKILL_RESERVED_DECISION.json").read_text())
+                self.assertEqual(rec["custodian"], "ALIVE_SUPERVISING_HOLDS_W04_AND_JOB_NO_KILL")
+                self.assertIn("SELF_TERMINATE_ON_LIVE_TREE", rec["supervisor_never"])
+        # (3) fechou exatamente uma vez e SOMENTE com a árvore vazia (nunca com árvore viva)
+        self.assertEqual(cust.closed, 1)
+        self.assertEqual(cust.closed_while_live, 0)
+        # (4) W04 só foi desarmada com a árvore vazia (proteção por toda a vida da árvore)
+        self.assertIs(guard.disarmed, True)
+        # (5) a reconciliação foi marcada como mantida viva, sem kill
+        self.assertIn("RESERVED_DECISION_HELD_ALIVE_NO_KILL", result.get("reconcile_reason", ""))
+
+
 class _LifecycleGuard:
     def __init__(self, prespawn_clean):
         self._clean = prespawn_clean

@@ -92,6 +92,14 @@ A origem inspecionou os bytes R12 e apontou dois bloqueios materiais ainda abert
 
 Regressões: `CustodyFinalizeDecision` (inclui `test_never_finalizes_live_tree`), `GrandchildContained` reescrita (match/divergente/sem-ctime/ambíguo/ausente). Unit 100/100; mutantes 31/31 (adiciona `custody_finalize_abandons_live_tree` e `grandchild_contained_accepts_divergent_ctime`). Fechamento em `receipts/V008/offline_final/r13_origin_fixes/`. A prova nativa dirigida de timeout/kill e a identidade do neto em processo sintético no Windows ficam para o titular/origem.
 
+## Revisão V008R14 — correção da revisão física da origem sobre a R13
+
+A origem recebeu e verificou fisicamente o ZIP R13 (`PACKAGE_INTEGRITY=PASS`; `MANIFEST=2953/2953 PASS`) e apontou um bloqueio material ainda aberto em `R12-ORIGIN-01` (tratado como **R13-ORIGIN-01**); corrigido fail-closed, com controle negativo, preservando todos os PASS válidos (R9 23/23 MET; F01–F04; R11-ORIGIN-01/02/03; R12-ORIGIN-01/02):
+
+- **R13-ORIGIN-01** quando o prazo de reconciliação (300 s) esgotava com a árvore viva, `custody_finalize_decision` retornava `RESERVED_DECISION_FAIL_CLOSED_NO_KILL`, mas `Supervision.run` **levantava `SupervisorBlocked`** e entrava no `finally: cust.close()`, encerrando o supervisor — e handles preservados só no processo supervisor **não são custódia durável** (com `KILL_ON_JOB_CLOSE` ativo a queda mata a árvore; removido, deixa-a órfã sem W04). Correção: função pura `reconcile_step_action` + laço **report-and-hold**: a decisão reservada **surge à origem uma vez** e o **custodiante permanece VIVO** (W04 + Job retidos, handle do Job **aberto** ⇒ `KILL_ON_JOB_CLOSE` ativo **ou** removido **não dispara**), NO_KILL; a **única** saída do hold é `TREE_EMPTY`. Removido o `raise` que encerrava a custódia; a decisão reservada não é autorização implícita para matar.
+
+Regressões: `ReconcileStepAction` (nunca finaliza árvore viva) e `SupervisionReconcileHold` (dupla de custódia: sem `raise`; `close()` só com árvore vazia; `disarm` da W04 só em `TREE_EMPTY`; sem kill). Unit 106/106; mutantes 32/32 (adiciona `reconcile_step_reserved_finalizes_live_tree`). Fechamento em `receipts/V008/offline_final/r14_origin_fixes/`. A prova nativa dirigida (custódia durável/NO_KILL em processos sintéticos) fica para o titular/origem.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

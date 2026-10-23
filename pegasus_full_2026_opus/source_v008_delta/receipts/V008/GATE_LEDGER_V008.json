@@ -89,10 +89,10 @@
   "independent_audit": "STARTED_R10_FAIL_FINDINGS_CLOSED_R11"
  },
  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
- "revision": "V008R13",
+ "revision": "V008R14",
  "supersedes": {
-  "v008r12_zip_sha256": "EA17EDE35C577CE1D69CB91D529F166B39FBD6B779D6F347487B65E3BF587082",
-  "reason": "origin preparatory review of R12 found two open material blockers; both corrected fail-closed: R12-ORIGIN-01 custody was not durable (handles retained only until supervisor shutdown is not custody) — now custody_finalize_decision keeps the custodian ALIVE supervising until TREE_EMPTY with W04+Job held over the whole tree life (NO_KILL, cooperative drain, recovery); only a bounded-qualification deadline emerges as RESERVED_DECISION, never kill/abandon; R12-ORIGIN-02 grandchild identity was not temporally bound (a single historical creation_time does not prove) — now the grandchild self-reports its own (pid, creation_time) via GetProcessTimes on itself and grandchild_contained requires that independent pair to be present and unique in the Job's independent observation. R9 native 23/23 MET, R11 F01-F04 and R12 R11-ORIGIN-01/02/03 fixes preserved."
+  "v008r13_zip_sha256": "2643D6280F159CA68BC0013932C7FF32FEBC69D0D5FBD47A812D85EA312C6E87",
+  "reason": "origin physical review of R13 (PACKAGE_INTEGRITY=PASS; MANIFEST=2953/2953 PASS) found one open material blocker (R13-ORIGIN-01, continuation of R12-ORIGIN-01): on reconcile-deadline with a live tree, Supervision.run raised SupervisorBlocked and entered finally: cust.close(), terminating the supervisor — handles retained only in the supervisor process are not durable custody after it exits (KILL_ON_JOB_CLOSE active would kill the tree on supervisor death; cleared would orphan it without W04). Corrected fail-closed: pure reconcile_step_action + a report-and-hold loop keep the custodian ALIVE (W04+Job retained, Job handle kept OPEN so KILL_ON_JOB_CLOSE active/cleared cannot fire, NO_KILL); the reserved decision surfaces to origin once and the only hold exit is TREE_EMPTY; the terminating raise was removed. R9 native 23/23 MET and all prior fixes (F01-F04, R11-ORIGIN-01/02/03, R12-ORIGIN-01/02) preserved."
  },
  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
  "native_campaign_r2_result": {
@@ -178,5 +178,12 @@
   "points": "R12-ORIGIN-01 BLOCKER (durable custody: NO_KILL + W04 protection over the WHOLE tree life + effective custody + recovery; retaining handles only until supervisor shutdown is not durable custody); R12-ORIGIN-02 PROOF_GAP (F03/Q11 independent, temporally-bound grandchild identity; a single historical creation_time for a PID is not sufficient proof)",
   "scope_constraints": "Windows tests use synthetic processes only, no economic effects, no unauthorized forced termination; do not re-run the 23 native tests indiscriminately; do not revalidate MASTER/HEAD; do not start formal audit, productive install, QS4, economic Phase B/C or economic FULL",
   "closed_in": "V008R13"
+ },
+ "origin_review_r13": {
+  "reviewer": "ChatGPT origin/custody (physical review of the frozen R13 ZIP)",
+  "physical_verification": "PACKAGE_INTEGRITY=PASS; MANIFEST=2953/2953 PASS; zip sha256 2643D628... received",
+  "decision_on_r13": "CANDIDATE_COMPLETENESS_NOT_PASS; one open material blocker",
+  "points": "R13-ORIGIN-01 BLOCKER (continuation of R12-ORIGIN-01): reserved decision raised SupervisorBlocked and entered finally: cust.close(), terminating the supervisor; handles preserved only in the supervisor process are not durable custody after its termination (consider both KILL_ON_JOB_CLOSE active and removed). Fixed via reconcile_step_action + report-and-hold loop: custodian stays ALIVE, NO_KILL, W04+Job retained, reserved decision surfaced once, hold exits only on TREE_EMPTY; reserved decision is not implicit authorization to kill.",
+  "closed_in": "V008R14"
  }
 }
