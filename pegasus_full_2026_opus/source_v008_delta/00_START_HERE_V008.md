@@ -73,6 +73,16 @@ A auditoria independente reprovou os bytes R10 com quatro achados reais, todos c
 
 Regressões: `CompletionW04`, `W04PrespawnGate`, `LineageUnresolvedIdentity`, `JobCloseNoKill`, caso integrado `Q16`. Unit 86/86; mutantes 28/28. Fechamento em `receipts/V008/offline_final/r11_audit_fixes/`.
 
+## Revisão V008R12 — correção da revisão preparatória da origem sobre a R11
+
+A origem inspecionou os bytes R11 e apontou três pontos ainda abertos; todos corrigidos fail-closed, com controle negativo, preservando os PASS anteriores (R9 23/23 MET; F01–F04 da R11):
+
+- **R11-ORIGIN-01** `close()` fechava o handle do Job com árvore viva antes do `raise` (kill podia disparar) e liberava W04 com o filho vivo → função pura `job_close_plan`: com árvore viva o supervisor **nunca fecha o handle do Job nem mata**; retém Job + W04; `close()` não levanta; `Supervision.run` registra a decisão reservada à origem.
+- **R11-ORIGIN-02** Q11 casava por PID histórico → `grandchild_contained` exige `(pid, creation_time)` único e resolvido.
+- **R11-ORIGIN-03** `cust.close()` não garantido em pré-spawn falho → `arm`/pré-spawn/`start` movidos para dentro do `try`; `finally: cust.close()` roda exatamente uma vez.
+
+Regressões: `JobClosePlan`, `GrandchildContained`, `SupervisionPrespawnLifecycle`. Unit 94/94; mutantes 30/30. Fechamento em `receipts/V008/offline_final/r12_origin_fixes/`. A prova nativa dirigida de timeout/kill e a identidade temporal real no Windows ficam para o titular/origem.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

@@ -1,0 +1,104 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R12_ORIGIN_FIXES_CLOSURE",
+ "audit_r10": "Work Astra independent audit (AUDIT_VERDICT=FAIL) -> F01-F04 fechados na R11",
+ "origin_review_r11": "revisão preparatória da origem sobre R11 -> R11-ORIGIN-01/02/03 fechados na R12",
+ "supersedes_candidate_sha256": "DD1B3432FBD84EEACE7D6B06867C4CEB79BAB951F0BD6E51B8CC1DF015BDF94C",
+ "findings": [
+  {
+   "finding": "F01",
+   "title": "W04 BLOCKED promovido a sucesso/exit 0",
+   "fix": "completion_verdict exige W04 atestado; _run_supervised mapeia !completed->exit 3; per-case no native_completeness",
+   "negative_control_pure": {
+    "w04_blocked_completed": false,
+    "w04_blocked_gap": [
+     "W04_NOT_ATTESTED:BLOCKED"
+    ],
+    "w04_pass_completed": true
+   },
+   "integrated_case_Q16": {
+    "result": "PASS",
+    "branch": "NON_NATIVE_HASH_CONTINUITY_BLOCKS_COMPLETION",
+    "completion": {
+     "completed": false,
+     "gaps": [
+      "W04_NOT_ATTESTED:BLOCKED"
+     ]
+    }
+   },
+   "closed": true
+  },
+  {
+   "finding": "F02",
+   "title": "armamento W04 incompleto não impedia o spawn",
+   "fix": "w04_prespawn_verdict + W04Guard.prespawn_verdict/release + gate pré-spawn em Supervision.run (NO_SPAWN/NO_PROTECTED_EFFECTS)",
+   "negative_control_pure": {
+    "sharing_violation": "BLOCKED_NO_SPAWN",
+    "clean": "ACQUIRED_CLEAN"
+   },
+   "source_gate_present": true,
+   "release_present": true,
+   "closed": true
+  },
+  {
+   "finding": "F03",
+   "title": "ctime não resolvido aceito como GAPLESS; Q11 só por PID histórico",
+   "fix": "lineage_verdict bloqueia unresolved>0; result expõe job_idents (pid,ctime); Q11 exige neto com identidade temporal resolvida e unresolved==0",
+   "negative_control_pure": {
+    "unresolved_blocked": true,
+    "resolved_gapless": "GAPLESS_NATIVE_JOB"
+   },
+   "q11_temporal_in_source": false,
+   "closed": true
+  },
+  {
+   "finding": "F04+R11-ORIGIN-01",
+   "title": "close fechava handle do Job com árvore viva antes do raise (kill podia disparar)",
+   "fix": "job_close_plan: árvore viva => close_handles=False (NUNCA fecha, NUNCA mata, custódia+W04 retidas); close() não levanta; decisão reservada registrada por Supervision.run",
+   "negative_control_pure": {
+    "empty_close_handles": true,
+    "live_cleared_close_handles": false,
+    "live_fail_close_handles": false,
+    "live_fail_kill_risk": true
+   },
+   "source": {
+    "no_close_on_live_tree": true,
+    "reserved_decision_receipt": true,
+    "old_close_then_raise_removed": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "R11-ORIGIN-02",
+   "title": "Q11 descartava ctime (match por PID histórico)",
+   "fix": "grandchild_contained exige (pid, ctime) ÚNICO e resolvido; Q11 usa o par vinculado e registra no recibo",
+   "negative_control_pure": {
+    "unique_resolved": [
+     true,
+     [
+      7,
+      111
+     ]
+    ],
+    "ambiguous": false,
+    "unresolved": false
+   },
+   "source": {
+    "q11_uses_grandchild_contained": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "R11-ORIGIN-03",
+   "title": "cust.close() não garantido em pré-spawn falho (vazamento de Job/IOCP/thread)",
+   "fix": "arm/prespawn/start movidos para DENTRO do try; finally: cust.close() roda exatamente uma vez em todo caminho",
+   "negative_control_test": "SupervisionPrespawnLifecycle (dupla de custódia): close==1 em prespawn BLOCKED e em exceção de start; sem matar processo real",
+   "source": {
+    "restructured_try_marker": true
+   },
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Controles negativos sobre o código CORRIGIDO (funções puras + fonte + unit com duplas). R11-ORIGIN-01: a morte residual só é possível no fim do processo se o flag não pôde ser limpo — DECISÃO RESERVADA à origem, nunca ação do supervisor (que não fecha o handle nem mata com árvore viva). Prova nativa dirigida de timeout/kill é do titular/origem.",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

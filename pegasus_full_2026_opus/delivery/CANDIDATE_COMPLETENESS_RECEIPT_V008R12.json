@@ -1,0 +1,94 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R12_CANDIDATE_COMPLETENESS_FIVE_PART",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R12_20261023.zip",
+      "sha256": "EA17EDE35C577CE1D69CB91D529F166B39FBD6B779D6F347487B65E3BF587082",
+      "bytes": 87423406,
+      "members": 2952
+    },
+    "manifest_sha256": "D49A54D8D9778A65CC597442FFCEB8041D3195C22566800EBB3E3536ACAD8035",
+    "tested_manifest_sha256_m1": "BEDEFC7AAA5C6ED1442C0B74018C811002414BEDDEB08D6644EF366C1D9A29ED",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R12_PS51.ps1",
+      "sha256": "1A63EE3AA368E0588E309765A3076591854B5E1EA13711FD0F8B68E00C95E2F9",
+      "bytes": 22863
+    },
+    "supersedes_v008r11": {
+      "zip_sha256": "DD1B3432FBD84EEACE7D6B06867C4CEB79BAB951F0BD6E51B8CC1DF015BDF94C",
+      "reason": "origin preparatory review of R11: R11-ORIGIN-01 (close() closed Job handle with live tree before raise; W04 released while child alive), R11-ORIGIN-02 (Q11 matched historical PID), R11-ORIGIN-03 (cust.close() not guaranteed on pre-spawn-fail). All corrected fail-closed."
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "parts": {
+    "1_source_and_lineage": "PASS (V003 físico byte-idêntico; entrypoint testado=empacotado=entregue); QS4 sucessor ausente provado",
+    "2_consumers_implemented_wired_and_blocked": "PASS; auditoria R10 (F01-F04) e revisão da origem R11 (R11-ORIGIN-01/02/03) fechadas fail-closed. Busca de falsa completude: NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
+    "3_offline_qualification_final_bytes": "PASS (19/19 V003; V008R12 17 PASS incl. Q16 + 2 SKIP; 94/94 unit; 30/30 mutantes supervisor; 20/20 bootstrap boundary; 8/8 bootstrap mutantes)",
+    "4_native_target_qualification": "MET nos bytes R9 (23/23 numa execução); evidência preservada em native_campaign_r9/. As correções da auditoria/origem são no lado do pai/decisão (gates), com controles negativos offline; a prova nativa dirigida de timeout/kill (R11-ORIGIN-01/F04) e a identidade temporal real de Q11 (R11-ORIGIN-02) são do titular/origem",
+    "5_tested_packaged_installed_delivered": "PASS offline (2951 arquivos conferidos); instalado PENDENTE (modo Install, opcional)"
+  },
+  "candidate_completeness": "ENGINEERING_COMPLETE_ALL_FINDINGS_CLOSED_NATIVE_MET_ON_R9_BYTES",
+  "review_trail": {
+    "independent_audit_r10": {
+      "auditor": "Work Astra",
+      "verdict": "FAIL",
+      "package_sha256": "AD59A7B39744A500EAA7EFAE1F56F23775162FE6839413246710557ABCDB67D3",
+      "findings": "F01-F04",
+      "all_closed_r11": true,
+      "preserved_in": "receipts/V008/offline_final/r11_audit_fixes/"
+    },
+    "origin_review_r11": {
+      "reviewer": "ChatGPT origin/custody (not independent auditor)",
+      "decision": "CANDIDATE_COMPLETENESS_NOT_PASS; FORMAL_REAUDIT_DISPATCH_BLOCKED",
+      "points": [
+        "R11-ORIGIN-01",
+        "R11-ORIGIN-02",
+        "R11-ORIGIN-03"
+      ],
+      "all_closed_r12": true,
+      "findings": [
+        {
+          "id": "F01",
+          "closed": true
+        },
+        {
+          "id": "F02",
+          "closed": true
+        },
+        {
+          "id": "F03",
+          "closed": true
+        },
+        {
+          "id": "F04+R11-ORIGIN-01",
+          "closed": true
+        },
+        {
+          "id": "R11-ORIGIN-02",
+          "closed": true
+        },
+        {
+          "id": "R11-ORIGIN-03",
+          "closed": true
+        }
+      ],
+      "evidence_in": "receipts/V008/offline_final/r12_origin_fixes/"
+    },
+    "false_completeness": {
+      "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
+      "mandatory_integration_unimplemented": []
+    }
+  },
+  "single_external_item_remaining": "reauditoria focal pela origem/mesmo auditor + selagem formal; sob autorização: prova nativa dirigida de timeout/kill (NO_KILL/W04 na árvore viva) e re-execução nativa confirmatória nos bytes R12",
+  "out_of_mission_gate": "Harness QS4 sucessor vinculado ao adaptador EC96FE9A exige qualificação QS4 (QS4=NO)",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "R10_FAIL_F01_F04_CLOSED_R11; R11_ORIGIN_REVIEW_CLOSED_R12; FORMAL_REAUDIT_PENDING_ORIGIN",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

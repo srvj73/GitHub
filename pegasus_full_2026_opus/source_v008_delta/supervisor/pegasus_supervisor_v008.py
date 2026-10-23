@@ -250,6 +250,34 @@ def job_close_disposition(active_processes: int) -> str:
     return "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL"
 
 
+def job_close_plan(active_processes: int, clear_kill_ok: bool) -> dict:
+    """R11-ORIGIN-01: plano PURO de ações ao fechar a custódia do Job, honrando NO_KILL.
+
+    - Árvore vazia: fechar os handles é inofensivo -> close_handles=True.
+    - Árvore AINDA viva (encerramento controlado): o supervisor NUNCA fecha os handles do Job
+      (fechar deixaria o KILL_ON_JOB_CLOSE disparar OU descartaria a custódia) e NUNCA mata.
+      Retém os handles; a tentativa de limpar KILL_ON_JOB_CLOSE já ocorreu e seu resultado
+      (`clear_kill_ok`) só classifica o risco residual no FIM DO PROCESSO (decisão reservada à
+      origem), jamais faz o supervisor fechar o handle aqui. Ordem fail-closed: decidir ANTES de
+      qualquer CloseHandle."""
+    if int(active_processes) <= 0:
+        return {"close_handles": True, "live_tree": False, "kill_risk": False, "retain_custody": False}
+    return {"close_handles": False, "live_tree": True, "kill_risk": (not bool(clear_kill_ok)),
+            "retain_custody": True}
+
+
+def grandchild_contained(gpid: int, job_idents: Sequence) -> tuple:
+    """R11-ORIGIN-02: contenção do neto de breakaway por IDENTIDADE TEMPORAL (pid, creation_time),
+    não por PID histórico. `job_idents` = [(pid, ctime), ...] da JobObjectBasicProcessIdList
+    resolvida. Exige que o PID do neto apareça com EXATAMENTE UM ctime RESOLVIDO (!=0): um PID
+    solto, sem ctime, ou com mais de um ctime (reciclado/ambíguo) NÃO prova contenção específica.
+    Retorna (contido, [pid, ctime] vinculado | None)."""
+    cts = sorted({int(c) for (p, c) in job_idents if int(p) == int(gpid) and c})
+    if len(cts) == 1:
+        return True, [int(gpid), cts[0]]
+    return False, None
+
+
 def w04_prespawn_verdict(state: Mapping) -> dict:
     """F02 (auditoria): veredito PRÉ-SPAWN sobre a aquisição efetiva da proteção W04, antes de
     criar qualquer filho. Função pura (testável offline com doubles da API). BLOQUEIA sem spawn se
@@ -603,33 +631,38 @@ class Supervision:
         pede SAFE_STOP cooperativo (uma vez) e registra; nunca termina processo.
         `timeout_s`: limite total usado só na qualificação (None em produção)."""
         cust = make_custody(self.log)
-        guard = W04Guard(self.protected_root, self.log)
-        arm = guard.arm()
-        cust.mark("W04_ARM")
-        # F02 (auditoria): gate PRÉ-SPAWN fail-closed. A proteção W04 tem de estar EFETIVAMENTE
-        # adquirida antes de criar qualquer filho. Se a lease não foi obtida em todos os alvos
-        # (sharing violation, erro de abertura, reparse no conjunto protegido), libera os handles
-        # parciais e BLOQUEIA sem spawn e sem efeitos protegidos — nunca cria o filho para só
-        # descobrir no disarm. Fora do Windows não há lease a adquirir (baseline de hash), então
-        # o veredito pré-spawn é limpo e o caminho offline não muda.
-        prespawn = guard.prespawn_verdict()
-        if prespawn.get("prespawn") != "ACQUIRED_CLEAN":
-            guard.release()
-            raise SupervisorBlocked("W04_ARM_INCOMPLETE_NO_SPAWN_NO_PROTECTED_EFFECTS:" + ";".join(prespawn.get("gaps", [])))
-        if threading.current_thread() is threading.main_thread():
-            self._prev_sigint = signal.signal(signal.SIGINT, self._on_sigint)
-        stdout = self.evidence / (self.label + ".child.log")
-        t0 = time.monotonic()
-        pid = cust.start(argv, self.evidence, env, stdout)
-        status_initial = None
-        last_hb = 0.0
-        rc = None
-        stop_deliveries = 0
-        last_stop_delivery = 0.0
-        stop_requested_at = None
-        last_updated = None
-        last_change = time.monotonic()
+        # R11-ORIGIN-03 (revisão da origem): o custodiante (no Windows) já abriu Job + porta IOCP e
+        # iniciou a thread de bombeamento na construção. O arm, o gate pré-spawn (F02) e o start
+        # ficam DENTRO do try/finally para garantir que cust.close() rode EXATAMENTE UMA VEZ em todo
+        # caminho pré-spawn falho (prespawn BLOCKED, exceção em arm ou em start), sem vazar Job/
+        # IOCP/thread e sem matar processo (a árvore está vazia nesses ramos).
         try:
+            guard = W04Guard(self.protected_root, self.log)
+            arm = guard.arm()
+            cust.mark("W04_ARM")
+            # F02 (auditoria): gate PRÉ-SPAWN fail-closed. A proteção W04 tem de estar EFETIVAMENTE
+            # adquirida antes de criar qualquer filho. Se a lease não foi obtida em todos os alvos
+            # (sharing violation, erro de abertura, reparse no conjunto protegido), libera os handles
+            # parciais e BLOQUEIA sem spawn e sem efeitos protegidos — nunca cria o filho para só
+            # descobrir no disarm. Fora do Windows não há lease a adquirir (baseline de hash), então
+            # o veredito pré-spawn é limpo e o caminho offline não muda.
+            prespawn = guard.prespawn_verdict()
+            if prespawn.get("prespawn") != "ACQUIRED_CLEAN":
+                guard.release()
+                raise SupervisorBlocked("W04_ARM_INCOMPLETE_NO_SPAWN_NO_PROTECTED_EFFECTS:" + ";".join(prespawn.get("gaps", [])))
+            if threading.current_thread() is threading.main_thread():
+                self._prev_sigint = signal.signal(signal.SIGINT, self._on_sigint)
+            stdout = self.evidence / (self.label + ".child.log")
+            t0 = time.monotonic()
+            pid = cust.start(argv, self.evidence, env, stdout)
+            status_initial = None
+            last_hb = 0.0
+            rc = None
+            stop_deliveries = 0
+            last_stop_delivery = 0.0
+            stop_requested_at = None
+            last_updated = None
+            last_change = time.monotonic()
             while True:
                 rc = cust.poll()
                 cust.sample()
@@ -704,7 +737,29 @@ class Supervision:
         finally:
             if self._prev_sigint is not None:
                 signal.signal(signal.SIGINT, self._prev_sigint)
+            # R11-ORIGIN-01/03: close() nunca mata nem fecha o handle do Job com a árvore viva
+            # (ver WindowsJobCustody.close); roda exatamente uma vez em todo caminho (sucesso ou
+            # falha pré-spawn/arm/start). Se a árvore ficou viva num encerramento controlado
+            # (timeout/SAFE_STOP não honrado), registra a DECISÃO RESERVADA à origem: NO_KILL pelo
+            # supervisor, W04 e Job retidos (não liberados/fechados), reconciliação na próxima
+            # execução; a única morte possível (no fim do processo, se o flag não pôde ser limpo)
+            # é falha-fechada reservada, não ação do supervisor.
             cust.close()
+            if getattr(cust, "live_tree_at_close", False):
+                rec = {"schema": "PEGASUS_FULL_2026_V008_W04_NOKILL_LIVE_TREE_RESERVED_DECISION",
+                       "label": self.label,
+                       "kill_on_job_close_cleared": getattr(cust, "kill_on_job_close_cleared", None),
+                       "kill_risk_at_process_exit": getattr(cust, "close_kill_risk", None),
+                       "job_handles": "RETAINED_NOT_CLOSED_ON_LIVE_TREE_NO_KILL_BY_SUPERVISOR",
+                       "w04_lease": "RETAINED_UNTIL_PROCESS_EXIT_NOT_RELEASED_EARLY",
+                       "reconciliation": "RESERVED_DECISION_FOR_ORIGIN (drenar / autorizar kill / handoff de custódia); orfão reconciliado por RUN.lock+journal na próxima execução",
+                       "no_kill": "SUPERVISOR_PERFORMS_NO_KILL_AND_NO_HANDLE_CLOSE_ON_LIVE_TREE"}
+                try:
+                    write_json_atomic(self.evidence / (self.label + "_W04_NOKILL_RESERVED_DECISION.json"), rec)
+                except Exception:
+                    pass
+                self.log("W04_NOKILL_LIVE_TREE_RESERVED_DECISION cleared=%s kill_risk=%s"
+                         % (getattr(cust, "kill_on_job_close_cleared", None), getattr(cust, "close_kill_risk", None)))
         lineage = lineage_verdict(native_job=native_job, new_process=new_proc_events,
                                   accounting=final_accounting, active_zero_seen=final_tree_empty,
                                   breakaway_allowed=breakaway_allowed)

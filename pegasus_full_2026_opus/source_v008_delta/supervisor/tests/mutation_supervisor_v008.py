@@ -63,11 +63,18 @@ MUTANTS = [
      'if False:\n            raise SupervisorBlocked("JOB_IDENTITY_UNRESOLVED_NO_GAPLESS:%d" % unresolved)'),
     # F04: árvore viva no close não pode ser tratada como fechamento seguro (mataria via kill-on-close).
     ("job_close_kills_live_tree", 'return "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL"', 'return "CLOSE_EMPTY_SAFE"'),
+    # R11-ORIGIN-01: plano de fechamento não pode fechar handles com árvore viva.
+    ("job_close_plan_closes_live_tree", 'return {"close_handles": False, "live_tree": True, "kill_risk": (not bool(clear_kill_ok)),',
+     'return {"close_handles": True, "live_tree": True, "kill_risk": (not bool(clear_kill_ok)),'),
+    # R11-ORIGIN-02: contenção do neto não pode aceitar ctime não resolvido (PID histórico).
+    ("grandchild_contained_ignores_ctime", 'cts = sorted({int(c) for (p, c) in job_idents if int(p) == int(gpid) and c})',
+     'cts = sorted({int(c) for (p, c) in job_idents if int(p) == int(gpid)})'),
 ]
 
 SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlatform",
           "SafeStopRedelivery", "CustodyLifecycleContract", "RunPathWiring", "ExitClassification",
-          "W04PrespawnGate", "LineageUnresolvedIdentity", "JobCloseNoKill"]
+          "W04PrespawnGate", "LineageUnresolvedIdentity", "JobCloseNoKill",
+          "JobClosePlan", "GrandchildContained"]
 
 
 def main() -> int:

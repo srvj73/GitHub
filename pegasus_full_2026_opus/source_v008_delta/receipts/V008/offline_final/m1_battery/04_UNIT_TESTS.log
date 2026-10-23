@@ -5,6 +5,10 @@ test_terminal_evidence_capturable_before_close_then_refused_after (__main__.Cust
 test_absent_or_bogus_code_never_pass (__main__.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
 test_known_codes (__main__.ExitClassification.test_known_codes) ... ok
 test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... ok
+test_absent_not_contained (__main__.GrandchildContained.test_absent_not_contained) ... ok
+test_ambiguous_identity_not_contained (__main__.GrandchildContained.test_ambiguous_identity_not_contained) ... ok
+test_unique_resolved_identity_contained (__main__.GrandchildContained.test_unique_resolved_identity_contained) ... ok
+test_unresolved_ctime_not_contained (__main__.GrandchildContained.test_unresolved_ctime_not_contained) ... ok
 test_jit_child_before_arm (__main__.JitAndLineage.test_jit_child_before_arm) ... ok
 test_jit_disarm_before_tree_empty (__main__.JitAndLineage.test_jit_disarm_before_tree_empty) ... ok
 test_jit_missing (__main__.JitAndLineage.test_jit_missing) ... ok
@@ -18,6 +22,8 @@ test_lineage_pid_reuse_counts_twice (__main__.JitAndLineage.test_lineage_pid_reu
 test_lineage_posix_is_observational (__main__.JitAndLineage.test_lineage_posix_is_observational) ... ok
 test_empty_tree_safe_close (__main__.JobCloseNoKill.test_empty_tree_safe_close) ... ok
 test_live_tree_clears_kill_on_close (__main__.JobCloseNoKill.test_live_tree_clears_kill_on_close) ... ok
+test_empty_tree_closes_handles (__main__.JobClosePlan.test_empty_tree_closes_handles) ... ok
+test_live_tree_never_closes_handles (__main__.JobClosePlan.test_live_tree_never_closes_handles) ... ok
 test_resolved_identity_gapless (__main__.LineageUnresolvedIdentity.test_resolved_identity_gapless) ... ok
 test_unresolved_ctime_blocks_gapless (__main__.LineageUnresolvedIdentity.test_unresolved_ctime_blocks_gapless) ... ok
 test_nonzero_child_exit_rejected_even_with_complete_json (__main__.NativeNegativesFreshProcess.test_nonzero_child_exit_rejected_even_with_complete_json) ... ok
@@ -65,6 +71,8 @@ test_no_delivery_in_spawn_window_active_zero_on_windows (__main__.SafeStopRedeli
 test_no_delivery_without_request (__main__.SafeStopRedelivery.test_no_delivery_without_request) ... ok
 test_posix_delivers_regardless_of_active (__main__.SafeStopRedelivery.test_posix_delivers_regardless_of_active) ... ok
 test_waits_interval_between_deliveries (__main__.SafeStopRedelivery.test_waits_interval_between_deliveries) ... ok
+test_close_once_on_prespawn_block (__main__.SupervisionPrespawnLifecycle.test_close_once_on_prespawn_block) ... ok
+test_close_once_on_start_exception (__main__.SupervisionPrespawnLifecycle.test_close_once_on_start_exception) ... ok
 test_clean_acquisition_allows_spawn (__main__.W04PrespawnGate.test_clean_acquisition_allows_spawn) ... ok
 test_open_error_and_reparse_block_spawn (__main__.W04PrespawnGate.test_open_error_and_reparse_block_spawn) ... ok
 test_sharing_violation_blocks_spawn (__main__.W04PrespawnGate.test_sharing_violation_blocks_spawn) ... ok
@@ -87,6 +95,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 86 tests in 3.573s
+Ran 94 tests in 3.384s
 
 OK

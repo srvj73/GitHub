@@ -1,9 +1,9 @@
 # PEGASUS FULL 2026 V008R2 - bootstrap Windows PowerShell 5.1 Desktop. ASCII, sem BOM.
 # Uso a partir de PS C:\Users\silvi> (sem cd):
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads\BOOTSTRAP_PEGASUS_FULL_2026_V008R11_PS51.ps1 -Mode Verify
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads\BOOTSTRAP_PEGASUS_FULL_2026_V008R11_PS51.ps1 -Mode QualifyNative
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads\BOOTSTRAP_PEGASUS_FULL_2026_V008R11_PS51.ps1 -Mode Install
-#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads\BOOTSTRAP_PEGASUS_FULL_2026_V008R11_PS51.ps1 -Mode Rollback
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads\BOOTSTRAP_PEGASUS_FULL_2026_V008R12_PS51.ps1 -Mode Verify
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads\BOOTSTRAP_PEGASUS_FULL_2026_V008R12_PS51.ps1 -Mode QualifyNative
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads\BOOTSTRAP_PEGASUS_FULL_2026_V008R12_PS51.ps1 -Mode Install
+#   powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads\BOOTSTRAP_PEGASUS_FULL_2026_V008R12_PS51.ps1 -Mode Rollback
 # Log SEMPRE em pasta absoluta fixa, nova por execucao, independente da pasta atual:
 #   C:\Users\silvi\Downloads\PEGASUS_FULL_2026_RUNS\<MODO>_<yyyyMMdd_HHmmss_fff>_<PID>\RUN_LOG.txt
 # Classificacao de exit (unica para bootstrap e supervisor):
@@ -19,9 +19,9 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-$ZipName          = 'PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R11_20261023.zip'
-$ExpectedZipSha   = 'DD1B3432FBD84EEACE7D6B06867C4CEB79BAB951F0BD6E51B8CC1DF015BDF94C'
-$ExpectedManifest = '111CDB63082DD0C9AEE29A74E9BBDF6F9FF45571C14CD1FC834EA0005B1AC028'
+$ZipName          = 'PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R12_20261023.zip'
+$ExpectedZipSha   = 'EA17EDE35C577CE1D69CB91D529F166B39FBD6B779D6F347487B65E3BF587082'
+$ExpectedManifest = 'D49A54D8D9778A65CC597442FFCEB8041D3195C22566800EBB3E3536ACAD8035'
 $TreeName         = 'PEGASUS_FULL_2026_ENGINEERING_FINAL_V008'
 $Downloads        = 'C:\Users\silvi\Downloads'
 $RunsBase         = 'C:\Users\silvi\Downloads\PEGASUS_FULL_2026_RUNS'

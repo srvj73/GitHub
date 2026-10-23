@@ -391,28 +391,27 @@ def _windows_native_negatives(evidence, inputs, env, case, log):
     # contabilidade do Job (seu PID aparece em job_pids, registrado por NEW_PROCESS/IOCP+sample).
     # Escape real = CreateProcess OK e PID fora do Job.
     m = re.search(r"BREAKAWAY_CREATEPROCESS=OK pid=(\d+)", child_log)
-    # F03 (auditoria): a contenção é provada por IDENTIDADE TEMPORAL, não por PID histórico solto.
-    # job_idents = [[pid, ctime], ...] registrados pelo kernel; a pertença do neto exige que seu PID
-    # apareça com ctime RESOLVIDO (!=0). Além disso, a linhagem só é GAPLESS se não houver NENHUMA
-    # identidade não resolvida (lineage_verdict já BLOQUEIA unresolved>0; aqui reconfirmamos).
-    job_idents = {(int(p), int(c)) for p, c in (r.get("job_idents") or [])}
-    resolved_pids = {p for (p, c) in job_idents if c}
+    # F03 / R11-ORIGIN-02 (revisão da origem): a contenção é provada por IDENTIDADE TEMPORAL
+    # (pid, creation_time), NÃO por PID histórico. job_idents vem da JobObjectBasicProcessIdList
+    # resolvida pelo supervisor (process_ctime capturado enquanto o processo está vivo no Job, o que
+    # mitiga reciclagem de PID). grandchild_contained exige que o PID do neto apareça com EXATAMENTE
+    # UM ctime resolvido; um PID solto/ambíguo não prova contenção. O par vinculado vai ao recibo.
+    job_idents = [(int(p), int(c)) for p, c in (r.get("job_idents") or [])]
     unresolved = int(r.get("lineage", {}).get("identity_unresolved_short_lived", -1))
+    bound_ident = None
     if "BREAKAWAY_DENIED" in child_log:
         breakaway_contained, detail = True, "DENIED_BY_OS"
     elif m:
         gpid = int(m.group(1))
-        # Contido SOMENTE se o neto permanece no Job com identidade temporal resolvida (pid+ctime),
-        # não apenas um PID que poderia ter sido reciclado.
-        breakaway_contained = gpid in resolved_pids
-        detail = "OK_pid=%s_in_job_resolved=%s" % (gpid, breakaway_contained)
+        breakaway_contained, bound_ident = sup.grandchild_contained(gpid, job_idents)
+        detail = "OK_pid=%s_temporal_identity_bound=%s" % (gpid, bound_ident)
     else:
         breakaway_contained, detail = False, "NO_BREAKAWAY_MARKER"
     case("Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
          r["lineage"]["lineage"] == "GAPLESS_NATIVE_JOB" and r["lineage"]["processes"] >= 6
          and unresolved == 0 and breakaway_contained and r["child_exit"] == 0,
          lineage=r["lineage"], jit=r["jit"], breakaway_contained=breakaway_contained, breakaway=detail,
-         identity_unresolved=unresolved, job_idents=len(job_idents))
+         identity_unresolved=unresolved, grandchild_bound_identity=bound_ident, job_idents=len(job_idents))
 
 
 # =====================================================================================

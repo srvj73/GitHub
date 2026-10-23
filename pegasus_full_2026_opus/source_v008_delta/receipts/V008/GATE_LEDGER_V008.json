@@ -73,7 +73,8 @@
    "offline_test_counts": "unit 70/70 (SafeStopRedelivery janela segura incl.); supervisor mutants 24/24; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP",
    "native_campaign_r6": "22/23 nativos PASS; so Q11 breakaway restante, criterio corrigido para contencao real em R7",
    "r10_boundary_fix": "CLOSED_V008R10: subprocess rc==0 required before accepting replayed native-negative cases (fail-closed); negative control reproduces defect; false-completeness search consolidated (economic triple-block terminal; no mandatory integration unimplemented)",
-   "r11_audit_fixes": "CLOSED_V008R11: F01 (W04 gate em completion/exit + per-case), F02 (pre-spawn fail-closed NO_SPAWN), F03 (identidade temporal; unresolved bloqueia GAPLESS; Q11 pid+ctime), F04 (NO_KILL no close de arvore viva). Controles negativos + 86/86 unit + 28/28 mutantes."
+   "r11_audit_fixes": "CLOSED_V008R11: F01 (W04 gate em completion/exit + per-case), F02 (pre-spawn fail-closed NO_SPAWN), F03 (identidade temporal; unresolved bloqueia GAPLESS; Q11 pid+ctime), F04 (NO_KILL no close de arvore viva). Controles negativos + 86/86 unit + 28/28 mutantes.",
+   "r12_origin_fixes": "CLOSED_V008R12: R11-ORIGIN-01 (job_close_plan: árvore viva nunca fecha handle/mata; decisão reservada registrada), R11-ORIGIN-02 (grandchild_contained por (pid,ctime) único), R11-ORIGIN-03 (cust.close() garantido 1x em pré-spawn falho). Unit 94/94; mutantes 30/30. Prova nativa dirigida de timeout/kill e identidade temporal real: titular/origem."
   }
  },
  "boundaries": {
@@ -88,10 +89,10 @@
   "independent_audit": "STARTED_R10_FAIL_FINDINGS_CLOSED_R11"
  },
  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
- "revision": "V008R11",
+ "revision": "V008R12",
  "supersedes": {
-  "v008r10_zip_sha256": "8B3FA7E58D8CE3052981D9A85452F62DB7D4E88FBC3A318507DF7C129DE61B1A",
-  "reason": "independent audit (Work Astra, AUDIT_VERDICT=FAIL on R10) found four real defects; all corrected fail-closed with negative controls: F01 W04 BLOCKED not gating completion/exit; F02 incomplete W04 arm not preventing spawn; F03 unresolved identity classified GAPLESS + Q11 historical-PID-only; F04 KILL_ON_JOB_CLOSE could kill a live tree on controlled timeout exit. R9 native 23/23 MET and R10 rc-gate preserved."
+  "v008r11_zip_sha256": "DD1B3432FBD84EEACE7D6B06867C4CEB79BAB951F0BD6E51B8CC1DF015BDF94C",
+  "reason": "origin preparatory review of R11 found three open points; all corrected fail-closed: R11-ORIGIN-01 close() closed the Job handle with a live tree before raising (kill could fire) and released W04 while child alive; R11-ORIGIN-02 Q11 matched by historical PID (ctime dropped); R11-ORIGIN-03 cust.close() not guaranteed on pre-spawn-fail paths. R9 native 23/23 MET and R11 F01-F04 fixes preserved."
  },
  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
  "native_campaign_r2_result": {
@@ -164,5 +165,11 @@
   "package_sha256": "AD59A7B39744A500EAA7EFAE1F56F23775162FE6839413246710557ABCDB67D3",
   "findings": "F01 HIGH/blocking; F02 HIGH/blocking; F03 MEDIUM/proof-gap; F04 HIGH/blocking",
   "closed_in": "V008R11"
+ },
+ "origin_review_r11": {
+  "reviewer": "ChatGPT origin/custody (not independent auditor, not native Windows)",
+  "decision_on_r11": "CANDIDATE_COMPLETENESS_NOT_PASS; FORMAL_REAUDIT_DISPATCH_BLOCKED",
+  "points": "R11-ORIGIN-01 BLOCKER (NO_KILL/close ordering + W04 persistence); R11-ORIGIN-02 PROOF_GAP (Q11 temporal identity); R11-ORIGIN-03 resource lifecycle (pre-spawn close)",
+  "closed_in": "V008R12"
  }
 }

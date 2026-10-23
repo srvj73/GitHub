@@ -1,0 +1,98 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R12_MISSION_LOCK_DELIVERY",
+  "mission_id": "PEGASUS_ORIGINAL_FULL_ENGENHARIA_FINAL_INTEGRADA_OPUS_20261022",
+  "base_codex_v003_sha256": "CC37261C017FA541BE125EE5432B29E63480D694EB26900A565D2ADDBD539041",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R12_20261023.zip",
+      "sha256": "EA17EDE35C577CE1D69CB91D529F166B39FBD6B779D6F347487B65E3BF587082",
+      "bytes": 87423406,
+      "members": 2952
+    },
+    "manifest_sha256": "D49A54D8D9778A65CC597442FFCEB8041D3195C22566800EBB3E3536ACAD8035",
+    "tested_manifest_sha256_m1": "BEDEFC7AAA5C6ED1442C0B74018C811002414BEDDEB08D6644EF366C1D9A29ED",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R12_PS51.ps1",
+      "sha256": "1A63EE3AA368E0588E309765A3076591854B5E1EA13711FD0F8B68E00C95E2F9",
+      "bytes": 22863
+    },
+    "supersedes_v008r11": {
+      "zip_sha256": "DD1B3432FBD84EEACE7D6B06867C4CEB79BAB951F0BD6E51B8CC1DF015BDF94C",
+      "reason": "origin preparatory review of R11: R11-ORIGIN-01 (close() closed Job handle with live tree before raise; W04 released while child alive), R11-ORIGIN-02 (Q11 matched historical PID), R11-ORIGIN-03 (cust.close() not guaranteed on pre-spawn-fail). All corrected fail-closed."
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "policy_custody": "EXCLUSIVE_TO_ORIGIN_NOT_CONSULTED",
+  "review_trail": {
+    "independent_audit_r10": {
+      "auditor": "Work Astra",
+      "verdict": "FAIL",
+      "package_sha256": "AD59A7B39744A500EAA7EFAE1F56F23775162FE6839413246710557ABCDB67D3",
+      "findings": "F01-F04",
+      "all_closed_r11": true,
+      "preserved_in": "receipts/V008/offline_final/r11_audit_fixes/"
+    },
+    "origin_review_r11": {
+      "reviewer": "ChatGPT origin/custody (not independent auditor)",
+      "decision": "CANDIDATE_COMPLETENESS_NOT_PASS; FORMAL_REAUDIT_DISPATCH_BLOCKED",
+      "points": [
+        "R11-ORIGIN-01",
+        "R11-ORIGIN-02",
+        "R11-ORIGIN-03"
+      ],
+      "all_closed_r12": true,
+      "findings": [
+        {
+          "id": "F01",
+          "closed": true
+        },
+        {
+          "id": "F02",
+          "closed": true
+        },
+        {
+          "id": "F03",
+          "closed": true
+        },
+        {
+          "id": "F04+R11-ORIGIN-01",
+          "closed": true
+        },
+        {
+          "id": "R11-ORIGIN-02",
+          "closed": true
+        },
+        {
+          "id": "R11-ORIGIN-03",
+          "closed": true
+        }
+      ],
+      "evidence_in": "receipts/V008/offline_final/r12_origin_fixes/"
+    },
+    "false_completeness": {
+      "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
+      "mandatory_integration_unimplemented": []
+    }
+  },
+  "native_qualification_r9": {
+    "result_zip_sha256": "7290A855726B2791D478249574EF9BD4F4AA6835B4F23CAB0A37D9A3DC38CE5E",
+    "bound_to_bytes": {
+      "zip_sha256": "2C3F39EBADC292CEE197D21E837B6A264B532550AD80F8A66160EE8C51B3273C",
+      "manifest_sha256": "93D56AC73ED631686CB340EF1CD4D44599620012C9258AC032CD2610E8959D88"
+    },
+    "qualifynative_exit": 0,
+    "cases_pass": 23,
+    "native_completeness_evaluation": "MET",
+    "preserved_in": "receipts/V008/offline_final/native_campaign_r9/"
+  },
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "R10_FAIL_F01_F04_CLOSED_R11; R11_ORIGIN_REVIEW_CLOSED_R12; FORMAL_REAUDIT_PENDING_ORIGIN",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

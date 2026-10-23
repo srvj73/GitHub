@@ -334,35 +334,39 @@ class WindowsJobCustody:
         # Emptiness avaliada pelo acessor cru (handle ainda aberto) e ANTES de marcar fechado,
         # para não disparar a própria recusa de pós-close.
         active = self._accounting_raw()["ActiveProcesses"]
-        from pegasus_supervisor_v008 import job_close_disposition
-        disp = job_close_disposition(active)
         self._closed = True
-        self.close_disposition = disp
-        if disp == "CLOSE_EMPTY_SAFE":
+        self.live_tree_at_close = active > 0
+        if active <= 0:
+            # R11-ORIGIN-01: árvore vazia — fechar é inofensivo.
+            from pegasus_supervisor_v008 import job_close_plan
+            plan = job_close_plan(active, True)
+            self.close_disposition = plan
             CloseHandle(self.port)
             CloseHandle(self.job)
             return
-        # F04 (auditoria) — NO_KILL: a árvore própria AINDA está viva no close. Reter o handle num
-        # processo que vai terminar NÃO preserva custódia: ao fim do processo o SO fecharia o Job
-        # e, com KILL_ON_JOB_CLOSE, MATARIA a árvore viva — exatamente o que o contrato NO_KILL
-        # proíbe num encerramento controlado (timeout/SAFE_STOP não honrado -> SupervisorBlocked ->
-        # exit 3 -> CLI encerra). Antes de qualquer fechamento, LIMPAMOS KILL_ON_JOB_CLOSE para que
-        # o fechamento do handle (agora ou no fim do processo) não termine a árvore. A árvore
-        # sobrevive e é reconciliada pela próxima execução (RUN.lock órfão por identidade + journal).
-        # O fail-safe de QUEDA do supervisor permanece intacto durante a operação normal: a limpeza
-        # só ocorre neste close controlado, nunca durante a execução.
+        # R11-ORIGIN-01 (revisão da origem) — NO_KILL REAL com árvore viva (encerramento controlado:
+        # timeout/SAFE_STOP não honrado -> SupervisorBlocked -> exit 3 -> CLI encerra). O supervisor
+        # NUNCA fecha os handles do Job aqui e NUNCA mata: fechar deixaria o KILL_ON_JOB_CLOSE
+        # disparar (se o flag não pôde ser limpo) ou descartaria a custódia (se limpo). Tenta limpar
+        # KILL_ON_JOB_CLOSE (melhor esforço) SOMENTE para reduzir o risco no fim do processo, mas a
+        # decisão de fechar é tomada ANTES, pelo plano puro, e com árvore viva é sempre "não fechar".
+        # Assim não há CloseHandle-antes-de-raise nem fechamento algum do Job na árvore viva; a
+        # custódia (Job) e a proteção W04 (lease não liberada no caminho de falha) permanecem retidas
+        # até o fim do processo. O resíduo (morte no fim do processo, só possível se o flag não pôde
+        # ser limpo) é DECISÃO RESERVADA à origem, registrada pelo Supervision.run; não é ação do
+        # supervisor. O fail-safe de QUEDA do supervisor permanece durante a operação normal.
         info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
-        info.BasicLimitInformation.LimitFlags = 0  # remove KILL_ON_JOB_CLOSE
+        info.BasicLimitInformation.LimitFlags = 0  # tenta remover KILL_ON_JOB_CLOSE (melhor esforço)
         cleared = bool(SetInformationJobObject(self.job, JobObjectExtendedLimitInformation,
                                                ctypes.byref(info), ctypes.sizeof(info)))
+        from pegasus_supervisor_v008 import job_close_plan
+        plan = job_close_plan(active, cleared)
+        self.close_disposition = plan
         self.kill_on_job_close_cleared = cleared
-        CloseHandle(self.port)
-        CloseHandle(self.job)
-        self.log("JOB_LIVE_TREE_NO_KILL active=%d kill_on_job_close_cleared=%s RECONCILE_BY_NEXT_RUN"
-                 % (active, cleared))
-        if not cleared:
-            # Não conseguimos garantir NO_KILL ao fechar: falha-fechada explícita, não mascarar.
-            raise RuntimeError("NO_KILL_GUARANTEE_FAILED_CLEAR_KILL_ON_JOB_CLOSE active=%d" % active)
+        self.close_kill_risk = plan["kill_risk"]
+        # plan["close_handles"] é SEMPRE False com árvore viva: nenhum CloseHandle no Job/porta.
+        self.log("JOB_LIVE_TREE_CUSTODY_RETAINED_NO_CLOSE active=%d kill_on_job_close_cleared=%s "
+                 "kill_risk_at_process_exit=%s RESERVED_DECISION_FOR_ORIGIN" % (active, cleared, plan["kill_risk"]))
 
 
 # =====================================================================================

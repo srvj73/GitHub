@@ -667,6 +667,113 @@ class JobCloseNoKill(unittest.TestCase):
         self.assertEqual(sup.job_close_disposition(1), "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL")
 
 
+class JobClosePlan(unittest.TestCase):
+    """R11-ORIGIN-01: com árvore viva o supervisor NUNCA fecha o handle do Job (close_handles=False),
+    independentemente de ter conseguido limpar KILL_ON_JOB_CLOSE."""
+
+    def test_empty_tree_closes_handles(self):
+        p = sup.job_close_plan(0, True)
+        self.assertTrue(p["close_handles"]) and self.assertFalse(p["live_tree"])
+
+    def test_live_tree_never_closes_handles(self):
+        for cleared in (True, False):
+            p = sup.job_close_plan(2, cleared)
+            self.assertFalse(p["close_handles"], cleared)
+            self.assertTrue(p["live_tree"])
+            self.assertTrue(p["retain_custody"])
+            self.assertEqual(p["kill_risk"], not cleared)
+
+
+class GrandchildContained(unittest.TestCase):
+    """R11-ORIGIN-02: contenção por (pid, creation_time) único e resolvido, não PID histórico."""
+
+    def test_unique_resolved_identity_contained(self):
+        ok, ident = sup.grandchild_contained(7, [(7, 111), (9, 222)])
+        self.assertTrue(ok); self.assertEqual(ident, [7, 111])
+
+    def test_unresolved_ctime_not_contained(self):
+        self.assertEqual(sup.grandchild_contained(7, [(7, 0)]), (False, None))
+
+    def test_ambiguous_identity_not_contained(self):
+        self.assertEqual(sup.grandchild_contained(7, [(7, 111), (7, 112)]), (False, None))
+
+    def test_absent_not_contained(self):
+        self.assertEqual(sup.grandchild_contained(7, [(9, 222)]), (False, None))
+
+
+class _LifecycleGuard:
+    def __init__(self, prespawn_clean):
+        self._clean = prespawn_clean
+        self.released = 0
+
+    def arm(self):
+        return {"armed": "X"}
+
+    def prespawn_verdict(self):
+        return {"prespawn": "ACQUIRED_CLEAN"} if self._clean else {"prespawn": "BLOCKED_NO_SPAWN", "gaps": ["G"]}
+
+    def release(self):
+        self.released += 1
+
+    def revalidate(self):
+        pass
+
+    def disarm(self, tree_empty):
+        return {"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
+
+
+class _LifecycleCustody:
+    native_job = False
+    breakaway_allowed = False
+
+    def __init__(self, start_raises):
+        self._start_raises = start_raises
+        self.closed = 0
+        self.started = False
+        self.marks = []
+
+    def mark(self, n):
+        self.marks.append({"mark": n, "mono_ns": 1})
+
+    def start(self, *a, **k):
+        self.started = True
+        if self._start_raises:
+            raise RuntimeError("START_BOOM")
+        return 4321
+
+    def close(self):
+        self.closed += 1
+
+
+class SupervisionPrespawnLifecycle(unittest.TestCase):
+    """R11-ORIGIN-03: cust.close() roda EXATAMENTE UMA VEZ nos caminhos pré-spawn falhos (prespawn
+    BLOCKED e exceção em start), sem matar processo real (custódia é uma dupla)."""
+
+    def _run(self, *, prespawn_clean, start_raises, exc):
+        cust = _LifecycleCustody(start_raises=start_raises)
+        guard = _LifecycleGuard(prespawn_clean=prespawn_clean)
+        with mock.patch.object(sup, "make_custody", lambda log: cust), \
+                mock.patch.object(sup, "W04Guard", lambda root, log: guard):
+            with tempfile.TemporaryDirectory() as t:
+                ev = Path(t) / "ev"; ev.mkdir()
+                s = sup.Supervision(evidence=ev, protected_root=Path(t) / "prot",
+                                    out_root=Path(t) / "out", label="L", log=lambda *a, **k: None)
+                with self.assertRaises(exc):
+                    s.run(["x"], {}, timeout_s=5)
+        return cust, guard
+
+    def test_close_once_on_prespawn_block(self):
+        cust, guard = self._run(prespawn_clean=False, start_raises=False, exc=sup.SupervisorBlocked)
+        self.assertEqual(cust.closed, 1)
+        self.assertFalse(cust.started)
+        self.assertEqual(guard.released, 1)
+
+    def test_close_once_on_start_exception(self):
+        cust, guard = self._run(prespawn_clean=True, start_raises=True, exc=RuntimeError)
+        self.assertEqual(cust.closed, 1)
+        self.assertTrue(cust.started)
+
+
 class _FakeProc:
     def __init__(self, returncode, stdout="", stderr=""):
         self.returncode = returncode
