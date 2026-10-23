@@ -535,5 +535,67 @@ class CustodyLifecycleContract(unittest.TestCase):
                 self.assertIn("CUSTODY_QUERIED_AFTER_CLOSE", str(ctx.exception), fn.__name__)
 
 
+class NativeNegativesReplay(unittest.TestCase):
+    """R9: _replay_case_records reencena os casos do subprocesso no recibo do pai, levanta na
+    PRIMEIRA falha, e é fail-closed contra filho incompleto (caso ausente ou completed=False)."""
+
+    def _q(self):
+        import pegasus_qualify_v008 as q  # import tardio: não perturba o harness de mutação
+        return q
+
+    def _case_and_sink(self):
+        sink = []
+
+        def case(name, ok, **detail):
+            sink.append({"case": name, "result": "PASS" if ok else "FAIL", **detail})
+            if not ok:
+                raise AssertionError(name + " " + json.dumps(detail, sort_keys=True, default=str)[:200])
+        return case, sink
+
+    def _full_records(self, **overrides):
+        recs = [{"case": n, "ok": True, "result": "PASS", "detail": {"w04": {"w04_full": "PASS_NATIVE_SAME_ATTEMPT"}}}
+                for n in self._q()._NATIVE_NEGATIVE_CASES]
+        for r in recs:
+            if r["case"] in overrides:
+                r.update(overrides[r["case"]])
+        return recs
+
+    def test_all_pass_complete_records_every_case(self):
+        q = self._q()
+        case, sink = self._case_and_sink()
+        q._replay_case_records(self._full_records(), case, doc={"completed": True})
+        self.assertEqual([c["case"] for c in sink], list(q._NATIVE_NEGATIVE_CASES))
+        self.assertTrue(all(c["result"] == "PASS" for c in sink))
+        # detail (ex.: w04) é repassado ao pai e preservado para a avaliação de completude.
+        self.assertEqual(sink[0]["w04"]["w04_full"], "PASS_NATIVE_SAME_ATTEMPT")
+
+    def test_first_failure_raises_and_stops(self):
+        q = self._q()
+        case, sink = self._case_and_sink()
+        bad = q._NATIVE_NEGATIVE_CASES[2]
+        recs = self._full_records(**{bad: {"ok": False, "result": "FAIL", "detail": {"why": "x"}}})
+        with self.assertRaises(AssertionError) as ctx:
+            q._replay_case_records(recs, case, doc={"completed": True})
+        self.assertIn(bad, str(ctx.exception))
+        self.assertEqual(sink[-1]["case"], bad)              # registrou até a falha
+        self.assertEqual(len(sink), 3)                       # parou na primeira falha
+
+    def test_missing_case_is_fail_closed(self):
+        q = self._q()
+        case, sink = self._case_and_sink()
+        recs = [r for r in self._full_records() if r["case"] != q._NATIVE_NEGATIVE_CASES[-1]]
+        with self.assertRaises(sup.SupervisorBlocked) as ctx:
+            q._replay_case_records(recs, case, doc={"completed": True})
+        self.assertIn("NATIVE_NEGATIVES_CASES_MISSING", str(ctx.exception))
+        self.assertIn(q._NATIVE_NEGATIVE_CASES[-1], str(ctx.exception))
+
+    def test_incomplete_child_is_fail_closed(self):
+        q = self._q()
+        case, _ = self._case_and_sink()
+        with self.assertRaises(sup.SupervisorBlocked) as ctx:
+            q._replay_case_records(self._full_records(), case, doc={"completed": False, "error": "boom"})
+        self.assertIn("NATIVE_NEGATIVES_CHILD_DID_NOT_COMPLETE", str(ctx.exception))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

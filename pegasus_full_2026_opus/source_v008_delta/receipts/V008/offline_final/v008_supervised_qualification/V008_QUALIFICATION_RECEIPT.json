@@ -5,15 +5,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 53,
-        "inventory_sha256": "B74567559F4F191FCBC5DE914EDD1C90291B0902BB58D18059C8D8A9BB37F11C"
+        "inventory_sha256": "B3D91ACE6C2C170A1D0C395B90D23F165DEFF2FDD2242F5F6851FDA77033FCAA"
       },
       "jit": {
-        "child_created_ns": 427798843684,
-        "child_resumed_ns": 427799832201,
+        "child_created_ns": 203116832144,
+        "child_resumed_ns": 203117641427,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 437585924645,
-        "w04_arm_ns": 427798362211,
-        "w04_disarm_ns": 437589417775
+        "tree_empty_ns": 212952106237,
+        "w04_arm_ns": 203116733810,
+        "w04_disarm_ns": 212955139217
       },
       "lineage": {
         "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF",
@@ -60,7 +60,7 @@
     },
     {
       "active_journals": [
-        "2000-01-06.619_1792709788096792039.json"
+        "2000-01-06.511_1792721630198978009.json"
       ],
       "case": "Q05_GAP1_JOURNAL_WITHOUT_PENDING",
       "child_exit": 1,
@@ -74,7 +74,7 @@
     {
       "case": "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
       "child_exit": 87,
-      "orphan_run_lock_pid": 647,
+      "orphan_run_lock_pid": 536,
       "result": "PASS"
     },
     {
@@ -90,10 +90,10 @@
     {
       "case": "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
       "journal_history": [
-        "1999-12-31.619_1792709788096792039.json.COMMITTED",
-        "2000-01-06.619_1792709788096792039.json.RECOVERED_REQUEUE",
-        "2000-01-06.647_1792709795556508617.json.RECOVERED_COMMITTED",
-        "2000-01-11.662_1792709800284992133.json.COMMITTED"
+        "1999-12-31.511_1792721630198978009.json.COMMITTED",
+        "2000-01-06.511_1792721630198978009.json.RECOVERED_REQUEUE",
+        "2000-01-06.536_1792721637483637430.json.RECOVERED_COMMITTED",
+        "2000-01-11.549_1792721642290847505.json.COMMITTED"
       ],
       "result": "PASS"
     },
@@ -102,15 +102,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 37,
-        "inventory_sha256": "CCBF5DC2C62D63AECDD5B97067961C29B183670A86C2DA91780EC0CAF2DCD0E0"
+        "inventory_sha256": "AE87AD34DFC99F6C287FE1BEA615FC9F3D09525FEC66C67CBACFE56ED23EDDC6"
       },
       "jit": {
-        "child_created_ns": 478887301846,
-        "child_resumed_ns": 478889030550,
+        "child_created_ns": 251976646062,
+        "child_resumed_ns": 251977398547,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 488598383724,
-        "w04_arm_ns": 478887054145,
-        "w04_disarm_ns": 488603962841
+        "tree_empty_ns": 261013195251,
+        "w04_arm_ns": 251976499545,
+        "w04_disarm_ns": 261016233947
       },
       "lineage": {
         "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF",
@@ -130,10 +130,10 @@
       "resume_completion": {
         "completed": true,
         "inventory_entries": 37,
-        "inventory_sha256": "DF7C8AF150BBBA667E5B76BFD31A94CAA63FD3AAA7C6E8524F2F6A730C17B564"
+        "inventory_sha256": "255E50A5D31589C0B62F208154494BBB75AEB52604C5B1807C47C8DF2C4AB984"
       },
       "safe_stop": {
-        "committed_at_stop": 1,
+        "committed_at_stop": 2,
         "safe_stop": "CONFIRMED_BY_SUPERVISOR_NON_NATIVE_W04"
       },
       "safe_stop_exit": 130
@@ -227,16 +227,16 @@
   },
   "native_windows": false,
   "os_name": "posix",
-  "package_manifest_sha256": "9B5F91DC21BD98554FAA9B968BCBB02542AE046D0EA4C0538F054CD976E4C66A",
+  "package_manifest_sha256": "7B85DA44B5435106E428960FFB33F8F14C4F0B248C030BE33536494E9BC24CD4",
   "phase_c": "FORBIDDEN",
-  "platform": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
+  "platform": "Linux-6.18.44-fc-v140-x86_64-with-glibc2.39",
   "python": "3.13.16",
   "qs4": "NO",
   "reselection_2026": "FORBIDDEN",
   "result": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC",
   "run_released": "NO",
   "schema": "PEGASUS_FULL_2026_V008_INTEGRATED_QUALIFICATION_V001",
-  "seconds": 85.558,
+  "seconds": 80.38,
   "supervisor_parents": {
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152"
@@ -313,8 +313,8 @@
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_binding_v008.py": "7FBE02BAAD077CAF37BCC394452657F84D8F115DC3FFE67413CBAAAE3DC2BB7A",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152",
-    "pegasus_qualify_v008.py": "6B0CB5410F16F5055DA65E445B3C95B5941B0C6BFA931144A3CB5F0414F18572",
-    "pegasus_supervisor_v008.py": "1DEA8B7BD088EE37DE6EFCD3F8B09F01FDD087463EAE232AE4E50607A5ADCFED",
+    "pegasus_qualify_v008.py": "BE60A3EC091D6AB6FDEEAA33A25D9EE250ADA4520AF0A363EA48B311BE6B7707",
+    "pegasus_supervisor_v008.py": "640A178EEB8CBB4A92128A538B4B6007AC7233A2E7145035CEF4E3663BB66F03",
     "pegasus_win_native_v008.py": "871F7F30E8813C4472F4BF9479B28CB4FA8D39F2FF47FC9DB30AA36772B469FD"
   },
   "w04_g2_g3_native": "NOT_NATIVE_HOST_NOT_PROMOTED"

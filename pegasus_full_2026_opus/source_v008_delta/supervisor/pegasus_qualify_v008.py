@@ -235,7 +235,10 @@ def run_qualification(evidence: Path, workers_ref: int = 1, workers_multi: int =
         # isolada e não econômica, e com os negativos que mantêm o econômico fail-closed.
         _supervised_run_path_cases(evidence, inputs, env, case, log)
         if os.name == "nt":
-            _windows_native_negatives(evidence, inputs, env, case, log)
+            # R9: os negativos nativos rodam num processo NOVO (ver _native_negatives_in_fresh_process):
+            # fiel à produção (cada execução supervisionada é um processo próprio) e sem o acúmulo de
+            # handles do backend de census que truncava o W04 num processo de qualificação longevo.
+            _native_negatives_in_fresh_process(evidence, inputs, env, case, log)
         else:
             receipt["cases"].append({"case": "Q10_W04_NATIVE_NEGATIVES", "result": "SKIPPED_NON_NATIVE",
                                      "reason": "Lease de compartilhamento/USN existem só no Windows; não promove G2."})
@@ -382,6 +385,98 @@ def _windows_native_negatives(evidence, inputs, env, case, log):
 
 
 # =====================================================================================
+# R9 — negativos nativos em PROCESSO NOVO + reencenação no recibo do pai
+# =====================================================================================
+# Conjunto exato de casos que o modo filho DEVE produzir. Guarda de completude: um filho que
+# termina cedo com JSON parcial (faltando qualquer um) é tratado como falha (fail-closed).
+_NATIVE_NEGATIVE_CASES = (
+    "Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE", "Q10b_PREEXISTING_WRITER_BLOCKS",
+    "Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS", "Q10D_NEW_NAME_NEVER_PASSES",
+    "Q10E_ALTERNATE_STREAM_NEVER_PASSES", "Q10F_HARDLINK_NEVER_PASSES",
+    "Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
+)
+
+
+def _replay_case_records(records, case, doc=None):
+    """Reencena no recibo do PAI cada caso coletado pelo filho, preservando a semântica de
+    `case` (registra e levanta na PRIMEIRA falha). Ao final — só se nenhum caso falhou —
+    exige que TODOS os casos nativos esperados estejam presentes e que o filho tenha concluído.
+    Assim o fail-closed sobrevive a um filho que caiu no meio ou devolveu JSON parcial."""
+    for r in records:
+        case(r["case"], bool(r.get("ok")), **dict(r.get("detail") or {}))
+    present = {r.get("case") for r in records}
+    missing = [n for n in _NATIVE_NEGATIVE_CASES if n not in present]
+    if missing:
+        raise sup.SupervisorBlocked("NATIVE_NEGATIVES_CASES_MISSING:" + ",".join(missing))
+    if doc is not None and not doc.get("completed"):
+        raise sup.SupervisorBlocked("NATIVE_NEGATIVES_CHILD_DID_NOT_COMPLETE:" + str(doc.get("error"))[:800])
+
+
+def _native_negatives_in_fresh_process(evidence, inputs, env, case, log):
+    """Lança os negativos nativos (Q10a–f, Q11) num SUBPROCESSO NOVO (`-I -B`) e reencena os
+    resultados no recibo do pai. O filho grava NATIVE_NEGATIVES_RESULT.json; a ausência do JSON
+    ou de qualquer caso esperado é falha técnica (fail-closed), nunca PASS silencioso."""
+    import subprocess
+    result_path = evidence / "NATIVE_NEGATIVES_RESULT.json"
+    child_stdout = evidence / "NATIVE_NEGATIVES_CHILD_STDOUT.txt"
+    if result_path.exists():
+        raise sup.SupervisorBlocked("NATIVE_NEGATIVES_RESULT_PREEXISTS")
+    cmd = [sys.executable, "-I", "-B", str(Path(__file__).resolve()),
+           "--native-negatives", str(evidence), str(inputs), str(result_path)]
+    log("NATIVE_NEGATIVES_FRESH_PROCESS_SPAWN " + " ".join(cmd))
+    p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=1800)
+    child_stdout.write_text((p.stdout or "") + "\n--- stderr ---\n" + (p.stderr or ""), encoding="utf-8")
+    log("NATIVE_NEGATIVES_FRESH_PROCESS_EXIT rc=%s" % p.returncode)
+    if not result_path.is_file():
+        tail = (p.stdout or "") + (p.stderr or "")
+        raise sup.SupervisorBlocked("NATIVE_NEGATIVES_CHILD_NO_RESULT rc=%s tail=%s" % (p.returncode, tail[-800:]))
+    doc = json.loads(result_path.read_text(encoding="utf-8"))
+    log("NATIVE_NEGATIVES_FRESH_PROCESS_REPLAY cases=%d completed=%s"
+        % (len(doc.get("cases") or []), doc.get("completed")))
+    _replay_case_records(doc.get("cases") or [], case, doc=doc)
+
+
+def _native_negatives_child(evidence_dir, inputs_dir, result_path) -> int:
+    """Modo filho (processo novo): roda SÓ os negativos nativos, COLETANDO os casos sem levantar,
+    e grava o JSON de resultado. Não promove nada sozinho — o pai reencena e decide o veredito."""
+    evidence = Path(evidence_dir)
+    inputs = Path(inputs_dir)
+    out = Path(result_path)
+    log_path = evidence / "NATIVE_NEGATIVES_LOG.txt"
+    records: list = []
+
+    def log(msg: str) -> None:
+        line = time.strftime("%Y-%m-%dT%H:%M:%S") + " " + msg
+        print(line, flush=True)
+        try:
+            with log_path.open("a", encoding="utf-8") as fh:
+                fh.write(line + "\n")
+        except OSError:
+            pass
+
+    def collect(name, ok, **detail):
+        records.append({"case": name, "ok": bool(ok), "result": "PASS" if ok else "FAIL", "detail": detail})
+        log("%s=%s" % (name, "PASS" if ok else "FAIL"))
+
+    doc = {"schema": "PEGASUS_FULL_2026_V008R9_NATIVE_NEGATIVES_CHILD_V001",
+           "pid": os.getpid(), "python": sys.version.split()[0], "os_name": os.name,
+           "native_windows": os.name == "nt", "cases": records}
+    if str(HERE) not in sys.path:
+        sys.path.insert(0, str(HERE))
+    try:
+        _windows_native_negatives(evidence, inputs, dict(os.environ), collect, log)
+        doc["completed"] = True
+    except Exception as exc:  # noqa: BLE001 — qualquer falha vira caso negativo + completed=False
+        doc["completed"] = False
+        doc["error"] = repr(exc)[:4000]
+        collect("Q10_NATIVE_NEGATIVES_CHILD_EXCEPTION", False, error=repr(exc)[:2000])
+        log("NATIVE_NEGATIVES_CHILD_EXCEPTION=" + repr(exc)[:400])
+    sup.write_json_new(out, doc)
+    log("NATIVE_NEGATIVES_CHILD_RESULT=" + out.name + " completed=%s" % doc["completed"])
+    return 0
+
+
+# =====================================================================================
 # Q12/Q13 — caminho executável supervisionado (run-b/-c/-full) via admissão
 # =====================================================================================
 def _supervised_run_path_cases(evidence, inputs, env, case, log):
@@ -487,3 +582,14 @@ def _supervised_run_path_cases(evidence, inputs, env, case, log):
          and p15b.returncode == 3 and r15b.get("child_exit") == 9 and r15b.get("result") == "FAIL_SUPERVISED_RUN"
          and r15b.get("exit_class") == "FAIL_TECHNICAL_AFTER_EFFECT_START",
          admission_exception_exit=p15a.returncode, child_fail_exit=p15b.returncode, child_exit=r15b.get("child_exit"))
+
+
+# =====================================================================================
+# Entrada de modo filho (R9). Só roda quando o arquivo é EXECUTADO como script com
+# --native-negatives; como módulo importado (qualificação, testes, mutação) nada muda.
+# =====================================================================================
+if __name__ == "__main__":
+    if len(sys.argv) >= 5 and sys.argv[1] == "--native-negatives":
+        sys.exit(_native_negatives_child(sys.argv[2], sys.argv[3], sys.argv[4]))
+    sys.stderr.write("USO: python pegasus_supervisor_v008.py qualify --evidence <dir>\n")
+    sys.exit(2)

@@ -1,0 +1,72 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R9_G0_OFFLINE_RECEIPT",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R9_20261022.zip",
+      "sha256": "2C3F39EBADC292CEE197D21E837B6A264B532550AD80F8A66160EE8C51B3273C",
+      "bytes": 87396480,
+      "members": 2946
+    },
+    "manifest_sha256": "93D56AC73ED631686CB340EF1CD4D44599620012C9258AC032CD2610E8959D88",
+    "tested_manifest_sha256_m1": "7B85DA44B5435106E428960FFB33F8F14C4F0B248C030BE33536494E9BC24CD4",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R9_PS51.ps1",
+      "sha256": "EFB7793842E6AF2095FC553BCDE91B2626182C4F83D8BD6ADECC1F0E954CDB30",
+      "bytes": 22858
+    },
+    "supersedes_v008r8": {
+      "zip_sha256": "17A9FB12168F88CBF5CFC4454D211AB773C30E63AEEB95E529899597693DF411",
+      "reason": "native negatives (Q10a-f, Q11) now run in a fresh -I -B subprocess so the pinned census backend starts from a clean handle state; the long-lived qualify process accumulated abandoned name-worker handles, truncating the Q10a census even with the R8 bounded retry; fail-closed unchanged; census diagnostics persisted in both W04 verdicts"
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "zip_crc": "PASS",
+  "zip_member_safety": "PASS",
+  "delivered_extract_verify": "PASS_PACKAGE_VERIFIED",
+  "delivered_manifest_sha256": "93D56AC73ED631686CB340EF1CD4D44599620012C9258AC032CD2610E8959D88",
+  "delivered_files_checked": 2945,
+  "offline_tests": {
+    "supervisor_unit": "75_OF_75",
+    "supervisor_mutation": "24_OF_24_KILLED",
+    "bootstrap_exit_boundary": "PASS_ALL passed=20",
+    "bootstrap_mutation": "8_OF_8_KILLED",
+    "supervised_qualification": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=16; SKIPPED_NON_NATIVE=2; error=None"
+  },
+  "native_campaign_r8": {
+    "zip_sha256": "17A9FB12168F88CBF5CFC4454D211AB773C30E63AEEB95E529899597693DF411",
+    "exit_boundary_steps": {
+      "S00_CANARY_EXIT_0": "MATCH",
+      "S00_CANARY_EXIT_2": "MATCH",
+      "S00_CANARY_EXIT_3": "MATCH",
+      "S00_CANARY_EXIT_7": "MATCH",
+      "S00_CANARY_EXIT_19": "MATCH",
+      "S00_CANARY_EXIT_37": "MATCH",
+      "S00_CANARY_EXIT_130": "MATCH",
+      "S00_CANARY_STREAMS_2MB": "MATCH",
+      "S01_SUPERVISOR_VERIFY": "MATCH",
+      "S02_ENTRY_VERIFY": "MATCH",
+      "S03_ARGV_EXIT_PROBE": "MATCH",
+      "S04_FAILCLOSED_run-b": "MATCH",
+      "S04_FAILCLOSED_run-c": "MATCH",
+      "S04_FAILCLOSED_run-full": "MATCH",
+      "S05_VENV": "MATCH",
+      "S06_OFFLINE_NUMPY": "MATCH",
+      "S07_SUPERVISED_NATIVE_QUALIFICATION": "MISMATCH"
+    },
+    "advanced_to": "16 casos (Q01-Q09, Q12-Q15) PASS antes de Q10a",
+    "blocker": "Q10a W04 BLOCKED por CENSUS_TRUNCATED apesar das 3 tentativas (R8); prova do kernel OK (WRITE_DENIED; RENAME_DENIED winerror=32)",
+    "root_cause": "backend de census pinado abandona threads com handles em consultas de nome travadas e varre o proprio processo; handles acumulam no processo de qualificacao longevo (Q12 em subprocesso proprio passou; Q10a no processo longevo truncou na mesma execucao)",
+    "resolved_in": "V008R9_FRESH_PROCESS_NATIVE_NEGATIVES"
+  },
+  "python_compile_new_code": "PASS_ON_3.13 (campanha nativa usa Python 3.14.7 do titular)",
+  "powershell_parse": "PASS_PWSH_7.4.6_LINUX; PS5.1_NATIVE_VALIDATED_BY_CAMPAIGNS_R2_R8",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED"
+}

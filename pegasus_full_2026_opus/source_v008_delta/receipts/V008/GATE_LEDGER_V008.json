@@ -1,135 +1,147 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008_GATE_LEDGER",
-  "date": "2026-10-22",
-  "project": "Pegasus Original",
-  "thread": "Implementação Runner Paralelo 14",
-  "role": "IMPLEMENTADOR_INTEGRADO_NOT_INDEPENDENT_AUDITOR",
-  "base": {
-    "codex_v003_zip_sha256": "CC37261C017FA541BE125EE5432B29E63480D694EB26900A565D2ADDBD539041",
-    "codex_v003_payload_sha256": "73EF2833E9594923A6383A5B774446702AD7168B93710AE293B96E2415EDFCFD",
-    "codex_v003_manifest_sha256": "701DF5ECE97948F275C22919E39D2AB1366BDFC77B78CF6C441AF4BB50266AF1",
-    "v003_files_byte_identical": "2867_OF_2867",
-    "g4_original_sha256": "61330A933173DD6CDC691AD1EB0994AA812A428639F4B53FED05638B21AB2DD3",
-    "economic_core_minotauro_identical_to_g4": true
+ "schema": "PEGASUS_FULL_2026_V008_GATE_LEDGER",
+ "date": "2026-10-22",
+ "project": "Pegasus Original",
+ "thread": "Implementação Runner Paralelo 14",
+ "role": "IMPLEMENTADOR_INTEGRADO_NOT_INDEPENDENT_AUDITOR",
+ "base": {
+  "codex_v003_zip_sha256": "CC37261C017FA541BE125EE5432B29E63480D694EB26900A565D2ADDBD539041",
+  "codex_v003_payload_sha256": "73EF2833E9594923A6383A5B774446702AD7168B93710AE293B96E2415EDFCFD",
+  "codex_v003_manifest_sha256": "701DF5ECE97948F275C22919E39D2AB1366BDFC77B78CF6C441AF4BB50266AF1",
+  "v003_files_byte_identical": "2867_OF_2867",
+  "g4_original_sha256": "61330A933173DD6CDC691AD1EB0994AA812A428639F4B53FED05638B21AB2DD3",
+  "economic_core_minotauro_identical_to_g4": true
+ },
+ "gates": {
+  "G1_SOURCE_BINDING": {
+   "state": "PASS_SOURCE_CONSOLIDATION",
+   "evidence": [
+    "V003 físico como base única, byte-idêntico",
+    "pegasus_entry F77B5266 testado=empacotado (cadeia 19/19 sobre os bytes)",
+    "DEPENDENCY-02: native_admission_gate/driver sem chamador no harness QS4 nem no V003 (inspeção de chamadas)"
+   ],
+   "qs4_harness_binding": "BLOCKED_PROVEN_ADAPTER_PIN_MISMATCH",
+   "qs4_detail": "Harness R001 E52AF782 exige adaptador 05A0CF3D; adaptador G4 do V003 é EC96FE9A. Sucessor vinculado exige qualificação QS4 própria (QS4=NO nesta missão).",
+   "supervised_run_path": "CLOSED_V008R1_AND_EXIT_BOUNDARY_CLOSED_V008R2 (admission single gate; economic triple-blocked Q13a/b/c; exit classification exact Q14/Q15)"
   },
-  "gates": {
-    "G1_SOURCE_BINDING": {
-      "state": "PASS_SOURCE_CONSOLIDATION",
-      "evidence": [
-        "V003 físico como base única, byte-idêntico",
-        "pegasus_entry F77B5266 testado=empacotado (cadeia 19/19 sobre os bytes)",
-        "DEPENDENCY-02: native_admission_gate/driver sem chamador no harness QS4 nem no V003 (inspeção de chamadas)"
-      ],
-      "qs4_harness_binding": "BLOCKED_PROVEN_ADAPTER_PIN_MISMATCH",
-      "qs4_detail": "Harness R001 E52AF782 exige adaptador 05A0CF3D; adaptador G4 do V003 é EC96FE9A. Sucessor vinculado exige qualificação QS4 própria (QS4=NO nesta missão).",
-      "supervised_run_path": "CLOSED_V008R1_AND_EXIT_BOUNDARY_CLOSED_V008R2 (admission single gate; economic triple-blocked Q13a/b/c; exit classification exact Q14/Q15)"
-    },
-    "G2_W04_FULL": {
-      "state": "IMPLEMENTED_OFFLINE_DECISION_QUALIFIED_NATIVE_PENDING",
-      "offline": "w04_verdict testado (positivos/negativos) e 6 mutantes W04 mortos",
-      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q10a-f: escritor externo, renomeação, escritor pré-existente, mapeamento gravável, novo nome, stream alternado, hardlink)",
-      "census_retry": "CLOSED_V008R8: census de corroboracao com ate 3 tentativas se truncado; se todas truncarem, W04 continua BLOCKED (fail-closed inalterado)"
-    },
-    "G3_W04_JIT_JOB": {
-      "state": "IMPLEMENTED_OFFLINE_ORCHESTRATION_QUALIFIED_NATIVE_PENDING",
-      "offline": "ordem JIT provada nas 9 execuções supervisionadas; linhagem POSIX observacional (não promove)",
-      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q01-Q09 sob Job real + Q11 netos/breakaway)",
-      "native_campaign_r2": "EXECUTED: W04 armou nativo (43 files, 0 violations, usn_hits=0); Job accounting-after-close corrigido em V008R3 (handle lifecycle)",
-      "job_handle_lifecycle": "CLOSED_V008R3: evidência terminal capturada antes de close(); custodiantes recusam consulta pós-close; regressão CustodyLifecycleContract",
-      "native_campaign_r3": "Q01/Q02 PASS nativos (handle do Job R3 confirmado); cadeia parou em Q03 (SAFE_STOP POSIX-only), corrigido R4",
-      "native_campaign_r6": "22/23 casos nativos PASS (Q01-Q15 + W04 Q10a-f); Q11 breakaway: proxy do CreateProcess incorreto no Win8+ (jobs aninhados)",
-      "breakaway_containment": "CLOSED_V008R7: Q11 verifica CONTENCAO real (PID do neto permanece em job_pids do kernel) em vez do proxy de excecao; escape real = FAIL"
-    },
-    "G4_SAFESTOP_RESUME": {
-      "state": "OFFLINE_PASS_ON_REAL_RUNTIME_SYNTHETIC_NATIVE_PENDING",
-      "offline": [
-        "cadeia V003 19/19 (8 faults, gap commit->checkpoint exit 87, duplo SIGINT 130 + retomada, adulteração, drift)",
-        "V008 supervisionado 9/9 (SAFE_STOP confirmado pelo supervisor, retomada exactly-once, duas lacunas, RUN.lock órfão reconciliado, journal duplicado fail-closed, porta de evidência)"
-      ],
-      "pending_journal_residue": "ATTRIBUTED_BY_INSTRUMENTED_PROOF_TO_NON_RUNTIME_MULTI_INSTANT_CAPTURE",
-      "native": "PENDING_OWNER_WINDOWS_CAMPAIGN",
-      "exit_boundary": "CLOSED_V008R2: classify_exit/EXIT_CLASSES (0 PASS;2 BLOCKED;3 FAIL;130 SAFE_STOP; ausente/nao-inteiro=>FAIL_CLOSED); _run_supervised grava exit_code/exit_class; main() exceção técnica=>3",
-      "safe_stop_platform_exit": "CLOSED_V008R4: is_cooperative_stop_exit (130 POSIX / 1|0xC000013A Windows) + evidencia independente; Q03 nativo destravado",
-      "native_campaign_r4": "Q03 SAFE_STOP e Q04 retomada PASS NATIVOS (correcao de plataforma R4 confirmada); Q05-Q09 e Q12 PASS nativos",
-      "safe_stop_redelivery": "CLOSED_V008R5: reentrega cooperativa do Ctrl+C ate STATUS.STOP_REQUESTED=True ou filho sair (cobre corrida com spawn de workers em Q12b); nunca mata",
-      "safe_stop_delivery_window": "CLOSED_V008R6: entrega do Ctrl+C so com workers em execucao (ACTIVE>0, Windows) fora da janela de import/spawn; falha-fechada em 180s se nao LATCH-ado; POSIX entrega direto ao coordenador (os.kill)"
-    },
-    "G5_INTEGRATED_NATIVE_WIN": {
-      "state": "CAMPAIGN_READY_NOT_EXECUTED",
-      "detail": "Bootstrap único hash-bound; parse PS7 7.4.6 PASS (evidência limitada); parse/execução PS 5.1 e Python 3.14.7 no alvo pendentes",
-      "bootstrap_exit_boundary": "REWRITTEN_V008R2: Process.Start+Handle, Get-PegasusExitCode fail-closed, ReadToEndAsync, watchdog no-kill, UAC relay reconcile; test 20/20 + mutation 8/8 sobre bytes reais do template (pwsh 7.4.6)",
-      "native_campaign_r2_exit_boundary": "VALIDATED_ON_WINDOWS: S00 canaries 0/2/3/7/19/37/130 + 2MB streams MATCH; S03 ARGV=37 MATCH (R1 lia 0); S01/S02/S04/S05/S06 MATCH",
-      "native_campaign_r2_blocker": "S07 qualification exit 3 (JOB_ACCOUNTING winerror=6) -> corrigido V008R3; re-run pendente"
-    },
-    "G6_CANDIDATE_COMPLETENESS": {
-      "state": "NOT_PASS_PENDING_G2_G3_G5_NATIVE_EVIDENCE",
-      "implementation_completeness": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED",
-      "tested_equals_packaged": "PROVEN_OFFLINE_BY_SHA (ver recibo externo)",
-      "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)",
-      "exit_code_boundary": "CLOSED_V008R2 (bootstrap+UAC+subprocess+watchdog+supervisor; sem falso PASS)",
-      "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
-      "offline_test_counts": "unit 70/70 (SafeStopRedelivery janela segura incl.); supervisor mutants 24/24; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP",
-      "native_campaign_r6": "22/23 nativos PASS; so Q11 breakaway restante, criterio corrigido para contencao real em R7"
-    }
+  "G2_W04_FULL": {
+   "state": "IMPLEMENTED_OFFLINE_DECISION_QUALIFIED_NATIVE_PENDING",
+   "offline": "w04_verdict testado (positivos/negativos) e 6 mutantes W04 mortos",
+   "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q10a-f: escritor externo, renomeação, escritor pré-existente, mapeamento gravável, novo nome, stream alternado, hardlink)",
+   "census_retry": "CLOSED_V008R8: census de corroboracao com ate 3 tentativas se truncado; se todas truncarem, W04 continua BLOCKED (fail-closed inalterado)",
+   "fresh_process_negatives": "CLOSED_V008R9: native negatives run in a fresh -I -B subprocess so the census starts clean; parent replays the case records (fail-closed on missing JSON/case/completion); census_attempts and census_abandoned_name_workers persisted in both W04 verdicts; W04 still BLOCKS if a census truncates even in a fresh process"
   },
-  "boundaries": {
-    "g4": "FROZEN",
-    "qs4": "NO",
-    "full_economic": "NO",
-    "phase_c": "FORBIDDEN",
-    "reselection_2026": "FORBIDDEN",
-    "run_released": "NO",
-    "full_released": "NO",
-    "paid_credit": "NOT_USED",
-    "independent_audit": "NOT_STARTED"
+  "G3_W04_JIT_JOB": {
+   "state": "IMPLEMENTED_OFFLINE_ORCHESTRATION_QUALIFIED_NATIVE_PENDING",
+   "offline": "ordem JIT provada nas 9 execuções supervisionadas; linhagem POSIX observacional (não promove)",
+   "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q01-Q09 sob Job real + Q11 netos/breakaway)",
+   "native_campaign_r2": "EXECUTED: W04 armou nativo (43 files, 0 violations, usn_hits=0); Job accounting-after-close corrigido em V008R3 (handle lifecycle)",
+   "job_handle_lifecycle": "CLOSED_V008R3: evidência terminal capturada antes de close(); custodiantes recusam consulta pós-close; regressão CustodyLifecycleContract",
+   "native_campaign_r3": "Q01/Q02 PASS nativos (handle do Job R3 confirmado); cadeia parou em Q03 (SAFE_STOP POSIX-only), corrigido R4",
+   "native_campaign_r6": "22/23 casos nativos PASS (Q01-Q15 + W04 Q10a-f); Q11 breakaway: proxy do CreateProcess incorreto no Win8+ (jobs aninhados)",
+   "breakaway_containment": "CLOSED_V008R7: Q11 verifica CONTENCAO real (PID do neto permanece em job_pids do kernel) em vez do proxy de excecao; escape real = FAIL"
   },
-  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
-  "revision": "V008R8",
-  "supersedes": {
-    "v008r7_zip_sha256": "FDFCEDB59BB361C05B9900FFE4697B5C9496159C546CB379C10E82ECB1002F7F",
-    "reason": "bounded retry of the corroboration handle census (intermittent truncation blocked Q10a in R7; fail-closed unchanged)"
+  "G4_SAFESTOP_RESUME": {
+   "state": "OFFLINE_PASS_ON_REAL_RUNTIME_SYNTHETIC_NATIVE_PENDING",
+   "offline": [
+    "cadeia V003 19/19 (8 faults, gap commit->checkpoint exit 87, duplo SIGINT 130 + retomada, adulteração, drift)",
+    "V008 supervisionado 9/9 (SAFE_STOP confirmado pelo supervisor, retomada exactly-once, duas lacunas, RUN.lock órfão reconciliado, journal duplicado fail-closed, porta de evidência)"
+   ],
+   "pending_journal_residue": "ATTRIBUTED_BY_INSTRUMENTED_PROOF_TO_NON_RUNTIME_MULTI_INSTANT_CAPTURE",
+   "native": "PENDING_OWNER_WINDOWS_CAMPAIGN",
+   "exit_boundary": "CLOSED_V008R2: classify_exit/EXIT_CLASSES (0 PASS;2 BLOCKED;3 FAIL;130 SAFE_STOP; ausente/nao-inteiro=>FAIL_CLOSED); _run_supervised grava exit_code/exit_class; main() exceção técnica=>3",
+   "safe_stop_platform_exit": "CLOSED_V008R4: is_cooperative_stop_exit (130 POSIX / 1|0xC000013A Windows) + evidencia independente; Q03 nativo destravado",
+   "native_campaign_r4": "Q03 SAFE_STOP e Q04 retomada PASS NATIVOS (correcao de plataforma R4 confirmada); Q05-Q09 e Q12 PASS nativos",
+   "safe_stop_redelivery": "CLOSED_V008R5: reentrega cooperativa do Ctrl+C ate STATUS.STOP_REQUESTED=True ou filho sair (cobre corrida com spawn de workers em Q12b); nunca mata",
+   "safe_stop_delivery_window": "CLOSED_V008R6: entrega do Ctrl+C so com workers em execucao (ACTIVE>0, Windows) fora da janela de import/spawn; falha-fechada em 180s se nao LATCH-ado; POSIX entrega direto ao coordenador (os.kill)"
   },
-  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
-  "native_campaign_r2_result": {
-    "zip_sha256": "7E15A87D55F620E8403D215EB22370A7DB795BD4C74CC3C288C77F1B4A274DB2",
-    "exit_code": 3,
-    "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START",
-    "exit_boundary": "VALIDATED_NATIVE_NO_FALSE_PASS",
-    "primary_failure": "S07 JOB_ACCOUNTING_FAILED winerror=6 (handle closed before accounting) -> fixed V008R3",
-    "ps_version": "5.1.26100.9711",
-    "python": "3.14.7"
+  "G5_INTEGRATED_NATIVE_WIN": {
+   "state": "CAMPAIGN_READY_NOT_EXECUTED",
+   "detail": "Bootstrap único hash-bound; parse PS7 7.4.6 PASS (evidência limitada); parse/execução PS 5.1 e Python 3.14.7 no alvo pendentes",
+   "bootstrap_exit_boundary": "REWRITTEN_V008R2: Process.Start+Handle, Get-PegasusExitCode fail-closed, ReadToEndAsync, watchdog no-kill, UAC relay reconcile; test 20/20 + mutation 8/8 sobre bytes reais do template (pwsh 7.4.6)",
+   "native_campaign_r2_exit_boundary": "VALIDATED_ON_WINDOWS: S00 canaries 0/2/3/7/19/37/130 + 2MB streams MATCH; S03 ARGV=37 MATCH (R1 lia 0); S01/S02/S04/S05/S06 MATCH",
+   "native_campaign_r2_blocker": "S07 qualification exit 3 (JOB_ACCOUNTING winerror=6) -> corrigido V008R3; re-run pendente"
   },
-  "native_campaign_r3_result": {
-    "verify": "PASS",
-    "qualifynative_exit": 3,
-    "native_cases_pass": "Q01,Q02",
-    "blocker": "Q03 SAFE_STOP required child_exit==130 (POSIX-only) -> fixed V008R4",
-    "job_handle_fix": "CONFIRMED_NATIVE"
-  },
-  "native_campaign_r4_result": {
-    "verify": "PASS",
-    "qualifynative_exit": 3,
-    "native_cases_pass": "Q01-Q09,Q12 (incl. Q03 SAFE_STOP, Q04 resume exactly-once)",
-    "blocker": "Q12b run-full SAFE_STOP hung 1800s (Ctrl+C lost during worker spawn) -> fixed V008R5",
-    "safe_stop_platform_fix": "CONFIRMED_NATIVE"
-  },
-  "native_campaign_r5_result": {
-    "verify": "PASS",
-    "qualifynative_exit": 3,
-    "native_cases_pass": "Q01,Q02",
-    "blocker": "Q03 SAFE_STOP wedged: Ctrl+C in worker-spawn window (ACTIVE=0) killed workers mid-import; 8+ re-deliveries did not latch -> fixed V008R6 (safe-window delivery + fail-closed honor deadline)"
-  },
-  "native_campaign_r6_result": {
-    "verify": "PASS",
-    "qualifynative_exit": 3,
-    "native_cases_pass": "22_of_23 (Q01-Q15, Q10a-f; incl. Q03/Q04 SAFE_STOP/resume, Q12b)",
-    "blocker": "Q11 breakaway proxy (CreateProcess did not throw on Win8+ nested jobs) -> criterion corrected to real containment in V008R7"
-  },
-  "native_campaign_r7_result": {
-    "verify": "PASS",
-    "qualifynative_exit": 3,
-    "native_cases_pass": "16 (Q01-Q15 chain) before Q10a",
-    "blocker": "Q10a W04 BLOCKED by CENSUS_TRUNCATED (intermittent; passed in R6); kernel lease proof OK -> bounded census retry V008R8",
-    "q11": "NOT_REACHED"
+  "G6_CANDIDATE_COMPLETENESS": {
+   "state": "NOT_PASS_PENDING_G2_G3_G5_NATIVE_EVIDENCE",
+   "implementation_completeness": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED",
+   "tested_equals_packaged": "PROVEN_OFFLINE_BY_SHA (ver recibo externo)",
+   "supervised_executable_path": "WIRED_AND_QUALIFIED_SYNTHETIC (cmd_run -> admission -> _run_supervised; Q12/Q12b PASS)",
+   "exit_code_boundary": "CLOSED_V008R2 (bootstrap+UAC+subprocess+watchdog+supervisor; sem falso PASS)",
+   "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
+   "offline_test_counts": "unit 70/70 (SafeStopRedelivery janela segura incl.); supervisor mutants 24/24; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP",
+   "native_campaign_r6": "22/23 nativos PASS; so Q11 breakaway restante, criterio corrigido para contencao real em R7"
   }
+ },
+ "boundaries": {
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED"
+ },
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
+ "revision": "V008R9",
+ "supersedes": {
+  "v008r8_zip_sha256": "17A9FB12168F88CBF5CFC4454D211AB773C30E63AEEB95E529899597693DF411",
+  "reason": "native negatives (Q10a-f, Q11) moved to a fresh subprocess so the pinned census backend starts from a clean handle state (long-lived qualify process accumulated abandoned name-worker handles -> intermittent CENSUS_TRUNCATED at Q10a even with 3 attempts); fail-closed unchanged; census diagnostics now persisted"
+ },
+ "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
+ "native_campaign_r2_result": {
+  "zip_sha256": "7E15A87D55F620E8403D215EB22370A7DB795BD4C74CC3C288C77F1B4A274DB2",
+  "exit_code": 3,
+  "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START",
+  "exit_boundary": "VALIDATED_NATIVE_NO_FALSE_PASS",
+  "primary_failure": "S07 JOB_ACCOUNTING_FAILED winerror=6 (handle closed before accounting) -> fixed V008R3",
+  "ps_version": "5.1.26100.9711",
+  "python": "3.14.7"
+ },
+ "native_campaign_r3_result": {
+  "verify": "PASS",
+  "qualifynative_exit": 3,
+  "native_cases_pass": "Q01,Q02",
+  "blocker": "Q03 SAFE_STOP required child_exit==130 (POSIX-only) -> fixed V008R4",
+  "job_handle_fix": "CONFIRMED_NATIVE"
+ },
+ "native_campaign_r4_result": {
+  "verify": "PASS",
+  "qualifynative_exit": 3,
+  "native_cases_pass": "Q01-Q09,Q12 (incl. Q03 SAFE_STOP, Q04 resume exactly-once)",
+  "blocker": "Q12b run-full SAFE_STOP hung 1800s (Ctrl+C lost during worker spawn) -> fixed V008R5",
+  "safe_stop_platform_fix": "CONFIRMED_NATIVE"
+ },
+ "native_campaign_r5_result": {
+  "verify": "PASS",
+  "qualifynative_exit": 3,
+  "native_cases_pass": "Q01,Q02",
+  "blocker": "Q03 SAFE_STOP wedged: Ctrl+C in worker-spawn window (ACTIVE=0) killed workers mid-import; 8+ re-deliveries did not latch -> fixed V008R6 (safe-window delivery + fail-closed honor deadline)"
+ },
+ "native_campaign_r6_result": {
+  "verify": "PASS",
+  "qualifynative_exit": 3,
+  "native_cases_pass": "22_of_23 (Q01-Q15, Q10a-f; incl. Q03/Q04 SAFE_STOP/resume, Q12b)",
+  "blocker": "Q11 breakaway proxy (CreateProcess did not throw on Win8+ nested jobs) -> criterion corrected to real containment in V008R7"
+ },
+ "native_campaign_r7_result": {
+  "verify": "PASS",
+  "qualifynative_exit": 3,
+  "native_cases_pass": "16 (Q01-Q15 chain) before Q10a",
+  "blocker": "Q10a W04 BLOCKED by CENSUS_TRUNCATED (intermittent; passed in R6); kernel lease proof OK -> bounded census retry V008R8",
+  "q11": "NOT_REACHED"
+ },
+ "native_campaign_r8_result": {
+  "verify": "PASS",
+  "qualifynative_exit": 3,
+  "native_cases_pass": "16 (Q01-Q09, Q12-Q15) before Q10a",
+  "blocker": "Q10a W04 BLOCKED by CENSUS_TRUNCATED despite 3 attempts (R8); kernel proof OK (WRITE_DENIED; RENAME_DENIED winerror=32) -> fresh-subprocess native negatives V008R9",
+  "root_cause": "pinned census backend abandons handle-holding threads on stuck name queries and scans its own process; handles accumulate in the long-lived qualify process (Q12 in its own subprocess passed; Q10a in the long-lived process truncated in the same run)",
+  "q11": "NOT_REACHED",
+  "zip_sha256": "17A9FB12168F88CBF5CFC4454D211AB773C30E63AEEB95E529899597693DF411",
+  "python": "3.14.7",
+  "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START"
+ }
 }

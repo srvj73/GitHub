@@ -5,15 +5,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 52,
-        "inventory_sha256": "9DA808A10099EDEFC1E0663EF242C80A81F240ADD8C0707BBB201F8CBBBF5F08"
+        "inventory_sha256": "7FD37EF33B32FBBA1A3F35F5D39842727399B6B8E9113C0F0F5445D11F83080C"
       },
       "jit": {
-        "child_created_ns": 211937913227400,
-        "child_resumed_ns": 211937994411000,
+        "child_created_ns": 212922992623800,
+        "child_resumed_ns": 212923060848600,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 211944335954100,
-        "w04_arm_ns": 211937912947600,
-        "w04_disarm_ns": 211945298338600
+        "tree_empty_ns": 212929155256600,
+        "w04_arm_ns": 212922992343600,
+        "w04_disarm_ns": 212930602996700
       },
       "lineage": {
         "identity_unresolved_short_lived": 0,
@@ -22,14 +22,14 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 7158,
+        "census_unresolved_reported": 7140,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64293525128,
+          "end_usn": 64300550680,
           "journal_id": 133708975302158387,
-          "start_usn": 64293350360
+          "start_usn": 64300377776
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -43,14 +43,14 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 7157,
+        "census_unresolved_reported": 7139,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64293694104,
+          "end_usn": 64300725320,
           "journal_id": 133708975302158387,
-          "start_usn": 64293528072
+          "start_usn": 64300554648
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -64,14 +64,14 @@
         "safe_stop": "CONFIRMED_BY_SUPERVISOR"
       },
       "w04": {
-        "census_unresolved_reported": 7157,
+        "census_unresolved_reported": 7130,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64293813504,
+          "end_usn": 64300840304,
           "journal_id": 133708975302158387,
-          "start_usn": 64293696504
+          "start_usn": 64300728080
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -83,7 +83,7 @@
     },
     {
       "active_journals": [
-        "2000-01-06.33468_1792709230303410600.json"
+        "2000-01-06.14228_1792710218018973200.json"
       ],
       "case": "Q05_GAP1_JOURNAL_WITHOUT_PENDING",
       "child_exit": 1,
@@ -97,7 +97,7 @@
     {
       "case": "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
       "child_exit": 87,
-      "orphan_run_lock_pid": 25156,
+      "orphan_run_lock_pid": 26180,
       "result": "PASS"
     },
     {
@@ -113,10 +113,10 @@
     {
       "case": "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
       "journal_history": [
-        "1999-12-31.33468_1792709230303410600.json.COMMITTED",
-        "2000-01-06.25156_1792709243557416800.json.RECOVERED_COMMITTED",
-        "2000-01-06.33468_1792709230303410600.json.RECOVERED_REQUEUE",
-        "2000-01-11.8168_1792709252144379400.json.COMMITTED"
+        "1999-12-31.14228_1792710218018973200.json.COMMITTED",
+        "2000-01-06.14228_1792710218018973200.json.RECOVERED_REQUEUE",
+        "2000-01-06.26180_1792710234174777300.json.RECOVERED_COMMITTED",
+        "2000-01-11.9872_1792710241644940300.json.COMMITTED"
       ],
       "result": "PASS"
     },
@@ -125,15 +125,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 36,
-        "inventory_sha256": "727F89CA7AAC2386C89131CD21C2564D22BB92F20CD0E5291BEB3BDBB8AAABAB"
+        "inventory_sha256": "37B7B8DB04BFA3398AFFD7A5D422088DCDBCCE654144F3DC9D874B2C5E32047A"
       },
       "jit": {
-        "child_created_ns": 211998827631500,
-        "child_resumed_ns": 211998909327300,
+        "child_created_ns": 212989416792600,
+        "child_resumed_ns": 212989490849000,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 212004042800500,
-        "w04_arm_ns": 211998827140900,
-        "w04_disarm_ns": 212006822665400
+        "tree_empty_ns": 212994932366300,
+        "w04_arm_ns": 212989416414300,
+        "w04_disarm_ns": 212996261510000
       },
       "lineage": {
         "identity_unresolved_short_lived": 0,
@@ -143,14 +143,14 @@
       "result": "PASS",
       "returncode": 0,
       "w04": {
-        "census_unresolved_reported": 7166,
+        "census_unresolved_reported": 7141,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64294373808,
+          "end_usn": 64301438576,
           "journal_id": 133708975302158387,
-          "start_usn": 64294196128
+          "start_usn": 64301254280
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -161,7 +161,7 @@
       "resume_completion": {
         "completed": true,
         "inventory_entries": 36,
-        "inventory_sha256": "FCF0BC2E48D539D4D019671A106DE73741F95C459FD78CAB49302A07270C30D8"
+        "inventory_sha256": "3DE8642664D3BAF7F6197C7E24F811A07F95BAD4C5409554EDE06330D746D6AC"
       },
       "safe_stop": {
         "committed_at_stop": 2,
@@ -261,7 +261,7 @@
   },
   "native_windows": true,
   "os_name": "nt",
-  "package_manifest_sha256": "055A9276EEDAD7931A95C65EA6173BA271B29C6E455D8D8939F94DE7627232C3",
+  "package_manifest_sha256": "3BA34A1D1C6F6B1D2C55D6AFE53564E38813F2D1DFD988CFA7C93BE90A1B396C",
   "phase_c": "FORBIDDEN",
   "platform": "Windows-11-10.0.26200-SP0",
   "python": "3.14.7",
@@ -270,7 +270,7 @@
   "result": "FAIL_STOP_CHAIN",
   "run_released": "NO",
   "schema": "PEGASUS_FULL_2026_V008_INTEGRATED_QUALIFICATION_V001",
-  "seconds": 223.779,
+  "seconds": 372.796,
   "supervisor_parents": {
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152"
@@ -349,6 +349,6 @@
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152",
     "pegasus_qualify_v008.py": "6B0CB5410F16F5055DA65E445B3C95B5941B0C6BFA931144A3CB5F0414F18572",
     "pegasus_supervisor_v008.py": "1DEA8B7BD088EE37DE6EFCD3F8B09F01FDD087463EAE232AE4E50607A5ADCFED",
-    "pegasus_win_native_v008.py": "0F8012B75887F061D053C602A31CC696AF5FEDECCF1C13159C357506F11DAE58"
+    "pegasus_win_native_v008.py": "871F7F30E8813C4472F4BF9479B28CB4FA8D39F2FF47FC9DB30AA36772B469FD"
   }
 }

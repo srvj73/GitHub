@@ -1,6 +1,81 @@
-.......................QS4_SUPERVISED=BLOCKED QS4_EXECUTION_FORBIDDEN_NO_EXTERNAL_ADMISSION
-................................................
+QS4_SUPERVISED=BLOCKED QS4_EXECUTION_FORBIDDEN_NO_EXTERNAL_ADMISSION
+test_run_modes_blocked_before_any_effect (__main__.CliFailClosed.test_run_modes_blocked_before_any_effect) ... ok
+test_verify_package (__main__.CliFailClosed.test_verify_package) ... ok
+test_terminal_evidence_capturable_before_close_then_refused_after (__main__.CustodyLifecycleContract.test_terminal_evidence_capturable_before_close_then_refused_after) ... ok
+test_absent_or_bogus_code_never_pass (__main__.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
+test_known_codes (__main__.ExitClassification.test_known_codes) ... ok
+test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... ok
+test_jit_child_before_arm (__main__.JitAndLineage.test_jit_child_before_arm) ... ok
+test_jit_disarm_before_tree_empty (__main__.JitAndLineage.test_jit_disarm_before_tree_empty) ... ok
+test_jit_missing (__main__.JitAndLineage.test_jit_missing) ... ok
+test_jit_non_monotonic (__main__.JitAndLineage.test_jit_non_monotonic) ... ok
+test_jit_ok_even_with_equal_timestamps (__main__.JitAndLineage.test_jit_ok_even_with_equal_timestamps) ... ok
+test_lineage_breakaway (__main__.JitAndLineage.test_lineage_breakaway) ... ok
+test_lineage_gap (__main__.JitAndLineage.test_lineage_gap) ... ok
+test_lineage_gapless (__main__.JitAndLineage.test_lineage_gapless) ... ok
+test_lineage_not_empty (__main__.JitAndLineage.test_lineage_not_empty) ... ok
+test_lineage_pid_reuse_counts_twice (__main__.JitAndLineage.test_lineage_pid_reuse_counts_twice) ... ok
+test_lineage_posix_is_observational (__main__.JitAndLineage.test_lineage_posix_is_observational) ... ok
+test_all_pass_complete_records_every_case (__main__.NativeNegativesReplay.test_all_pass_complete_records_every_case) ... ok
+test_first_failure_raises_and_stops (__main__.NativeNegativesReplay.test_first_failure_raises_and_stops) ... ok
+test_incomplete_child_is_fail_closed (__main__.NativeNegativesReplay.test_incomplete_child_is_fail_closed) ... ok
+test_missing_case_is_fail_closed (__main__.NativeNegativesReplay.test_missing_case_is_fail_closed) ... ok
+test_bound_when_pinned_and_hooks (__main__.QS4Binding.test_bound_when_pinned_and_hooks) ... ok
+test_mismatch_blocks (__main__.QS4Binding.test_mismatch_blocks) ... ok
+test_missing_durable_hooks_blocks (__main__.QS4Binding.test_missing_durable_hooks_blocks) ... ok
+test_packaged_r001_harness_blocked_by_adapter_pin (__main__.QS4Binding.test_packaged_r001_harness_blocked_by_adapter_pin) ... ok
+test_required_adapter_is_v003_g4 (__main__.QS4Binding.test_required_adapter_is_v003_g4) ... ok
+test_safestop_adapter_wired_on_orchestrator (__main__.QS4Binding.test_safestop_adapter_wired_on_orchestrator) ... ok
+test_supervised_main_blocks_without_external_admission (__main__.QS4Binding.test_supervised_main_blocks_without_external_admission) ... ok
+test_tampered_harness_blocks (__main__.QS4Binding.test_tampered_harness_blocks) ... ok
+test_default_admission_always_blocks (__main__.RunPathWiring.test_default_admission_always_blocks) ... ok
+test_make_run_plan_allows_non_economic (__main__.RunPathWiring.test_make_run_plan_allows_non_economic) ... ok
+test_make_run_plan_economic_with_proof_is_marked (__main__.RunPathWiring.test_make_run_plan_economic_with_proof_is_marked) ... ok
+test_make_run_plan_refuses_economic_without_proof (__main__.RunPathWiring.test_make_run_plan_refuses_economic_without_proof) ... ok
+test_run_supervised_refuses_economic_plan (__main__.RunPathWiring.test_run_supervised_refuses_economic_plan) ... ok
+test_run_supervised_rejects_bad_schema (__main__.RunPathWiring.test_run_supervised_rejects_bad_schema) ... ok
+test_child_self_claim_not_enough (__main__.SafeStopCompletion.test_child_self_claim_not_enough) ... ok
+test_completion_ok (__main__.SafeStopCompletion.test_completion_ok) ... ok
+test_completion_refuses_lock_multi_instant_capture (__main__.SafeStopCompletion.test_completion_refuses_lock_multi_instant_capture) ... ok
+test_confirmed (__main__.SafeStopCompletion.test_confirmed) ... ok
+test_eta (__main__.SafeStopCompletion.test_eta) ... ok
+test_exit_not_130 (__main__.SafeStopCompletion.test_exit_not_130) ... ok
+test_lock_and_w04 (__main__.SafeStopCompletion.test_lock_and_w04) ... ok
+test_not_drained (__main__.SafeStopCompletion.test_not_drained) ... ok
+test_completion_exit_never_confirms_stop (__main__.SafeStopExitPlatform.test_completion_exit_never_confirms_stop) ... ok
+test_crash_code_not_confirmed_even_on_windows (__main__.SafeStopExitPlatform.test_crash_code_not_confirmed_even_on_windows) ... ok
+test_helper_posix_only_130 (__main__.SafeStopExitPlatform.test_helper_posix_only_130) ... ok
+test_helper_windows_interrupt_codes (__main__.SafeStopExitPlatform.test_helper_windows_interrupt_codes) ... ok
+test_posix_exit_1_not_confirmed_but_130_is (__main__.SafeStopExitPlatform.test_posix_exit_1_not_confirmed_but_130_is) ... ok
+test_windows_ctrl_c_confirms_with_independent_evidence (__main__.SafeStopExitPlatform.test_windows_ctrl_c_confirms_with_independent_evidence) ... ok
+test_windows_interrupt_code_without_child_status_still_rejected (__main__.SafeStopExitPlatform.test_windows_interrupt_code_without_child_status_still_rejected) ... ok
+test_bounded_by_max_deliveries (__main__.SafeStopRedelivery.test_bounded_by_max_deliveries) ... ok
+test_first_delivery_immediate_when_workers_active (__main__.SafeStopRedelivery.test_first_delivery_immediate_when_workers_active) ... ok
+test_latched_stops_redelivery (__main__.SafeStopRedelivery.test_latched_stops_redelivery) ... ok
+test_no_delivery_after_child_exit (__main__.SafeStopRedelivery.test_no_delivery_after_child_exit) ... ok
+test_no_delivery_in_spawn_window_active_zero_on_windows (__main__.SafeStopRedelivery.test_no_delivery_in_spawn_window_active_zero_on_windows) ... ok
+test_no_delivery_without_request (__main__.SafeStopRedelivery.test_no_delivery_without_request) ... ok
+test_posix_delivers_regardless_of_active (__main__.SafeStopRedelivery.test_posix_delivers_regardless_of_active) ... ok
+test_waits_interval_between_deliveries (__main__.SafeStopRedelivery.test_waits_interval_between_deliveries) ... ok
+test_census_external_writer (__main__.W04Verdict.test_census_external_writer) ... ok
+test_census_truncated (__main__.W04Verdict.test_census_truncated) ... ok
+test_dirs (__main__.W04Verdict.test_dirs) ... ok
+test_hardlink_count (__main__.W04Verdict.test_hardlink_count) ... ok
+test_identity_change (__main__.W04Verdict.test_identity_change) ... ok
+test_lease_errors (__main__.W04Verdict.test_lease_errors) ... ok
+test_non_native_never_attests (__main__.W04Verdict.test_non_native_never_attests) ... ok
+test_partial_lease (__main__.W04Verdict.test_partial_lease) ... ok
+test_pass_native_and_unknown_reported_not_absence (__main__.W04Verdict.test_pass_native_and_unknown_reported_not_absence) ... ok
+test_preexisting_writer (__main__.W04Verdict.test_preexisting_writer) ... ok
+test_protected_modified_new_name_or_alias (__main__.W04Verdict.test_protected_modified_new_name_or_alias) ... ok
+test_released_early (__main__.W04Verdict.test_released_early) ... ok
+test_reparse (__main__.W04Verdict.test_reparse) ... ok
+test_revalidation (__main__.W04Verdict.test_revalidation) ... ok
+test_usn_incomplete (__main__.W04Verdict.test_usn_incomplete) ... ok
+test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
+test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
+
 ----------------------------------------------------------------------
-Ran 71 tests in 7.282s
+Ran 75 tests in 5.826s
 
 OK

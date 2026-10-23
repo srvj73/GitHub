@@ -215,14 +215,26 @@ def w04_verdict(*, native: bool, lease: Mapping, dirs: Mapping, usn: Mapping,
         gaps.append("CENSUS_TRUNCATED")
     if census.get("external_writers_under_target"):
         gaps.append("CENSUS_EXTERNAL_WRITER_UNDER_TARGET:%d" % len(census["external_writers_under_target"]))
+    # Diagnósticos do census preservados em AMBOS os veredictos (observabilidade R9): quantas
+    # tentativas cada census gastou e quantos name-workers foram abandonados (indício direto do
+    # acúmulo que provoca o truncamento). Não alteram o fail-closed; só o tornam auditável.
+    stats_start = census.get("stats_start") or {}
+    stats_end = census.get("stats_end") or {}
+    census_diag = {
+        "census_attempts": census.get("attempts"),
+        "census_abandoned_name_workers": [stats_start.get("abandoned_name_workers"),
+                                          stats_end.get("abandoned_name_workers")],
+        "census_truncated": bool(census.get("truncated")),
+    }
     if gaps:
-        return {"w04_full": "BLOCKED", "gaps": gaps}
+        return {"w04_full": "BLOCKED", "gaps": gaps, **census_diag}
     return {"w04_full": "PASS_NATIVE_SAME_ATTEMPT",
             "targets": n, "directories": int(dirs["targets"]),
             "usn": {"journal_id": usn["journal_id_start"], "start_usn": usn["start_usn"],
                     "end_usn": usn.get("end_usn")},
             "census_unresolved_reported": int(census.get("unresolved", 0)),
-            "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE"}
+            "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
+            **census_diag}
 
 
 def jit_verdict(marks: Sequence[Mapping]) -> dict:

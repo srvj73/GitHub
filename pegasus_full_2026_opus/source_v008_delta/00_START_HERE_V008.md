@@ -54,6 +54,10 @@ A campanha nativa R6 provou **22 de 23 casos nativos** (Q01–Q15 + W04 Q10a–f
 
 Na campanha R7, Q10a (que passara na R6) ficou `BLOCKED` por `CENSUS_TRUNCATED` — census de handles (só corroboração) incompleto de forma intermitente; a prova primária do kernel funcionou. Corrigido em V008R8: até 3 tentativas do census; se todas truncarem, o W04 continua bloqueando (fail-closed inalterado).
 
+## Revisão V008R9 — negativos nativos em processo próprio
+
+A campanha nativa R8 avançou 16 casos (Q01–Q09, Q12–Q15) e parou de novo em **Q10a**: prova do kernel íntegra (`WRITE_DENIED`; `RENAME_DENIED winerror=32`) mas W04 `BLOCKED` por `CENSUS_TRUNCATED`, **apesar** das 3 tentativas da R8. Causa: o backend de census pinado abandona threads que seguram handles quando uma consulta de nome trava e varre o próprio processo; num processo de qualificação longevo (que já rodou Q01–Q15) esses handles **acumulam** e cruzam o limite de truncamento — por isso Q12 (subprocesso próprio) passava e Q10a (processo longevo) truncava na mesma execução. Corrigido em V008R9: os negativos nativos (Q10a–f, Q11) rodam num **subprocesso novo** (`--native-negatives`), que parte de um census limpo; o pai reencena os casos no recibo (fail-closed se faltar JSON, caso ou conclusão). `w04_verdict` passa a registrar `census_attempts` e `census_abandoned_name_workers` em ambos os veredictos. A regra fail-closed do W04 não mudou: truncar mesmo em processo novo continua bloqueando — e aceitar corroboração degradada com a prova de kernel completa seria decisão de política do titular/origem. Regressão `NativeNegativesReplay`; unit 75/75; mutantes 24/24.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

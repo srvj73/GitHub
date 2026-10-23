@@ -139,3 +139,19 @@ Na campanha nativa R7 a cadeia parou em **Q10a**, caso que havia **passado na R6
 Correção (em `pegasus_win_native_v008._census`; backend e V003 intocados): **nova tentativa limitada** do census (`CENSUS_MAX_ATTEMPTS=3`). Retorna a primeira enumeração completa; se **todas** truncarem, o resultado segue truncado e o W04 continua **bloqueando** — a regra fail-closed não foi afrouxada. As tentativas ficam registradas na evidência (`census.attempts`).
 
 Validação: código nativo (o módulo só carrega no Windows); exercido pela campanha do titular. Offline: unit 71/71; mutantes 24/24; fronteira do bootstrap 20/20 + 8/8; V003 19/19; qualificação 16/16 PASS + 2 SKIPPED_NON_NATIVE. A correção de Q11 da R7 (contenção real) segue pendente de execução nativa (a R7 parou antes de Q11).
+
+
+## Negativos nativos em processo próprio V008R9 (achado da campanha nativa R8)
+
+A campanha nativa R8 avançou **16 casos** (Q01–Q09 e Q12–Q15, todos PASS) e parou de novo em **Q10a**, com a mesma assinatura da R7: prova primária do kernel íntegra (`WRITE_DENIED`; `RENAME_DENIED winerror=32`) mas veredito W04 `BLOCKED` por `CENSUS_TRUNCATED` — agora **apesar** das 3 tentativas da R8. A nova tentativa limitada não bastou.
+
+Causa-raiz precisa (sem alterar o backend pinado `8FEF1313…`): o backend de census enumera **todos** os processos, inclusive o próprio, e, quando uma consulta de nome trava, **abandona a thread segurando o handle** (não fecha, não faz join). Num **processo de qualificação longevo** — que já rodou Q01–Q15, incluindo os subprocessos supervisionados Q12–Q15 — os handles duplicados retidos por threads abandonadas **acumulam** entre chamadas; a cada novo census há mais o que varrer e mais o que travar, até cruzar o limite de 8 workers abandonados e declarar `enumeration_truncated`. Por isso Q12 (em subprocesso próprio) passava e Q10a (no processo longevo) truncava **na mesma execução**.
+
+Correção (mais fiel à produção, onde cada execução supervisionada é um processo próprio; backend e V003 intocados):
+
+- **Negativos nativos em subprocesso novo**: `_native_negatives_in_fresh_process` lança os casos Q10a–f e Q11 num processo `-I -B` recém-criado (`pegasus_qualify_v008.py --native-negatives`). O processo filho começa sem o acúmulo de handles do backend, então o census parte de um estado limpo. O filho **coleta** os casos sem levantar e grava `NATIVE_NEGATIVES_RESULT.json`; o pai **reencena** (`_replay_case_records`) cada caso no recibo, levantando na primeira falha. Fail-closed reforçado: se o filho não entregar o JSON, ou faltar qualquer caso nativo esperado, ou não concluir, o pai levanta (nunca PASS silencioso).
+- **Observabilidade do census**: `w04_verdict` passa a registrar, em **ambos** os veredictos (PASS e BLOCKED), `census_attempts` e `census_abandoned_name_workers` (início/fim). O truncamento deixa de ser opaco — a evidência mostra quantas threads de nome foram abandonadas, o indício direto do acúmulo.
+
+A regra fail-closed do W04 **não** foi afrouxada: um census que trunque mesmo num processo novo continua **bloqueando** o W04. Se isso ainda ocorrer, aceitar corroboração degradada com a prova de kernel completa é **decisão de política do titular/origem**, não do implementador.
+
+Regressão offline: `NativeNegativesReplay` (4 casos sobre `_replay_case_records`: reencena todos os casos com detalhe preservado; levanta e para na primeira falha; é fail-closed contra caso ausente e contra filho incompleto). Unit do supervisor **75/75**; mutantes do supervisor **24/24** (âncoras inalteradas); fronteira do bootstrap 20/20 + 8/8 (template inalterado); cadeia V003 19/19 imutável; qualificação supervisionada 16/16 PASS + 2 SKIPPED_NON_NATIVE.
