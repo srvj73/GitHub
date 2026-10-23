@@ -3,6 +3,14 @@
 **Para:** ChatGPT · **Projeto:** Pegasus Original · **Conversa:** Implementação Runner Paralelo 14
 **De:** Opus (implementador integrado, não auditor independente) · **Data:** 23/10/2026
 
+## 0. Resultado da campanha nativa R9 — PASS (23/23 numa execução)
+
+A campanha nativa da V008R9 rodou no PC do titular (PS 5.1, build `10.0.26200`, 24 CPUs, elevado) sobre os bytes entregues e **passou**: `QualifyNative` exit 0, **23/23 casos PASS**, `error=None`, `native_completeness_evaluation=MET` (`unmet=[]`; W04 nativo PASS=5 ≥ 4; GAPLESS_NATIVE_JOB=4 ≥ 3). **Q10a passou** com `w04=PASS_NATIVE_SAME_ATTEMPT`, census `attempts=[1,1]` e `abandoned_name_workers=[0,0]` — no subprocesso novo o census não trunca; confirma a causa-raiz e a correção. O log registra `NATIVE_NEGATIVES_FRESH_PROCESS_SPAWN`/`EXIT rc=0`/`REPLAY cases=7 completed=True` (pid do filho distinto do processo de qualificação).
+
+Vínculo aos bytes entregues: bootstrap `EFB77938…`, Python 3.14.7 `4942B86A…`, ZIP `2C3F39EB…`, manifesto final `93D56AC7…`; o recibo traz `package_manifest_sha256=93D56AC7…` e `tested_code`/`tested_supervisor` idênticos ao manifesto final. RESULT zip `7290A855…`; recibo de qualificação `9112FA3C…`. O candidato **não** foi reempacotado; a atestação externa está em `NATIVE_QUALIFICATION_ACHIEVED_V008R9.json` e `native_result_r9/`.
+
+A selagem formal de `CANDIDATE_COMPLETENESS=PASS` e o passo opcional `-Mode Install` são do titular/origem (`INDEPENDENT_AUDIT=NOT_STARTED`; `QS4=NO`). O histórico abaixo (R8) permanece para rastreabilidade.
+
 ## 1. Resultado da campanha nativa R8
 
 - **Verify = PASS.**
@@ -28,7 +36,9 @@ tested=packaged=delivered: M1→M2 só +14 arquivos de evidência; extrato recon
 
 ## 4. O que falta
 
-`CANDIDATE_COMPLETENESS = NOT_PASS`. Único bloqueio externo: uma re-execução nativa que confirme, **na mesma execução**, Q10a–f e Q11 (23/23). Se o census continuar truncando mesmo no subprocesso novo, o resultado mostrará isso explicitamente (`census_attempts`, `census_abandoned_name_workers`); nesse caso, decidir se um census de corroboração incompleto deve bloquear quando a prova do kernel está completa é uma decisão de política que **não tomo unilateralmente** — ela é do titular/origem.
+O único bloqueio externo que restava — a re-execução nativa que confirmasse Q10a–f e Q11 **na mesma execução** (23/23) — foi **cumprido** (ver seção 0): `native_completeness_evaluation=MET` sobre os bytes finais, sem falso PASS. O census não truncou no subprocesso novo (`abandoned_name_workers=[0,0]`), então a decisão de política sobre corroboração degradada **não** precisou ser tomada.
+
+Restam apenas itens que não são deste implementador: a **selagem formal** de `CANDIDATE_COMPLETENESS=PASS` e o passo opcional `-Mode Install` (deploy em `C:\ProgramData` com DACL protegida) são do titular/origem; `QS4=NO`, `FULL_ECONOMIC=NO` e `INDEPENDENT_AUDIT=NOT_STARTED` permanecem como fronteiras da missão.
 
 ## 5. Fronteiras preservadas
 

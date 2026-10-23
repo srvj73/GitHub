@@ -38,15 +38,19 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\Users\silvi\Downloads
 
 Esta campanha precisa confirmar, numa mesma execução, Q10a–f (W04 nativo) e Q11 (contenção de breakaway). Se tudo passar, a `QualifyNative` termina com exit 0 e `native_completeness_evaluation=MET`. Devolva o `..._RESULT.zip`. Se o census ainda truncar no processo novo, o resultado mostrará `census_attempts` e `census_abandoned_name_workers`, e aceitar corroboração degradada com a prova de kernel completa é decisão de política do titular/origem.
 
+## Resultado da campanha nativa R9 (PC do titular) — PASS
+
+Executada no PC (PS 5.1, build 10.0.26200, 24 CPUs, elevado), sobre os bytes entregues: `QualifyNative` **exit 0**, **23/23 casos PASS**, `native_completeness_evaluation=MET`. **Q10a passou** (census `abandoned_name_workers=[0,0]` no subprocesso novo — não truncou). Pinos conferidos: bootstrap `EFB77938…`, Python `4942B86A…`, ZIP `2C3F39EB…`, manifesto `93D56AC7…`; o recibo rodou sobre o código entregue (`tested_code`/`tested_supervisor` idênticos ao manifesto final). Atestação em `NATIVE_QUALIFICATION_ACHIEVED_V008R9.json` e `native_result_r9/`.
+
 ## Estado honesto dos gates
 
 | Gate | Estado |
 |---|---|
 | G1 | PASS |
-| G2 W04 full | Q10a–f nativos PASS na R6; negativos em processo novo (R9); confirmar na re-run |
-| G3 W04 JIT/Job | 22/23 nativos PASS na R6; Q11 contenção real (R7) pendente de execução nativa |
-| G4 SAFE_STOP/retomada | Q03/Q04 nativos PASS (R6); Q12b `run-full` nativo PASS (R8) |
-| G5 Windows nativo | re-run para confirmar 23/23 numa mesma execução |
-| G6 CANDIDATE_COMPLETENESS | **NOT_PASS** — único bloqueio externo: re-execução nativa |
+| G2 W04 full | Q10a–f nativos PASS (R9, processo novo; census não trunca) |
+| G3 W04 JIT/Job | Q11 contenção real PASS nativo (R9); GAPLESS_NATIVE_JOB em Q01/Q02/Q11/Q12 |
+| G4 SAFE_STOP/retomada | Q03/Q04 nativos PASS; Q12b `run-full` nativo PASS |
+| G5 Windows nativo | **23/23 numa mesma execução** (R9) |
+| G6 CANDIDATE_COMPLETENESS | `native_completeness_evaluation=MET` nos bytes finais; selagem formal e `-Mode Install` a cargo do titular/origem |
 
 `RESULT_RETURN_TO=ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14`

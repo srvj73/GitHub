@@ -22,8 +22,12 @@ Cada campanha no Windows do titular, com a fronteira de exit honesta, revelou o 
 
 Supersede o V008R8 (`17A9FB12…`). O payload V003 completo (2.867 arquivos byte-idênticos) está dentro do ZIP.
 
+## Campanha nativa R9 — PASS (23/23 numa execução)
+
+No PC do titular (PS 5.1, build 10.0.26200, 24 CPUs, elevado), sobre os bytes entregues (ZIP `2C3F39EB…`, manifesto `93D56AC7…`, Python 3.14.7 `4942B86A…`): `QualifyNative` exit 0, **23/23 casos PASS**, `native_completeness_evaluation=MET` (`unmet=[]`; W04 nativo PASS=5, GAPLESS_NATIVE_JOB=4). A correção R9 confirmou-se: **Q10a passou** com census `attempts=[1,1]`, `abandoned_name_workers=[0,0]` — no subprocesso novo o census não trunca. Atestação externa (vinculada aos SHAs entregues) em `delivery/NATIVE_QUALIFICATION_ACHIEVED_V008R9.json` e `delivery/native_result_r9/`. O candidato **não** foi reempacotado.
+
 `G4=FROZEN · QS4=NO · FULL_ECONOMIC=NO · PHASE_C=FORBIDDEN · RESELECTION_2026=FORBIDDEN · RUN_RELEASED=NO · FULL_RELEASED=NO`
 
-`CANDIDATE_COMPLETENESS=NOT_PASS` — único bloqueio externo: re-execução nativa que confirme Q10a–f e Q11 na mesma execução (23/23).
+`native_completeness_evaluation=MET` sobre os bytes finais. A selagem formal de `CANDIDATE_COMPLETENESS` e o passo opcional `-Mode Install` são do titular/origem (`INDEPENDENT_AUDIT=NOT_STARTED`).
 
 `RESULT_RETURN_TO=ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14`
