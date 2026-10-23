@@ -205,18 +205,34 @@ class SafeStopCompletion(unittest.TestCase):
                                  checkpoint_valid=False, run_lock_present=False, w04=self.W)
         self.assertEqual(v["safe_stop"], "NOT_CONFIRMED")
 
+    OKW04 = {"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
+
     def test_completion_ok(self):
         inv = {"a": {"type": "file", "sha256": "1"}}
         self.assertTrue(sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=False,
-                                               inventory_a=inv, inventory_b=dict(inv))["completed"])
+                                               inventory_a=inv, inventory_b=dict(inv), w04=self.OKW04)["completed"])
 
     def test_completion_refuses_lock_multi_instant_capture(self):
         inv = {"a": {"type": "file", "sha256": "1"}}
-        v = sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=True, inventory_a=inv, inventory_b=inv)
+        v = sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=True, inventory_a=inv,
+                                   inventory_b=inv, w04=self.OKW04)
         self.assertFalse(v["completed"])
         v = sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=False, inventory_a=inv,
-                                   inventory_b={"a": {"type": "file", "sha256": "2"}})
+                                   inventory_b={"a": {"type": "file", "sha256": "2"}}, w04=self.OKW04)
         self.assertIn("INVENTORY_UNSTABLE_BETWEEN_PASSES", v["gaps"])
+
+    def test_completion_requires_w04_attested(self):
+        # F01: W04 BLOCKED (ou qualquer veredito não atestado) impede COMPLETED mesmo com exit 0,
+        # árvore vazia, sem lock e inventário estável.
+        inv = {"a": {"type": "file", "sha256": "1"}}
+        for bad in ({"w04_full": "BLOCKED"}, {"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM_X"}, {}):
+            v = sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=False,
+                                       inventory_a=inv, inventory_b=dict(inv), w04=bad)
+            self.assertFalse(v["completed"], bad)
+            self.assertTrue(any(g.startswith("W04_NOT_ATTESTED") for g in v["gaps"]), v["gaps"])
+        self.assertTrue(sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=False,
+                        inventory_a=inv, inventory_b=dict(inv),
+                        w04={"w04_full": "PASS_NATIVE_SAME_ATTEMPT"})["completed"])
 
     def test_eta(self):
         self.assertEqual(sup.eta_status(committed=0, total=10, started_mono=0, now_mono=5, initial_committed=0)["eta_s"], "UNKNOWN")
@@ -595,6 +611,60 @@ class NativeNegativesReplay(unittest.TestCase):
         with self.assertRaises(sup.SupervisorBlocked) as ctx:
             q._replay_case_records(self._full_records(), case, doc={"completed": False, "error": "boom"})
         self.assertIn("NATIVE_NEGATIVES_CHILD_DID_NOT_COMPLETE", str(ctx.exception))
+
+
+class W04PrespawnGate(unittest.TestCase):
+    """F02: w04_prespawn_verdict bloqueia o spawn quando a lease não foi adquirida."""
+
+    def test_clean_acquisition_allows_spawn(self):
+        v = sup.w04_prespawn_verdict({"sharing_violations": [], "open_errors": [], "reparse": [],
+                                      "files": 5, "dirs": 1})
+        self.assertEqual(v["prespawn"], "ACQUIRED_CLEAN")
+
+    def test_sharing_violation_blocks_spawn(self):
+        v = sup.w04_prespawn_verdict({"sharing_violations": [{"path": "x", "winerror": 32}],
+                                      "open_errors": [], "reparse": []})
+        self.assertEqual(v["prespawn"], "BLOCKED_NO_SPAWN")
+        self.assertTrue(any("PREEXISTING_WRITER_OR_SHARING_VIOLATION" in g for g in v["gaps"]))
+
+    def test_open_error_and_reparse_block_spawn(self):
+        self.assertEqual(sup.w04_prespawn_verdict({"sharing_violations": [], "open_errors": [{"path": "y", "winerror": 5}],
+                                                   "reparse": []})["prespawn"], "BLOCKED_NO_SPAWN")
+        self.assertEqual(sup.w04_prespawn_verdict({"sharing_violations": [], "open_errors": [],
+                                                   "reparse": ["z"]})["prespawn"], "BLOCKED_NO_SPAWN")
+
+
+class LineageUnresolvedIdentity(unittest.TestCase):
+    """F03: identidade (pid, ctime) não resolvida NÃO pode classificar GAPLESS no Job nativo."""
+
+    def test_unresolved_ctime_blocks_gapless(self):
+        with self.assertRaises(sup.SupervisorBlocked) as ctx:
+            sup.lineage_verdict(native_job=True, new_process=[{"pid": 10, "ctime": 0}],
+                                accounting={"TotalProcesses": 1, "ActiveProcesses": 0},
+                                active_zero_seen=True, breakaway_allowed=False)
+        self.assertIn("JOB_IDENTITY_UNRESOLVED_NO_GAPLESS", str(ctx.exception))
+        with self.assertRaises(sup.SupervisorBlocked):
+            sup.lineage_verdict(native_job=True, new_process=[{"pid": 10}],  # ctime ausente
+                                accounting={"TotalProcesses": 1, "ActiveProcesses": 0},
+                                active_zero_seen=True, breakaway_allowed=False)
+
+    def test_resolved_identity_gapless(self):
+        v = sup.lineage_verdict(native_job=True, new_process=[{"pid": 10, "ctime": 777}],
+                                accounting={"TotalProcesses": 1, "ActiveProcesses": 0},
+                                active_zero_seen=True, breakaway_allowed=False)
+        self.assertEqual(v["lineage"], "GAPLESS_NATIVE_JOB")
+        self.assertEqual(v["identity_unresolved_short_lived"], 0)
+
+
+class JobCloseNoKill(unittest.TestCase):
+    """F04: a disposição de fechamento do Job honra NO_KILL quando a árvore está viva."""
+
+    def test_empty_tree_safe_close(self):
+        self.assertEqual(sup.job_close_disposition(0), "CLOSE_EMPTY_SAFE")
+
+    def test_live_tree_clears_kill_on_close(self):
+        self.assertEqual(sup.job_close_disposition(3), "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL")
+        self.assertEqual(sup.job_close_disposition(1), "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL")
 
 
 class _FakeProc:

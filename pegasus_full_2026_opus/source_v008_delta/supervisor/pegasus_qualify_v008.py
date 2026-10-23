@@ -67,6 +67,14 @@ NATIVE_REQUIRED_CASES = (
     "Q14_SUBPROCESS_EXIT_PROPAGATION_MATRIX_UNDER_CUSTODY", "Q15_TECHNICAL_FAILURE_CLASSIFICATION",
 )
 
+# F01: casos cuja aprovação exige W04 nativo PASS por caso (execuções supervisionadas positivas +
+# o negativo Q10a que deve passar com a lease). Contagem agregada não substitui nenhum destes.
+W04_NATIVE_PASS_REQUIRED = (
+    "Q01_REFERENCE_SUPERVISED_COMPLETED", "Q02_MULTIWORK_BYTES_EQUAL_REFERENCE",
+    "Q03_SAFE_STOP_CONFIRMED_BY_SUPERVISOR", "Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE",
+    "Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
+)
+
 
 def native_completeness_evaluation(receipt: dict) -> dict:
     """Critérios objetivos para as partes 3-4 do CANDIDATE_COMPLETENESS, avaliados SOBRE os
@@ -85,6 +93,12 @@ def native_completeness_evaluation(receipt: dict) -> dict:
     lineage_native = [c for c in receipt.get("cases", []) if isinstance(c.get("lineage"), dict)
                       and c["lineage"].get("lineage") == "GAPLESS_NATIVE_JOB"]
     if receipt.get("native_windows"):
+        # F01 (auditoria): exigir o predicado W04 nativo POR CASO obrigatório; contagem agregada
+        # não pode compensar um caso que deveria ter W04 PASS e não teve. (A contagem segue como
+        # informação, mas o gate é por caso.)
+        for name in W04_NATIVE_PASS_REQUIRED:
+            if by.get(name, {}).get("w04", {}).get("w04_full") != "PASS_NATIVE_SAME_ATTEMPT":
+                unmet.append("W04_CASE_NOT_PASS_NATIVE:" + name)
         if len(w04_native) < 4:
             unmet.append("W04_PASS_NATIVE_SAME_ATTEMPT_COUNT<4:%d" % len(w04_native))
         if len(lineage_native) < 3:
@@ -216,7 +230,8 @@ def run_qualification(evidence: Path, workers_ref: int = 1, workers_multi: int =
              child_exit=r6["child_exit"], orphan_run_lock_pid=(orphan_lock or {}).get("pid"))
 
         gate = sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=(gap / "RUN.lock").exists(),
-                                      inventory_a=sup.inventory(gap), inventory_b=sup.inventory(gap))
+                                      inventory_a=sup.inventory(gap), inventory_b=sup.inventory(gap),
+                                      w04={"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"})
         case("Q09_EVIDENCE_GATE_REFUSES_ORPHAN_LOCK_STATE", gate["completed"] is False and "RUN_LOCK_PRESENT" in gate["gaps"],
              gate=gate)
 
@@ -244,6 +259,12 @@ def run_qualification(evidence: Path, workers_ref: int = 1, workers_multi: int =
                                      "reason": "Lease de compartilhamento/USN existem só no Windows; não promove G2."})
             receipt["cases"].append({"case": "Q11_JOB_LINEAGE_BREAKAWAY", "result": "SKIPPED_NON_NATIVE",
                                      "reason": "Job Object existe só no Windows; não promove G3."})
+        # Q16 (auditoria F01) — negativo INTEGRADO: uma violação W04 tem de bloquear completion/exit,
+        # chegando ao recibo. Fora do Windows o filho altera o conjunto protegido -> W04 BLOCKED ->
+        # NÃO COMPLETED (exit FAIL). No Windows a lease NEGA a escrita externa -> protegido intacto ->
+        # W04 PASS -> COMPLETED (o mesmo gate, provado nos dois sentidos). Não entra nos 23 casos
+        # nativos (preserva o recibo R9); é regressão de integração do gate.
+        _w04_blocked_integrated_negative(evidence, inputs, env, case, log)
         receipt["result"] = "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC"
         receipt["w04_g2_g3_native"] = "QUALIFIED_ON_THIS_HOST" if os.name == "nt" else "NOT_NATIVE_HOST_NOT_PROMOTED"
         rc = sup.EXIT_PASS
@@ -370,18 +391,28 @@ def _windows_native_negatives(evidence, inputs, env, case, log):
     # contabilidade do Job (seu PID aparece em job_pids, registrado por NEW_PROCESS/IOCP+sample).
     # Escape real = CreateProcess OK e PID fora do Job.
     m = re.search(r"BREAKAWAY_CREATEPROCESS=OK pid=(\d+)", child_log)
-    job_pids = set(r.get("job_pids") or [])
+    # F03 (auditoria): a contenção é provada por IDENTIDADE TEMPORAL, não por PID histórico solto.
+    # job_idents = [[pid, ctime], ...] registrados pelo kernel; a pertença do neto exige que seu PID
+    # apareça com ctime RESOLVIDO (!=0). Além disso, a linhagem só é GAPLESS se não houver NENHUMA
+    # identidade não resolvida (lineage_verdict já BLOQUEIA unresolved>0; aqui reconfirmamos).
+    job_idents = {(int(p), int(c)) for p, c in (r.get("job_idents") or [])}
+    resolved_pids = {p for (p, c) in job_idents if c}
+    unresolved = int(r.get("lineage", {}).get("identity_unresolved_short_lived", -1))
     if "BREAKAWAY_DENIED" in child_log:
         breakaway_contained, detail = True, "DENIED_BY_OS"
     elif m:
-        breakaway_contained = int(m.group(1)) in job_pids
-        detail = "OK_pid=%s_in_job=%s" % (m.group(1), breakaway_contained)
+        gpid = int(m.group(1))
+        # Contido SOMENTE se o neto permanece no Job com identidade temporal resolvida (pid+ctime),
+        # não apenas um PID que poderia ter sido reciclado.
+        breakaway_contained = gpid in resolved_pids
+        detail = "OK_pid=%s_in_job_resolved=%s" % (gpid, breakaway_contained)
     else:
         breakaway_contained, detail = False, "NO_BREAKAWAY_MARKER"
     case("Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
          r["lineage"]["lineage"] == "GAPLESS_NATIVE_JOB" and r["lineage"]["processes"] >= 6
-         and breakaway_contained and r["child_exit"] == 0,
-         lineage=r["lineage"], jit=r["jit"], breakaway_contained=breakaway_contained, breakaway=detail)
+         and unresolved == 0 and breakaway_contained and r["child_exit"] == 0,
+         lineage=r["lineage"], jit=r["jit"], breakaway_contained=breakaway_contained, breakaway=detail,
+         identity_unresolved=unresolved, job_idents=len(job_idents))
 
 
 # =====================================================================================
@@ -485,6 +516,42 @@ def _native_negatives_child(evidence_dir, inputs_dir, result_path) -> int:
 
 
 # =====================================================================================
+# Q16 (auditoria F01) — negativo integrado do gate W04 no caminho de conclusão/exit
+# =====================================================================================
+def _w04_blocked_integrated_negative(evidence, inputs, env, case, log):
+    py = sys.executable
+    prot = evidence / "Q16_protected"; prot.mkdir(parents=True, exist_ok=True)
+    fx = prot / "fixture.txt"; fx.write_text("original", encoding="utf-8")
+    out = evidence / "Q16_out"; out.mkdir(parents=True, exist_ok=True)
+    # Filho curto que TENTA alterar o arquivo protegido e sai 0 (para isolar: o único motivo de
+    # não-COMPLETED deve ser o W04, não a saída do filho).
+    child = ("import sys\n"
+             "p = sys.argv[1]\n"
+             "try:\n"
+             "    open(p, 'a', encoding='utf-8').write('MUT'); print('MUTATED_PROTECTED')\n"
+             "except OSError as e:\n"
+             "    print('WRITE_DENIED winerror=%s' % getattr(e, 'winerror', None))\n"
+             "sys.exit(0)\n")
+    s = sup.Supervision(evidence=evidence, protected_root=prot, out_root=out, label="Q16_w04_blocked", log=log)
+    r = s.run([py, "-I", "-B", "-c", child, str(fx)], env, timeout_s=120)
+    mutated = fx.read_text(encoding="utf-8", errors="replace") != "original"
+    w04f = r.get("w04", {}).get("w04_full")
+    comp = r.get("completion", {}) or {}
+    if os.name == "nt":
+        # A lease NEGA a escrita externa; o protegido fica intacto e o W04 passa -> COMPLETED.
+        ok = (not mutated) and w04f == "PASS_NATIVE_SAME_ATTEMPT" and comp.get("completed") is True
+        detail = "NATIVE_LEASE_DENIED_EXTERNAL_WRITE"
+    else:
+        # Sem lease: o filho altera o protegido -> W04 BLOCKED -> completion recusa (exit FAIL).
+        ok = (mutated and w04f == "BLOCKED" and comp.get("completed") is False
+              and any(str(g).startswith("W04_NOT_ATTESTED") for g in comp.get("gaps", []))
+              and r.get("child_exit") == 0)
+        detail = "NON_NATIVE_HASH_CONTINUITY_BLOCKS_COMPLETION"
+    case("Q16_W04_BLOCKED_BLOCKS_COMPLETION_INTEGRATED", ok,
+         platform_branch=detail, mutated=mutated, w04=r.get("w04"), completion=comp, child_exit=r.get("child_exit"))
+
+
+# =====================================================================================
 # Q12/Q13 — caminho executável supervisionado (run-b/-c/-full) via admissão
 # =====================================================================================
 def _supervised_run_path_cases(evidence, inputs, env, case, log):
@@ -518,6 +585,8 @@ def _supervised_run_path_cases(evidence, inputs, env, case, log):
     case("Q12_CMD_RUN_WIRED_SUPERVISED_PATH_COMPLETES",
          p12.returncode == 0 and res12.get("result") == "PASS_SUPERVISED_RUN" and res12.get("exit_code") == 0
          and res12.get("completion", {}).get("completed") is True
+         # F01: W04 obrigatório no caminho integrado — não aceitar Q12 com W04 não atestado.
+         and res12.get("w04", {}).get("w04_full") in ("PASS_NATIVE_SAME_ATTEMPT", "NOT_ATTESTED_NON_NATIVE_PLATFORM")
          and res12.get("jit", {}).get("jit", "").startswith("W04_ARMED_BEFORE")
          and _economic(out12) == _economic(evidence / "Q01_reference_w1"),
          returncode=p12.returncode, completion=res12.get("completion"), jit=res12.get("jit"),

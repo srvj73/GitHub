@@ -237,6 +237,37 @@ def w04_verdict(*, native: bool, lease: Mapping, dirs: Mapping, usn: Mapping,
             **census_diag}
 
 
+def job_close_disposition(active_processes: int) -> str:
+    """F04 (auditoria): decisão PURA de como fechar a custódia do Job, honrando NO_KILL.
+
+    - Árvore vazia (active==0): fechar o handle é inofensivo -> CLOSE_EMPTY_SAFE.
+    - Árvore AINDA viva (active>0), caso de encerramento controlado (timeout/SAFE_STOP não
+      honrado): fechar o handle com KILL_ON_JOB_CLOSE mataria a árvore. NO_KILL exige limpar o
+      flag antes de fechar e deixar a árvore viva para reconciliação pela próxima execução
+      -> CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL. Reter o handle até sys.exit NÃO é garantia."""
+    if int(active_processes) <= 0:
+        return "CLOSE_EMPTY_SAFE"
+    return "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL"
+
+
+def w04_prespawn_verdict(state: Mapping) -> dict:
+    """F02 (auditoria): veredito PRÉ-SPAWN sobre a aquisição efetiva da proteção W04, antes de
+    criar qualquer filho. Função pura (testável offline com doubles da API). BLOQUEIA sem spawn se
+    a lease não foi obtida em todos os alvos: sharing violation (escritor/handle pré-existente),
+    erro de abertura, ou ponto de reparse no conjunto protegido. Census truncado é apenas
+    corroboração (tratado no disarm/subprocesso) e não bloqueia o spawn por si só."""
+    gaps = []
+    if state.get("sharing_violations"):
+        gaps.append("PREEXISTING_WRITER_OR_SHARING_VIOLATION:%d" % len(state["sharing_violations"]))
+    if state.get("open_errors"):
+        gaps.append("LEASE_OPEN_ERRORS:%d" % len(state["open_errors"]))
+    if state.get("reparse"):
+        gaps.append("REPARSE_POINT_ON_PROTECTED:%d" % len(state["reparse"]))
+    if gaps:
+        return {"prespawn": "BLOCKED_NO_SPAWN", "gaps": gaps}
+    return {"prespawn": "ACQUIRED_CLEAN", "files": state.get("files"), "dirs": state.get("dirs")}
+
+
 def jit_verdict(marks: Sequence[Mapping]) -> dict:
     """Ordem W04_ARM -> CHILD_CREATED -> CHILD_RESUMED -> TREE_EMPTY -> W04_DISARM.
 
@@ -278,6 +309,11 @@ def lineage_verdict(*, native_job: bool, new_process: Sequence[Mapping],
     if int(accounting.get("ActiveProcesses", -1)) != 0 or not active_zero_seen:
         raise SupervisorBlocked("JOB_TREE_NOT_EMPTY")
     if native_job:
+        # F03 (auditoria): não promover identidade desconhecida. Uma identidade (pid, ctime) com
+        # ctime não resolvido (None/0) não pode ser contada como vínculo temporal válido nem
+        # classificar GAPLESS — falta de prova de identidade é BLOQUEIO, não "sem lacunas".
+        if unresolved:
+            raise SupervisorBlocked("JOB_IDENTITY_UNRESOLVED_NO_GAPLESS:%d" % unresolved)
         if int(accounting.get("TotalProcesses", -1)) != len(idents):
             raise SupervisorBlocked("JOB_LINEAGE_GAP total=%s observed=%d"
                                     % (accounting.get("TotalProcesses"), len(idents)))
@@ -314,9 +350,15 @@ def safestop_verdict(*, stop_requested: bool, child_exit: Optional[int], tree_em
 
 
 def completion_verdict(*, child_exit: Optional[int], tree_empty: bool, run_lock_present: bool,
-                       inventory_a: Mapping, inventory_b: Mapping) -> dict:
-    """COMPLETED só após exit 0 + árvore vazia + RUN.lock ausente + inventário estável.
-    Também é a porta de captura de evidência (anti captura multi-instante)."""
+                       inventory_a: Mapping, inventory_b: Mapping, w04: Mapping) -> dict:
+    """COMPLETED só após exit 0 + árvore vazia + RUN.lock ausente + inventário estável + W04
+    atestado. Também é a porta de captura de evidência (anti captura multi-instante).
+
+    F01 (auditoria): a aprovação do W04 é condição OBRIGATÓRIA da conclusão. Um W04 BLOCKED
+    (lease não adquirida, USN sobre o conjunto protegido, census de escritor externo, ou — fora
+    do Windows — continuidade de hash CHANGED) NÃO pode ser promovido a COMPLETED/exit 0. O
+    único veredito não nativo aceito é NOT_ATTESTED_NON_NATIVE_PLATFORM com o conjunto protegido
+    intacto; qualquer outro valor bloqueia a conclusão."""
     gaps = []
     if child_exit != 0:
         gaps.append("CHILD_EXIT:%s" % child_exit)
@@ -326,6 +368,8 @@ def completion_verdict(*, child_exit: Optional[int], tree_empty: bool, run_lock_
         gaps.append("RUN_LOCK_PRESENT")
     if dict(inventory_a) != dict(inventory_b):
         gaps.append("INVENTORY_UNSTABLE_BETWEEN_PASSES")
+    if (w04 or {}).get("w04_full") not in ("PASS_NATIVE_SAME_ATTEMPT", "NOT_ATTESTED_NON_NATIVE_PLATFORM"):
+        gaps.append("W04_NOT_ATTESTED:%s" % (w04 or {}).get("w04_full"))
     if gaps:
         return {"completed": False, "gaps": gaps}
     return {"completed": True, "inventory_entries": len(inventory_a),
@@ -494,6 +538,18 @@ class W04Guard:
         self.baseline = inventory(self.root)
         return {"armed": "HASH_BASELINE_ONLY", "files": sum(1 for v in self.baseline.values() if v["type"] == "file")}
 
+    def prespawn_verdict(self) -> dict:
+        # F02: fora do Windows não há lease a adquirir (só baseline de hash); nada a bloquear
+        # antes do spawn. No Windows, consulta o estado de aquisição real da lease.
+        if self.impl is not None:
+            return w04_prespawn_verdict(self.impl.prespawn_state())
+        return {"prespawn": "ACQUIRED_CLEAN"}
+
+    def release(self) -> None:
+        # Libera handles parciais quando o pré-spawn bloqueia (nenhum efeito protegido).
+        if self.impl is not None and hasattr(self.impl, "release"):
+            self.impl.release()
+
     def revalidate(self) -> None:
         if self.impl is not None:
             self.impl.revalidate()
@@ -550,6 +606,16 @@ class Supervision:
         guard = W04Guard(self.protected_root, self.log)
         arm = guard.arm()
         cust.mark("W04_ARM")
+        # F02 (auditoria): gate PRÉ-SPAWN fail-closed. A proteção W04 tem de estar EFETIVAMENTE
+        # adquirida antes de criar qualquer filho. Se a lease não foi obtida em todos os alvos
+        # (sharing violation, erro de abertura, reparse no conjunto protegido), libera os handles
+        # parciais e BLOQUEIA sem spawn e sem efeitos protegidos — nunca cria o filho para só
+        # descobrir no disarm. Fora do Windows não há lease a adquirir (baseline de hash), então
+        # o veredito pré-spawn é limpo e o caminho offline não muda.
+        prespawn = guard.prespawn_verdict()
+        if prespawn.get("prespawn") != "ACQUIRED_CLEAN":
+            guard.release()
+            raise SupervisorBlocked("W04_ARM_INCOMPLETE_NO_SPAWN_NO_PROTECTED_EFFECTS:" + ";".join(prespawn.get("gaps", [])))
         if threading.current_thread() is threading.main_thread():
             self._prev_sigint = signal.signal(signal.SIGINT, self._on_sigint)
         stdout = self.evidence / (self.label + ".child.log")
@@ -649,6 +715,9 @@ class Supervision:
         result = {"label": self.label, "child_pid": pid, "child_exit": rc, "w04_arm": arm,
                   "w04": w04, "jit": jit, "lineage": lineage, "run_lock_present": run_lock,
                   "job_pids": sorted({int(e["pid"]) for e in new_proc_events}),
+                  # F03 (auditoria): identidades (pid, creation_time) observadas no Job, para prova
+                  # de pertença/contenção por identidade temporal — não só por PID histórico.
+                  "job_idents": sorted([int(e["pid"]), int(e.get("ctime") or 0)] for e in new_proc_events),
                   "status": self._status(), "stop_requested": self.stop_requested}
         if self.stop_requested:
             result["safe_stop"] = safestop_verdict(
@@ -657,7 +726,7 @@ class Supervision:
         else:
             result["completion"] = completion_verdict(child_exit=rc, tree_empty=final_tree_empty,
                                                       run_lock_present=run_lock,
-                                                      inventory_a=inv_a, inventory_b=inv_b)
+                                                      inventory_a=inv_a, inventory_b=inv_b, w04=w04)
         return result
 
 

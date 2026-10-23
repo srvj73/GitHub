@@ -1,36 +1,36 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R10_PREDELIVERY_CONTROL_MATRIX",
+  "schema": "PEGASUS_FULL_2026_V008R11_PREDELIVERY_CONTROL_MATRIX",
   "final_bytes": {
     "zip": {
-      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R10_20261023.zip",
-      "sha256": "8B3FA7E58D8CE3052981D9A85452F62DB7D4E88FBC3A318507DF7C129DE61B1A",
-      "bytes": 87402411,
-      "members": 2948
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R11_20261023.zip",
+      "sha256": "DD1B3432FBD84EEACE7D6B06867C4CEB79BAB951F0BD6E51B8CC1DF015BDF94C",
+      "bytes": 87414129,
+      "members": 2950
     },
-    "manifest_sha256": "79A97DE968363B6429FF3F3AA43981164837B784E8CD743751F29ADB045CC889",
-    "tested_manifest_sha256_m1": "6E411115FF64D6EB5CC74D5450B68AFC382B6052D58EFC0361EEAC78926134E9",
+    "manifest_sha256": "111CDB63082DD0C9AEE29A74E9BBDF6F9FF45571C14CD1FC834EA0005B1AC028",
+    "tested_manifest_sha256_m1": "F24879C91D94F972243515CD1B5CD3A3847556032419003E0486FBA482315085",
     "bootstrap": {
-      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R10_PS51.ps1",
-      "sha256": "A596A7B7023E541823C29B53869C3C14ADFA9F08A6357BB5F42691C8FB79F547",
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R11_PS51.ps1",
+      "sha256": "75BA7B662CB50B72AB761F4FE4B1D2E9F0F26F5B144A97BF95C31C9854F6AA1E",
       "bytes": 22863
     },
-    "supersedes_v008r9": {
-      "zip_sha256": "2C3F39EBADC292CEE197D21E837B6A264B532550AD80F8A66160EE8C51B3273C",
-      "reason": "fail-closed boundary: _native_negatives_in_fresh_process now REQUIRES the child subprocess rc==0 before accepting the replayed cases (origin review found a child that wrote a complete JSON then exited non-zero would be accepted)"
+    "supersedes_v008r10": {
+      "zip_sha256": "8B3FA7E58D8CE3052981D9A85452F62DB7D4E88FBC3A318507DF7C129DE61B1A",
+      "reason": "independent audit (Work Astra) FAIL on R10: F01 W04 BLOCKED not gating completion/exit; F02 incomplete W04 arm not preventing spawn; F03 unresolved identity -> GAPLESS and Q11 historical-PID-only; F04 KILL_ON_JOB_CLOSE could kill a live tree on controlled timeout exit. All corrected fail-closed."
     },
     "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
   },
   "gates": {
-    "G1_SOURCE_BINDING": "PASS; SUPERVISED_RUN_PATH + EXIT_BOUNDARY + JOB_HANDLE_LIFECYCLE + SAFE_STOP_PLATFORM CLOSED; QS4_HARNESS_BINDING=BLOCKED_PROVEN",
-    "G2_W04_FULL": "QUALIFIED_NATIVE (R9: Q10a-f PASS, census abandoned=[0,0] em processo novo); fail-closed inalterado",
-    "G3_W04_JIT_JOB": "QUALIFIED_NATIVE (R9: Q11 contencao real PASS; GAPLESS_NATIVE_JOB em Q01/Q02/Q11/Q12)",
-    "G4_SAFESTOP_RESUME": "QUALIFIED_NATIVE (R9: Q03/Q04 e Q12b run-full PASS)",
-    "G5_INTEGRATED_NATIVE_WIN": "QUALIFIED_NATIVE 23/23 numa unica execucao (R9), native_completeness_evaluation=MET nos bytes R9",
-    "G6_CANDIDATE_COMPLETENESS": "ENGINEERING_COMPLETE; native MET nos bytes R9; R10 endurece a fronteira de aceitacao (delta offline-provado e inerte no run nativo observado); selagem formal com a origem"
+    "G1_SOURCE_BINDING": "PASS; QS4_HARNESS_BINDING=BLOCKED_PROVEN",
+    "G2_W04_FULL": "QUALIFIED_NATIVE (R9); F01/F02 corrigidos: W04 obrigatório na conclusão/exit e gate pré-spawn fail-closed",
+    "G3_W04_JIT_JOB": "QUALIFIED_NATIVE (R9); F03 corrigido: identidade temporal (pid,ctime); unresolved bloqueia GAPLESS; Q11 por identidade resolvida",
+    "G4_SAFESTOP_RESUME": "QUALIFIED_NATIVE (R9); F04 corrigido: NO_KILL no close de árvore viva (limpa KILL_ON_JOB_CLOSE; reconcilia na próxima execução)",
+    "G5_INTEGRATED_NATIVE_WIN": "QUALIFIED_NATIVE 23/23 (R9) nos bytes R9; R11 corrige os achados da auditoria (delta offline-provado)",
+    "G6_CANDIDATE_COMPLETENESS": "ENGINEERING_COMPLETE; achados F01-F04 fechados; native MET nos bytes R9; selagem formal e re-auditoria focal com a origem"
   },
   "offline_evidence": {
     "v003_full_chain": "PASS_OFFLINE_DELTAS 19 cases (imutavel)",
-    "v008r10_supervised": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=16; SKIPPED_NON_NATIVE=2; error=None",
+    "v008r11_supervised": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=17 (incl. Q16); SKIPPED_NON_NATIVE=2; error=None",
     "native_completeness_evaluation": {
       "gapless_native_job_cases": 0,
       "required_cases": 23,
@@ -48,25 +48,56 @@
       "verdict": "NOT_MET",
       "w04_native_pass_cases": 0
     },
-    "exit_boundary_bootstrap": "PASS_ALL passed=20 (template inalterado, provado nativo)",
-    "exit_boundary_bootstrap_mutation": "8_OF_8_KILLED",
-    "supervisor_unit": "78_OF_78 (inclui NativeNegativesReplay + NativeNegativesFreshProcess)",
-    "supervisor_mutants": "24_OF_24_KILLED (ancoras inalteradas)",
+    "exit_boundary_bootstrap": "PASS_ALL passed=20",
+    "supervisor_unit": "86_OF_86 (inclui CompletionW04, W04PrespawnGate, LineageUnresolvedIdentity, JobCloseNoKill)",
+    "supervisor_mutants": "28_OF_28_KILLED (inclui completion_ignores_w04, prespawn_accepts_sharing_violation, lineage_accepts_unresolved_identity, job_close_kills_live_tree)",
     "qs4_binding_packaged_r001": "BLOCKED_ADAPTER_PIN_05A0CF3D_VS_V003_EC96FE9A"
   },
-  "boundary_fix_r10": {
-    "negative_control": "PASS_NEGATIVE_CONTROL",
-    "reproduces_defect": true,
-    "fix_closes_defect": true
+  "independent_audit_findings": {
+    "auditor": "Work Astra (independent, operator-attested)",
+    "verdict_on_r10": "FAIL",
+    "audit_package_sha256": "AD59A7B39744A500EAA7EFAE1F56F23775162FE6839413246710557ABCDB67D3",
+    "findings_all_closed": true,
+    "findings": [
+      {
+        "id": "F01",
+        "closed": true,
+        "fix": "completion_verdict exige W04 atestado; _run_supervised mapeia !completed->exit 3; per-case no native_completeness"
+      },
+      {
+        "id": "F02",
+        "closed": true,
+        "fix": "w04_prespawn_verdict + W04Guard.prespawn_verdict/release + gate pré-spawn em Supervision.run (NO_SPAWN/NO_PROTECTED_EFFECTS)"
+      },
+      {
+        "id": "F03",
+        "closed": true,
+        "fix": "lineage_verdict bloqueia unresolved>0; result expõe job_idents (pid,ctime); Q11 exige neto com identidade temporal resolvida e unresolved==0"
+      },
+      {
+        "id": "F04",
+        "closed": true,
+        "fix": "job_close_disposition: árvore viva -> limpar KILL_ON_JOB_CLOSE antes de fechar (NO_KILL), reconciliar na próxima execução; fail-closed se não conseguir limpar"
+      }
+    ],
+    "false_completeness": {
+      "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
+      "mandatory_integration_unimplemented": []
+    },
+    "closed_in": "V008R11"
   },
   "false_completeness_search": {
-    "schema": "PEGASUS_FULL_2026_V008R10_FALSE_COMPLETENESS_SEARCH",
+    "schema": "PEGASUS_FULL_2026_V008R11_FALSE_COMPLETENESS_SEARCH",
     "method": "adversarial enumeration of contracted engineering-milestone consumers bound to the final bytes",
     "economic_fail_closed_anchors_in_source": {
       "make_run_plan_refuses_economic": true,
       "default_admission_always_blocks": true,
       "run_supervised_reblocks_economic": true,
-      "native_negatives_rc_gate": true
+      "native_negatives_rc_gate": true,
+      "f01_completion_w04_gate": true,
+      "f02_prespawn_no_spawn_gate": true,
+      "f03_lineage_unresolved_gate": true,
+      "f04_job_close_no_kill": true
     },
     "consumers": [
       {
@@ -140,6 +171,13 @@
         "qualified_by": "NativeNegativesReplay + NativeNegativesFreshProcess (R10 negative control)",
         "status": "IMPLEMENTED_HARDENED_R10",
         "negative_control": "reproduced_and_closed"
+      },
+      {
+        "consumer": "audit_findings_f01_f04_integrated_gates",
+        "wired_at": "completion_verdict(w04); Supervision pre-spawn; lineage_verdict unresolved; job_close_disposition",
+        "qualified_by": "CompletionW04 + W04PrespawnGate + LineageUnresolvedIdentity + JobCloseNoKill units; Q16 integrated; mutants completion_ignores_w04/prespawn_accepts_sharing_violation/lineage_accepts_unresolved_identity/job_close_kills_live_tree",
+        "status": "IMPLEMENTED_HARDENED_R11",
+        "findings_closed": "F01,F02,F03,F04"
       }
     ],
     "mandatory_integration_unimplemented": [],
@@ -164,22 +202,17 @@
   },
   "native_qualification_r9": {
     "result_zip_sha256": "7290A855726B2791D478249574EF9BD4F4AA6835B4F23CAB0A37D9A3DC38CE5E",
-    "qualification_receipt_sha256": "9112FA3C4E50AB1B8D370E7DB1E2F9066D43E0996C3DCAEBC4E0DF39D073BDFD",
     "bound_to_bytes": {
       "zip_sha256": "2C3F39EBADC292CEE197D21E837B6A264B532550AD80F8A66160EE8C51B3273C",
-      "manifest_sha256": "93D56AC73ED631686CB340EF1CD4D44599620012C9258AC032CD2610E8959D88",
-      "python_sha256": "4942B86A6597E5AEE0128DAA00050ED79BC21F6E709A78EB19CBFEB0C2F39AC9",
-      "bootstrap_sha256": "EFB7793842E6AF2095FC553BCDE91B2626182C4F83D8BD6ADECC1F0E954CDB30"
+      "manifest_sha256": "93D56AC73ED631686CB340EF1CD4D44599620012C9258AC032CD2610E8959D88"
     },
     "qualifynative_exit": 0,
     "cases_pass": 23,
     "native_completeness_evaluation": "MET",
-    "host": "PS 5.1 build 10.0.26200.0, 24 CPUs, elevated",
     "preserved_in": "receipts/V008/offline_final/native_campaign_r9/"
   },
-  "engineering_implementation": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED",
-  "engineering_complete": "YES_NATIVE_MET_ON_R9_BYTES; R10_DELTA_OFFLINE_PROVEN",
-  "executable_delivery_ready": "READY; optional R10 native re-run is confirmatory only",
+  "engineering_implementation": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED; F01-F04 CLOSED",
+  "executable_delivery_ready": "READY; optional R11 native re-run is confirmatory only",
   "g4": "FROZEN",
   "qs4": "NO",
   "full_economic": "NO",
@@ -188,6 +221,6 @@
   "run_released": "NO",
   "full_released": "NO",
   "paid_credit": "NOT_USED",
-  "independent_audit": "NOT_STARTED",
+  "independent_audit": "STARTED_R10_FAIL_FINDINGS_CLOSED_R11",
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
 }

@@ -72,7 +72,8 @@
    "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
    "offline_test_counts": "unit 70/70 (SafeStopRedelivery janela segura incl.); supervisor mutants 24/24; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP",
    "native_campaign_r6": "22/23 nativos PASS; so Q11 breakaway restante, criterio corrigido para contencao real em R7",
-   "r10_boundary_fix": "CLOSED_V008R10: subprocess rc==0 required before accepting replayed native-negative cases (fail-closed); negative control reproduces defect; false-completeness search consolidated (economic triple-block terminal; no mandatory integration unimplemented)"
+   "r10_boundary_fix": "CLOSED_V008R10: subprocess rc==0 required before accepting replayed native-negative cases (fail-closed); negative control reproduces defect; false-completeness search consolidated (economic triple-block terminal; no mandatory integration unimplemented)",
+   "r11_audit_fixes": "CLOSED_V008R11: F01 (W04 gate em completion/exit + per-case), F02 (pre-spawn fail-closed NO_SPAWN), F03 (identidade temporal; unresolved bloqueia GAPLESS; Q11 pid+ctime), F04 (NO_KILL no close de arvore viva). Controles negativos + 86/86 unit + 28/28 mutantes."
   }
  },
  "boundaries": {
@@ -84,13 +85,13 @@
   "run_released": "NO",
   "full_released": "NO",
   "paid_credit": "NOT_USED",
-  "independent_audit": "NOT_STARTED"
+  "independent_audit": "STARTED_R10_FAIL_FINDINGS_CLOSED_R11"
  },
  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
- "revision": "V008R10",
+ "revision": "V008R11",
  "supersedes": {
-  "v008r9_zip_sha256": "2C3F39EBADC292CEE197D21E837B6A264B532550AD80F8A66160EE8C51B3273C",
-  "reason": "fail-closed boundary: _native_negatives_in_fresh_process now REQUIRES the child subprocess rc==0 before accepting the replayed cases (origin review: a child that wrote a complete JSON then exited non-zero was accepted). Negative control reproduces the defect. R9 native campaign (23/23, MET) preserved; the R9 run exited rc=0, so it already satisfied the hardened gate."
+  "v008r10_zip_sha256": "8B3FA7E58D8CE3052981D9A85452F62DB7D4E88FBC3A318507DF7C129DE61B1A",
+  "reason": "independent audit (Work Astra, AUDIT_VERDICT=FAIL on R10) found four real defects; all corrected fail-closed with negative controls: F01 W04 BLOCKED not gating completion/exit; F02 incomplete W04 arm not preventing spawn; F03 unresolved identity classified GAPLESS + Q11 historical-PID-only; F04 KILL_ON_JOB_CLOSE could kill a live tree on controlled timeout exit. R9 native 23/23 MET and R10 rc-gate preserved."
  },
  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
  "native_campaign_r2_result": {
@@ -156,5 +157,12 @@
   "result_zip_sha256": "7290A855726B2791D478249574EF9BD4F4AA6835B4F23CAB0A37D9A3DC38CE5E",
   "qualification_receipt_sha256": "9112FA3C4E50AB1B8D370E7DB1E2F9066D43E0996C3DCAEBC4E0DF39D073BDFD",
   "host": "PS 5.1 build 10.0.26200, 24 CPUs, elevated"
+ },
+ "independent_audit_r10": {
+  "auditor": "Work Astra (operator-attested) — independent review of frozen R10 handoff",
+  "verdict": "FAIL",
+  "package_sha256": "AD59A7B39744A500EAA7EFAE1F56F23775162FE6839413246710557ABCDB67D3",
+  "findings": "F01 HIGH/blocking; F02 HIGH/blocking; F03 MEDIUM/proof-gap; F04 HIGH/blocking",
+  "closed_in": "V008R11"
  }
 }

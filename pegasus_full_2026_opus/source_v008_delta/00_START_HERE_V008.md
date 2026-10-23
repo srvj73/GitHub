@@ -62,6 +62,17 @@ A campanha nativa R8 avançou 16 casos (Q01–Q09, Q12–Q15) e parou de novo em
 
 A revisão da origem encontrou um defeito material: em `_native_negatives_in_fresh_process`, o `rc` do subprocesso dos negativos nativos era só registrado, não exigido `== 0`; um filho que gravasse um JSON completo e depois saísse com código não zero seria aceito (falsa completude). Corrigido em V008R10: o pai exige `rc == 0` antes de aceitar qualquer caso (`NATIVE_NEGATIVES_CHILD_NONZERO_EXIT` caso contrário). Controle negativo prova a reprodução (pré-correção ACEITA; corrigido REJEITA) em `receipts/V008/offline_final/r10_boundary_fix/`. A campanha nativa R9 (23/23, `MET`) é preservada e já satisfazia a fronteira (saiu `rc=0`). Busca adversarial de falsa completude consolidada: bloqueio econômico terminal e triplo (`make_run_plan` + `DefaultReleaseAdmission` + `_run_supervised`), nenhuma integração obrigatória por implementar. Unit 78/78; mutantes 24/24.
 
+## Revisão V008R11 — correção dos achados da auditoria independente (Work Astra, FAIL sobre a R10)
+
+A auditoria independente reprovou os bytes R10 com quatro achados reais, todos corrigidos fail-closed, com controle negativo, preservando os PASS anteriores (R9 23/23 MET; R10 rc-gate):
+
+- **F01** W04 BLOCKED era promovido a sucesso/exit 0 → `completion_verdict` passa a **exigir** W04 atestado; `native_completeness` por caso obrigatório; negativo integrado Q16.
+- **F02** armamento W04 incompleto não impedia o spawn → gate **pré-spawn** fail-closed (`W04_ARM_INCOMPLETE_NO_SPAWN_NO_PROTECTED_EFFECTS`) com liberação de handles parciais.
+- **F03** `ctime` não resolvido virava GAPLESS; Q11 só por PID histórico → `lineage_verdict` bloqueia `unresolved>0`; Q11 exige identidade temporal (pid+ctime) no Job.
+- **F04** `KILL_ON_JOB_CLOSE` podia matar árvore viva num encerramento controlado → `close` limpa o flag com árvore viva (NO_KILL), reconciliação pela próxima execução; fail-closed se não conseguir.
+
+Regressões: `CompletionW04`, `W04PrespawnGate`, `LineageUnresolvedIdentity`, `JobCloseNoKill`, caso integrado `Q16`. Unit 86/86; mutantes 28/28. Fechamento em `receipts/V008/offline_final/r11_audit_fixes/`.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

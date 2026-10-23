@@ -52,10 +52,22 @@ MUTANTS = [
      'return EXIT_CLASSES.get(code, "PASS")'),
     ("technical_failure_exits_zero", '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        return EXIT_FAIL',
      '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        return EXIT_PASS'),
+    # F01: o gate W04 na conclusão não pode ser desligado.
+    ("completion_ignores_w04", 'if (w04 or {}).get("w04_full") not in ("PASS_NATIVE_SAME_ATTEMPT", "NOT_ATTESTED_NON_NATIVE_PLATFORM"):',
+     'if False:'),
+    # F02: o pré-spawn não pode aceitar sharing violation.
+    ("prespawn_accepts_sharing_violation", 'if state.get("sharing_violations"):\n        gaps.append("PREEXISTING_WRITER_OR_SHARING_VIOLATION:%d" % len(state["sharing_violations"]))',
+     'if False:\n        gaps.append("PREEXISTING_WRITER_OR_SHARING_VIOLATION:%d" % len(state["sharing_violations"]))'),
+    # F03: identidade não resolvida não pode ser promovida a GAPLESS.
+    ("lineage_accepts_unresolved_identity", 'if unresolved:\n            raise SupervisorBlocked("JOB_IDENTITY_UNRESOLVED_NO_GAPLESS:%d" % unresolved)',
+     'if False:\n            raise SupervisorBlocked("JOB_IDENTITY_UNRESOLVED_NO_GAPLESS:%d" % unresolved)'),
+    # F04: árvore viva no close não pode ser tratada como fechamento seguro (mataria via kill-on-close).
+    ("job_close_kills_live_tree", 'return "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL"', 'return "CLOSE_EMPTY_SAFE"'),
 ]
 
 SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlatform",
-          "SafeStopRedelivery", "CustodyLifecycleContract", "RunPathWiring", "ExitClassification"]
+          "SafeStopRedelivery", "CustodyLifecycleContract", "RunPathWiring", "ExitClassification",
+          "W04PrespawnGate", "LineageUnresolvedIdentity", "JobCloseNoKill"]
 
 
 def main() -> int:

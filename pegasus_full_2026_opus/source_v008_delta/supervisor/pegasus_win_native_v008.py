@@ -333,14 +333,36 @@ class WindowsJobCustody:
         self._pump.join(2)
         # Emptiness avaliada pelo acessor cru (handle ainda aberto) e ANTES de marcar fechado,
         # para não disparar a própria recusa de pós-close.
-        empty = self._accounting_raw()["ActiveProcesses"] == 0
+        active = self._accounting_raw()["ActiveProcesses"]
+        from pegasus_supervisor_v008 import job_close_disposition
+        disp = job_close_disposition(active)
         self._closed = True
-        if empty:
+        self.close_disposition = disp
+        if disp == "CLOSE_EMPTY_SAFE":
             CloseHandle(self.port)
             CloseHandle(self.job)
-        else:
-            # Handle retido: a árvore própria continua sob o Job até o supervisor terminar.
-            self.log("JOB_HANDLE_RETAINED_LIVE_OWNED_TREE_RECONCILE_REQUIRED")
+            return
+        # F04 (auditoria) — NO_KILL: a árvore própria AINDA está viva no close. Reter o handle num
+        # processo que vai terminar NÃO preserva custódia: ao fim do processo o SO fecharia o Job
+        # e, com KILL_ON_JOB_CLOSE, MATARIA a árvore viva — exatamente o que o contrato NO_KILL
+        # proíbe num encerramento controlado (timeout/SAFE_STOP não honrado -> SupervisorBlocked ->
+        # exit 3 -> CLI encerra). Antes de qualquer fechamento, LIMPAMOS KILL_ON_JOB_CLOSE para que
+        # o fechamento do handle (agora ou no fim do processo) não termine a árvore. A árvore
+        # sobrevive e é reconciliada pela próxima execução (RUN.lock órfão por identidade + journal).
+        # O fail-safe de QUEDA do supervisor permanece intacto durante a operação normal: a limpeza
+        # só ocorre neste close controlado, nunca durante a execução.
+        info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
+        info.BasicLimitInformation.LimitFlags = 0  # remove KILL_ON_JOB_CLOSE
+        cleared = bool(SetInformationJobObject(self.job, JobObjectExtendedLimitInformation,
+                                               ctypes.byref(info), ctypes.sizeof(info)))
+        self.kill_on_job_close_cleared = cleared
+        CloseHandle(self.port)
+        CloseHandle(self.job)
+        self.log("JOB_LIVE_TREE_NO_KILL active=%d kill_on_job_close_cleared=%s RECONCILE_BY_NEXT_RUN"
+                 % (active, cleared))
+        if not cleared:
+            # Não conseguimos garantir NO_KILL ao fechar: falha-fechada explícita, não mascarar.
+            raise RuntimeError("NO_KILL_GUARANTEE_FAILED_CLEAR_KILL_ON_JOB_CLOSE active=%d" % active)
 
 
 # =====================================================================================
@@ -525,6 +547,30 @@ class W04NativeLease:
                  % (len(self.files), len(self.dirs), len(self.violations), len(self.errors), self.usn_start["next_usn"]))
         return {"armed": "NATIVE_LEASE_DIRS_USN", "files": len(self.files), "dirs": len(self.dirs),
                 "usn_journal_id": self.usn_start["journal_id"], "usn_start": self.usn_start["next_usn"]}
+
+    def prespawn_state(self) -> dict:
+        # F02: estado de aquisição efetiva da lease, consultado ANTES do spawn. census_start é
+        # corroboração (tratado no disarm/subprocesso), exposto mas não decisivo para o spawn.
+        return {"sharing_violations": list(self.violations), "open_errors": list(self.errors),
+                "reparse": list(self.reparse), "files": len(self.files), "dirs": len(self.dirs),
+                "census_truncated": bool((self.census_start or {}).get("truncated"))}
+
+    def release(self) -> None:
+        # Libera todos os handles parciais adquiridos (lease + diretórios + volume) sem tocar no
+        # conteúdo protegido. Chamado quando o pré-spawn bloqueia: nenhum filho foi criado.
+        for (h, _i) in list(self.files.values()) + list(self.dirs.values()):
+            try:
+                CloseHandle(h)
+            except Exception:
+                pass
+        self.files.clear()
+        self.dirs.clear()
+        if self.volume:
+            try:
+                CloseHandle(self.volume)
+            except Exception:
+                pass
+            self.volume = None
 
     def revalidate(self) -> None:
         for n, (h, info) in list(self.files.items()) + list(self.dirs.items()):

@@ -1,0 +1,67 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R11_AUDIT_FINDINGS_CLOSURE",
+ "audit": "Work Astra independent audit V008R10 (AUDIT_VERDICT=FAIL)",
+ "audited_zip_sha256": "8B3FA7E58D8CE3052981D9A85452F62DB7D4E88FBC3A318507DF7C129DE61B1A",
+ "findings": [
+  {
+   "finding": "F01",
+   "title": "W04 BLOCKED promovido a sucesso/exit 0",
+   "fix": "completion_verdict exige W04 atestado; _run_supervised mapeia !completed->exit 3; per-case no native_completeness",
+   "negative_control_pure": {
+    "w04_blocked_completed": false,
+    "w04_blocked_gap": [
+     "W04_NOT_ATTESTED:BLOCKED"
+    ],
+    "w04_pass_completed": true
+   },
+   "integrated_case_Q16": {
+    "result": "PASS",
+    "branch": "NON_NATIVE_HASH_CONTINUITY_BLOCKS_COMPLETION",
+    "completion": {
+     "completed": false,
+     "gaps": [
+      "W04_NOT_ATTESTED:BLOCKED"
+     ]
+    }
+   },
+   "closed": true
+  },
+  {
+   "finding": "F02",
+   "title": "armamento W04 incompleto não impedia o spawn",
+   "fix": "w04_prespawn_verdict + W04Guard.prespawn_verdict/release + gate pré-spawn em Supervision.run (NO_SPAWN/NO_PROTECTED_EFFECTS)",
+   "negative_control_pure": {
+    "sharing_violation": "BLOCKED_NO_SPAWN",
+    "clean": "ACQUIRED_CLEAN"
+   },
+   "source_gate_present": true,
+   "release_present": true,
+   "closed": true
+  },
+  {
+   "finding": "F03",
+   "title": "ctime não resolvido aceito como GAPLESS; Q11 só por PID histórico",
+   "fix": "lineage_verdict bloqueia unresolved>0; result expõe job_idents (pid,ctime); Q11 exige neto com identidade temporal resolvida e unresolved==0",
+   "negative_control_pure": {
+    "unresolved_blocked": true,
+    "resolved_gapless": "GAPLESS_NATIVE_JOB"
+   },
+   "q11_temporal_in_source": true,
+   "closed": true
+  },
+  {
+   "finding": "F04",
+   "title": "timeout/SAFE_STOP não honrado podia matar árvore viva (KILL_ON_JOB_CLOSE)",
+   "fix": "job_close_disposition: árvore viva -> limpar KILL_ON_JOB_CLOSE antes de fechar (NO_KILL), reconciliar na próxima execução; fail-closed se não conseguir limpar",
+   "negative_control_pure": {
+    "empty": "CLOSE_EMPTY_SAFE",
+    "live": "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL"
+   },
+   "clear_in_source": true,
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Controles negativos sobre o código CORRIGIDO. F04: a prova nativa dirigida de kill é do titular/origem; aqui a disposição é provada pura + fonte.",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

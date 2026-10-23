@@ -16,6 +16,10 @@ test_lineage_gapless (__main__.JitAndLineage.test_lineage_gapless) ... ok
 test_lineage_not_empty (__main__.JitAndLineage.test_lineage_not_empty) ... ok
 test_lineage_pid_reuse_counts_twice (__main__.JitAndLineage.test_lineage_pid_reuse_counts_twice) ... ok
 test_lineage_posix_is_observational (__main__.JitAndLineage.test_lineage_posix_is_observational) ... ok
+test_empty_tree_safe_close (__main__.JobCloseNoKill.test_empty_tree_safe_close) ... ok
+test_live_tree_clears_kill_on_close (__main__.JobCloseNoKill.test_live_tree_clears_kill_on_close) ... ok
+test_resolved_identity_gapless (__main__.LineageUnresolvedIdentity.test_resolved_identity_gapless) ... ok
+test_unresolved_ctime_blocks_gapless (__main__.LineageUnresolvedIdentity.test_unresolved_ctime_blocks_gapless) ... ok
 test_nonzero_child_exit_rejected_even_with_complete_json (__main__.NativeNegativesFreshProcess.test_nonzero_child_exit_rejected_even_with_complete_json) ... ok
 test_zero_exit_complete_json_accepted (__main__.NativeNegativesFreshProcess.test_zero_exit_complete_json_accepted) ... ok
 test_zero_exit_missing_json_rejected (__main__.NativeNegativesFreshProcess.test_zero_exit_missing_json_rejected) ... ok
@@ -40,6 +44,7 @@ test_run_supervised_rejects_bad_schema (__main__.RunPathWiring.test_run_supervis
 test_child_self_claim_not_enough (__main__.SafeStopCompletion.test_child_self_claim_not_enough) ... ok
 test_completion_ok (__main__.SafeStopCompletion.test_completion_ok) ... ok
 test_completion_refuses_lock_multi_instant_capture (__main__.SafeStopCompletion.test_completion_refuses_lock_multi_instant_capture) ... ok
+test_completion_requires_w04_attested (__main__.SafeStopCompletion.test_completion_requires_w04_attested) ... ok
 test_confirmed (__main__.SafeStopCompletion.test_confirmed) ... ok
 test_eta (__main__.SafeStopCompletion.test_eta) ... ok
 test_exit_not_130 (__main__.SafeStopCompletion.test_exit_not_130) ... ok
@@ -60,6 +65,9 @@ test_no_delivery_in_spawn_window_active_zero_on_windows (__main__.SafeStopRedeli
 test_no_delivery_without_request (__main__.SafeStopRedelivery.test_no_delivery_without_request) ... ok
 test_posix_delivers_regardless_of_active (__main__.SafeStopRedelivery.test_posix_delivers_regardless_of_active) ... ok
 test_waits_interval_between_deliveries (__main__.SafeStopRedelivery.test_waits_interval_between_deliveries) ... ok
+test_clean_acquisition_allows_spawn (__main__.W04PrespawnGate.test_clean_acquisition_allows_spawn) ... ok
+test_open_error_and_reparse_block_spawn (__main__.W04PrespawnGate.test_open_error_and_reparse_block_spawn) ... ok
+test_sharing_violation_blocks_spawn (__main__.W04PrespawnGate.test_sharing_violation_blocks_spawn) ... ok
 test_census_external_writer (__main__.W04Verdict.test_census_external_writer) ... ok
 test_census_truncated (__main__.W04Verdict.test_census_truncated) ... ok
 test_dirs (__main__.W04Verdict.test_dirs) ... ok
@@ -79,6 +87,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 78 tests in 4.447s
+Ran 86 tests in 3.573s
 
 OK
