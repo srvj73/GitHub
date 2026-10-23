@@ -1,14 +1,20 @@
 QS4_SUPERVISED=BLOCKED QS4_EXECUTION_FORBIDDEN_NO_EXTERNAL_ADMISSION
 test_run_modes_blocked_before_any_effect (__main__.CliFailClosed.test_run_modes_blocked_before_any_effect) ... ok
 test_verify_package (__main__.CliFailClosed.test_verify_package) ... ok
+test_empty_tree_finalizes (__main__.CustodyFinalizeDecision.test_empty_tree_finalizes) ... ok
+test_live_tree_holds_before_deadline (__main__.CustodyFinalizeDecision.test_live_tree_holds_before_deadline) ... ok
+test_never_finalizes_live_tree (__main__.CustodyFinalizeDecision.test_never_finalizes_live_tree) ... ok
+test_production_holds_even_after_deadline (__main__.CustodyFinalizeDecision.test_production_holds_even_after_deadline) ... ok
+test_qualification_deadline_reserved_fail_closed (__main__.CustodyFinalizeDecision.test_qualification_deadline_reserved_fail_closed) ... ok
 test_terminal_evidence_capturable_before_close_then_refused_after (__main__.CustodyLifecycleContract.test_terminal_evidence_capturable_before_close_then_refused_after) ... ok
 test_absent_or_bogus_code_never_pass (__main__.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
 test_known_codes (__main__.ExitClassification.test_known_codes) ... ok
 test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... ok
-test_absent_not_contained (__main__.GrandchildContained.test_absent_not_contained) ... ok
-test_ambiguous_identity_not_contained (__main__.GrandchildContained.test_ambiguous_identity_not_contained) ... ok
-test_unique_resolved_identity_contained (__main__.GrandchildContained.test_unique_resolved_identity_contained) ... ok
-test_unresolved_ctime_not_contained (__main__.GrandchildContained.test_unresolved_ctime_not_contained) ... ok
+test_absent_pid_rejected (__main__.GrandchildContained.test_absent_pid_rejected) ... ok
+test_ambiguous_pid_rejected (__main__.GrandchildContained.test_ambiguous_pid_rejected) ... ok
+test_divergent_ctime_rejected (__main__.GrandchildContained.test_divergent_ctime_rejected) ... ok
+test_independent_identity_match (__main__.GrandchildContained.test_independent_identity_match) ... ok
+test_no_independent_ctime_rejected (__main__.GrandchildContained.test_no_independent_ctime_rejected) ... ok
 test_jit_child_before_arm (__main__.JitAndLineage.test_jit_child_before_arm) ... ok
 test_jit_disarm_before_tree_empty (__main__.JitAndLineage.test_jit_disarm_before_tree_empty) ... ok
 test_jit_missing (__main__.JitAndLineage.test_jit_missing) ... ok
@@ -95,6 +101,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 94 tests in 3.384s
+Ran 100 tests in 3.311s
 
 OK

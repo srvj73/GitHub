@@ -1,36 +1,36 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R12_PREDELIVERY_CONTROL_MATRIX",
+  "schema": "PEGASUS_FULL_2026_V008R13_PREDELIVERY_CONTROL_MATRIX",
   "final_bytes": {
     "zip": {
-      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R12_20261023.zip",
-      "sha256": "EA17EDE35C577CE1D69CB91D529F166B39FBD6B779D6F347487B65E3BF587082",
-      "bytes": 87423406,
-      "members": 2952
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R13_20261023.zip",
+      "sha256": "2643D6280F159CA68BC0013932C7FF32FEBC69D0D5FBD47A812D85EA312C6E87",
+      "bytes": 87434387,
+      "members": 2954
     },
-    "manifest_sha256": "D49A54D8D9778A65CC597442FFCEB8041D3195C22566800EBB3E3536ACAD8035",
-    "tested_manifest_sha256_m1": "BEDEFC7AAA5C6ED1442C0B74018C811002414BEDDEB08D6644EF366C1D9A29ED",
+    "manifest_sha256": "69C90D16005609A83B67FC5970A57515C5B7AA3CB9EC1C844E19E432BDB22062",
+    "tested_manifest_sha256_m1": "AC6F6AB92604F04D7CEA24DA3ED8916D8479F0CE446BA49FF6C312D5E7CB11C0",
     "bootstrap": {
-      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R12_PS51.ps1",
-      "sha256": "1A63EE3AA368E0588E309765A3076591854B5E1EA13711FD0F8B68E00C95E2F9",
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R13_PS51.ps1",
+      "sha256": "5EE03C35DDB4C054F8EC382934BD37B90572F8E47F4C9887CDDF40FA406C3FA7",
       "bytes": 22863
     },
-    "supersedes_v008r11": {
-      "zip_sha256": "DD1B3432FBD84EEACE7D6B06867C4CEB79BAB951F0BD6E51B8CC1DF015BDF94C",
-      "reason": "origin preparatory review of R11: R11-ORIGIN-01 (close() closed Job handle with live tree before raise; W04 released while child alive), R11-ORIGIN-02 (Q11 matched historical PID), R11-ORIGIN-03 (cust.close() not guaranteed on pre-spawn-fail). All corrected fail-closed."
+    "supersedes_v008r12": {
+      "zip_sha256": "EA17EDE35C577CE1D69CB91D529F166B39FBD6B779D6F347487B65E3BF587082",
+      "reason": "origin preparatory review of R12: R12-ORIGIN-01 (durable custody — custodian stays alive supervising until TREE_EMPTY, W04+Job held over whole tree life, NO_KILL, recovery; retaining handles only until supervisor shutdown is not custody), R12-ORIGIN-02 (grandchild self-reports its own (pid, creation_time) via GetProcessTimes on itself; grandchild_contained requires that independent pair present and unique in the Job's independent observation). Both corrected fail-closed."
     },
     "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
   },
   "gates": {
     "G1_SOURCE_BINDING": "PASS; QS4_HARNESS_BINDING=BLOCKED_PROVEN",
-    "G2_W04_FULL": "QUALIFIED_NATIVE (R9); F01/F02 + R11-ORIGIN-01/03 fechados (W04 obrigatório; pré-spawn fail-closed; lifecycle garantido)",
-    "G3_W04_JIT_JOB": "QUALIFIED_NATIVE (R9); F03 + R11-ORIGIN-02 fechados (identidade temporal (pid,ctime) única)",
-    "G4_SAFESTOP_RESUME": "QUALIFIED_NATIVE (R9); F04 + R11-ORIGIN-01 fechados (NO_KILL real: close nunca fecha/mata árvore viva; decisão reservada registrada)",
-    "G5_INTEGRATED_NATIVE_WIN": "QUALIFIED_NATIVE 23/23 (R9) nos bytes R9; R12 fecha a revisão da origem (delta offline-provado)",
-    "G6_CANDIDATE_COMPLETENESS": "ENGINEERING_COMPLETE; F01-F04 + R11-ORIGIN-01/02/03 fechados; native MET nos bytes R9; selagem formal e reauditoria focal com a origem"
+    "G2_W04_FULL": "QUALIFIED_NATIVE (R9); F01/F02 + R11-ORIGIN-01/03 + R12-ORIGIN-01 fechados (W04 obrigatório; pré-spawn fail-closed; lifecycle garantido; W04 retida por TODA a vida da árvore)",
+    "G3_W04_JIT_JOB": "QUALIFIED_NATIVE (R9); F03 + R11-ORIGIN-02 + R12-ORIGIN-02 fechados (identidade temporal (pid,ctime) INDEPENDENTE e única do neto)",
+    "G4_SAFESTOP_RESUME": "QUALIFIED_NATIVE (R9); F04 + R11-ORIGIN-01 + R12-ORIGIN-01 fechados (NO_KILL real: custodiante vivo supervisiona até TREE_EMPTY; nunca fecha/mata árvore viva; decisão reservada só no prazo de qualificação)",
+    "G5_INTEGRATED_NATIVE_WIN": "QUALIFIED_NATIVE 23/23 (R9) nos bytes R9; R13 fecha a revisão da origem sobre R12 (delta offline-provado)",
+    "G6_CANDIDATE_COMPLETENESS": "ENGINEERING_COMPLETE; F01-F04 + R11-ORIGIN-01/02/03 + R12-ORIGIN-01/02 fechados; native MET nos bytes R9; selagem formal e reauditoria focal com a origem"
   },
   "offline_evidence": {
     "v003_full_chain": "PASS_OFFLINE_DELTAS 19 cases (imutavel)",
-    "v008r12_supervised": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=17 (incl. Q16); SKIPPED_NON_NATIVE=2; error=None",
+    "v008r13_supervised": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=17 (incl. Q16); SKIPPED_NON_NATIVE=2; error=None",
     "native_completeness_evaluation": {
       "gapless_native_job_cases": 0,
       "required_cases": 23,
@@ -49,8 +49,8 @@
       "w04_native_pass_cases": 0
     },
     "exit_boundary_bootstrap": "PASS_ALL passed=20",
-    "supervisor_unit": "94_OF_94 (inclui JobClosePlan, GrandchildContained, SupervisionPrespawnLifecycle)",
-    "supervisor_mutants": "30_OF_30_KILLED (inclui job_close_plan_closes_live_tree, grandchild_contained_ignores_ctime)",
+    "supervisor_unit": "100_OF_100 (inclui CustodyFinalizeDecision, GrandchildContained, JobClosePlan, SupervisionPrespawnLifecycle)",
+    "supervisor_mutants": "31_OF_31_KILLED (inclui custody_finalize_abandons_live_tree, grandchild_contained_accepts_divergent_ctime, job_close_plan_closes_live_tree)",
     "qs4_binding_packaged_r001": "BLOCKED_ADAPTER_PIN_05A0CF3D_VS_V003_EC96FE9A"
   },
   "review_trail": {
@@ -71,33 +71,27 @@
         "R11-ORIGIN-03"
       ],
       "all_closed_r12": true,
+      "preserved_in": "receipts/V008/offline_final/r12_origin_fixes/"
+    },
+    "origin_review_r12": {
+      "reviewer": "ChatGPT origin/custody (not independent auditor, not native Windows)",
+      "decision": "CANDIDATE_COMPLETENESS_NOT_PASS; two open material blockers",
+      "points": [
+        "R12-ORIGIN-01 (durable custody: NO_KILL + W04 over whole tree life + effective custody + recovery)",
+        "R12-ORIGIN-02 (independent, temporally-bound grandchild identity)"
+      ],
+      "all_closed_r13": true,
       "findings": [
         {
-          "id": "F01",
+          "id": "R12-ORIGIN-01",
           "closed": true
         },
         {
-          "id": "F02",
-          "closed": true
-        },
-        {
-          "id": "F03",
-          "closed": true
-        },
-        {
-          "id": "F04+R11-ORIGIN-01",
-          "closed": true
-        },
-        {
-          "id": "R11-ORIGIN-02",
-          "closed": true
-        },
-        {
-          "id": "R11-ORIGIN-03",
+          "id": "R12-ORIGIN-02",
           "closed": true
         }
       ],
-      "evidence_in": "receipts/V008/offline_final/r12_origin_fixes/"
+      "evidence_in": "receipts/V008/offline_final/r13_origin_fixes/"
     },
     "false_completeness": {
       "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
@@ -105,7 +99,7 @@
     }
   },
   "false_completeness_search": {
-    "schema": "PEGASUS_FULL_2026_V008R12_FALSE_COMPLETENESS_SEARCH",
+    "schema": "PEGASUS_FULL_2026_V008R13_FALSE_COMPLETENESS_SEARCH",
     "method": "adversarial enumeration of contracted engineering-milestone consumers bound to the final bytes",
     "economic_fail_closed_anchors_in_source": {
       "make_run_plan_refuses_economic": true,
@@ -119,7 +113,11 @@
       "o01_job_close_plan_live_no_close": true,
       "o01_reserved_decision_receipt": true,
       "o02_grandchild_temporal_identity": true,
-      "o03_prespawn_lifecycle_marker": true
+      "o03_prespawn_lifecycle_marker": true,
+      "r12o1_custody_finalize_hold_no_kill": true,
+      "r12o1_reconcile_reserved_no_kill": true,
+      "r12o2_independent_ctime_divergent_guard": true,
+      "r12o2_no_independent_ctime_guard": true
     },
     "consumers": [
       {
@@ -204,9 +202,17 @@
       {
         "consumer": "origin_review_fixes_r11_origin_01_02_03",
         "wired_at": "WindowsJobCustody.close via job_close_plan (no close/kill on live tree); Q11 via grandchild_contained; Supervision.run try widened over arm/prespawn/start",
-        "qualified_by": "JobClosePlan + GrandchildContained + SupervisionPrespawnLifecycle units; mutants job_close_plan_closes_live_tree/grandchild_contained_ignores_ctime; ORIGIN_FIXES_CLOSURE_V008R12",
+        "qualified_by": "JobClosePlan + GrandchildContained + SupervisionPrespawnLifecycle units; mutants job_close_plan_closes_live_tree/grandchild_contained_accepts_divergent_ctime; ORIGIN_FIXES_CLOSURE_V008R12",
         "status": "IMPLEMENTED_HARDENED_R12",
         "findings_closed": "R11-ORIGIN-01,R11-ORIGIN-02,R11-ORIGIN-03"
+      },
+      {
+        "consumer": "origin_review_fixes_r12_origin_01_02",
+        "wired_at": "custody_finalize_decision + RECONCILE_HOLD_S + Supervision.run reconciliação custódia-preservada (W04+Job vivos até TREE_EMPTY, NO_KILL); grandchild_contained(gpid,gctime,job_idents) com ctime INDEPENDENTE do neto; Q11 injeta _JOB_GRANDCHILD e grava grandchild_self_identity",
+        "qualified_by": "CustodyFinalizeDecision (inclui test_never_finalizes_live_tree) + GrandchildContained (match/divergent/none/ambiguous/absent) + JobClosePlan units; mutants custody_finalize_abandons_live_tree/grandchild_contained_accepts_divergent_ctime; ORIGIN_FIXES_CLOSURE_V008R13",
+        "status": "IMPLEMENTED_HARDENED_R13",
+        "findings_closed": "R12-ORIGIN-01,R12-ORIGIN-02",
+        "mutants_killed": true
       }
     ],
     "mandatory_integration_unimplemented": [],
@@ -240,8 +246,8 @@
     "native_completeness_evaluation": "MET",
     "preserved_in": "receipts/V008/offline_final/native_campaign_r9/"
   },
-  "engineering_implementation": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED; F01-F04 + R11-ORIGIN-01/02/03 CLOSED",
-  "executable_delivery_ready": "READY; prova nativa dirigida de timeout/kill e re-run confirmatório sao do titular/origem",
+  "engineering_implementation": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED; F01-F04 + R11-ORIGIN-01/02/03 + R12-ORIGIN-01/02 CLOSED",
+  "executable_delivery_ready": "READY; prova nativa dirigida de timeout/kill e identidade do neto sintético sao do titular/origem",
   "g4": "FROZEN",
   "qs4": "NO",
   "full_economic": "NO",
@@ -250,6 +256,6 @@
   "run_released": "NO",
   "full_released": "NO",
   "paid_credit": "NOT_USED",
-  "independent_audit": "R10_FAIL_F01_F04_CLOSED_R11; R11_ORIGIN_REVIEW_CLOSED_R12; FORMAL_REAUDIT_PENDING_ORIGIN",
+  "independent_audit": "R10_FAIL_F01_F04_CLOSED_R11; R11_ORIGIN_REVIEW_CLOSED_R12; R12_ORIGIN_REVIEW_CLOSED_R13; FORMAL_REAUDIT_PENDING_ORIGIN",
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
 }

@@ -58,6 +58,12 @@ HEARTBEAT_S = 10.0
 SAFE_STOP_REDELIVER_S = 15.0
 SAFE_STOP_MAX_DELIVERIES = 10
 SAFE_STOP_HONOR_DEADLINE_S = 180.0
+# R12-ORIGIN-01: numa parada controlada com a árvore AINDA viva, o custodiante permanece VIVO e
+# supervisionando (W04 + Job retidos, NO_KILL, drenagem cooperativa) até TREE_EMPTY. Em produção
+# (timeout_s=None) o hold não tem prazo — o custodiante vivo é a custódia durável, nunca abandona
+# a árvore nem a mata. Na qualificação (bounded) este prazo limita o hold para não pendurar o teste;
+# esgotado com árvore viva, é DECISÃO RESERVADA à origem (sem kill, sem soltar W04 no supervisor).
+RECONCILE_HOLD_S = 300.0
 
 
 def should_deliver_safe_stop(*, stop_requested: bool, child_running: bool, latched: bool,
@@ -250,6 +256,25 @@ def job_close_disposition(active_processes: int) -> str:
     return "CLEAR_KILL_ON_CLOSE_LEAVE_RUNNING_NO_KILL"
 
 
+def custody_finalize_decision(*, tree_empty: bool, reconcile_deadline_reached: bool, production: bool) -> str:
+    """R12-ORIGIN-01 (revisão da origem): decisão PURA de finalização da custódia numa parada
+    controlada, garantindo simultaneamente NO_KILL e proteção W04 durante TODA a vida da árvore.
+    NUNCA retorna uma opção que mate ou que abandone a árvore viva sem proteção.
+
+    - árvore vazia -> FINALIZE_TREE_EMPTY_SAFE (fecha com segurança; W04 foi mantida até aqui).
+    - árvore viva, prazo não esgotado -> HOLD_SUPERVISE_UNTIL_TREE_EMPTY_NO_KILL (custodiante VIVO
+      continua supervisionando, W04+Job retidos, drenagem cooperativa; esta é a custódia durável).
+    - árvore viva, prazo esgotado, PRODUÇÃO -> HOLD_SUPERVISE_UNTIL_TREE_EMPTY_NO_KILL (produção não
+      tem prazo: o custodiante permanece vivo; jamais sai com a árvore viva).
+    - árvore viva, prazo esgotado, QUALIFICAÇÃO (bounded) -> RESERVED_DECISION_FAIL_CLOSED_NO_KILL
+      (surge para a origem; o supervisor não mata e não solta W04 — decisão reservada)."""
+    if tree_empty:
+        return "FINALIZE_TREE_EMPTY_SAFE"
+    if not reconcile_deadline_reached or production:
+        return "HOLD_SUPERVISE_UNTIL_TREE_EMPTY_NO_KILL"
+    return "RESERVED_DECISION_FAIL_CLOSED_NO_KILL"
+
+
 def job_close_plan(active_processes: int, clear_kill_ok: bool) -> dict:
     """R11-ORIGIN-01: plano PURO de ações ao fechar a custódia do Job, honrando NO_KILL.
 
@@ -266,16 +291,28 @@ def job_close_plan(active_processes: int, clear_kill_ok: bool) -> dict:
             "retain_custody": True}
 
 
-def grandchild_contained(gpid: int, job_idents: Sequence) -> tuple:
-    """R11-ORIGIN-02: contenção do neto de breakaway por IDENTIDADE TEMPORAL (pid, creation_time),
-    não por PID histórico. `job_idents` = [(pid, ctime), ...] da JobObjectBasicProcessIdList
-    resolvida. Exige que o PID do neto apareça com EXATAMENTE UM ctime RESOLVIDO (!=0): um PID
-    solto, sem ctime, ou com mais de um ctime (reciclado/ambíguo) NÃO prova contenção específica.
-    Retorna (contido, [pid, ctime] vinculado | None)."""
-    cts = sorted({int(c) for (p, c) in job_idents if int(p) == int(gpid) and c})
-    if len(cts) == 1:
-        return True, [int(gpid), cts[0]]
-    return False, None
+def grandchild_contained(gpid: int, gctime, job_idents: Sequence) -> tuple:
+    """R12-ORIGIN-02 (revisão da origem): contenção do neto provada por IDENTIDADE TEMPORAL
+    INDEPENDENTE. `gctime` é o creation_time obtido pelo PRÓPRIO neto (GetProcessTimes nele mesmo),
+    não derivado do PID observado. Exige que ESSE par (gpid, gctime) — a identidade que o neto
+    reportou de si — esteja na observação INDEPENDENTE do Job (`job_idents`, da
+    JobObjectBasicProcessIdList resolvida pelo supervisor via process_ctime), e que seja o ÚNICO
+    ctime para aquele PID (sem ambiguidade de reciclagem). Duas fontes independentes concordando
+    sobre (pid, creation_time) = overlap verificável de vida/pertença ao Job.
+
+    Recusa (retorna contido=False): sem ctime independente do neto; ctime independente DIVERGENTE do
+    observado; PID ausente do Job; ou PID com múltiplos ctime (reciclado/ambíguo).
+    Retorna (contido, [pid, ctime] | None, motivo)."""
+    if not gctime:
+        return False, None, "NO_INDEPENDENT_GRANDCHILD_CTIME"
+    observed = {int(c) for (p, c) in job_idents if int(p) == int(gpid) and c}
+    if not observed:
+        return False, None, "PID_NOT_RESOLVED_IN_JOB"
+    if len(observed) > 1:
+        return False, None, "AMBIGUOUS_PID_MULTIPLE_CTIME"
+    if int(gctime) not in observed:
+        return False, None, "INDEPENDENT_CTIME_DIVERGENT_FROM_JOB"
+    return True, [int(gpid), int(gctime)], "TEMPORAL_IDENTITY_MATCH_TWO_INDEPENDENT_SOURCES"
 
 
 def w04_prespawn_verdict(state: Mapping) -> dict:
@@ -663,6 +700,7 @@ class Supervision:
             stop_requested_at = None
             last_updated = None
             last_change = time.monotonic()
+            reconcile_reason = None
             while True:
                 rc = cust.poll()
                 cust.sample()
@@ -699,7 +737,11 @@ class Supervision:
                 # fechada rápida e clara (não pendura até o timeout total). Só enquanto não LATCH-ado.
                 if (self.stop_requested and not latched and rc is None and stop_requested_at is not None
                         and now - stop_requested_at > SAFE_STOP_HONOR_DEADLINE_S):
-                    raise SupervisorBlocked("SAFE_STOP_NOT_HONORED_NO_LATCH_RECONCILE_REQUIRED_PID_%d" % pid)
+                    # R12-ORIGIN-01: não abandona a árvore viva. Sai do loop para a fase de
+                    # reconciliação com custódia preservada (W04+Job retidos; NO_KILL; drenagem
+                    # cooperativa até TREE_EMPTY). Nunca mata, nunca solta W04 com árvore viva.
+                    reconcile_reason = "SAFE_STOP_NOT_HONORED_NO_LATCH"
+                    break
                 if now - last_hb >= HEARTBEAT_S or rc is not None:
                     guard.revalidate()
                     if st:
@@ -712,14 +754,37 @@ class Supervision:
                 if rc is not None:
                     break
                 if timeout_s is not None and now - t0 > timeout_s:
-                    raise SupervisorBlocked("QUALIFICATION_TIMEOUT_RECONCILE_REQUIRED_PID_%d" % pid)
+                    # R12-ORIGIN-01: idem — reconciliação com custódia preservada, sem abandonar/matar.
+                    reconcile_reason = "QUALIFICATION_TIMEOUT"
+                    break
                 time.sleep(0.05)
-            # Drenagem: a árvore só é considerada vazia pelo próprio custodiante.
-            drain_deadline = time.monotonic() + 120
+            # Drenagem / reconciliação com CUSTÓDIA PRESERVADA (R12-ORIGIN-01). A árvore só é vazia
+            # pelo próprio custodiante. Enquanto houver árvore viva, o supervisor permanece VIVO
+            # supervisionando: mantém a lease W04 (revalida), reentrega o SAFE_STOP cooperativo em
+            # janela segura e NUNCA mata. W04 só é liberada (disarm) ao atingir TREE_EMPTY — logo a
+            # proteção cobre TODA a vida da árvore. Em produção (timeout_s=None) o hold é sem prazo
+            # (custodiante vivo = custódia durável); na qualificação, esgotado o prazo com árvore
+            # viva, é decisão reservada à origem (fail-closed, sem kill, sem soltar W04).
+            reconcile_deadline = time.monotonic() + RECONCILE_HOLD_S
             while not cust.tree_empty():
                 cust.sample()
-                if time.monotonic() > drain_deadline:
-                    raise SupervisorBlocked("PROCESS_TREE_NOT_DRAINED_NO_KILL")
+                now = time.monotonic()
+                st = self._status()
+                latched = bool(st.get("STOP_REQUESTED"))
+                if should_deliver_safe_stop(stop_requested=self.stop_requested, child_running=True,
+                                            latched=latched, active=int(st.get("ACTIVE", 0) or 0),
+                                            require_active_window=(os.name == "nt"), now=now,
+                                            last_delivery=last_stop_delivery, deliveries=stop_deliveries):
+                    cust.request_stop()
+                    stop_deliveries += 1
+                    last_stop_delivery = now
+                guard.revalidate()  # W04 mantida durante toda a vida da árvore
+                dec = custody_finalize_decision(tree_empty=False,
+                                                reconcile_deadline_reached=(now > reconcile_deadline),
+                                                production=(timeout_s is None))
+                if dec == "RESERVED_DECISION_FAIL_CLOSED_NO_KILL":
+                    raise SupervisorBlocked("CUSTODY_RECONCILE_DEADLINE_RESERVED_DECISION_NO_KILL:%s_PID_%d"
+                                            % (reconcile_reason or "DRAIN", pid))
                 time.sleep(0.2)
             cust.mark("TREE_EMPTY")
             w04 = guard.disarm(tree_empty=True)
@@ -773,7 +838,8 @@ class Supervision:
                   # F03 (auditoria): identidades (pid, creation_time) observadas no Job, para prova
                   # de pertença/contenção por identidade temporal — não só por PID histórico.
                   "job_idents": sorted([int(e["pid"]), int(e.get("ctime") or 0)] for e in new_proc_events),
-                  "status": self._status(), "stop_requested": self.stop_requested}
+                  "status": self._status(), "stop_requested": self.stop_requested,
+                  "reconcile_reason": reconcile_reason}
         if self.stop_requested:
             result["safe_stop"] = safestop_verdict(
                 stop_requested=True, child_exit=rc, tree_empty=final_tree_empty, status=result["status"],

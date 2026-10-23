@@ -685,20 +685,54 @@ class JobClosePlan(unittest.TestCase):
 
 
 class GrandchildContained(unittest.TestCase):
-    """R11-ORIGIN-02: contenção por (pid, creation_time) único e resolvido, não PID histórico."""
+    """R12-ORIGIN-02: contenção por identidade temporal INDEPENDENTE do neto (pid, ctime próprios)
+    casando com a observação independente do Job."""
 
-    def test_unique_resolved_identity_contained(self):
-        ok, ident = sup.grandchild_contained(7, [(7, 111), (9, 222)])
+    def test_independent_identity_match(self):
+        ok, ident, why = sup.grandchild_contained(7, 111, [(7, 111), (9, 222)])
         self.assertTrue(ok); self.assertEqual(ident, [7, 111])
+        self.assertIn("TWO_INDEPENDENT_SOURCES", why)
 
-    def test_unresolved_ctime_not_contained(self):
-        self.assertEqual(sup.grandchild_contained(7, [(7, 0)]), (False, None))
+    def test_divergent_ctime_rejected(self):
+        ok, ident, why = sup.grandchild_contained(7, 999, [(7, 111)])
+        self.assertFalse(ok); self.assertIsNone(ident)
+        self.assertEqual(why, "INDEPENDENT_CTIME_DIVERGENT_FROM_JOB")
 
-    def test_ambiguous_identity_not_contained(self):
-        self.assertEqual(sup.grandchild_contained(7, [(7, 111), (7, 112)]), (False, None))
+    def test_no_independent_ctime_rejected(self):
+        self.assertEqual(sup.grandchild_contained(7, None, [(7, 111)])[0], False)
+        self.assertEqual(sup.grandchild_contained(7, 0, [(7, 111)])[0], False)
 
-    def test_absent_not_contained(self):
-        self.assertEqual(sup.grandchild_contained(7, [(9, 222)]), (False, None))
+    def test_absent_pid_rejected(self):
+        self.assertEqual(sup.grandchild_contained(7, 111, [(9, 222)])[0], False)
+
+    def test_ambiguous_pid_rejected(self):
+        self.assertEqual(sup.grandchild_contained(7, 111, [(7, 111), (7, 112)])[0], False)
+
+
+class CustodyFinalizeDecision(unittest.TestCase):
+    """R12-ORIGIN-01: a decisão de finalização nunca abandona/mata uma árvore viva."""
+
+    def test_empty_tree_finalizes(self):
+        self.assertEqual(sup.custody_finalize_decision(tree_empty=True, reconcile_deadline_reached=True,
+                                                       production=False), "FINALIZE_TREE_EMPTY_SAFE")
+
+    def test_live_tree_holds_before_deadline(self):
+        self.assertEqual(sup.custody_finalize_decision(tree_empty=False, reconcile_deadline_reached=False,
+                                                       production=False), "HOLD_SUPERVISE_UNTIL_TREE_EMPTY_NO_KILL")
+
+    def test_production_holds_even_after_deadline(self):
+        self.assertEqual(sup.custody_finalize_decision(tree_empty=False, reconcile_deadline_reached=True,
+                                                       production=True), "HOLD_SUPERVISE_UNTIL_TREE_EMPTY_NO_KILL")
+
+    def test_qualification_deadline_reserved_fail_closed(self):
+        self.assertEqual(sup.custody_finalize_decision(tree_empty=False, reconcile_deadline_reached=True,
+                                                       production=False), "RESERVED_DECISION_FAIL_CLOSED_NO_KILL")
+
+    def test_never_finalizes_live_tree(self):
+        for dl in (True, False):
+            for prod in (True, False):
+                self.assertNotEqual(sup.custody_finalize_decision(tree_empty=False, reconcile_deadline_reached=dl,
+                                                                  production=prod), "FINALIZE_TREE_EMPTY_SAFE")
 
 
 class _LifecycleGuard:

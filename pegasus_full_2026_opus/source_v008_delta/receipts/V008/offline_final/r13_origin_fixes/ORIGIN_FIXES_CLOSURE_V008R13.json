@@ -1,0 +1,173 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R13_ORIGIN_FIXES_CLOSURE",
+ "audit_r10": "Work Astra independent audit (AUDIT_VERDICT=FAIL) -> F01-F04 fechados na R11",
+ "origin_review_r11": "revisão preparatória da origem sobre R11 -> R11-ORIGIN-01/02/03 fechados na R12",
+ "origin_review_r12": "revisão preparatória da origem sobre R12 -> R12-ORIGIN-01/02 fechados na R13",
+ "supersedes_candidate_sha256": "EA17EDE35C577CE1D69CB91D529F166B39FBD6B779D6F347487B65E3BF587082",
+ "findings": [
+  {
+   "finding": "F01",
+   "title": "W04 BLOCKED promovido a sucesso/exit 0",
+   "fix": "completion_verdict exige W04 atestado; _run_supervised mapeia !completed->exit 3; per-case no native_completeness",
+   "negative_control_pure": {
+    "w04_blocked_completed": false,
+    "w04_blocked_gap": [
+     "W04_NOT_ATTESTED:BLOCKED"
+    ],
+    "w04_pass_completed": true
+   },
+   "integrated_case_Q16": {
+    "result": "PASS",
+    "branch": "NON_NATIVE_HASH_CONTINUITY_BLOCKS_COMPLETION",
+    "completion": {
+     "completed": false,
+     "gaps": [
+      "W04_NOT_ATTESTED:BLOCKED"
+     ]
+    }
+   },
+   "closed": true
+  },
+  {
+   "finding": "F02",
+   "title": "armamento W04 incompleto não impedia o spawn",
+   "fix": "w04_prespawn_verdict + W04Guard.prespawn_verdict/release + gate pré-spawn em Supervision.run (NO_SPAWN/NO_PROTECTED_EFFECTS)",
+   "negative_control_pure": {
+    "sharing_violation": "BLOCKED_NO_SPAWN",
+    "clean": "ACQUIRED_CLEAN"
+   },
+   "source_gate_present": true,
+   "release_present": true,
+   "closed": true
+  },
+  {
+   "finding": "F03",
+   "title": "ctime não resolvido aceito como GAPLESS",
+   "fix": "lineage_verdict bloqueia unresolved>0; result expõe job_idents (pid,ctime)",
+   "negative_control_pure": {
+    "unresolved_blocked": true,
+    "resolved_gapless": "GAPLESS_NATIVE_JOB"
+   },
+   "q11_temporal_in_source": true,
+   "closed": true
+  },
+  {
+   "finding": "F04+R11-ORIGIN-01",
+   "title": "close fechava handle do Job com árvore viva antes do raise (kill podia disparar)",
+   "fix": "job_close_plan: árvore viva => close_handles=False (NUNCA fecha, NUNCA mata, custódia+W04 retidas); close() não levanta; decisão reservada registrada por Supervision.run",
+   "negative_control_pure": {
+    "empty_close_handles": true,
+    "live_cleared_close_handles": false,
+    "live_fail_close_handles": false,
+    "live_fail_kill_risk": true
+   },
+   "source": {
+    "no_close_on_live_tree": true,
+    "reserved_decision_receipt": true,
+    "old_close_then_raise_removed": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "R11-ORIGIN-02",
+   "title": "Q11 descartava ctime (match por PID histórico)",
+   "fix": "grandchild_contained exige (pid, ctime) ÚNICO e resolvido no Job; Q11 usa o par vinculado e registra no recibo",
+   "negative_control_pure": {
+    "unique_resolved": [
+     true,
+     [
+      7,
+      111
+     ]
+    ],
+    "ambiguous": [
+     false,
+     "AMBIGUOUS_PID_MULTIPLE_CTIME"
+    ],
+    "absent_pid": [
+     false,
+     "PID_NOT_RESOLVED_IN_JOB"
+    ]
+   },
+   "source": {
+    "q11_uses_grandchild_contained": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "R11-ORIGIN-03",
+   "title": "cust.close() não garantido em pré-spawn falho (vazamento de Job/IOCP/thread)",
+   "fix": "arm/prespawn/start movidos para DENTRO do try; finally: cust.close() roda exatamente uma vez em todo caminho",
+   "negative_control_test": "SupervisionPrespawnLifecycle (dupla de custódia): close==1 em prespawn BLOCKED e em exceção de start; sem matar processo real",
+   "source": {
+    "restructured_try_marker": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "R12-ORIGIN-01",
+   "title": "custódia não durável: reter handles só até o encerramento do supervisor não é custódia",
+   "fix": "custody_finalize_decision: árvore viva => custodiante VIVO supervisiona até TREE_EMPTY (W04+Job retidos, drenagem cooperativa, NO_KILL); produção não tem prazo; qualificação com prazo => DECISÃO RESERVADA à origem (nunca mata, nunca solta W04). Supervision.run reconcilia sem drenar-para-fora.",
+   "negative_control_pure": {
+    "empty": "FINALIZE_TREE_EMPTY_SAFE",
+    "live_no_deadline": "HOLD_SUPERVISE_UNTIL_TREE_EMPTY_NO_KILL",
+    "live_production": "HOLD_SUPERVISE_UNTIL_TREE_EMPTY_NO_KILL",
+    "live_qualif_deadline": "RESERVED_DECISION_FAIL_CLOSED_NO_KILL",
+    "plan_live_close_handles": false,
+    "plan_live_retain_custody": true
+   },
+   "source": {
+    "reconcile_hold_const": true,
+    "hold_supervise_token": true,
+    "custody_finalize_decision_present": true,
+    "reconcile_in_run": true,
+    "reserved_only_on_qualif_deadline": true
+   },
+   "negative_control_mutation": "custody_finalize_abandons_live_tree (if tree_empty->if True) morto por CustodyFinalizeDecision.test_never_finalizes_live_tree",
+   "closed": true
+  },
+  {
+   "finding": "R12-ORIGIN-02",
+   "title": "identidade do neto não temporalmente vinculada (um único creation_time histórico não prova)",
+   "fix": "o neto reporta seu PRÓPRIO (pid, creation_time) via GetProcessTimes nele mesmo; grandchild_contained exige que ESSE par independente conste da observação do Job e seja ÚNICO; Q11 injeta _JOB_GRANDCHILD e grava grandchild_self_identity no recibo.",
+   "negative_control_pure": {
+    "independent_match": [
+     true,
+     [
+      7,
+      111
+     ],
+     "TEMPORAL_IDENTITY_MATCH_TWO_INDEPENDENT_SOURCES"
+    ],
+    "divergent_ctime": [
+     false,
+     "INDEPENDENT_CTIME_DIVERGENT_FROM_JOB"
+    ],
+    "no_independent_ctime": [
+     false,
+     "NO_INDEPENDENT_GRANDCHILD_CTIME"
+    ],
+    "ambiguous_pid": [
+     false,
+     "AMBIGUOUS_PID_MULTIPLE_CTIME"
+    ],
+    "absent_pid": [
+     false,
+     "PID_NOT_RESOLVED_IN_JOB"
+    ]
+   },
+   "source": {
+    "grandchild_program_present": true,
+    "grandchild_self_identity_recorded": true,
+    "independent_ctime_arg": true,
+    "divergent_guard": true,
+    "no_ctime_guard": true
+   },
+   "negative_control_mutation": "grandchild_contained_accepts_divergent_ctime (divergent-guard->if False) morto por GrandchildContained.test_divergent_ctime_rejected",
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Controles negativos sobre o código CORRIGIDO (funções puras + fonte + unit com duplas + mutantes). R12-ORIGIN-01: custódia DURÁVEL — o custodiante permanece VIVO supervisionando até TREE_EMPTY, com W04 e Job retidos durante TODA a vida da árvore (custody_finalize_decision nunca finaliza/abandona árvore viva; job_close_plan nunca fecha handle com árvore viva). A morte residual só é possível no fim do processo se o flag KILL_ON_JOB_CLOSE não pôde ser limpo e o prazo de qualificação esgotou — DECISÃO RESERVADA à origem, nunca ação do supervisor. R12-ORIGIN-02: a identidade do neto é provada por par (pid, creation_time) INDEPENDENTE auto-reportado pelo próprio neto e corroborado, único, na observação do Job; divergência/ausência/ambiguidade recusam a contenção. A prova nativa dirigida (timeout/kill reais e identidade do neto em processo sintético no Windows) é do titular/origem; aqui não há matar/encerrar forçado nem efeito econômico.",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

@@ -66,15 +66,18 @@ MUTANTS = [
     # R11-ORIGIN-01: plano de fechamento não pode fechar handles com árvore viva.
     ("job_close_plan_closes_live_tree", 'return {"close_handles": False, "live_tree": True, "kill_risk": (not bool(clear_kill_ok)),',
      'return {"close_handles": True, "live_tree": True, "kill_risk": (not bool(clear_kill_ok)),'),
-    # R11-ORIGIN-02: contenção do neto não pode aceitar ctime não resolvido (PID histórico).
-    ("grandchild_contained_ignores_ctime", 'cts = sorted({int(c) for (p, c) in job_idents if int(p) == int(gpid) and c})',
-     'cts = sorted({int(c) for (p, c) in job_idents if int(p) == int(gpid)})'),
+    # R12-ORIGIN-02: contenção do neto não pode aceitar ctime independente DIVERGENTE do observado.
+    ("grandchild_contained_accepts_divergent_ctime", 'if int(gctime) not in observed:\n        return False, None, "INDEPENDENT_CTIME_DIVERGENT_FROM_JOB"',
+     'if False:\n        return False, None, "INDEPENDENT_CTIME_DIVERGENT_FROM_JOB"'),
+    # R12-ORIGIN-01: a decisão de finalização não pode fechar/abandonar uma árvore viva.
+    ("custody_finalize_abandons_live_tree", '    if tree_empty:\n        return "FINALIZE_TREE_EMPTY_SAFE"',
+     '    if True:\n        return "FINALIZE_TREE_EMPTY_SAFE"'),
 ]
 
 SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlatform",
           "SafeStopRedelivery", "CustodyLifecycleContract", "RunPathWiring", "ExitClassification",
           "W04PrespawnGate", "LineageUnresolvedIdentity", "JobCloseNoKill",
-          "JobClosePlan", "GrandchildContained"]
+          "JobClosePlan", "GrandchildContained", "CustodyFinalizeDecision"]
 
 
 def main() -> int:

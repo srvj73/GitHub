@@ -83,6 +83,15 @@ A origem inspecionou os bytes R11 e apontou três pontos ainda abertos; todos co
 
 Regressões: `JobClosePlan`, `GrandchildContained`, `SupervisionPrespawnLifecycle`. Unit 94/94; mutantes 30/30. Fechamento em `receipts/V008/offline_final/r12_origin_fixes/`. A prova nativa dirigida de timeout/kill e a identidade temporal real no Windows ficam para o titular/origem.
 
+## Revisão V008R13 — correção da revisão preparatória da origem sobre a R12
+
+A origem inspecionou os bytes R12 e apontou dois bloqueios materiais ainda abertos; ambos corrigidos fail-closed, com controle negativo e qualificação proporcional, preservando os avanços da R12 e os PASS anteriores (R9 23/23 MET; F01–F04 da R11; R11-ORIGIN-01/02/03 da R12). Testes Windows apenas com processos sintéticos; nenhum encerramento forçado nem efeito econômico:
+
+- **R12-ORIGIN-01** (BLOQUEANTE) reter handles só até o encerramento do supervisor não é custódia durável → função pura `custody_finalize_decision` + reconciliação custódia-preservada de `Supervision.run`: com árvore viva o custodiante **permanece VIVO supervisionando até `TREE_EMPTY`** (W04 + Job retidos por TODA a vida da árvore, drenagem cooperativa, NO_KILL, recuperação); produção não tem prazo; só a qualificação limitada, ao esgotar `RECONCILE_HOLD_S`, emerge como **decisão reservada à origem** (nunca mata, nunca solta W04); nunca finaliza/abandona árvore viva.
+- **R12-ORIGIN-02** (LACUNA DE PROVA) identidade do neto não era temporalmente vinculada (um único `creation_time` histórico não prova) → o próprio neto reporta o seu `(pid, creation_time)` via `GetProcessTimes` sobre si mesmo (programa sintético `_JOB_GRANDCHILD`); `grandchild_contained(gpid, gctime, job_idents)` exige esse par **independente** presente e **único** na observação independente do Job. Divergência/ausência/ambiguidade recusam a contenção.
+
+Regressões: `CustodyFinalizeDecision` (inclui `test_never_finalizes_live_tree`), `GrandchildContained` reescrita (match/divergente/sem-ctime/ambíguo/ausente). Unit 100/100; mutantes 31/31 (adiciona `custody_finalize_abandons_live_tree` e `grandchild_contained_accepts_divergent_ctime`). Fechamento em `receipts/V008/offline_final/r13_origin_fixes/`. A prova nativa dirigida de timeout/kill e a identidade do neto em processo sintético no Windows ficam para o titular/origem.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

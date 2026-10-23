@@ -306,23 +306,38 @@ f.close()                       # handle de arquivo fechado; seção gravável c
 print('MAPPED', flush=True)
 time.sleep(float(sys.argv[2]))
 """
-_JOB_CHILD = r"""
-import subprocess, sys
-CREATE_BREAKAWAY_FROM_JOB = 0x01000000
-kids = [subprocess.Popen([sys.executable, '-c', 'pass']) for _ in range(5)]
-for k in kids: k.wait()
-# Tenta escapar da custodia via CREATE_BREAKAWAY_FROM_JOB. No Win8+ (jobs aninhados) o SO pode
-# NAO lancar e mesmo assim manter o neto no Job; o invariante real de custodia e a CONTENCAO
-# (o neto permanece na contabilidade do Job), nao o lancamento. O neto fica vivo ~3s para o
-# supervisor registrar sua pertenca (NEW_PROCESS/IOCP + sample).
-try:
-    p = subprocess.Popen([sys.executable, '-c', 'import time; time.sleep(3)'],
-                         creationflags=CREATE_BREAKAWAY_FROM_JOB)
-    print('BREAKAWAY_CREATEPROCESS=OK pid=%d' % p.pid, flush=True)
-    p.wait()
-except OSError as e:
-    print('BREAKAWAY_DENIED winerror=%s' % getattr(e, 'winerror', None), flush=True)
-"""
+# Programa do NETO (grandchild): obtém o PRÓPRIO (pid, creation_time) via GetProcessTimes em si
+# mesmo e grava em sys.argv[1] — identidade temporal INDEPENDENTE (R12-ORIGIN-02), não derivada da
+# observação externa. Depois fica vivo ~3s para o supervisor observá-lo no Job.
+_JOB_GRANDCHILD = (
+    "import sys, time, ctypes, ctypes.wintypes as w, os\n"
+    "k = ctypes.windll.kernel32\n"
+    "k.GetCurrentProcess.restype = w.HANDLE\n"
+    "c = w.FILETIME(); e = w.FILETIME(); kt = w.FILETIME(); u = w.FILETIME()\n"
+    "k.GetProcessTimes(k.GetCurrentProcess(), ctypes.byref(c), ctypes.byref(e), ctypes.byref(kt), ctypes.byref(u))\n"
+    "ct = (c.dwHighDateTime << 32) | c.dwLowDateTime\n"
+    "open(sys.argv[1], 'w').write('%d %d' % (os.getpid(), ct))\n"
+    "time.sleep(3)\n"
+)
+# sys.argv[1] do filho supervisionado = caminho onde o NETO grava sua identidade independente.
+# Montado por concatenação (não %-format) para preservar os %d/%s do programa, executados em runtime.
+_JOB_CHILD = (
+    "import subprocess, sys\n"
+    "CREATE_BREAKAWAY_FROM_JOB = 0x01000000\n"
+    "GRANDCHILD = " + repr(_JOB_GRANDCHILD) + "\n"
+    "ident_path = sys.argv[1]\n"
+    "kids = [subprocess.Popen([sys.executable, '-c', 'pass']) for _ in range(5)]\n"
+    "for k in kids: k.wait()\n"
+    "# Breakaway: no Win8+ (jobs aninhados) o SO pode NAO lancar e manter o neto no Job; a contencao\n"
+    "# e provada por IDENTIDADE TEMPORAL INDEPENDENTE (o neto grava seu proprio (pid, creation_time)).\n"
+    "try:\n"
+    "    p = subprocess.Popen([sys.executable, '-I', '-c', GRANDCHILD, ident_path],\n"
+    "                         creationflags=CREATE_BREAKAWAY_FROM_JOB)\n"
+    "    print('BREAKAWAY_CREATEPROCESS=OK pid=%d' % p.pid, flush=True)\n"
+    "    p.wait()\n"
+    "except OSError as e:\n"
+    "    print('BREAKAWAY_DENIED winerror=%s' % getattr(e, 'winerror', None), flush=True)\n"
+)
 
 
 def _windows_native_negatives(evidence, inputs, env, case, log):
@@ -384,7 +399,8 @@ def _windows_native_negatives(evidence, inputs, env, case, log):
     # (5) Job: netos de vida curta contados sem lacuna; breakaway negado.
     s = sup.Supervision(evidence=evidence, protected_root=inputs, out_root=evidence / "Q11_job", label="Q11_job", log=log)
     (evidence / "Q11_job").mkdir()
-    r = s.run([py, "-I", "-B", "-c", _JOB_CHILD], env)
+    gc_ident_path = evidence / "Q11_grandchild_identity.txt"
+    r = s.run([py, "-I", "-B", "-c", _JOB_CHILD, str(gc_ident_path)], env)
     child_log = (evidence / "Q11_job.child.log").read_text(errors="replace")
     # Contencao do breakaway: o neto NAO escapa da custodia. Vale se o SO negou o flag
     # (BREAKAWAY_DENIED) OU se, apesar de o CreateProcess nao lancar, o neto permaneceu na
@@ -398,20 +414,36 @@ def _windows_native_negatives(evidence, inputs, env, case, log):
     # UM ctime resolvido; um PID solto/ambíguo não prova contenção. O par vinculado vai ao recibo.
     job_idents = [(int(p), int(c)) for p, c in (r.get("job_idents") or [])]
     unresolved = int(r.get("lineage", {}).get("identity_unresolved_short_lived", -1))
+    # R12-ORIGIN-02: identidade temporal INDEPENDENTE do próprio neto (pid, creation_time), gravada
+    # pelo neto em gc_ident_path via GetProcessTimes em si mesmo. A contenção exige que esse par
+    # case EXATAMENTE com a observação independente do supervisor no Job (process_ctime).
+    gc_self = None
+    try:
+        raw = gc_ident_path.read_text().split()
+        gc_self = (int(raw[0]), int(raw[1]))
+    except Exception:
+        gc_self = None
     bound_ident = None
     if "BREAKAWAY_DENIED" in child_log:
         breakaway_contained, detail = True, "DENIED_BY_OS"
-    elif m:
+    elif m and gc_self is not None:
         gpid = int(m.group(1))
-        breakaway_contained, bound_ident = sup.grandchild_contained(gpid, job_idents)
-        detail = "OK_pid=%s_temporal_identity_bound=%s" % (gpid, bound_ident)
+        # o PID que o filho reportou e o PID que o próprio neto gravou têm de coincidir
+        if gpid != gc_self[0]:
+            breakaway_contained, detail = False, "PID_MISMATCH_CHILD_VS_GRANDCHILD_SELF"
+        else:
+            breakaway_contained, bound_ident, why = sup.grandchild_contained(gpid, gc_self[1], job_idents)
+            detail = "OK_pid=%s_independent_ctime=%s_%s" % (gpid, gc_self[1], why)
+    elif m:
+        breakaway_contained, detail = False, "NO_INDEPENDENT_GRANDCHILD_IDENTITY_FILE"
     else:
         breakaway_contained, detail = False, "NO_BREAKAWAY_MARKER"
     case("Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
          r["lineage"]["lineage"] == "GAPLESS_NATIVE_JOB" and r["lineage"]["processes"] >= 6
          and unresolved == 0 and breakaway_contained and r["child_exit"] == 0,
          lineage=r["lineage"], jit=r["jit"], breakaway_contained=breakaway_contained, breakaway=detail,
-         identity_unresolved=unresolved, grandchild_bound_identity=bound_ident, job_idents=len(job_idents))
+         identity_unresolved=unresolved, grandchild_bound_identity=bound_ident,
+         grandchild_self_identity=gc_self, job_idents=len(job_idents))
 
 
 # =====================================================================================
