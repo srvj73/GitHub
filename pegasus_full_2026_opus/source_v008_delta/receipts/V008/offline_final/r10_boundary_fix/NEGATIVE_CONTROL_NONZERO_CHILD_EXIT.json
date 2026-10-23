@@ -1,0 +1,16 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R10_NEGATIVE_CONTROL_NONZERO_CHILD_EXIT",
+ "scenario": "child writes complete JSON (7 cases PASS, completed=True) then exits rc=3",
+ "prefix_defective": {
+  "outcome": "ACCEPTED",
+  "cases_replayed": 7
+ },
+ "fixed": {
+  "outcome": "REJECTED",
+  "error_type": "SupervisorBlocked",
+  "msg": "NATIVE_NEGATIVES_CHILD_NONZERO_EXIT rc=3 tail=child exited 3 after writing json"
+ },
+ "reproduces_defect": true,
+ "fix_closes_defect": true,
+ "result": "PASS_NEGATIVE_CONTROL"
+}

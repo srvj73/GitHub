@@ -1,0 +1,103 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R10_FALSE_COMPLETENESS_SEARCH",
+ "method": "adversarial enumeration of contracted engineering-milestone consumers bound to the final bytes",
+ "economic_fail_closed_anchors_in_source": {
+  "make_run_plan_refuses_economic": true,
+  "default_admission_always_blocks": true,
+  "run_supervised_reblocks_economic": true,
+  "native_negatives_rc_gate": true
+ },
+ "consumers": [
+  {
+   "consumer": "source_lineage_v003_byte_identical",
+   "wired_at": "pegasus_entry.verify_tree; PARENT_V003_MANIFEST",
+   "qualified_by": "V003 chain 19/19; manifest preserved",
+   "status": "PASS"
+  },
+  {
+   "consumer": "W04_full_lease_dirs_usn_identity_census",
+   "wired_at": "Supervision arms W04 before child; w04_verdict",
+   "qualified_by": "offline w04_verdict tests + 6 W04 mutants; native R9 Q01/Q02/Q03/Q12 PASS_NATIVE + Q10a-f negatives",
+   "status": "IMPLEMENTED_NATIVE_MET",
+   "offline_cases": true,
+   "native_q10a": "PASS"
+  },
+  {
+   "consumer": "job_custody_jit_lineage_breakaway_containment",
+   "wired_at": "Supervision.run Job create-suspended/assign/resume; job_pids",
+   "qualified_by": "jit_verdict tests + mutants; native R9 Q01/Q02/Q11/Q12 GAPLESS_NATIVE_JOB",
+   "status": "IMPLEMENTED_NATIVE_MET",
+   "native_q11": "PASS"
+  },
+  {
+   "consumer": "safe_stop_cooperative_safe_window_resume",
+   "wired_at": "should_deliver_safe_stop; honor deadline",
+   "qualified_by": "SafeStop* tests + mutants; native R9 Q03/Q04/Q12b",
+   "status": "IMPLEMENTED_NATIVE_MET",
+   "native_q03": "PASS"
+  },
+  {
+   "consumer": "completion_evidence_gate",
+   "wired_at": "completion_verdict",
+   "qualified_by": "Q09 orphan-lock refused; completion tests + mutants",
+   "status": "IMPLEMENTED",
+   "case": "PASS"
+  },
+  {
+   "consumer": "exit_boundary_bootstrap_uac_subprocess_supervisor",
+   "wired_at": "bootstrap Get-PegasusExitCode; classify_exit; _run_supervised mapping",
+   "qualified_by": "S00 canaries + S03 ARGV=37 (native R9); Q14 matrix; Q15 technical; bootstrap 20/20+8/8; ExitClassification mutants",
+   "status": "IMPLEMENTED_NATIVE",
+   "q14": "PASS",
+   "q15": "PASS"
+  },
+  {
+   "consumer": "supervised_run_path_cmd_run_admission_run_supervised",
+   "wired_at": "cmd_run -> _load_admission -> _run_supervised",
+   "qualified_by": "Q12/Q12b PASS (native R9)",
+   "status": "IMPLEMENTED",
+   "q12": "PASS"
+  },
+  {
+   "consumer": "economic_full_bc_triple_terminal_block",
+   "wired_at": "make_run_plan + DefaultReleaseAdmission.admit + _run_supervised",
+   "qualified_by": "Q13a/b/c; mutants run_plan_allows_economic, run_supervised_runs_economic, default_admission_returns_plan",
+   "status": "BLOCKED_PROVEN_TERMINAL",
+   "cases": true,
+   "mutants_killed": true
+  },
+  {
+   "consumer": "qs4_harness_binding",
+   "wired_at": "bind-qs4",
+   "qualified_by": "binding BLOCKED (adapter pin 05A0CF3D vs V003 EC96FE9A)",
+   "status": "BLOCKED_PROVEN",
+   "binding": "BLOCKED"
+  },
+  {
+   "consumer": "fresh_process_native_negatives_acceptance_gate",
+   "wired_at": "_native_negatives_in_fresh_process (rc==0 required) + _replay_case_records",
+   "qualified_by": "NativeNegativesReplay + NativeNegativesFreshProcess (R10 negative control)",
+   "status": "IMPLEMENTED_HARDENED_R10",
+   "negative_control": "reproduced_and_closed"
+  }
+ ],
+ "mandatory_integration_unimplemented": [],
+ "policy_boundaries_out_of_scope": {
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "independent_audit": "NOT_STARTED",
+  "note": "estes são limites de política sob custódia da origem, não engenharia por implementar"
+ },
+ "native_completeness_evaluation_r9": {
+  "gapless_native_job_cases": 4,
+  "required_cases": 23,
+  "schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
+  "unmet": [],
+  "verdict": "MET",
+  "w04_native_pass_cases": 5
+ },
+ "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

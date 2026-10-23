@@ -597,5 +597,68 @@ class NativeNegativesReplay(unittest.TestCase):
         self.assertIn("NATIVE_NEGATIVES_CHILD_DID_NOT_COMPLETE", str(ctx.exception))
 
 
+class _FakeProc:
+    def __init__(self, returncode, stdout="", stderr=""):
+        self.returncode = returncode
+        self.stdout = stdout
+        self.stderr = stderr
+
+
+class NativeNegativesFreshProcess(unittest.TestCase):
+    """R10 — fronteira fail-closed de _native_negatives_in_fresh_process: o filho DEVE sair com
+    código 0. Controle negativo (reproduz o defeito da origem): um filho que grava um JSON completo
+    e DEPOIS sai com código não zero NÃO pode ser aceito."""
+
+    def _q(self):
+        import pegasus_qualify_v008 as q
+        return q
+
+    def _full_records(self, q):
+        return [{"case": n, "ok": True, "result": "PASS", "detail": {}} for n in q._NATIVE_NEGATIVE_CASES]
+
+    def _run_with(self, q, evidence, *, rc, write_doc):
+        """Chama a fronteira com subprocess.run mockado; o mock grava (ou não) o JSON e devolve rc."""
+        result_path = evidence / "NATIVE_NEGATIVES_RESULT.json"
+        sink = []
+
+        def case(name, ok, **detail):
+            sink.append({"case": name, "ok": ok})
+            if not ok:
+                raise AssertionError(name)
+
+        def fake_run(cmd, **kw):
+            if write_doc is not None:
+                result_path.write_text(json.dumps(write_doc), encoding="utf-8")
+            return _FakeProc(rc, stdout="child stdout rc=%d" % rc)
+
+        with mock.patch("subprocess.run", side_effect=fake_run):
+            q._native_negatives_in_fresh_process(evidence, evidence / "inputs", dict(os.environ), case, lambda *_: None)
+        return sink
+
+    def test_nonzero_child_exit_rejected_even_with_complete_json(self):
+        # CONTROLE NEGATIVO: filho grava JSON completo (7 casos PASS, completed=True) e sai rc=3.
+        q = self._q()
+        doc = {"completed": True, "cases": self._full_records(q)}
+        with tempfile.TemporaryDirectory() as t:
+            ev = Path(t)
+            with self.assertRaises(sup.SupervisorBlocked) as ctx:
+                self._run_with(q, ev, rc=3, write_doc=doc)
+            self.assertIn("NATIVE_NEGATIVES_CHILD_NONZERO_EXIT", str(ctx.exception))
+
+    def test_zero_exit_complete_json_accepted(self):
+        q = self._q()
+        doc = {"completed": True, "cases": self._full_records(q)}
+        with tempfile.TemporaryDirectory() as t:
+            sink = self._run_with(q, Path(t), rc=0, write_doc=doc)
+        self.assertEqual([c["case"] for c in sink], list(q._NATIVE_NEGATIVE_CASES))
+
+    def test_zero_exit_missing_json_rejected(self):
+        q = self._q()
+        with tempfile.TemporaryDirectory() as t:
+            with self.assertRaises(sup.SupervisorBlocked) as ctx:
+                self._run_with(q, Path(t), rc=0, write_doc=None)
+            self.assertIn("NATIVE_NEGATIVES_CHILD_NO_RESULT", str(ctx.exception))
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

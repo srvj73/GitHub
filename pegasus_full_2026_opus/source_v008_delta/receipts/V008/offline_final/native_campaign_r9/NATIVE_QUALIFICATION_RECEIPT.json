@@ -5,15 +5,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 52,
-        "inventory_sha256": "7FD37EF33B32FBBA1A3F35F5D39842727399B6B8E9113C0F0F5445D11F83080C"
+        "inventory_sha256": "D61733A99BE2B3882EE0D9F314CFA30422719E933DFF2ECDF1B95802CA802464"
       },
       "jit": {
-        "child_created_ns": 212922992623800,
-        "child_resumed_ns": 212923060848600,
+        "child_created_ns": 247627113974900,
+        "child_resumed_ns": 247627178606900,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 212929155256600,
-        "w04_arm_ns": 212922992343600,
-        "w04_disarm_ns": 212930602996700
+        "tree_empty_ns": 247633468351200,
+        "w04_arm_ns": 247627113641500,
+        "w04_disarm_ns": 247634289143100
       },
       "lineage": {
         "identity_unresolved_short_lived": 0,
@@ -22,14 +22,23 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 7140,
+        "census_abandoned_name_workers": [
+          0,
+          0
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "census_unresolved_reported": 6087,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64300550680,
+          "end_usn": 64312548408,
           "journal_id": 133708975302158387,
-          "start_usn": 64300377776
+          "start_usn": 64312362672
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -43,14 +52,23 @@
       },
       "result": "PASS",
       "w04": {
-        "census_unresolved_reported": 7139,
+        "census_abandoned_name_workers": [
+          1,
+          1
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "census_unresolved_reported": 6096,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64300725320,
+          "end_usn": 64312732184,
           "journal_id": 133708975302158387,
-          "start_usn": 64300554648
+          "start_usn": 64312557856
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -64,14 +82,23 @@
         "safe_stop": "CONFIRMED_BY_SUPERVISOR"
       },
       "w04": {
-        "census_unresolved_reported": 7130,
+        "census_abandoned_name_workers": [
+          0,
+          0
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "census_unresolved_reported": 6094,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64300840304,
+          "end_usn": 64313022728,
           "journal_id": 133708975302158387,
-          "start_usn": 64300728080
+          "start_usn": 64312737544
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -83,7 +110,7 @@
     },
     {
       "active_journals": [
-        "2000-01-06.14228_1792710218018973200.json"
+        "2000-01-06.24376_1792744917159504300.json"
       ],
       "case": "Q05_GAP1_JOURNAL_WITHOUT_PENDING",
       "child_exit": 1,
@@ -97,7 +124,7 @@
     {
       "case": "Q06_GAP2_CRASH_AFTER_COMMIT_BEFORE_CHECKPOINT",
       "child_exit": 87,
-      "orphan_run_lock_pid": 26180,
+      "orphan_run_lock_pid": 24332,
       "result": "PASS"
     },
     {
@@ -113,10 +140,10 @@
     {
       "case": "Q07_TWO_GAPS_RESUME_EXACTLY_ONCE",
       "journal_history": [
-        "1999-12-31.14228_1792710218018973200.json.COMMITTED",
-        "2000-01-06.14228_1792710218018973200.json.RECOVERED_REQUEUE",
-        "2000-01-06.26180_1792710234174777300.json.RECOVERED_COMMITTED",
-        "2000-01-11.9872_1792710241644940300.json.COMMITTED"
+        "1999-12-31.24376_1792744917159504300.json.COMMITTED",
+        "2000-01-06.24332_1792744926454668700.json.RECOVERED_COMMITTED",
+        "2000-01-06.24376_1792744917159504300.json.RECOVERED_REQUEUE",
+        "2000-01-11.51492_1792744931435538300.json.COMMITTED"
       ],
       "result": "PASS"
     },
@@ -125,15 +152,15 @@
       "completion": {
         "completed": true,
         "inventory_entries": 36,
-        "inventory_sha256": "37B7B8DB04BFA3398AFFD7A5D422088DCDBCCE654144F3DC9D874B2C5E32047A"
+        "inventory_sha256": "D6339DEAF8094990932509FD3F98B06A3AC42314DEB362C3D4EC348718D2F726"
       },
       "jit": {
-        "child_created_ns": 212989416792600,
-        "child_resumed_ns": 212989490849000,
+        "child_created_ns": 247678430808300,
+        "child_resumed_ns": 247678510106100,
         "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
-        "tree_empty_ns": 212994932366300,
-        "w04_arm_ns": 212989416414300,
-        "w04_disarm_ns": 212996261510000
+        "tree_empty_ns": 247684605064000,
+        "w04_arm_ns": 247678430421900,
+        "w04_disarm_ns": 247685291077800
       },
       "lineage": {
         "identity_unresolved_short_lived": 0,
@@ -143,14 +170,23 @@
       "result": "PASS",
       "returncode": 0,
       "w04": {
-        "census_unresolved_reported": 7141,
+        "census_abandoned_name_workers": [
+          0,
+          0
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "census_unresolved_reported": 6224,
         "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
         "directories": 1,
         "targets": 43,
         "usn": {
-          "end_usn": 64301438576,
+          "end_usn": 64316461168,
           "journal_id": 133708975302158387,
-          "start_usn": 64301254280
+          "start_usn": 64316237720
         },
         "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       }
@@ -161,7 +197,7 @@
       "resume_completion": {
         "completed": true,
         "inventory_entries": 36,
-        "inventory_sha256": "3DE8642664D3BAF7F6197C7E24F811A07F95BAD4C5409554EDE06330D746D6AC"
+        "inventory_sha256": "20EF563B8D521C25949762BDA19E932F34148012C9AEDD72C2A22569EEBFC480"
       },
       "safe_stop": {
         "committed_at_stop": 2,
@@ -227,50 +263,177 @@
     {
       "case": "Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE",
       "rename": "RENAME_DENIED winerror=32",
-      "result": "FAIL",
+      "result": "PASS",
       "w04": {
-        "gaps": [
-          "CENSUS_TRUNCATED"
+        "census_abandoned_name_workers": [
+          0,
+          0
         ],
-        "w04_full": "BLOCKED"
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "census_unresolved_reported": 6513,
+        "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
+        "directories": 1,
+        "targets": 43,
+        "usn": {
+          "end_usn": 64319922760,
+          "journal_id": 133708975302158387,
+          "start_usn": 64319875960
+        },
+        "w04_full": "PASS_NATIVE_SAME_ATTEMPT"
       },
       "writer": "WRITE_DENIED winerror=None"
+    },
+    {
+      "case": "Q10b_PREEXISTING_WRITER_BLOCKS",
+      "result": "PASS",
+      "w04": {
+        "census_abandoned_name_workers": [
+          0,
+          0
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "gaps": [
+          "LEASE_NOT_ACQUIRED_ON_ALL_TARGETS",
+          "PREEXISTING_WRITER_OR_WRITABLE_MAPPING:1",
+          "CENSUS_EXTERNAL_WRITER_UNDER_TARGET:2"
+        ],
+        "w04_full": "BLOCKED"
+      }
+    },
+    {
+      "case": "Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS",
+      "result": "PASS",
+      "w04": {
+        "census_abandoned_name_workers": [
+          0,
+          0
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "gaps": [
+          "LEASE_NOT_ACQUIRED_ON_ALL_TARGETS",
+          "PREEXISTING_WRITER_OR_WRITABLE_MAPPING:1",
+          "CENSUS_EXTERNAL_WRITER_UNDER_TARGET:2"
+        ],
+        "w04_full": "BLOCKED"
+      }
+    },
+    {
+      "actor": "DONE",
+      "case": "Q10D_NEW_NAME_NEVER_PASSES",
+      "result": "PASS",
+      "w04": {
+        "census_abandoned_name_workers": [
+          0,
+          0
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "gaps": [
+          "PROTECTED_SET_MODIFIED:3"
+        ],
+        "w04_full": "BLOCKED"
+      }
+    },
+    {
+      "actor": "DONE",
+      "case": "Q10E_ALTERNATE_STREAM_NEVER_PASSES",
+      "result": "PASS",
+      "w04": {
+        "census_abandoned_name_workers": [
+          0,
+          0
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "gaps": [
+          "PROTECTED_SET_MODIFIED:2"
+        ],
+        "w04_full": "BLOCKED"
+      }
+    },
+    {
+      "actor": "DONE",
+      "case": "Q10F_HARDLINK_NEVER_PASSES",
+      "result": "PASS",
+      "w04": {
+        "census_abandoned_name_workers": [
+          0,
+          0
+        ],
+        "census_attempts": [
+          1,
+          1
+        ],
+        "census_truncated": false,
+        "gaps": [
+          "PROTECTED_SET_MODIFIED:1",
+          "IDENTITY_LINK_COUNT_CHANGES:1"
+        ],
+        "w04_full": "BLOCKED"
+      }
+    },
+    {
+      "breakaway": "OK_pid=2568_in_job=True",
+      "breakaway_contained": true,
+      "case": "Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED",
+      "jit": {
+        "child_created_ns": 247790031764200,
+        "child_resumed_ns": 247790102221900,
+        "jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY",
+        "tree_empty_ns": 247793389861600,
+        "w04_arm_ns": 247790031401700,
+        "w04_disarm_ns": 247794235080000
+      },
+      "lineage": {
+        "identity_unresolved_short_lived": 0,
+        "lineage": "GAPLESS_NATIVE_JOB",
+        "processes": 15
+      },
+      "result": "PASS"
     }
   ],
   "economic_execution": false,
-  "error": "AssertionError('Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE {\"rename\": \"RENAME_DENIED winerror=32\", \"w04\": {\"gaps\": [\"CENSUS_TRUNCATED\"], \"w04_full\": \"BLOCKED\"}, \"writer\": \"WRITE_DENIED winerror=None\"}')",
   "full_economic": "NO",
   "full_released": "NO",
   "g4": "FROZEN",
   "native_completeness_evaluation": {
-    "gapless_native_job_cases": 3,
+    "gapless_native_job_cases": 4,
     "required_cases": 23,
     "schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
-    "unmet": [
-      "QUALIFICATION_CHAIN_NOT_PASS",
-      "CASE_NOT_PASS:Q10a_EXTERNAL_WRITER_AND_RENAME_DENIED_BY_LEASE",
-      "CASE_NOT_PASS:Q10b_PREEXISTING_WRITER_BLOCKS",
-      "CASE_NOT_PASS:Q10c_PREEXISTING_WRITABLE_MAPPING_BLOCKS",
-      "CASE_NOT_PASS:Q10D_NEW_NAME_NEVER_PASSES",
-      "CASE_NOT_PASS:Q10E_ALTERNATE_STREAM_NEVER_PASSES",
-      "CASE_NOT_PASS:Q10F_HARDLINK_NEVER_PASSES",
-      "CASE_NOT_PASS:Q11_JOB_GAPLESS_LINEAGE_AND_BREAKAWAY_DENIED"
-    ],
-    "verdict": "NOT_MET",
-    "w04_native_pass_cases": 4
+    "unmet": [],
+    "verdict": "MET",
+    "w04_native_pass_cases": 5
   },
   "native_windows": true,
   "os_name": "nt",
-  "package_manifest_sha256": "3BA34A1D1C6F6B1D2C55D6AFE53564E38813F2D1DFD988CFA7C93BE90A1B396C",
+  "package_manifest_sha256": "93D56AC73ED631686CB340EF1CD4D44599620012C9258AC032CD2610E8959D88",
   "phase_c": "FORBIDDEN",
   "platform": "Windows-11-10.0.26200-SP0",
   "python": "3.14.7",
   "qs4": "NO",
   "reselection_2026": "FORBIDDEN",
-  "result": "FAIL_STOP_CHAIN",
+  "result": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC",
   "run_released": "NO",
   "schema": "PEGASUS_FULL_2026_V008_INTEGRATED_QUALIFICATION_V001",
-  "seconds": 372.796,
+  "seconds": 168.057,
   "supervisor_parents": {
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152"
@@ -347,8 +510,9 @@
     "native_handle_backend_v001.py": "8FEF13130C104E3EFFEABF88B25DFEFCF5851BBD6D5BBA853BB956406E49436E",
     "pegasus_qs4_binding_v008.py": "7FBE02BAAD077CAF37BCC394452657F84D8F115DC3FFE67413CBAAAE3DC2BB7A",
     "pegasus_qs4_stop_bridge_v006.py": "178CEBBCF81E243DB0F0CE0A2A3355749C07A86266F37929E05C567819049152",
-    "pegasus_qualify_v008.py": "6B0CB5410F16F5055DA65E445B3C95B5941B0C6BFA931144A3CB5F0414F18572",
-    "pegasus_supervisor_v008.py": "1DEA8B7BD088EE37DE6EFCD3F8B09F01FDD087463EAE232AE4E50607A5ADCFED",
+    "pegasus_qualify_v008.py": "BE60A3EC091D6AB6FDEEAA33A25D9EE250ADA4520AF0A363EA48B311BE6B7707",
+    "pegasus_supervisor_v008.py": "640A178EEB8CBB4A92128A538B4B6007AC7233A2E7145035CEF4E3663BB66F03",
     "pegasus_win_native_v008.py": "871F7F30E8813C4472F4BF9479B28CB4FA8D39F2FF47FC9DB30AA36772B469FD"
-  }
+  },
+  "w04_g2_g3_native": "QUALIFIED_ON_THIS_HOST"
 }

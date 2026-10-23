@@ -1,33 +1,22 @@
-# PEGASUS FULL 2026 — Engenharia Final V008R9
+# PEGASUS FULL 2026 — Engenharia Final V008R10
 
-- `delivery/` — release imutável: `PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R9_20261022.zip` (SHA-256 `2C3F39EB…`, 2.946 membros, manifesto `93D56AC7…`), bootstrap PS 5.1 com pins (`EFB77938…`), recibos externos e `00_START_HERE_PEGASUS_V008R9.md`. Texto de retorno: `RESPOSTA_CHATGPT_RUNNER_PARALELO_14_V008R9.md`.
-- `source_v008_delta/` — delta V008 sobre o payload V003 (`supervisor/`, `docs/V008/`, `receipts/V008/` incl. `offline_final/native_campaign_r8/`, `00_START_HERE_V008.md`).
-- `build/` — `build_v008.py`, `make_delivery_receipts_v008r9.py`, `ps_parse_check.ps1`.
+- `delivery/` — release imutável: `PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R10_20261023.zip` (SHA-256 `8B3FA7E5…`, 2.948 membros, manifesto `79A97DE9…`), bootstrap PS 5.1 com pins (`A596A7B7…`), recibos externos, `00_START_HERE_PEGASUS_V008R10.md` e a atestação nativa R9 preservada (`NATIVE_QUALIFICATION_ACHIEVED_V008R9.json`, `native_result_r9/`). Texto de retorno: `RESPOSTA_CHATGPT_RUNNER_PARALELO_14_V008R10.md`.
+- `source_v008_delta/` — delta V008 sobre o payload V003 (`supervisor/`, `docs/V008/`, `receipts/V008/` incl. `offline_final/native_campaign_r9/` e `offline_final/r10_boundary_fix/`, `00_START_HERE_V008.md`).
+- `build/` — `build_v008.py`, `make_delivery_receipts_v008r10.py`, `ps_parse_check.ps1`.
 - `probes/` — `pending_causal_probe_v008.py`.
 
-## Convergência das campanhas nativas (R2 → R9)
+## Convergência das campanhas nativas (R2 → R9) e endurecimento R10
 
-Cada campanha no Windows do titular, com a fronteira de exit honesta, revelou o próximo defeito físico real — não reproduzível offline — e foi corrigida:
+Cada campanha no Windows do titular revelou o próximo defeito físico real e foi corrigida (R2 fronteira de exit; R3 handle do Job; R4 SAFE_STOP por plataforma; R5/R6 janela segura; R7 contenção de breakaway; R8 census com nova tentativa; **R9 negativos nativos em processo próprio**). A **campanha nativa R9 passou 23/23 numa única execução** (`native_completeness_evaluation=MET`) sobre os bytes R9 (`2C3F39EB…`), com `Q10a` PASS e census `abandoned_name_workers=[0,0]`. Essa evidência primária está preservada em `delivery/native_result_r9/` e `source_v008_delta/receipts/V008/offline_final/native_campaign_r9/`.
 
-- **R2** fronteira de exit validada nativa (S00/S03 MATCH).
-- **R3** ciclo de vida do handle do Job: Q01/Q02 PASS nativos.
-- **R4** SAFE_STOP por plataforma: Q01–Q09 e Q12 PASS; parou em Q12b.
-- **R5** diagnóstico: reentrega do Ctrl+C não recupera o encrave.
-- **R6** janela segura de entrega (ACTIVE>0): **22/23 casos nativos PASS** (Q01–Q15 + W04 Q10a–f, incl. Q03/Q04 SAFE_STOP/retomada e Q12b). Resíduo: Q11 breakaway.
-- **R7** contenção de breakaway: o proxy do `CreateProcess` é incorreto no Win8+ (jobs aninhados). Q11 passa a verificar a **contenção real** (o PID do neto permanece em `job_pids`). `Supervision.run` expõe `job_pids`.
-- **R8** census de corroboração com até 3 tentativas: na R7, Q10a ficou `BLOCKED` por `CENSUS_TRUNCATED` intermitente, com a prova do kernel íntegra.
-- **R9 (esta entrega)** negativos nativos em processo próprio: na R8, Q10a voltou a ficar `BLOCKED` por `CENSUS_TRUNCATED` **apesar** das 3 tentativas. Causa: o backend de census pinado abandona threads que seguram handles em consultas de nome travadas e varre o próprio processo; num processo de qualificação longevo (que já rodou Q01–Q15) esses handles acumulam e cruzam o limite de truncamento — por isso Q12 (subprocesso próprio) passava e Q10a (processo longevo) truncava na mesma execução. Os negativos nativos (Q10a–f, Q11) passam a rodar num **subprocesso novo** (`--native-negatives`), que parte de um census limpo; o pai reencena os casos no recibo (fail-closed se faltar JSON, caso ou conclusão). O `w04_verdict` passa a persistir `census_attempts` e `census_abandoned_name_workers`. A regra fail-closed do W04 continua inalterada.
+**R10 (esta entrega) — revisão da origem:** correção de um defeito material na fronteira de resultados de `_native_negatives_in_fresh_process` — o `rc` do subprocesso era só registrado, não exigido `== 0`; um filho que gravasse um JSON completo e saísse com código não zero era aceito. Corrigido fail-closed (exige `rc == 0`; `NATIVE_NEGATIVES_CHILD_NONZERO_EXIT`). Controle negativo reproduz o defeito (pré-correção ACEITA; corrigido REJEITA) e a busca adversarial de falsa completude (`r10_boundary_fix/FALSE_COMPLETENESS_SEARCH_V008R10.json`) conclui que o bloqueio econômico é terminal e triplo (`make_run_plan` + `DefaultReleaseAdmission` + `_run_supervised`) e que nenhuma integração obrigatória do marco de engenharia permanece por implementar. A correção é inerte sobre a campanha R9 (filho saiu `rc=0`).
 
-**tested=packaged=delivered:** M1 (`7B85DA44…`) → M2 (`93D56AC7…`) difere só por 14 arquivos de evidência sob `receipts/V008/offline_final/`; código e docs byte-idênticos. O extrato reconfere 2.945/2.945 arquivos; verify e 75/75 unit sobre os bytes entregues. Offline: mutantes do supervisor 24/24, fronteira do bootstrap 20/20 + 8/8, cadeia V003 19/19, qualificação 16/16 PASS + 2 SKIPPED_NON_NATIVE.
+**tested=packaged=delivered:** M1 (`6E411115…`) → M2 (`79A97DE9…`) difere só por 16 arquivos de evidência sob `receipts/V008/offline_final/`; código e docs byte-idênticos. O extrato reconfere 2.947/2.947 arquivos; verify e 78/78 unit sobre os bytes entregues. Offline: mutantes do supervisor 24/24, fronteira do bootstrap 20/20 + 8/8, cadeia V003 19/19, qualificação 16/16 PASS + 2 SKIPPED_NON_NATIVE.
 
-Supersede o V008R8 (`17A9FB12…`). O payload V003 completo (2.867 arquivos byte-idênticos) está dentro do ZIP.
-
-## Campanha nativa R9 — PASS (23/23 numa execução)
-
-No PC do titular (PS 5.1, build 10.0.26200, 24 CPUs, elevado), sobre os bytes entregues (ZIP `2C3F39EB…`, manifesto `93D56AC7…`, Python 3.14.7 `4942B86A…`): `QualifyNative` exit 0, **23/23 casos PASS**, `native_completeness_evaluation=MET` (`unmet=[]`; W04 nativo PASS=5, GAPLESS_NATIVE_JOB=4). A correção R9 confirmou-se: **Q10a passou** com census `attempts=[1,1]`, `abandoned_name_workers=[0,0]` — no subprocesso novo o census não trunca. Atestação externa (vinculada aos SHAs entregues) em `delivery/NATIVE_QUALIFICATION_ACHIEVED_V008R9.json` e `delivery/native_result_r9/`. O candidato **não** foi reempacotado.
+Supersede o V008R9 (`2C3F39EB…`). O payload V003 completo (2.867 arquivos byte-idênticos) está dentro do ZIP.
 
 `G4=FROZEN · QS4=NO · FULL_ECONOMIC=NO · PHASE_C=FORBIDDEN · RESELECTION_2026=FORBIDDEN · RUN_RELEASED=NO · FULL_RELEASED=NO`
 
-`native_completeness_evaluation=MET` sobre os bytes finais. A selagem formal de `CANDIDATE_COMPLETENESS` e o passo opcional `-Mode Install` são do titular/origem (`INDEPENDENT_AUDIT=NOT_STARTED`).
+Engenharia completa; `native_completeness_evaluation=MET` sobre os bytes R9; o delta R10 é offline-provado e inerte no run nativo observado. A selagem formal de `CANDIDATE_COMPLETENESS=PASS`, a re-execução nativa confirmatória opcional (bytes R10) e o passo `-Mode Install` são do titular/origem (`INDEPENDENT_AUDIT=NOT_STARTED`). A custódia normativa MASTER/HEAD permanece exclusivamente com o ChatGPT de origem.
 
 `RESULT_RETURN_TO=ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14`

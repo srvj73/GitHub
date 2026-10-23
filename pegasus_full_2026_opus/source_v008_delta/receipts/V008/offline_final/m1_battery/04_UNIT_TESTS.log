@@ -16,6 +16,9 @@ test_lineage_gapless (__main__.JitAndLineage.test_lineage_gapless) ... ok
 test_lineage_not_empty (__main__.JitAndLineage.test_lineage_not_empty) ... ok
 test_lineage_pid_reuse_counts_twice (__main__.JitAndLineage.test_lineage_pid_reuse_counts_twice) ... ok
 test_lineage_posix_is_observational (__main__.JitAndLineage.test_lineage_posix_is_observational) ... ok
+test_nonzero_child_exit_rejected_even_with_complete_json (__main__.NativeNegativesFreshProcess.test_nonzero_child_exit_rejected_even_with_complete_json) ... ok
+test_zero_exit_complete_json_accepted (__main__.NativeNegativesFreshProcess.test_zero_exit_complete_json_accepted) ... ok
+test_zero_exit_missing_json_rejected (__main__.NativeNegativesFreshProcess.test_zero_exit_missing_json_rejected) ... ok
 test_all_pass_complete_records_every_case (__main__.NativeNegativesReplay.test_all_pass_complete_records_every_case) ... ok
 test_first_failure_raises_and_stops (__main__.NativeNegativesReplay.test_first_failure_raises_and_stops) ... ok
 test_incomplete_child_is_fail_closed (__main__.NativeNegativesReplay.test_incomplete_child_is_fail_closed) ... ok
@@ -76,6 +79,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 75 tests in 5.826s
+Ran 78 tests in 4.447s
 
 OK

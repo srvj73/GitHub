@@ -29,7 +29,8 @@
    "offline": "w04_verdict testado (positivos/negativos) e 6 mutantes W04 mortos",
    "native": "PENDING_OWNER_WINDOWS_CAMPAIGN (Q10a-f: escritor externo, renomeação, escritor pré-existente, mapeamento gravável, novo nome, stream alternado, hardlink)",
    "census_retry": "CLOSED_V008R8: census de corroboracao com ate 3 tentativas se truncado; se todas truncarem, W04 continua BLOCKED (fail-closed inalterado)",
-   "fresh_process_negatives": "CLOSED_V008R9: native negatives run in a fresh -I -B subprocess so the census starts clean; parent replays the case records (fail-closed on missing JSON/case/completion); census_attempts and census_abandoned_name_workers persisted in both W04 verdicts; W04 still BLOCKS if a census truncates even in a fresh process"
+   "fresh_process_negatives": "CLOSED_V008R9: native negatives run in a fresh -I -B subprocess so the census starts clean; parent replays the case records (fail-closed on missing JSON/case/completion); census_attempts and census_abandoned_name_workers persisted in both W04 verdicts; W04 still BLOCKS if a census truncates even in a fresh process",
+   "native_result_r9": "QUALIFIED_NATIVE_23_OF_23_MET on delivered bytes (R9); fresh-process census abandoned=[0,0]"
   },
   "G3_W04_JIT_JOB": {
    "state": "IMPLEMENTED_OFFLINE_ORCHESTRATION_QUALIFIED_NATIVE_PENDING",
@@ -70,7 +71,8 @@
    "exit_code_boundary": "CLOSED_V008R2 (bootstrap+UAC+subprocess+watchdog+supervisor; sem falso PASS)",
    "native_completeness_evaluation": "EMBUTIDA no recibo de qualificação (partes 3-4); verdict NOT_MET fora do Windows nativo; MET exige Q10a-f/Q11 nativos + >=4 W04 PASS_NATIVE_SAME_ATTEMPT + >=3 GAPLESS_NATIVE_JOB",
    "offline_test_counts": "unit 70/70 (SafeStopRedelivery janela segura incl.); supervisor mutants 24/24; bootstrap boundary 20/20 + mutants 8/8; V003 19/19; supervised 16/16 PASS + 2 SKIP",
-   "native_campaign_r6": "22/23 nativos PASS; so Q11 breakaway restante, criterio corrigido para contencao real em R7"
+   "native_campaign_r6": "22/23 nativos PASS; so Q11 breakaway restante, criterio corrigido para contencao real em R7",
+   "r10_boundary_fix": "CLOSED_V008R10: subprocess rc==0 required before accepting replayed native-negative cases (fail-closed); negative control reproduces defect; false-completeness search consolidated (economic triple-block terminal; no mandatory integration unimplemented)"
   }
  },
  "boundaries": {
@@ -85,10 +87,10 @@
   "independent_audit": "NOT_STARTED"
  },
  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
- "revision": "V008R9",
+ "revision": "V008R10",
  "supersedes": {
-  "v008r8_zip_sha256": "17A9FB12168F88CBF5CFC4454D211AB773C30E63AEEB95E529899597693DF411",
-  "reason": "native negatives (Q10a-f, Q11) moved to a fresh subprocess so the pinned census backend starts from a clean handle state (long-lived qualify process accumulated abandoned name-worker handles -> intermittent CENSUS_TRUNCATED at Q10a even with 3 attempts); fail-closed unchanged; census diagnostics now persisted"
+  "v008r9_zip_sha256": "2C3F39EBADC292CEE197D21E837B6A264B532550AD80F8A66160EE8C51B3273C",
+  "reason": "fail-closed boundary: _native_negatives_in_fresh_process now REQUIRES the child subprocess rc==0 before accepting the replayed cases (origin review: a child that wrote a complete JSON then exited non-zero was accepted). Negative control reproduces the defect. R9 native campaign (23/23, MET) preserved; the R9 run exited rc=0, so it already satisfied the hardened gate."
  },
  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
  "native_campaign_r2_result": {
@@ -143,5 +145,16 @@
   "zip_sha256": "17A9FB12168F88CBF5CFC4454D211AB773C30E63AEEB95E529899597693DF411",
   "python": "3.14.7",
   "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START"
+ },
+ "native_campaign_r9_result": {
+  "verify": "PASS",
+  "qualifynative_exit": 0,
+  "native_cases_pass": "23/23 (Q01-Q15 + W04 Q10a-f + Q11) numa mesma execução",
+  "native_completeness_evaluation": "MET (unmet=[]; W04 PASS_NATIVE_SAME_ATTEMPT=5; GAPLESS_NATIVE_JOB=4)",
+  "q10a": "PASS w04=PASS_NATIVE_SAME_ATTEMPT; census attempts=[1,1] abandoned_name_workers=[0,0] (fresh process: no truncation)",
+  "bound_to": "ZIP 2C3F39EB / manifest 93D56AC7 / python 3.14.7 4942B86A; package_manifest_sha256 in receipt == 93D56AC7",
+  "result_zip_sha256": "7290A855726B2791D478249574EF9BD4F4AA6835B4F23CAB0A37D9A3DC38CE5E",
+  "qualification_receipt_sha256": "9112FA3C4E50AB1B8D370E7DB1E2F9066D43E0996C3DCAEBC4E0DF39D073BDFD",
+  "host": "PS 5.1 build 10.0.26200, 24 CPUs, elevated"
  }
 }

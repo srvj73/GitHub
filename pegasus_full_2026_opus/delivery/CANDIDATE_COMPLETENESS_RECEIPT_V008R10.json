@@ -1,0 +1,46 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R10_CANDIDATE_COMPLETENESS_FIVE_PART",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R10_20261023.zip",
+      "sha256": "8B3FA7E58D8CE3052981D9A85452F62DB7D4E88FBC3A318507DF7C129DE61B1A",
+      "bytes": 87402411,
+      "members": 2948
+    },
+    "manifest_sha256": "79A97DE968363B6429FF3F3AA43981164837B784E8CD743751F29ADB045CC889",
+    "tested_manifest_sha256_m1": "6E411115FF64D6EB5CC74D5450B68AFC382B6052D58EFC0361EEAC78926134E9",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R10_PS51.ps1",
+      "sha256": "A596A7B7023E541823C29B53869C3C14ADFA9F08A6357BB5F42691C8FB79F547",
+      "bytes": 22863
+    },
+    "supersedes_v008r9": {
+      "zip_sha256": "2C3F39EBADC292CEE197D21E837B6A264B532550AD80F8A66160EE8C51B3273C",
+      "reason": "fail-closed boundary: _native_negatives_in_fresh_process now REQUIRES the child subprocess rc==0 before accepting the replayed cases (origin review found a child that wrote a complete JSON then exited non-zero would be accepted)"
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "parts": {
+    "1_source_and_lineage": "PASS (V003 fisico byte-identico; entrypoint testado=empacotado=entregue); QS4 sucessor ausente provado",
+    "2_consumers_implemented_wired_and_blocked": "PASS (W04/Job/SAFE_STOP/porta; cmd_run->admission->_run_supervised; fronteira de exit exata; negativos nativos em processo proprio com rc==0 exigido; FULL B/C e QS4 fail-closed terminais) — busca adversarial de falsa completude: NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
+    "3_offline_qualification_final_bytes": "PASS (19/19 V003 imutavel; V008R10 16 PASS + 2 SKIPPED_NON_NATIVE incl. Q14/Q15; 78/78 unit incl. NativeNegativesFreshProcess; 24/24 mutantes supervisor; 20/20 bootstrap boundary; 8/8 bootstrap mutantes)",
+    "4_native_target_qualification": "MET nos bytes R9 (23/23 numa execucao: Q01-Q15 + W04 Q10a-f + Q11; W04 PASS_NATIVE=5, GAPLESS_NATIVE_JOB=4; census abandoned=[0,0]); evidencia preservada em native_campaign_r9/. R10 difere de R9 so pela fronteira rc==0 (parent-side), offline-provada pelo controle negativo e INERTE no run nativo observado (filho saiu rc=0)",
+    "5_tested_packaged_installed_delivered": "PASS offline (2947 arquivos conferidos); instalado PENDENTE (modo Install, opcional)"
+  },
+  "candidate_completeness": "ENGINEERING_COMPLETE_NATIVE_MET_ON_R9_BYTES",
+  "r10_delta_vs_r9": "fronteira fail-closed rc==0 no pai dos negativos nativos; offline-provada (controle negativo); inerte no run nativo R9 (rc=0)",
+  "r10_native_rerun": "OPCIONAL/confirmatorio — nao requerido: o delta e offline-provavel e nao alterou a execucao nativa observada",
+  "formal_seal": "WITH_ORIGIN (custodia normativa MASTER/HEAD exclusiva do ChatGPT de origem)",
+  "single_external_item_remaining": "selagem formal de CANDIDATE_COMPLETENESS=PASS pela origem (e, se desejado, uma re-execucao nativa confirmatoria sobre os bytes R10)",
+  "out_of_mission_gate": "Harness QS4 sucessor vinculado ao adaptador EC96FE9A exige qualificacao QS4 (QS4=NO)",
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "NOT_STARTED",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

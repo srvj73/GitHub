@@ -427,6 +427,14 @@ def _native_negatives_in_fresh_process(evidence, inputs, env, case, log):
     p = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=1800)
     child_stdout.write_text((p.stdout or "") + "\n--- stderr ---\n" + (p.stderr or ""), encoding="utf-8")
     log("NATIVE_NEGATIVES_FRESH_PROCESS_EXIT rc=%s" % p.returncode)
+    # Fronteira fail-closed: o filho DEVE terminar com código 0. No caminho projetado ele sempre
+    # retorna 0 (até uma exceção interna vira caso negativo + completed=False, reencenado pelo pai);
+    # um código não zero significa falha fora desse caminho (aborto do interpretador/SO, erro no
+    # flush de saída no encerramento, etc.) e NUNCA pode ser aceito, ainda que o JSON tenha sido
+    # gravado completo antes da saída. Exigido ANTES de ler/aceitar qualquer caso.
+    if p.returncode != 0:
+        tail = (p.stdout or "") + (p.stderr or "")
+        raise sup.SupervisorBlocked("NATIVE_NEGATIVES_CHILD_NONZERO_EXIT rc=%s tail=%s" % (p.returncode, tail[-800:]))
     if not result_path.is_file():
         tail = (p.stdout or "") + (p.stderr or "")
         raise sup.SupervisorBlocked("NATIVE_NEGATIVES_CHILD_NO_RESULT rc=%s tail=%s" % (p.returncode, tail[-800:]))
