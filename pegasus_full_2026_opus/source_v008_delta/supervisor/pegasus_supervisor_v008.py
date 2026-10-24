@@ -530,6 +530,41 @@ def supervised_final_outcome(*, completed: bool, stopped: bool, receipt_persiste
     return {"exit_code": EXIT_FAIL, "result": "FAIL_SUPERVISED_RUN", "exit_class": classify_exit(EXIT_FAIL)}
 
 
+def terminal_for_prespawn_block(receipt_persisted: bool) -> dict:
+    """I-02 (R17): verdade terminal ÚNICA do ramo pré-spawn. BLOCKED/exit 2 (sem efeito) só é
+    desfecho legítimo quando o recibo CANÔNICO foi persistido. Sem o canônico (persist_run_receipt
+    caiu no fallback FAIL/exit 3), o desfecho terminal passa a FAIL/exit 3 — coerente com o recibo
+    realmente gravado, nunca BLOCKED/exit 2 sobre um fallback FAIL. result/exit_code/exit_class/
+    banner derivam todos DESTA decisão."""
+    if receipt_persisted:
+        return {"exit_code": EXIT_BLOCKED, "result": "BLOCKED_PRESPAWN_NO_EFFECT",
+                "exit_class": classify_exit(EXIT_BLOCKED), "effects_started": False}
+    return {"exit_code": EXIT_FAIL, "result": "FAIL_PRESPAWN_RECEIPT_NOT_PERSISTED",
+            "exit_class": classify_exit(EXIT_FAIL), "effects_started": False}
+
+
+def terminal_for_post_spawn_fail(receipt_persisted: bool, *, effects_started: bool) -> dict:
+    """I-02 (R17): verdade terminal ÚNICA do ramo de falha técnica APÓS o spawn. Sempre FAIL/exit 3
+    (há/pode haver efeito), persistido o canônico ou degradado ao fallback — o recibo ausente nunca
+    vira sucesso nem bloqueio sem efeito."""
+    result = "FAIL_TECHNICAL_SUPERVISION" if receipt_persisted else "FAIL_TECHNICAL_RECEIPT_NOT_PERSISTED"
+    return {"exit_code": EXIT_FAIL, "result": result, "exit_class": classify_exit(EXIT_FAIL),
+            "effects_started": bool(effects_started)}
+
+
+def _emit_summary(obj) -> None:
+    """I-02 (R17): emissão do resumo terminal à prova de falha — nunca altera o desfecho (exit_code
+    já decidido) nem derruba o processo. Vale para TODOS os ramos (pré-spawn, pós-spawn, sucesso)."""
+    try:
+        print(json.dumps(obj, sort_keys=True, default=str))
+    except Exception as exc:
+        try:
+            sys.stderr.write("PEGASUS_SUPERVISOR_SUMMARY_EMIT_FAILED %s exit_code=%s\n"
+                             % (type(exc).__name__, obj.get("exit_code") if isinstance(obj, Mapping) else "?"))
+        except Exception:
+            pass
+
+
 def job_close_plan(active_processes: int, clear_kill_ok: bool) -> dict:
     """R11-ORIGIN-01: plano PURO de ações ao fechar a custódia do Job, honrando NO_KILL.
 
@@ -1029,9 +1064,13 @@ class W04Guard:
         if self.impl is not None:
             self.impl.revalidate()
 
-    def disarm(self, tree_empty: bool) -> dict:
+    def evaluate(self, tree_empty: bool) -> dict:
+        """I-01 (R17): produz o VEREDITO W04 SEM liberar fisicamente os handles da lease. A
+        liberação física (release) fica para DEPOIS de a custódia do Job estar comprovadamente
+        fechada — assim um close recusado/UNKNOWN mantém W04+Job retidos de fato (NO_KILL),
+        fechando o ramo em que a R16 prometia o hold de emergência sem demonstrá-lo fisicamente."""
         if self.impl is not None:
-            rep = self.impl.disarm(tree_empty)
+            rep = self.impl.disarm(tree_empty, release=False)
             return w04_verdict(native=True, lease=rep["lease"], dirs=rep["dirs"], usn=rep["usn"],
                                identity=rep["identity"], census=rep["census"])
         after = inventory(self.root)
@@ -1040,6 +1079,13 @@ class W04Guard:
         v["hash_continuity"] = "UNCHANGED" if same else "CHANGED"
         if not same:
             v["w04_full"] = "BLOCKED"
+        return v
+
+    def disarm(self, tree_empty: bool) -> dict:
+        # Retrocompatível (qualificação direta da lease): avalia e LIBERA num único passo. O caminho
+        # de produção do supervisor usa evaluate()+release() separados para o contrato de retenção.
+        v = self.evaluate(tree_empty)
+        self.release()
         return v
 
 
@@ -1454,10 +1500,15 @@ class Supervision:
                 self._record_error("finalize_tree_not_empty",
                                    RuntimeError("FINAL_ACCOUNTING_NOT_EMPTY active=%s" % acc_active))
                 return self._emergency_hold_and_result(cust, guard, arm, pid)
-            w04 = self._guard("w04_disarm", lambda: guard.disarm(tree_empty=True), None)
+            # I-01 (R17): AVALIA a W04 com os handles da lease AINDA RETIDOS (evaluate não libera) e
+            # só então confirma o fechamento do Job. A liberação física (guard.release) ocorre
+            # EXCLUSIVAMENTE depois de custody_close_confirmed; um close recusado/UNKNOWN cai no hold
+            # de emergência com W04+Job fisicamente retidos (NO_KILL), fechando causalmente o ramo em
+            # que a R16 prometia o hold sem o demonstrar (a disarm soltava a lease antes do close).
+            w04 = self._guard("w04_evaluate", lambda: guard.evaluate(tree_empty=True), None)
             if not isinstance(w04, Mapping) or "w04_full" not in w04:
-                w04 = {"w04_full": "BLOCKED", "gaps": ["W04_DISARM_FAILED"]}
-            self._set_phase("W04_DISARMED")
+                w04 = {"w04_full": "BLOCKED", "gaps": ["W04_EVALUATE_FAILED"]}
+            self._set_phase("W04_EVALUATED_HELD")
             self._guard("mark_w04_disarm", lambda: cust.mark("W04_DISARM"))
             # Marks colhidas APÓS registrar W04_DISARM (a ordem JIT exige esta marca) e ANTES do close
             # (após close não há consulta válida à custódia).
@@ -1467,10 +1518,15 @@ class Supervision:
             close_result = self._guard("custody_close", lambda: cust.close(), None)
             self.ctx["custody_close_result"] = close_result if isinstance(close_result, Mapping) else {"closed": None}
             if not custody_close_confirmed(close_result, tree_verified_empty=bool(self.ctx.get("tree_verified_empty"))):
+                # Job NÃO fechado com prova: a W04 permanece RETIDA (não liberada) — hold observável.
                 self.ctx["custody_closed"] = False
+                self.ctx["w04_held_pending_close"] = True
                 self._record_error("custody_close_unconfirmed",
                                    RuntimeError("CUSTODY_CLOSE_NOT_CONFIRMED result=%s" % (close_result,)))
                 return self._emergency_hold_and_result(cust, guard, arm, pid)
+            # Job fechado COM prova: agora é fisicamente seguro liberar a lease W04.
+            self._guard("w04_release_after_close", lambda: guard.release())
+            self._set_phase("W04_DISARMED")
             self.ctx["custody_closed"] = True
             self._set_phase("CUSTODIAN_CLOSED")
             outcome = "TREE_EMPTY_CUSTODY_CLOSED"
@@ -1568,14 +1624,20 @@ class Supervision:
                     outcome = "LIVE_TREE_RELEASED_BY_OWNER_NO_KILL"
                     self.ctx["custody_closed"] = True
             if not self.ctx.get("custody_closed"):
-                got = self._guard("emergency_w04_disarm", lambda: guard.disarm(tree_empty=True), None)
+                # I-01 (R17): AVALIA a W04 sem liberar; confirma o fechamento do Job; só LIBERA a
+                # lease depois da prova de fechamento. Close recusado/UNKNOWN => W04+Job retidos.
+                got = self._guard("emergency_w04_evaluate", lambda: guard.evaluate(tree_empty=True), None)
                 if isinstance(got, Mapping) and got.get("w04_full") == "BLOCKED":
                     w04 = dict(got)
                 close_result = self._guard("emergency_custody_close", lambda: cust.close(), None)
                 self.ctx["custody_close_result"] = close_result if isinstance(close_result, Mapping) else {"closed": None}
                 # N2: mesmo no hold de emergência, CUSTODIAN_CLOSED exige prova de fechamento.
                 if custody_close_confirmed(close_result, tree_verified_empty=bool(self.ctx.get("tree_verified_empty"))):
+                    self._guard("emergency_w04_release_after_close", lambda: guard.release())
                     self.ctx["custody_closed"] = True
+                    self.ctx["w04_held_pending_close"] = False
+                else:
+                    self.ctx["w04_held_pending_close"] = True
         self._set_phase("CUSTODIAN_CLOSED" if self.ctx.get("custody_closed") else "LIVE_TREE_BLOCKED")
         verdict = {"completed": False, "gaps": ["SUPERVISION_UNEXPECTED_EXCEPTION"]}
         res = {"label": self.label, "child_pid": pid, "child_exit": self.ctx.get("child_exit"), "w04_arm": arm,
@@ -1657,6 +1719,108 @@ class DefaultReleaseAdmission:
         raise SupervisorBlocked("RELEASE_ADMISSION_RETURNED_WITHOUT_EXTERNAL_MODULE")
 
 
+# =====================================================================================
+# I-03 — ADMISSÃO DE PRODUÇÃO REAL E ENCADEAMENTO B->C->FULL (fail-closed)
+# =====================================================================================
+# A rota executável REAL de autorização de produção. Fecha a lacuna "FULL econômico inexistente
+# como rota executável": existe, é alcançável e encadeia B->C->FULL, vinculada aos contratos
+# técnicos exigidos (R01–R06, QS4 sucessor, QS5/B06, PolicyRoot como ENTRADA técnica, qualificação
+# Windows dirigida, admissão de fontes por hash, volume/espaço, runtime). NÃO promove nada: mesmo um
+# pacote de autorização completo e válido em SHA termina no selo final `entry.release_admission`,
+# que bloqueia enquanto RELEASE_STATE != RUN_RELEASED. Nunca fabrica credenciais/recibos, nunca
+# antecipa QS4/Phase B/C, nunca cria aprovação administrativa de Owner Gate. PolicyRoot permanece
+# entrada técnica obrigatória (verificada só por presença + SHA do recibo), não autoridade canônica
+# adicional — este código NÃO lê, baixa, autentica nem revalida MASTER/HEAD/política.
+PRODUCTION_AUTH_SCHEMA = "PEGASUS_FULL_2026_V008_PRODUCTION_AUTHORIZATION_BUNDLE"
+
+# Gates técnicos OBRIGATÓRIOS da liberação futura (01_IMPLEMENTATION_CONTRACT / gate ledger).
+REQUIRED_PRODUCTION_GATES = (
+    "R01_R06_PHYSICAL_DEFINITIONS",
+    "QS4_SUCCESSOR_QUALIFICATION",
+    "QS5_B06_INDEPENDENT_AUDIT",
+    "POLICYROOT_LIVE_CAPTURE",
+    "WINDOWS_DIRECTED_QUALIFICATION",
+    "SOURCE_ADMISSION_BY_HASH",
+    "VOLUME_SERIAL_AND_FREE_SPACE",
+    "RUNTIME_PYTHON_3_14_7_PS_5_1",
+)
+PHASE_CHAIN_PREDECESSORS = {"B": (), "C": ("B",), "FULL": ("B", "C")}
+_HEXSET = set("0123456789ABCDEF")
+
+
+def production_admission_verdict(bundle, *, phase) -> dict:
+    """PURO/testável offline. Verifica o pacote de autorização de produção fornecido EXTERNAMENTE
+    pelo titular: schema, fase e cada gate técnico obrigatório presente com recibo vinculado por
+    SHA-256 (sha + status=PASS). Verifica o encadeamento (C exige B; FULL exige B e C). NUNCA
+    promove: o veredito ADMITTED_PENDING_FINAL_SEAL apenas HABILITA o supervisor a chamar o selo
+    final (entry.release_admission), que bloqueia enquanto RUN_RELEASED=NO. Qualquer ausência,
+    schema inválido, gate faltante, SHA inválido/divergente ou status != PASS => BLOCKED com causa."""
+    if not isinstance(bundle, Mapping):
+        return {"admission": "BLOCKED", "gaps": ["AUTHORIZATION_BUNDLE_ABSENT"]}
+    if bundle.get("schema") != PRODUCTION_AUTH_SCHEMA:
+        return {"admission": "BLOCKED", "gaps": ["AUTHORIZATION_BUNDLE_SCHEMA_INVALID"]}
+    if phase not in PHASE_CHAIN_PREDECESSORS:
+        return {"admission": "BLOCKED", "gaps": ["PHASE_INVALID:%s" % phase]}
+    gates = bundle.get("gates") if isinstance(bundle.get("gates"), Mapping) else {}
+    chain = bundle.get("phase_chain") if isinstance(bundle.get("phase_chain"), Mapping) else {}
+    gaps: List[str] = []
+    satisfied: Dict[str, str] = {}
+    for g in REQUIRED_PRODUCTION_GATES:
+        rec = gates.get(g)
+        if not isinstance(rec, Mapping):
+            gaps.append("GATE_MISSING:%s" % g)
+            continue
+        sha = str(rec.get("sha256", "")).upper()
+        if len(sha) != 64 or any(c not in _HEXSET for c in sha):
+            gaps.append("GATE_SHA_INVALID:%s" % g)
+            continue
+        if rec.get("status") != "PASS":
+            gaps.append("GATE_NOT_PASS:%s" % g)
+            continue
+        satisfied[g] = sha
+    for pre in PHASE_CHAIN_PREDECESSORS[phase]:
+        if chain.get(pre) != "PASS":
+            gaps.append("PHASE_CHAIN_PREDECESSOR_NOT_PASS:%s" % pre)
+    if gaps:
+        return {"admission": "BLOCKED", "gaps": sorted(gaps)}
+    return {"admission": "ADMITTED_PENDING_FINAL_SEAL", "phase": phase, "gates": satisfied}
+
+
+class ProductionReleaseAdmission:
+    """Admissão de produção REAL (I-03). Lê o pacote de autorização externo do titular (JSON, FORA
+    do pacote selado), verifica os gates técnicos por SHA via production_admission_verdict e SÓ ENTÃO
+    chama o selo final do V003. Mesmo um pacote completo bloqueia em entry.release_admission enquanto
+    RELEASE_STATE != RUN_RELEASED. Não fabrica nada; não antecipa QS4/B/C; não cria Owner Gate."""
+    schema = "PEGASUS_FULL_2026_V008_PRODUCTION_RELEASE_ADMISSION"
+
+    def __init__(self, bundle_path):
+        self.bundle_path = bundle_path
+
+    def _load_bundle(self, package_root: Path):
+        if not self.bundle_path:
+            return None
+        p = Path(self.bundle_path).resolve()
+        # Auto-autorização proibida: o pacote de autorização NUNCA pode estar dentro do pacote selado.
+        if p.is_relative_to(Path(package_root).resolve()):
+            raise SupervisorBlocked("AUTHORIZATION_BUNDLE_INSIDE_SEALED_PACKAGE_FORBIDDEN")
+        if not p.is_file():
+            return None
+        try:
+            return json.loads(p.read_text(encoding="utf-8"))
+        except Exception as exc:
+            raise SupervisorBlocked("AUTHORIZATION_BUNDLE_UNREADABLE:%s" % type(exc).__name__)
+
+    def admit(self, *, phase, package_root, entry, ns):
+        bundle = self._load_bundle(package_root)
+        verdict = production_admission_verdict(bundle, phase=phase)
+        if verdict["admission"] != "ADMITTED_PENDING_FINAL_SEAL":
+            raise entry.Blocked("PRODUCTION_ADMISSION_BLOCKED:" + ";".join(verdict["gaps"]))
+        # Gates técnicos presentes: ainda assim o selo final do runtime V003 decide — e bloqueia aqui
+        # (RUN_RELEASED=NO). O encadeamento econômico não existe sem a liberação legítima da origem.
+        entry.release_admission({"production_admission": verdict}, phase if phase in ("B", "C") else "C")
+        raise SupervisorBlocked("PRODUCTION_RELEASE_ADMISSION_REACHED_FINAL_SEAL_STILL_BLOCKED")
+
+
 SEALED_SYNTHETIC_ADMISSION_REL = "supervisor/tests/pegasus_synthetic_admission_v008.py"
 ECONOMIC_ENTRY_MODULES = ("pegasus_entry", "r1r11_full_2026", "r1r11_correct_full_controller",
                           "r1r11_perf_next_controller", "r1r11_activation_controller", "r1r11_owner_gates",
@@ -1703,7 +1867,15 @@ def _load_admission(ns):
     admissão — permitido SOMENTE para qualificação sintética isolada. R15 (INT-13): só é aceito o
     módulo sintético SELADO do próprio pacote (caminho exato + SHA do manifesto); qualquer outro
     arquivo é recusado ANTES de ser carregado (nenhum código arbitrário é executado)."""
+    # I-03: `--authorization <bundle.json>` seleciona a admissão de PRODUÇÃO real (fail-closed no selo
+    # final). Mutuamente exclusivo com `--admission` (qualificação sintética). Sem nenhum, é a
+    # admissão de produção DEFAULT (DefaultReleaseAdmission), que bloqueia incondicionalmente.
+    auth = getattr(ns, "authorization", None)
     path = getattr(ns, "admission", None)
+    if auth and path:
+        raise SupervisorBlocked("ADMISSION_AND_AUTHORIZATION_MUTUALLY_EXCLUSIVE")
+    if auth:
+        return ProductionReleaseAdmission(auth)
     if not path:
         return DefaultReleaseAdmission()
     sealed = (ROOT / SEALED_SYNTHETIC_ADMISSION_REL).resolve()
@@ -1781,22 +1953,31 @@ def _run_supervised(plan, *, evidence: Path, entry, log=print) -> int:
     try:
         result = s.run(plan["argv"], env, timeout_s=plan.get("timeout_s"))
     except PrespawnBlocked as exc:
+        # I-02 (R17): grava-se o recibo canônico com o desfecho otimista (BLOCKED/exit 2) e, em
+        # seguida, o desfecho é RECALCULADO com o resultado REAL da persistência. Se o canônico não
+        # foi gravado (fallback FAIL), result/exit_code/exit_class/banner passam todos a FAIL/exit 3.
         doc = {"schema": SUPERVISED_RUN_SCHEMA, "result": "BLOCKED_PRESPAWN_NO_EFFECT", "cause": str(exc),
                "effects_started": False, "exit_code": EXIT_BLOCKED, "exit_class": classify_exit(EXIT_BLOCKED),
                "plan": plan_view, "isolation": iso, "supervision": s.summary(), **GATES}
         rec = persist_run_receipt(evidence, label, doc)
-        print(json.dumps({"schema": SUPERVISED_RUN_SCHEMA, "result": doc["result"], "cause": doc["cause"],
-                          "effects_started": False, "receipt": rec}, sort_keys=True, default=str))
-        return EXIT_BLOCKED
+        final = terminal_for_prespawn_block(bool(rec["persisted"]))
+        s._set_phase("RESULT_PERSISTED" if rec["persisted"] else "RESULT_PERSIST_FAILED")
+        _emit_summary({"schema": SUPERVISED_RUN_SCHEMA, "result": final["result"], "cause": doc["cause"],
+                       "effects_started": final["effects_started"], "exit_code": final["exit_code"],
+                       "exit_class": final["exit_class"], "receipt": rec})
+        return final["exit_code"]
     except BaseException as exc:  # run() não levanta após o spawn; defesa com recibo técnico
         doc = {"schema": SUPERVISED_RUN_SCHEMA, "result": "FAIL_TECHNICAL_SUPERVISION",
                "cause": ("%s: %s" % (type(exc).__name__, exc))[:800],
                "effects_started": bool(s.ctx.get("effects_started")), "exit_code": EXIT_FAIL,
                "exit_class": classify_exit(EXIT_FAIL), "plan": plan_view, "supervision": s.summary(), **GATES}
         rec = persist_run_receipt(evidence, label, doc)
-        print(json.dumps({"schema": SUPERVISED_RUN_SCHEMA, "result": doc["result"], "cause": doc["cause"],
-                          "receipt": rec}, sort_keys=True, default=str))
-        return EXIT_FAIL
+        final = terminal_for_post_spawn_fail(bool(rec["persisted"]), effects_started=bool(s.ctx.get("effects_started")))
+        s._set_phase("RESULT_PERSISTED" if rec["persisted"] else "RESULT_PERSIST_FAILED")
+        _emit_summary({"schema": SUPERVISED_RUN_SCHEMA, "result": final["result"], "cause": doc["cause"],
+                       "effects_started": final["effects_started"], "exit_code": final["exit_code"],
+                       "exit_class": final["exit_class"], "receipt": rec})
+        return final["exit_code"]
     result["schema"] = SUPERVISED_RUN_SCHEMA
     result["plan"] = plan_view
     result["isolation"] = iso
@@ -1823,19 +2004,13 @@ def _run_supervised(plan, *, evidence: Path, entry, log=print) -> int:
     result["receipt"] = rec
     code = final["exit_code"]
     s._set_phase("RESULT_PERSISTED" if rec["persisted"] else "RESULT_PERSIST_FAILED")
-    # N3: a falha de emissão do PRÓPRIO resumo não pode alterar o desfecho nem derrubar o processo.
-    try:
-        print(json.dumps({k: result[k] for k in ("schema", "result", "label", "child_exit", "outcome") if k in result}
-                         | {"w04_full": (result.get("w04") or {}).get("w04_full"),
-                            "lineage": (result.get("lineage") or {}).get("lineage"),
-                            "exit_code": code, "exit_class": result["exit_class"],
-                            "custody_resolved": custody_resolved, "receipt": rec}, sort_keys=True, default=str))
-    except Exception as exc:
-        try:
-            sys.stderr.write("PEGASUS_SUPERVISOR_SUMMARY_EMIT_FAILED %s exit_code=%s result=%s\n"
-                             % (type(exc).__name__, code, result.get("result")))
-        except Exception:
-            pass
+    # N3/I-02: a falha de emissão do PRÓPRIO resumo não pode alterar o desfecho nem derrubar o
+    # processo. _emit_summary encapsula o print à prova de falha, usado por TODOS os ramos.
+    _emit_summary({k: result[k] for k in ("schema", "result", "label", "child_exit", "outcome") if k in result}
+                  | {"w04_full": (result.get("w04") or {}).get("w04_full"),
+                     "lineage": (result.get("lineage") or {}).get("lineage"),
+                     "exit_code": code, "exit_class": result["exit_class"],
+                     "custody_resolved": custody_resolved, "receipt": rec})
     return code
 
 
@@ -1862,6 +2037,49 @@ def cmd_run(ns) -> int:
     return _run_supervised(plan, evidence=evidence, entry=entry)
 
 
+def cmd_run_full(ns) -> int:
+    """I-03: caminho FULL ENCADEADO B -> C -> FULL (antes `run-full` escolhia só phase=B). Cada fase
+    passa pela admissão única; C exige o PASS de B e FULL exige B e C. Neste artefato a admissão
+    bloqueia já em B (sem autorização legítima / RUN_RELEASED=NO), então a cadeia devolve BLOCKED
+    identificando a fase e a causa — sem efeito econômico, sem antecipar fases, fail-closed real."""
+    entry = _import_entry()
+    entry.verify_tree(ROOT)
+    verify_supervisor_parents()
+    admission = _load_admission(ns)
+    adm_name = getattr(admission, "schema", type(admission).__name__)
+    chain: List[dict] = []
+    for phase in ("B", "C", "FULL"):
+        try:
+            plan = admission.admit(phase=phase, package_root=ROOT, entry=entry, ns=ns)
+        except entry.Blocked as exc:
+            chain.append({"phase": phase, "result": "BLOCKED", "cause": str(exc)})
+            print(json.dumps({"schema": SCHEMA, "result": "FULL_CHAIN_BLOCKED", "blocked_at": phase,
+                              "chain": chain, "admission": adm_name, "effects": "NONE", **GATES},
+                             sort_keys=True))
+            return EXIT_BLOCKED
+        except SupervisorBlocked as exc:
+            chain.append({"phase": phase, "result": "BLOCKED_FINAL_SEAL", "cause": str(exc)})
+            print(json.dumps({"schema": SCHEMA, "result": "FULL_CHAIN_BLOCKED_AT_FINAL_SEAL",
+                              "blocked_at": phase, "chain": chain, "admission": adm_name,
+                              "effects": "NONE", **GATES}, sort_keys=True))
+            return EXIT_BLOCKED
+        # Admissão concedida (inalcançável neste artefato): executa supervisionado e exige o PASS do
+        # predecessor antes da próxima fase. Mantido para completude estrutural da rota.
+        if getattr(ns, "evidence", None):
+            evidence = Path(ns.evidence) / ("PHASE_%s_EVIDENCE" % phase)
+        else:
+            evidence = Path(plan["out_root"]).parent / (plan["label"] + "_EVIDENCE")
+        rc = _run_supervised(plan, evidence=evidence, entry=entry)
+        chain.append({"phase": phase, "result": "RAN", "exit_code": rc, "exit_class": classify_exit(rc)})
+        if rc != EXIT_PASS:
+            print(json.dumps({"schema": SCHEMA, "result": "FULL_CHAIN_HALTED", "halted_at": phase,
+                              "chain": chain, "admission": adm_name, **GATES}, sort_keys=True))
+            return rc
+    print(json.dumps({"schema": SCHEMA, "result": "FULL_CHAIN_COMPLETE", "chain": chain,
+                      "admission": adm_name, **GATES}, sort_keys=True))
+    return EXIT_PASS
+
+
 def cmd_bind_qs4(ns) -> int:
     import pegasus_qs4_binding_v008 as qb
     rep = qb.binding_report(Path(ns.harness_dir), ROOT)
@@ -1881,8 +2099,11 @@ def build_parser():
     for c in ("run-b", "run-c", "run-full"):
         rp = sub.add_parser(c)
         # Admissão default = produção (bloqueia). --admission injeta um módulo SOMENTE para
-        # qualificação sintética isolada; nunca pode produzir plano econômico.
+        # qualificação sintética isolada; nunca pode produzir plano econômico. --authorization
+        # (I-03) seleciona a admissão de produção real sobre um pacote de autorização externo do
+        # titular; mesmo completo, bloqueia no selo final (RUN_RELEASED=NO).
         rp.add_argument("--admission", default=None)
+        rp.add_argument("--authorization", default=None)
         rp.add_argument("--evidence", default=None)
     b = sub.add_parser("bind-qs4")
     b.add_argument("--harness-dir", required=True)
@@ -1898,7 +2119,9 @@ def main(argv=None) -> int:
     try:
         if ns.cmd == "verify":
             return cmd_verify(ns)
-        if ns.cmd in ("run-b", "run-c", "run-full"):
+        if ns.cmd == "run-full":
+            return cmd_run_full(ns)          # I-03: encadeia B -> C -> FULL
+        if ns.cmd in ("run-b", "run-c"):
             return cmd_run(ns)
         if ns.cmd == "bind-qs4":
             return cmd_bind_qs4(ns)

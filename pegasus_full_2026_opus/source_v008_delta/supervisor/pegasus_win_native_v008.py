@@ -669,9 +669,13 @@ class W04NativeLease:
             if now["links"] != info["links"]:
                 self.link_changes.append(n)
 
-    def disarm(self, tree_empty: bool) -> dict:
+    def disarm(self, tree_empty: bool, release: bool = True) -> dict:
         # R15 (INT-05/INT-22): o desarme nunca levanta. Cada falha (consulta/leitura USN, census,
         # contagem) vira causa registrada e o veredito W04 resulta BLOCKED — nunca PASS por omissão.
+        # I-01 (R17): `release` separa a AVALIAÇÃO (ler USN/census/identidade e montar o relatório)
+        # da LIBERAÇÃO FÍSICA dos handles da lease. Com release=False os handles permanecem abertos
+        # após a avaliação, para que o supervisor só os solte DEPOIS de confirmar o fechamento do
+        # Job — um close recusado/UNKNOWN mantém a deny-write/deny-delete fisicamente ativa (NO_KILL).
         disarm_errors = []
         self.revalidate()
         try:
@@ -722,7 +726,11 @@ class W04NativeLease:
                        "stats_start": self.census_start["stats"], "stats_end": census_end["stats"],
                        "attempts": [self.census_start.get("attempts"), census_end.get("attempts")]},
         }
-        self.release()
-        self.log("W04_DISARMED usn_hits=%d read_complete=%s reason=%s errors=%d"
-                 % (len(hits), complete, cov.get("reason"), len(disarm_errors)))
+        if release:
+            self.release()
+            self.log("W04_DISARMED usn_hits=%d read_complete=%s reason=%s errors=%d"
+                     % (len(hits), complete, cov.get("reason"), len(disarm_errors)))
+        else:
+            self.log("W04_EVALUATED_HELD usn_hits=%d read_complete=%s reason=%s errors=%d (handles retidos)"
+                     % (len(hits), complete, cov.get("reason"), len(disarm_errors)))
         return rep

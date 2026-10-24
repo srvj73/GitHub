@@ -648,13 +648,16 @@ def _supervised_run_path_cases(evidence, inputs, env, case, log):
          returncode=p12.returncode, completion=res12.get("completion"), jit=res12.get("jit"),
          w04=res12.get("w04"), lineage=res12.get("lineage"))
 
-    # Q12b: run-full com admissão sintética + SAFE_STOP injetado -> parada confirmada, retomada.
+    # Q12b: corrida sintética supervisionada + SAFE_STOP injetado -> parada confirmada, retomada.
+    # I-03 (R17): `run-full` passou a ser a CADEIA real B->C->FULL (evidência por fase, fail-closed na
+    # produção); a prova sintética de SAFE_STOP/retomada é de UMA corrida supervisionada e usa `run-b`
+    # (a fase não altera a propriedade exercitada). A cadeia `run-full` é coberta por Q13a (bloqueio).
     out12b = evidence / "Q12b_out"
-    p12b = run_cmd("run-full", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(out12b),
-                                "PEGASUS_SYN_WORKERS": "2", "PEGASUS_SYN_STOP": "1"}, "Q12b_supervised_safestop")
+    p12b = run_cmd("run-b", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(out12b),
+                             "PEGASUS_SYN_WORKERS": "2", "PEGASUS_SYN_STOP": "1"}, "Q12b_supervised_safestop")
     res12b = json.loads((evidence / "Q12b_supervised_safestop_EV" / "SYN_SUPERVISED_SUPERVISED_RUN_RESULT.json").read_text())
-    p12c = run_cmd("run-full", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(out12b),
-                                "PEGASUS_SYN_WORKERS": "3"}, "Q12c_supervised_resume")
+    p12c = run_cmd("run-b", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(out12b),
+                             "PEGASUS_SYN_WORKERS": "3"}, "Q12c_supervised_resume")
     res12c = json.loads((evidence / "Q12c_supervised_resume_EV" / "SYN_SUPERVISED_SUPERVISED_RUN_RESULT.json").read_text())
     case("Q12b_CMD_RUN_SAFESTOP_THEN_RESUME_EXACTLY_ONCE",
          p12b.returncode == 130 and res12b.get("exit_code") == 130
@@ -664,14 +667,25 @@ def _supervised_run_path_cases(evidence, inputs, env, case, log):
          safe_stop_exit=p12b.returncode, safe_stop=res12b.get("safe_stop"), resume_completion=res12c.get("completion"))
 
     # Q13a: admissão de produção (sem --admission) bloqueia run-b/-c/-full com causa G00.
+    # I-03 (R17): run-b/run-c continuam BLOCKED direto; run-full é a CADEIA B->C->FULL, que bloqueia
+    # já na fase B (FULL_CHAIN_BLOCKED, blocked_at=B) com a causa G00 dentro da cadeia — sem efeito.
     blocked = {}
     for cmd in ("run-b", "run-c", "run-full"):
         p = run_default(cmd, "Q13a_default_" + cmd)
         doc = json.loads(p.stdout.strip().splitlines()[-1])
-        blocked[cmd] = (p.returncode, doc.get("result"), doc.get("cause", ""), doc.get("effects"))
+        if cmd == "run-full":
+            chain = doc.get("chain") or [{}]
+            cause = chain[0].get("cause", "")
+            ok = (p.returncode == 2 and doc.get("result") == "FULL_CHAIN_BLOCKED"
+                  and doc.get("blocked_at") == "B" and "G00_RUN_RELEASE_DISABLED" in cause
+                  and doc.get("effects") == "NONE")
+            blocked[cmd] = (p.returncode, doc.get("result"), cause, doc.get("effects"), ok)
+        else:
+            ok = (p.returncode == 2 and doc.get("result") == "BLOCKED"
+                  and "G00_RUN_RELEASE_DISABLED" in doc.get("cause", "") and doc.get("effects") == "NONE")
+            blocked[cmd] = (p.returncode, doc.get("result"), doc.get("cause", ""), doc.get("effects"), ok)
     case("Q13a_DEFAULT_ADMISSION_BLOCKS_ALL_RUN_MODES",
-         all(v[0] == 2 and v[1] == "BLOCKED" and "G00_RUN_RELEASE_DISABLED" in v[2] and v[3] == "NONE"
-             for v in blocked.values()), blocked=blocked)
+         all(v[4] for v in blocked.values()), blocked=blocked)
 
     # Q13b: admissão sintética que tenta marcar plano econômico -> recusa (make_run_plan).
     p13b = run_cmd("run-b", {"PEGASUS_SYN_INPUTS": str(inputs), "PEGASUS_SYN_OUT": str(evidence / "Q13b_out"),

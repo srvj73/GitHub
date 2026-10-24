@@ -18,9 +18,9 @@ test_terminal_evidence_capturable_before_close_then_refused_after (__main__.Cust
 test_absent_or_bogus_code_never_pass (__main__.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
 test_known_codes (__main__.ExitClassification.test_known_codes) ... ok
 test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... Traceback (most recent call last):
-  File "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 1900, in main
+  File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 2121, in main
     return cmd_verify(ns)
-  File "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/tests/test_supervisor_v008.py", line 428, in boom
+  File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/tests/test_supervisor_v008.py", line 428, in boom
     raise RuntimeError("boom")
 RuntimeError: boom
 ok
@@ -87,6 +87,24 @@ test_completed_not_persisted_is_fail (__main__.R16OutcomeCoherencePure.test_comp
 test_completed_persisted_pass (__main__.R16OutcomeCoherencePure.test_completed_persisted_pass) ... ok
 test_nothing_persisted_fail (__main__.R16OutcomeCoherencePure.test_nothing_persisted_fail) ... ok
 test_stopped_persisted_safe_stop (__main__.R16OutcomeCoherencePure.test_stopped_persisted_safe_stop) ... ok
+test_bundle_inside_sealed_package_forbidden (__main__.R17ProductionAdmissionFailClosed.test_bundle_inside_sealed_package_forbidden) ... ok
+test_complete_bundle_still_blocks_at_final_seal (__main__.R17ProductionAdmissionFailClosed.test_complete_bundle_still_blocks_at_final_seal) ... ok
+test_incomplete_bundle_blocks_at_admission (__main__.R17ProductionAdmissionFailClosed.test_incomplete_bundle_blocks_at_admission) ... ok
+test_absent_bundle_blocked (__main__.R17ProductionAdmissionPure.test_absent_bundle_blocked) ... ok
+test_bad_schema_blocked (__main__.R17ProductionAdmissionPure.test_bad_schema_blocked) ... ok
+test_bad_sha_blocked (__main__.R17ProductionAdmissionPure.test_bad_sha_blocked) ... ok
+test_chain_predecessor_enforced (__main__.R17ProductionAdmissionPure.test_chain_predecessor_enforced) ... ok
+test_complete_bundle_reaches_final_seal_marker (__main__.R17ProductionAdmissionPure.test_complete_bundle_reaches_final_seal_marker) ... ok
+test_missing_gate_blocked (__main__.R17ProductionAdmissionPure.test_missing_gate_blocked) ... ok
+test_not_pass_blocked (__main__.R17ProductionAdmissionPure.test_not_pass_blocked) ... ok
+test_prespawn_block_with_canonical_receipt_is_exit_2 (__main__.R17TerminalCoherenceIntegration.test_prespawn_block_with_canonical_receipt_is_exit_2) ... ok
+test_prespawn_block_with_failed_receipt_is_exit_3_coherent (__main__.R17TerminalCoherenceIntegration.test_prespawn_block_with_failed_receipt_is_exit_3_coherent) ... ok
+test_post_spawn_fail_is_always_fail (__main__.R17TerminalCoherencePure.test_post_spawn_fail_is_always_fail) ... ok
+test_prespawn_block_not_persisted_is_fail (__main__.R17TerminalCoherencePure.test_prespawn_block_not_persisted_is_fail) ... ok
+test_prespawn_block_persisted_is_blocked (__main__.R17TerminalCoherencePure.test_prespawn_block_persisted_is_blocked) ... ok
+test_disarm_is_evaluate_then_release (__main__.R17W04EvaluateVsRelease.test_disarm_is_evaluate_then_release) ... ok
+test_evaluate_holds_handles (__main__.R17W04EvaluateVsRelease.test_evaluate_holds_handles) ... ok
+test_release_closes_only_after_explicit_call (__main__.R17W04EvaluateVsRelease.test_release_closes_only_after_explicit_call) ... ok
 test_empty_tree_is_the_only_finalize (__main__.ReconcileStepAction.test_empty_tree_is_the_only_finalize) ... ok
 test_live_before_deadline_holds (__main__.ReconcileStepAction.test_live_before_deadline_holds) ... ok
 test_live_production_holds_after_deadline (__main__.ReconcileStepAction.test_live_production_holds_after_deadline) ... ok
@@ -180,6 +198,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 173 tests in 11.461s
+Ran 191 tests in 9.614s
 
 OK

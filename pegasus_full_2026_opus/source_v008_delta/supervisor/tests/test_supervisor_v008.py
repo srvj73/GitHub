@@ -862,6 +862,9 @@ class _ReconcileCustody:
 class _ReconcileGuard:
     def __init__(self):
         self.disarmed = None
+        self.evaluated = None
+        self.released = 0
+        self.order = []
 
     def arm(self):
         return {"armed": "X"}
@@ -870,14 +873,23 @@ class _ReconcileGuard:
         return {"prespawn": "ACQUIRED_CLEAN"}
 
     def release(self):
-        pass
+        self.released += 1
+        self.order.append("release")
 
     def revalidate(self):
         pass
 
+    def evaluate(self, tree_empty):
+        # I-01 (R17): avalia SEM liberar a lease (handles retidos até prova de fechamento do Job).
+        self.evaluated = tree_empty
+        self.order.append("evaluate")
+        return {"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
+
     def disarm(self, tree_empty):
         self.disarmed = tree_empty
-        return {"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
+        v = self.evaluate(tree_empty)
+        self.release()
+        return v
 
 
 class SupervisionReconcileHold(unittest.TestCase):
@@ -907,8 +919,11 @@ class SupervisionReconcileHold(unittest.TestCase):
         # (3) fechou exatamente uma vez e SOMENTE com a árvore vazia (nunca com árvore viva)
         self.assertEqual(cust.closed, 1)
         self.assertEqual(cust.closed_while_live, 0)
-        # (4) W04 só foi desarmada com a árvore vazia (proteção por toda a vida da árvore)
-        self.assertIs(guard.disarmed, True)
+        # (4) W04 só foi AVALIADA com a árvore vazia (proteção por toda a vida da árvore)
+        self.assertIs(guard.evaluated, True)
+        # (4b) I-01: a liberação física da lease ocorreu DEPOIS da avaliação (evaluate antes de release)
+        self.assertEqual(guard.order[:2], ["evaluate", "release"])
+        self.assertGreaterEqual(guard.released, 1)
         # (5) a reconciliação foi marcada como mantida viva, sem kill
         self.assertIn("RESERVED_DECISION_HELD_ALIVE_NO_KILL", result.get("reconcile_reason", ""))
 
@@ -930,8 +945,13 @@ class _LifecycleGuard:
     def revalidate(self):
         pass
 
-    def disarm(self, tree_empty):
+    def evaluate(self, tree_empty):
         return {"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
+
+    def disarm(self, tree_empty):
+        v = self.evaluate(tree_empty)
+        self.release()
+        return v
 
 
 class _LifecycleCustody:
@@ -1507,11 +1527,19 @@ class _N2Custody:
 class _N2Guard:
     def __init__(self):
         self.disarmed = 0
+        self.evaluated = 0
         self.released = 0
+
+    def evaluate(self, tree_empty):
+        # I-01 (R17): avalia sem liberar; close recusado => release NUNCA é chamado.
+        self.evaluated += 1
+        return {"w04_full": "BLOCKED", "gaps": ["FAKE"]}
 
     def disarm(self, tree_empty):
         self.disarmed += 1
-        return {"w04_full": "BLOCKED", "gaps": ["FAKE"]}
+        v = self.evaluate(tree_empty)
+        self.release()
+        return v
 
     def release(self):
         self.released += 1
@@ -1638,6 +1666,10 @@ class R16Integration(unittest.TestCase):
         # N2: close() recusou => NUNCA custody_closed=True nem fase CUSTODIAN_CLOSED.
         self.assertIsNot(s.ctx.get("custody_closed"), True)
         self.assertNotEqual(s.phase, "CUSTODIAN_CLOSED")
+        # I-01 (R17): close recusado => a lease W04 NUNCA foi liberada fisicamente (handles retidos).
+        self.assertEqual(guard.released, 0)
+        self.assertGreaterEqual(guard.evaluated, 1)
+        self.assertIs(s.ctx.get("w04_held_pending_close"), True)
 
     def test_n3_run_supervised_receipt_fail_is_coherent(self):
         import contextlib, io
@@ -1658,6 +1690,235 @@ class R16Integration(unittest.TestCase):
         self.assertEqual(code, sup.EXIT_FAIL)
         self.assertEqual(last["exit_code"], sup.EXIT_FAIL)
         self.assertTrue(str(last["result"]).startswith("FAIL"))
+
+
+# =====================================================================================
+# I-01 (R17) — a AVALIAÇÃO da W04 é separada da LIBERAÇÃO física da lease. W04Guard.evaluate
+# nunca solta handles; só disarm (retrocompat) e release o fazem. Falha na R16 (W04Guard não
+# possuía evaluate; disarm liberava sempre) e PASSA nos bytes R17.
+# =====================================================================================
+class _FakeNativeLease:
+    """Dupla do W04NativeLease: registra se disarm foi chamado com release=True/False e os releases."""
+    def __init__(self):
+        self.disarm_calls = []
+        self.released = 0
+        self.rep = {"lease": {"targets": 1, "acquired": 1, "sharing_violations": [], "errors": [],
+                              "held_until_tree_empty": True, "revalidation_failures": []},
+                    "dirs": {"targets": 1, "acquired": 1, "errors": [], "held_until_tree_empty": True},
+                    "usn": {"journal_id_start": 1, "journal_id_end": 1, "first_usn_end": 1, "start_usn": 2,
+                            "end_usn": 3, "read_complete": True, "records_on_protected": [],
+                            "coverage": {"read_complete": True, "reason": None, "start_usn": 2, "end_usn": 3,
+                                         "covered_to": 3, "pages": 1, "records_parsed": 1}},
+                    "identity": {"reparse_points": [], "id_changes": [], "sha_mismatch": [], "link_count_changes": []},
+                    "census": {"truncated": False, "external_writers_under_target": [], "unresolved": 0,
+                               "stats_start": None, "stats_end": None, "attempts": [1, 1]}}
+
+    def disarm(self, tree_empty, release=True):
+        self.disarm_calls.append(release)
+        if release:
+            self.release()
+        return self.rep
+
+    def release(self):
+        self.released += 1
+
+
+# =====================================================================================
+# I-02 (R17) — verdade terminal ÚNICA em TODOS os ramos de _run_supervised. Um BLOCKED/exit 2 só é
+# legítimo com o recibo canônico persistido; sobre um fallback FAIL o desfecho é FAIL/exit 3.
+# Falha na R16 (ramo PrespawnBlocked retornava exit 2 fixo) e PASSA nos bytes R17.
+# =====================================================================================
+class _PrespawnBlockedSupervision:
+    def __init__(self, **kw):
+        self.primary_error = None
+        self.phase = "PRESPAWN"
+        self.ctx = {}
+
+    def run(self, *a, **k):
+        raise sup.PrespawnBlocked("W04_ARM_INCOMPLETE_NO_SPAWN_NO_PROTECTED_EFFECTS:TEST")
+
+    def _set_phase(self, *a, **k):
+        pass
+
+    def summary(self):
+        return {"phase": self.phase}
+
+
+class R17TerminalCoherencePure(unittest.TestCase):
+    def test_prespawn_block_persisted_is_blocked(self):
+        o = sup.terminal_for_prespawn_block(True)
+        self.assertEqual((o["result"], o["exit_code"]), ("BLOCKED_PRESPAWN_NO_EFFECT", sup.EXIT_BLOCKED))
+
+    def test_prespawn_block_not_persisted_is_fail(self):
+        o = sup.terminal_for_prespawn_block(False)
+        self.assertEqual(o["exit_code"], sup.EXIT_FAIL)
+        self.assertTrue(o["result"].startswith("FAIL"))
+
+    def test_post_spawn_fail_is_always_fail(self):
+        for p in (True, False):
+            o = sup.terminal_for_post_spawn_fail(p, effects_started=True)
+            self.assertEqual(o["exit_code"], sup.EXIT_FAIL)
+            self.assertTrue(o["result"].startswith("FAIL"))
+
+
+class R17TerminalCoherenceIntegration(unittest.TestCase):
+    def _run(self, persisted):
+        import contextlib, io
+        plan = dict(schema=sup.RUN_PLAN_SCHEMA, economic=False, label="PRESPAWN",
+                    argv=["py", "-B", "synthetic.py"], out_root="/tmp/o", protected_root="/tmp/p",
+                    admission_schema="SYNTH", admission_sha256="ABC")
+        buf = io.StringIO()
+        with tempfile.TemporaryDirectory() as t, \
+                mock.patch.object(sup, "Supervision", _PrespawnBlockedSupervision), \
+                mock.patch.object(sup, "plan_isolation_verdict",
+                                  lambda *a, **k: {"isolation": "ISOLATED_NON_ECONOMIC", "gaps": []}), \
+                mock.patch.object(sup, "persist_run_receipt",
+                                  lambda *a, **k: {"persisted": persisted, "path": "/x" if persisted else None,
+                                                   "error": None if persisted else "SIMULATED_IO_ERROR"}):
+            with contextlib.redirect_stdout(buf):
+                code = sup._run_supervised(plan, evidence=Path(t), entry=object())
+        last = json.loads(buf.getvalue().strip().splitlines()[-1])
+        return code, last
+
+    def test_prespawn_block_with_canonical_receipt_is_exit_2(self):
+        code, last = self._run(persisted=True)
+        self.assertEqual(code, sup.EXIT_BLOCKED)
+        self.assertEqual(last["exit_code"], sup.EXIT_BLOCKED)
+        self.assertEqual(last["result"], "BLOCKED_PRESPAWN_NO_EFFECT")
+
+    def test_prespawn_block_with_failed_receipt_is_exit_3_coherent(self):
+        # R16: retornava exit 2 fixo mesmo com o fallback FAIL gravado (verdade terminal incoerente).
+        code, last = self._run(persisted=False)
+        self.assertEqual(code, sup.EXIT_FAIL)
+        self.assertEqual(last["exit_code"], sup.EXIT_FAIL)
+        self.assertTrue(str(last["result"]).startswith("FAIL"))
+        self.assertEqual(last["exit_class"], sup.classify_exit(sup.EXIT_FAIL))
+
+
+# =====================================================================================
+# I-03 (R17) — admissão de PRODUÇÃO real e encadeamento B->C->FULL, fail-closed. A rota existe,
+# é alcançável e condicionada aos contratos técnicos; mesmo um pacote de autorização completo
+# bloqueia no selo final. Falha na R16 (não havia ProductionReleaseAdmission/production_admission_
+# verdict; run-full escolhia phase=B) e PASSA nos bytes R17.
+# =====================================================================================
+_SHA = "A" * 64
+
+
+def _complete_bundle(phase_chain=None):
+    gates = {g: {"sha256": _SHA, "status": "PASS"} for g in sup.REQUIRED_PRODUCTION_GATES}
+    return {"schema": sup.PRODUCTION_AUTH_SCHEMA, "gates": gates,
+            "phase_chain": phase_chain if phase_chain is not None else {"B": "PASS", "C": "PASS"}}
+
+
+class _FakeEntryBlocked:
+    class Blocked(RuntimeError):
+        pass
+
+    def __init__(self):
+        self.release_calls = []
+
+    def release_admission(self, req, phase):
+        # Selo final do V003: bloqueia incondicionalmente (RUN_RELEASED=NO) — nenhum req o promove.
+        self.release_calls.append(phase)
+        raise self.Blocked("G00_RUN_RELEASE_DISABLED")
+
+
+class R17ProductionAdmissionPure(unittest.TestCase):
+    def test_absent_bundle_blocked(self):
+        v = sup.production_admission_verdict(None, phase="B")
+        self.assertEqual(v["admission"], "BLOCKED")
+        self.assertIn("AUTHORIZATION_BUNDLE_ABSENT", v["gaps"])
+
+    def test_bad_schema_blocked(self):
+        v = sup.production_admission_verdict({"schema": "X"}, phase="B")
+        self.assertIn("AUTHORIZATION_BUNDLE_SCHEMA_INVALID", v["gaps"])
+
+    def test_missing_gate_blocked(self):
+        b = _complete_bundle(); b["gates"].pop(sup.REQUIRED_PRODUCTION_GATES[0])
+        v = sup.production_admission_verdict(b, phase="B")
+        self.assertEqual(v["admission"], "BLOCKED")
+        self.assertTrue(any(x.startswith("GATE_MISSING") for x in v["gaps"]))
+
+    def test_bad_sha_blocked(self):
+        b = _complete_bundle(); b["gates"]["QS4_SUCCESSOR_QUALIFICATION"]["sha256"] = "ZZ"
+        v = sup.production_admission_verdict(b, phase="B")
+        self.assertTrue(any(x.startswith("GATE_SHA_INVALID") for x in v["gaps"]))
+
+    def test_not_pass_blocked(self):
+        b = _complete_bundle(); b["gates"]["QS5_B06_INDEPENDENT_AUDIT"]["status"] = "PENDING"
+        v = sup.production_admission_verdict(b, phase="B")
+        self.assertTrue(any(x.startswith("GATE_NOT_PASS") for x in v["gaps"]))
+
+    def test_chain_predecessor_enforced(self):
+        b = _complete_bundle(phase_chain={})  # FULL exige B e C
+        v = sup.production_admission_verdict(b, phase="FULL")
+        self.assertEqual(v["admission"], "BLOCKED")
+        self.assertTrue(any("PHASE_CHAIN_PREDECESSOR_NOT_PASS" in x for x in v["gaps"]))
+
+    def test_complete_bundle_reaches_final_seal_marker(self):
+        # Pacote completo: o veredito HABILITA o selo final (não é promoção por si só).
+        v = sup.production_admission_verdict(_complete_bundle(), phase="B")
+        self.assertEqual(v["admission"], "ADMITTED_PENDING_FINAL_SEAL")
+        self.assertEqual(set(v["gates"]), set(sup.REQUIRED_PRODUCTION_GATES))
+
+
+class R17ProductionAdmissionFailClosed(unittest.TestCase):
+    def _write_bundle(self, d, obj):
+        p = Path(d) / "AUTH_BUNDLE.json"
+        p.write_text(json.dumps(obj), encoding="utf-8")
+        return str(p)
+
+    def test_incomplete_bundle_blocks_at_admission(self):
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as pkg:
+            path = self._write_bundle(t, {"schema": "WRONG"})
+            adm = sup.ProductionReleaseAdmission(path)
+            entry = _FakeEntryBlocked()
+            with self.assertRaises(entry.Blocked) as cm:
+                adm.admit(phase="B", package_root=Path(pkg), entry=entry, ns=None)
+            self.assertIn("PRODUCTION_ADMISSION_BLOCKED", str(cm.exception))
+            self.assertEqual(entry.release_calls, [])  # nem chegou ao selo final
+
+    def test_complete_bundle_still_blocks_at_final_seal(self):
+        # I-03 núcleo: mesmo um pacote completo e válido em SHA bloqueia no selo final do V003.
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as pkg:
+            path = self._write_bundle(t, _complete_bundle())
+            adm = sup.ProductionReleaseAdmission(path)
+            entry = _FakeEntryBlocked()
+            with self.assertRaises(entry.Blocked):
+                adm.admit(phase="B", package_root=Path(pkg), entry=entry, ns=None)
+            self.assertEqual(entry.release_calls, ["B"])  # chegou ao selo final e ele bloqueou
+
+    def test_bundle_inside_sealed_package_forbidden(self):
+        with tempfile.TemporaryDirectory() as pkg:
+            path = self._write_bundle(pkg, _complete_bundle())  # dentro do pacote selado
+            adm = sup.ProductionReleaseAdmission(path)
+            with self.assertRaises(sup.SupervisorBlocked):
+                adm.admit(phase="B", package_root=Path(pkg), entry=_FakeEntryBlocked(), ns=None)
+
+
+class R17W04EvaluateVsRelease(unittest.TestCase):
+    def test_evaluate_holds_handles(self):
+        g = sup.W04Guard.__new__(sup.W04Guard)
+        g.impl = _FakeNativeLease(); g.root = Path("/x"); g.native = True; g.baseline = None
+        v = g.evaluate(tree_empty=True)
+        self.assertEqual(v["w04_full"], "PASS_NATIVE_SAME_ATTEMPT")
+        self.assertEqual(g.impl.disarm_calls, [False])  # avaliou SEM pedir release
+        self.assertEqual(g.impl.released, 0)            # handles ainda retidos
+
+    def test_release_closes_only_after_explicit_call(self):
+        g = sup.W04Guard.__new__(sup.W04Guard)
+        g.impl = _FakeNativeLease(); g.root = Path("/x"); g.native = True; g.baseline = None
+        g.evaluate(tree_empty=True)
+        self.assertEqual(g.impl.released, 0)
+        g.release()
+        self.assertEqual(g.impl.released, 1)
+
+    def test_disarm_is_evaluate_then_release(self):
+        g = sup.W04Guard.__new__(sup.W04Guard)
+        g.impl = _FakeNativeLease(); g.root = Path("/x"); g.native = True; g.baseline = None
+        g.disarm(tree_empty=True)
+        # retrocompat: avaliou e liberou num passo
+        self.assertEqual(g.impl.released, 1)
 
 
 if __name__ == "__main__":

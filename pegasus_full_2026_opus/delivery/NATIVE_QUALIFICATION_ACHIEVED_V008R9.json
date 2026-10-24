@@ -1,63 +1,7 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R9_NATIVE_QUALIFICATION_ACHIEVED",
-  "mode": "QualifyNative",
-  "host": {
-    "os_build": "10.0.26200.0",
-    "logical_cpus": 24,
-    "ps_version": "5.1.26100.9711",
-    "elevated": true
-  },
-  "run_root": "C:\\Users\\silvi\\Downloads\\PEGASUS_FULL_2026_RUNS\\QUALIFYNATIVE_20261023_054044_928_37420",
-  "result_zip_sha256": "7290A855726B2791D478249574EF9BD4F4AA6835B4F23CAB0A37D9A3DC38CE5E",
-  "bound_to_delivered_bytes": {
-    "zip_sha256": "2C3F39EBADC292CEE197D21E837B6A264B532550AD80F8A66160EE8C51B3273C",
-    "manifest_sha256": "93D56AC73ED631686CB340EF1CD4D44599620012C9258AC032CD2610E8959D88",
-    "bootstrap_sha256": "EFB7793842E6AF2095FC553BCDE91B2626182C4F83D8BD6ADECC1F0E954CDB30",
-    "python_sha256": "4942B86A6597E5AEE0128DAA00050ED79BC21F6E709A78EB19CBFEB0C2F39AC9",
-    "package_manifest_sha256_in_receipt": "93D56AC73ED631686CB340EF1CD4D44599620012C9258AC032CD2610E8959D88",
-    "tested_code_files": 65,
-    "tested_supervisor_files": 6
-  },
-  "bootstrap_steps_all_match": true,
-  "qualification": {
-    "exit": 0,
-    "result": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC",
-    "error": null,
-    "cases_total": 23,
-    "cases_pass": 23,
-    "receipt_sha256": "9112FA3C4E50AB1B8D370E7DB1E2F9066D43E0996C3DCAEBC4E0DF39D073BDFD"
-  },
-  "q10a": {
-    "w04_full": "PASS_NATIVE_SAME_ATTEMPT",
-    "census_attempts": [
-      1,
-      1
-    ],
-    "census_abandoned_name_workers": [
-      0,
-      0
-    ]
-  },
-  "fresh_process_native_negatives": "PASS (child distinct pid; replay cases=7 completed=True; census abandoned=[0,0])",
-  "native_completeness_evaluation": {
-    "gapless_native_job_cases": 4,
-    "required_cases": 23,
-    "schema": "PEGASUS_FULL_2026_V008R2_NATIVE_COMPLETENESS_EVALUATION",
-    "unmet": [],
-    "verdict": "MET",
-    "w04_native_pass_cases": 5
-  },
-  "gates": {
-    "g4": "FROZEN",
-    "qs4": "NO",
-    "full_economic": "NO",
-    "phase_c": "FORBIDDEN",
-    "reselection_2026": "FORBIDDEN",
-    "run_released": "NO",
-    "full_released": "NO",
-    "paid_credit": "NOT_USED",
-    "independent_audit": "NOT_STARTED"
-  },
-  "note": "Prova nativa 23/23 numa unica execucao sobre os bytes entregues (ZIP 2C3F39EB / manifesto 93D56AC7); o candidato NAO foi reempacotado. A selagem formal de CANDIDATE_COMPLETENESS e o passo opcional -Mode Install sao do titular/origem.",
-  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+  "schema": "PEGASUS_FULL_2026_V008R9_NATIVE_QUALIFICATION_ACHIEVED_PRESERVED",
+  "verdict": "MET",
+  "preserved_in_zip": "receipts/V008/offline_final/native_campaign_r9/",
+  "note": "Campanha nativa R9 (23/23, MET) sobre os bytes R9; nao reexecutada na R17 (bytes diferem so por delta de engenharia nao economico).",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
 }

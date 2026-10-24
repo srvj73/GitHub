@@ -1,0 +1,21 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R17_TESTED_EQUALS_PACKAGED_DELIVERED",
+  "tested_manifest_sha256_m1": "AB4260C73C672A203C9C1EE3C5D99A22F491C9FD3C56AFAE14770B5444C95FA0",
+  "final_manifest_sha256_m2": "58EB5FFD9B6AFA7B9B1C3B9D42274E9150E9D577D29ADDDA6B80C8C0F70ABDBB",
+  "m1_to_m2": {
+    "m1_members": 2954,
+    "m2_members": 2972,
+    "added": 18,
+    "removed": 0,
+    "changed": 0,
+    "added_only_offline_evidence": true,
+    "code_and_docs_byte_identical_m1_equals_m2": true
+  },
+  "delivered_zip_extract_verify": "PASS_DELIVERED_BYTES_VERIFIED",
+  "delivered_unit_tests": "191_OF_191_PASS",
+  "delivered_supervisor_verify": "PASS_PACKAGE_VERIFIED",
+  "delivered_entry_verify": "PACKAGE_VERIFIED=58EB5FFD9B6AFA7B9B1C3B9D42274E9150E9D577D29ADDDA6B80C8C0F70ABDBB",
+  "installed": "PENDING_OWNER_INSTALL_MODE",
+  "result": "PASS_TESTED_EQUALS_PACKAGED_EQUALS_DELIVERED_OFFLINE",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}

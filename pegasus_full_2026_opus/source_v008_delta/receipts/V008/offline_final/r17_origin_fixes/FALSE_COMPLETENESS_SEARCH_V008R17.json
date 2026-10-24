@@ -1,0 +1,64 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R17_FALSE_COMPLETENESS_SEARCH",
+ "method": "adversarial enumeration of contracted engineering-milestone consumers bound to the final bytes (R17 delta over R16)",
+ "economic_fail_closed_anchors_in_source": {
+  "make_run_plan_refuses_economic": true,
+  "default_admission_always_blocks": true,
+  "run_supervised_reblocks_economic": true,
+  "production_admission_verdict_fail_closed": true,
+  "production_release_admission_reaches_final_seal_blocked": true,
+  "cmd_run_full_chain_blocks_at_b": true,
+  "authorization_bundle_inside_package_forbidden": true,
+  "i01_w04_evaluate_separate_from_release": true,
+  "i01_release_only_after_close_confirmed": true,
+  "i02_terminal_for_prespawn_block_gate": true,
+  "i02_terminal_for_post_spawn_fail_gate": true,
+  "i02_emit_summary_failsafe": true,
+  "n1_effect_class": true,
+  "n2_close_proof": true,
+  "n3_outcome": true,
+  "f01_completion_w04_gate": true,
+  "f04_job_close_no_kill": true
+ },
+ "consumers": [
+  {
+   "consumer": "w04_physical_retention_until_custody_close_proven",
+   "wired_at": "W04Guard.evaluate / W04NativeLease.disarm(release=False); _finalize evaluate->confirm->release; _emergency_hold_and_result same ordering",
+   "qualified_by": "R17W04EvaluateVsRelease + R16Integration.test_n2 (guard.released==0 on refusal) + SupervisionReconcileHold (evaluate before release) units",
+   "status": "IMPLEMENTED_HARDENED_R17",
+   "findings_closed": "I-01"
+  },
+  {
+   "consumer": "single_terminal_truth_all_branches",
+   "wired_at": "terminal_for_prespawn_block + terminal_for_post_spawn_fail + _emit_summary in _run_supervised (prespawn/post-spawn/success)",
+   "qualified_by": "R17TerminalCoherencePure + R17TerminalCoherenceIntegration units (exit 2 só com recibo canônico; exit 3 coerente sobre fallback)",
+   "status": "IMPLEMENTED_HARDENED_R17",
+   "findings_closed": "I-02"
+  },
+  {
+   "consumer": "production_release_admission_and_full_chain",
+   "wired_at": "production_admission_verdict + ProductionReleaseAdmission.admit + _load_admission(--authorization) + cmd_run_full (B->C->FULL)",
+   "qualified_by": "R17ProductionAdmissionPure + R17ProductionAdmissionFailClosed units; CliFailClosed run-full BLOCKED G00; mutants run_plan/run_supervised/default_admission economic",
+   "status": "BLOCKED_PROVEN_TERMINAL_REACHABLE",
+   "findings_closed": "I-03"
+  },
+  {
+   "consumer": "systemic_convergence_r16_n1_n2_n3",
+   "wired_at": "start_failure_effect_class; custody_close_confirmed; supervised_final_outcome",
+   "qualified_by": "R16EffectClassPure + R16CloseProofPure + R16OutcomeCoherencePure + R16Integration (preserved, PASS on R17 bytes)",
+   "status": "PRESERVED_R16",
+   "findings_closed": "N1,N2,N3"
+  }
+ ],
+ "mandatory_integration_unimplemented": [],
+ "policy_boundaries_out_of_scope": {
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "independent_audit": "NOT_STARTED",
+  "note": "limites de política sob custódia da origem, não engenharia por implementar"
+ },
+ "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}

@@ -1,0 +1,124 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R17_CONVERGENCE_CLOSURE",
+ "audit_trail": "R16 fechou o parecer físico da origem sobre a R15 (N1/N2/N3). O parecer de convergência integrada sobre a R16 identifica três resíduos materiais (I-01/I-02/I-03) de UMA mesma classe: o contrato entre retenção física da custódia, verdade terminal e rota executável de autorização. R17 fecha a classe num único candidato.",
+ "supersedes_candidate_sha256": "CE1E923D9403774496906A51F849AB2E896277469E5FEDD412BACCD52DA656FD",
+ "final_tree_convergence_probe": {
+  "all_safe": true,
+  "supervisor_sha256": "8D1A5CFE19D10F3B3CDCB4BF0B66F4C9DC46031DEBAD912011AC9926DC40EBEE",
+  "win_native_sha256": "D1A59BF71A7DF4B07CF24122F8CB9AFB96B45986845202287B7EAA410388A0C6",
+  "probes": [
+   {
+    "probe": "I01_W04_HELD_UNTIL_CLOSE_PROVEN",
+    "safe": true
+   },
+   {
+    "probe": "I02_TERMINAL_TRUTH_SINGLE_ALL_BRANCHES",
+    "safe": true
+   },
+   {
+    "probe": "I03_PRODUCTION_ADMISSION_REACHABLE_FAILCLOSED",
+    "safe": true
+   }
+  ]
+ },
+ "predecessor_r16_reproduction": {
+  "all_safe": false,
+  "probes": [
+   {
+    "probe": "I01_W04_HELD_UNTIL_CLOSE_PROVEN",
+    "safe": false,
+    "reason": "R16 _finalize chamava guard.disarm(tree_empty=True) (release físico da lease) ANTES de confirmar cust.close(); um close recusado/UNKNOWN caía no hold de emergência com a W04 já solta."
+   },
+   {
+    "probe": "I02_TERMINAL_TRUTH_SINGLE_ALL_BRANCHES",
+    "safe": false,
+    "reason": "R16 except PrespawnBlocked retornava exit 2/BLOCKED mesmo quando persist_run_receipt gravava o fallback FAIL/exit 3 (verdade terminal incoerente entre recibo, banner e exit)."
+   },
+   {
+    "probe": "I03_PRODUCTION_ADMISSION_REACHABLE_FAILCLOSED",
+    "safe": false,
+    "reason": "R16 não possuía rota executável de admissão de produção (só a sintética selada); run-full escolhia phase=B — o encadeamento B->C->FULL condicionado aos contratos técnicos não existia."
+   }
+  ]
+ },
+ "findings": [
+  {
+   "finding": "I-01",
+   "title": "retenção física W04+Job não demonstrada quando o fechamento do Job recusa/UNKNOWN",
+   "fix": "W04NativeLease.disarm(tree_empty, release=False) e W04Guard.evaluate() separam a AVALIAÇÃO do veredito W04 da LIBERAÇÃO FÍSICA (release) dos handles. _finalize avalia a W04 com os handles retidos, confirma custody_close_confirmed e SÓ ENTÃO chama guard.release(); close recusado/UNKNOWN => hold de emergência com W04+Job fisicamente retidos (NO_KILL). O mesmo vale no hold de emergência.",
+   "negative_control_pure": {
+    "evaluate_holds_handles": "disarm(release=False) não chama release()",
+    "release_only_after_close_confirmed": true,
+    "w04_held_pending_close_on_refusal": true
+   },
+   "source": {
+    "win_disarm_release_param": true,
+    "guard_evaluate_separate_from_release": true,
+    "finalize_evaluate_then_confirm_then_release": true,
+    "emergency_hold_same_ordering": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "I-02",
+   "title": "verdade terminal (recibo/banner/exit) incoerente nos ramos pré-spawn/pós-spawn",
+   "fix": "terminal_for_prespawn_block e terminal_for_post_spawn_fail centralizam o desfecho de TODOS os ramos de _run_supervised: BLOCKED/exit 2 só é legítimo com o recibo canônico persistido; sobre um fallback FAIL o desfecho degrada a FAIL/exit 3, coerente com o recibo realmente gravado. _emit_summary torna a emissão do resumo à prova de falha em todos os ramos.",
+   "negative_control_pure": {
+    "prespawn_persisted": {
+     "result": "BLOCKED_PRESPAWN_NO_EFFECT",
+     "exit_code": 2
+    },
+    "prespawn_fallback_fail": {
+     "result": "FAIL_PRESPAWN_RECEIPT_NOT_PERSISTED",
+     "exit_code": 3
+    },
+    "post_spawn_always_fail_exit": 3
+   },
+   "source": {
+    "terminal_for_prespawn_block": true,
+    "terminal_for_post_spawn_fail": true,
+    "emit_summary_failsafe_all_branches": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "I-03",
+   "title": "FULL econômico sem rota executável de autorização; run-full escolhia phase=B",
+   "fix": "production_admission_verdict (puro) + ProductionReleaseAdmission (pacote de autorização externo do titular, gates técnicos R01-R06/QS4/QS5-B06/PolicyRoot/qualificação Windows/fontes-por-hash/volume/runtime vinculados por SHA) + cmd_run_full encadeando B->C->FULL (C exige B; FULL exige B e C). Mesmo um pacote completo bloqueia no selo final entry.release_admission (RUN_RELEASED=NO). Nenhuma credencial/recibo fabricado; QS4/Phase B/C não antecipados; nenhum Owner Gate hipotético.",
+   "negative_control_pure": {
+    "absent_bundle": "BLOCKED",
+    "missing_gate": "BLOCKED",
+    "chain_predecessor_missing_full": "BLOCKED",
+    "complete_bundle_marker": "ADMITTED_PENDING_FINAL_SEAL",
+    "complete_bundle_still_blocks_at_final_seal": true
+   },
+   "source": {
+    "production_admission_verdict": true,
+    "production_release_admission_final_seal": true,
+    "cmd_run_full_chains_b_c_full": true,
+    "authorization_bundle_outside_sealed_package": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "PRIOR_PRESERVED",
+   "title": "R16 N1/N2/N3, A01-A04/INT (R15), F01-F04 (R11), R11/R12/R13-ORIGIN e R9 23/23 MET preservados",
+   "source": {
+    "n1_effect_class": true,
+    "n2_close_proof": true,
+    "n3_outcome": true,
+    "a02_usn": true,
+    "a03_terminal": true,
+    "f02_prespawn": true,
+    "f03_lineage": true,
+    "r12o1_custody_finalize": true,
+    "r13o1_reconcile": true,
+    "native_r9_preserved": true
+   },
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Classe causal única da R16->R17: contrato exaustivo entre retenção FÍSICA da custódia (W04 só liberada após prova de fechamento do Job), verdade terminal ÚNICA e coerente em todos os ramos, e a rota executável REAL de autorização/encadeamento B->C->FULL condicionada aos contratos técnicos — sem remover bloqueios, sem fabricar credenciais/recibos, sem antecipar QS4/Phase B/C, sem Owner Gate hipotético. D4 (término forçado do supervisor) NÃO autorizado; efetividade Win32 das rotas modificadas fica na qualificação dirigida (processos sintéticos, hash-bound). PolicyRoot permanece entrada técnica, verificada só por presença+SHA do recibo; MASTER/HEAD/política não lidos nem revalidados.",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}

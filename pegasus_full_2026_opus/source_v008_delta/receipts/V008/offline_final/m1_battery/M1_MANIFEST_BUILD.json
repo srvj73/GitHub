@@ -1,8 +1,8 @@
 {
- "schema": "PEGASUS_FULL_2026_V008R16_M1_MANIFEST_BUILD_AT_TEST_TIME",
- "members": 2950,
- "manifest_sha256": "776A54F3E250B97CBE0C088CA78424DA31E8DD502ECCADEB3A0261CCD5406F8B",
+ "schema": "PEGASUS_FULL_2026_V008R17_M1_MANIFEST_BUILD_AT_TEST_TIME",
+ "members": 2954,
+ "manifest_sha256": "AB4260C73C672A203C9C1EE3C5D99A22F491C9FD3C56AFAE14770B5444C95FA0",
  "parent_v003_manifest_sha256": "701DF5ECE97948F275C22919E39D2AB1366BDFC77B78CF6C441AF4BB50266AF1",
  "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB",
- "note": "M1 verificado pela qualificacao R13; M2 adiciona apenas evidencia offline_final."
+ "note": "M1 (codigo+docs+demais recibos) testado pela bateria R17; M2 adiciona apenas evidencia offline_final."
 }
