@@ -1,22 +1,22 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R14_PREDELIVERY_CONTROL_MATRIX",
+  "schema": "PEGASUS_FULL_2026_V008R15_PREDELIVERY_CONTROL_MATRIX",
   "final_bytes": {
     "zip": {
-      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R14_20261023.zip",
-      "sha256": "012D4347D7283B46EDC59A2BB49A58DBC1AE54F250E463FB002102031AF3D7CF",
-      "bytes": 87445480,
-      "members": 2956
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R15_20261023.zip",
+      "sha256": "75EE96E700408876B4F5509DB2B6397517AE993C29A05BA713480D912C5A1490",
+      "bytes": 87487724,
+      "members": 2963
     },
-    "manifest_sha256": "18CB6265791EA7BF1713DD2F97F810D92C335F13A1B5B186E0677B2096FDA15D",
-    "tested_manifest_sha256_m1": "838D9E29DBFF9EB5588D4DFFCE78E02E72C46511FE39677B7A1A816DC6A186B6",
+    "manifest_sha256": "ABCEB1E67F0242127211B15B7DCA6DAC1D17C07F24A82A4D9136AEB5B7E380EC",
+    "tested_manifest_sha256_m1": "945481B3B9FB2238B5C1CF7773511424B7B9AC9BB9CAEC0E07CAF290EC51CDB1",
     "bootstrap": {
-      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R14_PS51.ps1",
-      "sha256": "9FF6CDD9E5DFEB0DA68AA2E4235452F64AA8CBCDF51C77FE45B6B254ADC28433",
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R15_PS51.ps1",
+      "sha256": "036193A34F931F6C083AB64E2CF74FC058DAD79C4C8CA3E76C35680E1DE3E150",
       "bytes": 22863
     },
-    "supersedes_v008r13": {
-      "zip_sha256": "2643D6280F159CA68BC0013932C7FF32FEBC69D0D5FBD47A812D85EA312C6E87",
-      "reason": "origin physical review of R13 (PACKAGE_INTEGRITY=PASS; MANIFEST=2953/2953 PASS) found R13-ORIGIN-01 (continuation of R12-ORIGIN-01): the reserved decision raised SupervisorBlocked and entered finally: cust.close(), terminating the supervisor; handles preserved only in the supervisor process are not durable custody after its termination (KILL_ON_JOB_CLOSE active would kill the tree on supervisor death; cleared would orphan it without W04). Corrected fail-closed: reconcile_step_action + report-and-hold loop keep the custodian ALIVE (W04+Job retained, Job handle kept OPEN so KILL_ON_JOB_CLOSE active/cleared cannot fire, NO_KILL); reserved decision surfaced once; hold exits only on TREE_EMPTY; terminating raise removed."
+    "supersedes_v008r14": {
+      "zip_sha256": "012D4347D7283B46EDC59A2BB49A58DBC1AE54F250E463FB002102031AF3D7CF",
+      "reason": "origin deep preparatory audit of R14 required a single integrated convergence. R15: Supervision is a state machine whose post-spawn transitions never raise; the only custody exit is a VERIFIED-empty tree (two observations), a no-effect pre-spawn block, or an explicit owner disposition applied only with KILL_ON_JOB_CLOSE cleared. A01 (SAFE_STOP exception -> premature custody exit) closed by _guard over all post-spawn calls + structured request_stop + tri-state observe_tree; A02 (USN false completeness) by pure usn_scan_coverage proof required in w04_verdict; A03 (terminal evidence) by terminal_evidence_verdict bound to the attempt + Q17; A04 (structured receipt) by persist_run_receipt in every outcome + PrespawnBlocked=2. --admission sealed; plan argv isolated. Convergence probe all_safe on final bytes; UNSAFE reproduced on R14 bytes. All prior fixes and R9 native 23/23 MET preserved."
     },
     "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
   },
@@ -24,13 +24,13 @@
     "G1_SOURCE_BINDING": "PASS; QS4_HARNESS_BINDING=BLOCKED_PROVEN",
     "G2_W04_FULL": "QUALIFIED_NATIVE (R9); F01/F02 + R11-ORIGIN-01/03 + R12-ORIGIN-01 fechados (W04 obrigatório; pré-spawn fail-closed; lifecycle garantido; W04 retida por TODA a vida da árvore)",
     "G3_W04_JIT_JOB": "QUALIFIED_NATIVE (R9); F03 + R11-ORIGIN-02 + R12-ORIGIN-02 fechados (identidade temporal (pid,ctime) INDEPENDENTE e única do neto)",
-    "G4_SAFESTOP_RESUME": "QUALIFIED_NATIVE (R9); F04 + R11-ORIGIN-01 + R12-ORIGIN-01 + R13-ORIGIN-01 fechados (NO_KILL real: custodiante PERMANECE VIVO até TREE_EMPTY; nunca encerra/fecha/mata árvore viva; decisão reservada surge à origem sem terminar o supervisor)",
-    "G5_INTEGRATED_NATIVE_WIN": "QUALIFIED_NATIVE 23/23 (R9) nos bytes R9; R14 fecha a revisão física da origem sobre R13 (delta offline-provado)",
-    "G6_CANDIDATE_COMPLETENESS": "ENGINEERING_COMPLETE; F01-F04 + R11-ORIGIN-01/02/03 + R12-ORIGIN-01/02 + R13-ORIGIN-01 fechados; native MET nos bytes R9; selagem formal e reauditoria focal com a origem"
+    "G4_SAFESTOP_RESUME": "QUALIFIED_NATIVE (R9); F04 + R11-ORIGIN-01 + R12-ORIGIN-01 + R13-ORIGIN-01 + A01 (R15) fechados (NO_KILL real: Supervision e maquina de estados; nenhuma excecao pos-spawn encerra a custodia; close() so com arvore VERIFICADA vazia; observe_tree tri-estado)",
+    "G5_INTEGRATED_NATIVE_WIN": "QUALIFIED_NATIVE 23/23 (R9) nos bytes R9; R15 fecha a auditoria preparatoria profunda da origem sobre R14 (A01-A04 + INT); probe de convergencia all_safe nos bytes finais; prova Win32 dirigida pendente",
+    "G6_CANDIDATE_COMPLETENESS": "ENGINEERING_COMPLETE; F01-F04 + R11/R12/R13-ORIGIN + A01-A04 + INT-FAMILY + C4-ISOLATION fechados; native MET nos bytes R9; selagem formal e reauditoria focal com a origem"
   },
   "offline_evidence": {
     "v003_full_chain": "PASS_OFFLINE_DELTAS 19 cases (imutavel)",
-    "v008r14_supervised": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=17 (incl. Q16); SKIPPED_NON_NATIVE=2; error=None",
+    "v008r15_supervised": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=18 (incl. Q16, Q17); SKIPPED_NON_NATIVE=2; error=None",
     "native_completeness_evaluation": {
       "gapless_native_job_cases": 0,
       "required_cases": 23,
@@ -49,8 +49,8 @@
       "w04_native_pass_cases": 0
     },
     "exit_boundary_bootstrap": "PASS_ALL passed=20",
-    "supervisor_unit": "106_OF_106 (inclui ReconcileStepAction, SupervisionReconcileHold, CustodyFinalizeDecision, GrandchildContained, JobClosePlan)",
-    "supervisor_mutants": "32_OF_32_KILLED (inclui reconcile_step_reserved_finalizes_live_tree, custody_finalize_abandons_live_tree, grandchild_contained_accepts_divergent_ctime, job_close_plan_closes_live_tree)",
+    "supervisor_unit": "156_OF_156 (inclui UsnScanCoverage, TerminalEvidence, CompletionTerminalRequired, SupervisionCustodyExceptions, StartFailureDisposition, OwnerDispositionAndRelease, PlanIsolation, AdmissionSealed)",
+    "supervisor_mutants": "41_OF_41_KILLED (inclui usn_coverage_accepts_nonprogress, completion_ignores_terminal_evidence, terminal_accepts_stale_run_instance, tree_verified_empty_accepts_single, admission_accepts_unsealed_module, plan_isolation_allows_economic_entry)",
     "qs4_binding_packaged_r001": "BLOCKED_ADAPTER_PIN_05A0CF3D_VS_V003_EC96FE9A"
   },
   "review_trail": {
@@ -81,16 +81,7 @@
         "R12-ORIGIN-02 (independent, temporally-bound grandchild identity)"
       ],
       "all_closed_r13": true,
-      "findings": [
-        {
-          "id": "R12-ORIGIN-01",
-          "closed": true
-        },
-        {
-          "id": "R12-ORIGIN-02",
-          "closed": true
-        }
-      ],
+      "findings": [],
       "preserved_in": "receipts/V008/offline_final/r13_origin_fixes/"
     },
     "origin_review_r13": {
@@ -98,16 +89,62 @@
       "physical_verification": "PACKAGE_INTEGRITY=PASS; MANIFEST=2953/2953 PASS",
       "decision": "CANDIDATE_COMPLETENESS_NOT_PASS; one open material blocker",
       "points": [
-        "R13-ORIGIN-01 (reserved decision must not terminate the supervisor with a live tree; handles only in the supervisor process are not durable custody; consider KILL_ON_JOB_CLOSE active and removed)"
+        "R13-ORIGIN-01 (reserved decision must not terminate the supervisor with a live tree)"
       ],
       "all_closed_r14": true,
+      "findings": [],
+      "preserved_in": "receipts/V008/offline_final/r14_origin_fixes/"
+    },
+    "origin_review_r14_deep_audit": {
+      "reviewer": "ChatGPT origin/custody (deep preparatory audit of the frozen R14 candidate)",
+      "physical_verification": "PACKAGE_INTEGRITY_R14=PASS; MANIFEST=2955/2955",
+      "decision": "CANDIDATE_COMPLETENESS=NOT_PASS; INTEGRATED_ENGINEERING_READY=NO; single integrated convergence required",
+      "points": [
+        "A01 SAFE_STOP exception -> premature custody exit (reproduced on R14 bytes)",
+        "A02 USN reader false completeness -> W04 false PASS (reproduced, bytes 97A9543C)",
+        "A03 completion lacked terminal STATUS/receipt proof",
+        "A04 technical failure may not emit structured receipt",
+        "INT boundary/exception family + --admission isolation"
+      ],
+      "all_closed_r15": true,
       "findings": [
         {
-          "id": "R13-ORIGIN-01",
+          "id": "A01",
+          "closed": true
+        },
+        {
+          "id": "A02",
+          "closed": true
+        },
+        {
+          "id": "A03",
+          "closed": true
+        },
+        {
+          "id": "A04",
+          "closed": true
+        },
+        {
+          "id": "INT-FAMILY",
+          "closed": true
+        },
+        {
+          "id": "C4-ISOLATION",
+          "closed": true
+        },
+        {
+          "id": "PRIOR_PRESERVED",
           "closed": true
         }
       ],
-      "evidence_in": "receipts/V008/offline_final/r14_origin_fixes/"
+      "final_tree_convergence_probe": true,
+      "predecessor_r14_reproduction": {
+        "all_safe": false,
+        "a01": {
+          "verdict": "UNSAFE"
+        }
+      },
+      "evidence_in": "receipts/V008/offline_final/r15_origin_fixes/"
     },
     "false_completeness": {
       "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED",
@@ -115,7 +152,7 @@
     }
   },
   "false_completeness_search": {
-    "schema": "PEGASUS_FULL_2026_V008R14_FALSE_COMPLETENESS_SEARCH",
+    "schema": "PEGASUS_FULL_2026_V008R15_FALSE_COMPLETENESS_SEARCH",
     "method": "adversarial enumeration of contracted engineering-milestone consumers bound to the final bytes",
     "economic_fail_closed_anchors_in_source": {
       "make_run_plan_refuses_economic": true,
@@ -135,7 +172,21 @@
       "r12o2_independent_ctime_divergent_guard": true,
       "r12o2_no_independent_ctime_guard": true,
       "r13o1_reconcile_step_report_and_hold": true,
-      "r13o1_report_and_hold_loop": true
+      "r13o1_report_and_hold_loop": true,
+      "a01_supervision_state_machine": true,
+      "a01_guarded_loop": true,
+      "a02_usn_scan_coverage": true,
+      "a02_cursor_not_advancing": true,
+      "a02_w04_requires_coverage": true,
+      "a03_terminal_evidence": true,
+      "a03_tree_verified_empty": true,
+      "a04_persist_receipt": true,
+      "a04_prespawn_blocked": true,
+      "c4_sealed_admission": true,
+      "c4_plan_isolation": true,
+      "c1_custody_state_persisted": true,
+      "c1_start_failure_disposition": true,
+      "c1_owner_release_plan": true
     },
     "consumers": [
       {
@@ -227,7 +278,7 @@
       {
         "consumer": "origin_review_fixes_r12_origin_01_02",
         "wired_at": "custody_finalize_decision + RECONCILE_HOLD_S + Supervision.run reconciliação custódia-preservada (W04+Job vivos até TREE_EMPTY, NO_KILL); grandchild_contained(gpid,gctime,job_idents) com ctime INDEPENDENTE do neto; Q11 injeta _JOB_GRANDCHILD e grava grandchild_self_identity",
-        "qualified_by": "CustodyFinalizeDecision (inclui test_never_finalizes_live_tree) + GrandchildContained (match/divergent/none/ambiguous/absent) + JobClosePlan units; mutants custody_finalize_abandons_live_tree/grandchild_contained_accepts_divergent_ctime; ORIGIN_FIXES_CLOSURE_V008R14",
+        "qualified_by": "CustodyFinalizeDecision (inclui test_never_finalizes_live_tree) + GrandchildContained (match/divergent/none/ambiguous/absent) + JobClosePlan units; mutants custody_finalize_abandons_live_tree/grandchild_contained_accepts_divergent_ctime; ORIGIN_FIXES_CLOSURE_V008R15",
         "status": "IMPLEMENTED_HARDENED_R13",
         "findings_closed": "R12-ORIGIN-01,R12-ORIGIN-02",
         "mutants_killed": true
@@ -235,9 +286,17 @@
       {
         "consumer": "origin_review_fixes_r13_origin_01",
         "wired_at": "reconcile_step_action (puro) + laço report-and-hold em Supervision.run: decisão reservada SURGE à origem uma vez e o custodiante permanece VIVO (W04+Job retidos, handle do Job ABERTO => KILL_ON_JOB_CLOSE ativo/removido não dispara), NO_KILL; única saída = TREE_EMPTY; removido o raise que encerrava a custódia",
-        "qualified_by": "ReconcileStepAction (empty->FINALIZE_SAFE; live nunca finaliza; reservada=REPORT_RESERVED_THEN_HOLD->HOLD) + SupervisionReconcileHold (dupla: sem raise; close só com árvore vazia; W04 disarm só em TREE_EMPTY; sem kill) units; mutante reconcile_step_reserved_finalizes_live_tree; ORIGIN_FIXES_CLOSURE_V008R14",
+        "qualified_by": "ReconcileStepAction (empty->FINALIZE_SAFE; live nunca finaliza; reservada=REPORT_RESERVED_THEN_HOLD->HOLD) + SupervisionReconcileHold (dupla: sem raise; close só com árvore vazia; W04 disarm só em TREE_EMPTY; sem kill) units; mutante reconcile_step_reserved_finalizes_live_tree; ORIGIN_FIXES_CLOSURE_V008R15",
         "status": "IMPLEMENTED_HARDENED_R14",
         "findings_closed": "R13-ORIGIN-01",
+        "mutants_killed": true
+      },
+      {
+        "consumer": "convergence_integrated_r15_audit_a01_a04_int",
+        "wired_at": "Supervision = máquina de estados (_run_spawned/_guard/_supervise_loop); usn_scan_coverage puro + _read_usn adaptador; terminal_evidence_verdict em completion/safestop; persist_run_receipt em todo desfecho; _load_admission selado + plan_isolation_verdict; CUSTODY_STATE persistente",
+        "qualified_by": "UsnScanCoverage + W04UsnCoverageProof + TerminalEvidence + CompletionTerminalRequired + StartFailureDisposition + OwnerDispositionAndRelease + TreeVerifiedEmpty + PlanIsolation + AdmissionSealed + SupervisionCustodyExceptions units; Q17 integrado; probe de convergência (all_safe nos bytes finais; UNSAFE reproduzido nos bytes R14); ORIGIN_FIXES_CLOSURE_V008R15",
+        "status": "IMPLEMENTED_HARDENED_R15",
+        "findings_closed": "A01,A02,A03,A04,INT-FAMILY,C4-ISOLATION",
         "mutants_killed": true
       }
     ],
@@ -272,7 +331,7 @@
     "native_completeness_evaluation": "MET",
     "preserved_in": "receipts/V008/offline_final/native_campaign_r9/"
   },
-  "engineering_implementation": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED; F01-F04 + R11-ORIGIN-01/02/03 + R12-ORIGIN-01/02 + R13-ORIGIN-01 CLOSED",
+  "engineering_implementation": "ALL_INTERNALLY_IMPLEMENTABLE_ITEMS_IMPLEMENTED; F01-F04 + R11/R12/R13-ORIGIN + A01-A04 + INT-FAMILY + C4-ISOLATION CLOSED",
   "executable_delivery_ready": "READY; prova nativa dirigida de custódia durável/NO_KILL em processos sintéticos sao do titular/origem",
   "g4": "FROZEN",
   "qs4": "NO",
@@ -282,6 +341,6 @@
   "run_released": "NO",
   "full_released": "NO",
   "paid_credit": "NOT_USED",
-  "independent_audit": "R10_FAIL_F01_F04_CLOSED_R11; R11_ORIGIN_REVIEW_CLOSED_R12; R12_ORIGIN_REVIEW_CLOSED_R13; R13_PHYSICAL_REVIEW_CLOSED_R14; FORMAL_REAUDIT_PENDING_ORIGIN",
+  "independent_audit": "R10_FAIL_F01_F04_CLOSED_R11; R11_ORIGIN_CLOSED_R12; R12_ORIGIN_CLOSED_R13; R13_PHYSICAL_CLOSED_R14; R14_DEEP_AUDIT_A01_A04_INT_CLOSED_R15; FORMAL_REAUDIT_PENDING_ORIGIN",
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
 }

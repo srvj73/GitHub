@@ -89,10 +89,10 @@
   "independent_audit": "STARTED_R10_FAIL_FINDINGS_CLOSED_R11"
  },
  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
- "revision": "V008R14",
+ "revision": "V008R15",
  "supersedes": {
-  "v008r13_zip_sha256": "2643D6280F159CA68BC0013932C7FF32FEBC69D0D5FBD47A812D85EA312C6E87",
-  "reason": "origin physical review of R13 (PACKAGE_INTEGRITY=PASS; MANIFEST=2953/2953 PASS) found one open material blocker (R13-ORIGIN-01, continuation of R12-ORIGIN-01): on reconcile-deadline with a live tree, Supervision.run raised SupervisorBlocked and entered finally: cust.close(), terminating the supervisor — handles retained only in the supervisor process are not durable custody after it exits (KILL_ON_JOB_CLOSE active would kill the tree on supervisor death; cleared would orphan it without W04). Corrected fail-closed: pure reconcile_step_action + a report-and-hold loop keep the custodian ALIVE (W04+Job retained, Job handle kept OPEN so KILL_ON_JOB_CLOSE active/cleared cannot fire, NO_KILL); the reserved decision surfaces to origin once and the only hold exit is TREE_EMPTY; the terminating raise was removed. R9 native 23/23 MET and all prior fixes (F01-F04, R11-ORIGIN-01/02/03, R12-ORIGIN-01/02) preserved."
+  "v008r14_zip_sha256": "012D4347D7283B46EDC59A2BB49A58DBC1AE54F250E463FB002102031AF3D7CF",
+  "reason": "origin deep preparatory audit of R14 found four demonstrated findings (A01 SAFE_STOP exception exits custody with live tree; A02 USN reader false completeness -> W04 PASS; A03 completion lacked terminal STATUS/receipt proof; A04 technical failure may not emit structured receipt) plus a broad boundary/exception matrix to close as a system. R15 integrated convergence: Supervision is a state machine whose post-spawn transitions never raise; custody only releases on a VERIFIED-empty tree (two observations), a no-effect pre-spawn block, or an explicit owner disposition applied only with KILL_ON_JOB_CLOSE cleared. usn_scan_coverage proves USN coverage; terminal_evidence_verdict binds completion/safe-stop to the attempt; persist_run_receipt emits a structured receipt in every outcome; --admission is sealed and plan argv isolated. All prior fixes (F01-F04, R11/R12/R13-ORIGIN) and R9 native 23/23 MET preserved."
  },
  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
  "native_campaign_r2_result": {
@@ -185,5 +185,13 @@
   "decision_on_r13": "CANDIDATE_COMPLETENESS_NOT_PASS; one open material blocker",
   "points": "R13-ORIGIN-01 BLOCKER (continuation of R12-ORIGIN-01): reserved decision raised SupervisorBlocked and entered finally: cust.close(), terminating the supervisor; handles preserved only in the supervisor process are not durable custody after its termination (consider both KILL_ON_JOB_CLOSE active and removed). Fixed via reconcile_step_action + report-and-hold loop: custodian stays ALIVE, NO_KILL, W04+Job retained, reserved decision surfaced once, hold exits only on TREE_EMPTY; reserved decision is not implicit authorization to kill.",
   "closed_in": "V008R14"
+ },
+ "origin_review_r14": {
+  "reviewer": "ChatGPT origin/custody (deep preparatory audit of the frozen R14 candidate; not independent formal audit)",
+  "physical_verification": "PACKAGE_INTEGRITY_R14=PASS; MANIFEST=2955/2955; zip 012D4347...",
+  "decision_on_r14": "CANDIDATE_COMPLETENESS=NOT_PASS; INTEGRATED_ENGINEERING_READY=NO; one integrated convergence required",
+  "findings": "A01 SAFE_STOP exception -> premature custody exit (reproduced); A02 USN false completeness -> W04 false PASS (reproduced, bytes 97A9543C); A03 completion lacks terminal evidence; A04 technical failure may lack structured receipt; plus boundary/exception matrix (INT) to close as a family",
+  "directive": "single integrated convergence, fix internally, return ONE complete candidate for GLOBAL origin review; no more intermediate micro-correction candidates",
+  "closed_in": "V008R15"
  }
 }

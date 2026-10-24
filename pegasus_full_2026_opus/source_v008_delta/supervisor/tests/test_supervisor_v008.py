@@ -40,9 +40,25 @@ def good_w04():
                "held_until_tree_empty": True, "revalidation_failures": []},
         dirs={"targets": 2, "acquired": 2, "errors": [], "held_until_tree_empty": True},
         usn={"journal_id_start": 7, "journal_id_end": 7, "first_usn_end": 100, "start_usn": 500,
-             "end_usn": 900, "read_complete": True, "records_on_protected": []},
+             "end_usn": 900, "read_complete": True, "records_on_protected": [],
+             "coverage": {"read_complete": True, "reason": None, "start_usn": 500, "end_usn": 900,
+                          "covered_to": 900, "pages": 3, "records_parsed": 40}},
         identity={"reparse_points": [], "id_changes": [], "sha_mismatch": [], "link_count_changes": []},
         census={"truncated": False, "external_writers_under_target": [], "unresolved": 1772})
+
+
+JIT_OK = {"jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY"}
+LIN_NATIVE = {"lineage": "GAPLESS_NATIVE_JOB", "processes": 1}
+LIN_POSIX = {"lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF", "processes_observed": 1}
+
+
+def term(mode):
+    return {"terminal": "COMPLETE", "mode": mode, "gaps": []}
+
+
+PROVEN_STOP = dict(terminal=term("SAFE_STOP"), lineage=LIN_NATIVE, jit=JIT_OK)
+PROVEN_DONE_POSIX = dict(terminal=term("COMPLETION"), lineage=LIN_POSIX, jit=JIT_OK)
+PROVEN_DONE_NATIVE = dict(terminal=term("COMPLETION"), lineage=LIN_NATIVE, jit=JIT_OK)
 
 
 class W04Verdict(unittest.TestCase):
@@ -180,13 +196,22 @@ class SafeStopCompletion(unittest.TestCase):
 
     def test_confirmed(self):
         v = sup.safestop_verdict(stop_requested=True, child_exit=130, tree_empty=True, status=self.ST,
-                                 checkpoint_valid=True, run_lock_present=False, w04=self.W)
+                                 checkpoint_valid=True, run_lock_present=False, w04=self.W, **PROVEN_STOP)
         self.assertEqual(v["safe_stop"], "CONFIRMED_BY_SUPERVISOR")
 
     def test_exit_not_130(self):
         v = sup.safestop_verdict(stop_requested=True, child_exit=0, tree_empty=True, status=self.ST,
                                  checkpoint_valid=True, run_lock_present=False, w04=self.W)
         self.assertEqual(v["safe_stop"], "NOT_CONFIRMED")
+
+    def test_noncooperative_exit_blocks_even_with_full_evidence(self):
+        # Com TODA a demais evidência provada (terminal SAFE_STOP, linhagem, JIT, status, checkpoint,
+        # sem lock, W04 nativo), um exit NÃO cooperativo (ex.: 5) ainda tem de impedir a confirmação:
+        # a saída cooperativa é condição isolada e indispensável. Mata `safestop_any_exit`.
+        v = sup.safestop_verdict(stop_requested=True, child_exit=5, tree_empty=True, status=self.ST,
+                                 checkpoint_valid=True, run_lock_present=False, w04=self.W, **PROVEN_STOP)
+        self.assertEqual(v["safe_stop"], "NOT_CONFIRMED")
+        self.assertEqual(v["gaps"], ["CHILD_EXIT_NOT_COOPERATIVE_STOP:5"])
 
     def test_not_drained(self):
         v = sup.safestop_verdict(stop_requested=True, child_exit=130, tree_empty=False, status=self.ST,
@@ -210,7 +235,8 @@ class SafeStopCompletion(unittest.TestCase):
     def test_completion_ok(self):
         inv = {"a": {"type": "file", "sha256": "1"}}
         self.assertTrue(sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=False,
-                                               inventory_a=inv, inventory_b=dict(inv), w04=self.OKW04)["completed"])
+                                               inventory_a=inv, inventory_b=dict(inv), w04=self.OKW04,
+                                               **PROVEN_DONE_POSIX)["completed"])
 
     def test_completion_refuses_lock_multi_instant_capture(self):
         inv = {"a": {"type": "file", "sha256": "1"}}
@@ -232,7 +258,7 @@ class SafeStopCompletion(unittest.TestCase):
             self.assertTrue(any(g.startswith("W04_NOT_ATTESTED") for g in v["gaps"]), v["gaps"])
         self.assertTrue(sup.completion_verdict(child_exit=0, tree_empty=True, run_lock_present=False,
                         inventory_a=inv, inventory_b=dict(inv),
-                        w04={"w04_full": "PASS_NATIVE_SAME_ATTEMPT"})["completed"])
+                        w04={"w04_full": "PASS_NATIVE_SAME_ATTEMPT"}, **PROVEN_DONE_NATIVE)["completed"])
 
     def test_eta(self):
         self.assertEqual(sup.eta_status(committed=0, total=10, started_mono=0, now_mono=5, initial_committed=0)["eta_s"], "UNKNOWN")
@@ -392,14 +418,19 @@ class ExitClassification(unittest.TestCase):
             self.assertEqual(sup.classify_exit(code), "UNCLASSIFIED_NONZERO_FAIL", code)
 
     def test_main_technical_failure_exits_3_not_1(self):
-        with tempfile.TemporaryDirectory() as t:
-            adm = Path(t) / "raise_admission.py"
-            adm.write_text("class A:\n    schema='X'\n    def admit(self, **k):\n        raise RuntimeError('boom')\nADMISSION=A()\n",
-                           encoding="utf-8")
-            p = subprocess.run([sys.executable, "-I", "-B", str(SUP / "pegasus_supervisor_v008.py"), "run-b",
-                                "--admission", str(adm)], capture_output=True, text=True, timeout=300)
-            self.assertEqual(p.returncode, 3, p.stdout + p.stderr)
-            self.assertIn("PEGASUS_SUPERVISOR=FAIL_TECHNICAL RuntimeError: boom", p.stdout)
+        # R15: exercita o ramo de falha técnica de main() EM PROCESSO (o mutante é carregado como
+        # `sup`), independente de --admission (agora selado). Uma exceção não-Blocked num comando
+        # => exit 3 (nunca 0/1), com a linha FAIL_TECHNICAL. O mutante technical_failure_exits_zero
+        # (return EXIT_FAIL -> EXIT_PASS) é morto por esta asserção.
+        import io
+        from contextlib import redirect_stdout
+        def boom(_ns):
+            raise RuntimeError("boom")
+        buf = io.StringIO()
+        with mock.patch.object(sup, "cmd_verify", boom), redirect_stdout(buf):
+            rc = sup.main(["verify"])
+        self.assertEqual(rc, sup.EXIT_FAIL, buf.getvalue())
+        self.assertIn("PEGASUS_SUPERVISOR=FAIL_TECHNICAL RuntimeError: boom", buf.getvalue())
 
 
 class CliFailClosed(unittest.TestCase):
@@ -429,7 +460,8 @@ class SafeStopExitPlatform(unittest.TestCase):
     prova a retomada exactly-once."""
     CLEAN = dict(stop_requested=True, tree_empty=True,
                  status={"SAFE_STOP": "YES", "PROCESS_TREE_CLEAN": "YES", "COMMITTED": 1},
-                 checkpoint_valid=True, run_lock_present=False, w04={"w04_full": "PASS_NATIVE_SAME_ATTEMPT"})
+                 checkpoint_valid=True, run_lock_present=False, w04={"w04_full": "PASS_NATIVE_SAME_ATTEMPT"},
+                 **PROVEN_STOP)
 
     def _v(self, code):
         return sup.safestop_verdict(child_exit=code, **self.CLEAN)
@@ -918,6 +950,11 @@ class _LifecycleCustody:
             raise RuntimeError("START_BOOM")
         return 4321
 
+    def child_state(self):
+        # Popen falhou antes de existir filho: estado declarado explicitamente (sem filho vivo).
+        return {"child_created": False, "assigned": False, "resumed_threads": 0, "rollback": None,
+                "child_alive": False, "pid": None}
+
     def close(self):
         self.closed += 1
 
@@ -946,9 +983,12 @@ class SupervisionPrespawnLifecycle(unittest.TestCase):
         self.assertEqual(guard.released, 1)
 
     def test_close_once_on_start_exception(self):
-        cust, guard = self._run(prespawn_clean=True, start_raises=True, exc=RuntimeError)
+        # R15 (INT-07): falha do start SEM filho vivo é bloqueio sem efeito (PrespawnBlocked), com
+        # a lease liberada e o custodiante fechado exatamente uma vez.
+        cust, guard = self._run(prespawn_clean=True, start_raises=True, exc=sup.PrespawnBlocked)
         self.assertEqual(cust.closed, 1)
         self.assertTrue(cust.started)
+        self.assertEqual(guard.released, 1)
 
 
 class _FakeProc:
@@ -1012,6 +1052,369 @@ class NativeNegativesFreshProcess(unittest.TestCase):
             with self.assertRaises(sup.SupervisorBlocked) as ctx:
                 self._run_with(q, Path(t), rc=0, write_doc=None)
             self.assertIn("NATIVE_NEGATIVES_CHILD_NO_RESULT", str(ctx.exception))
+
+
+
+# =====================================================================================
+# R15 — convergência integrada: cobertura USN, evidência terminal, disposições de custódia,
+# isolamento de admissão e exceções do loop de supervisão (por invariante/classe, não por bug)
+# =====================================================================================
+def _usn_page(nxt, *records):
+    return (True, 0, int(nxt).to_bytes(8, "little", signed=True) + b"".join(records))
+
+
+def _usn_rec_v2(usn, frn=5, par=9, name="a.csv", reason=0x100):
+    nb = name.encode("utf-16-le")
+    rl = 60 + len(nb)
+    rl += (-rl) % 8
+    b = bytearray(rl)
+    b[0:4] = rl.to_bytes(4, "little")
+    b[4:6] = (2).to_bytes(2, "little")
+    b[8:16] = frn.to_bytes(8, "little")
+    b[16:24] = par.to_bytes(8, "little")
+    b[24:32] = int(usn).to_bytes(8, "little", signed=True)
+    b[40:44] = reason.to_bytes(4, "little")
+    b[56:58] = len(nb).to_bytes(2, "little")
+    b[58:60] = (60).to_bytes(2, "little")
+    b[60:60 + len(nb)] = nb
+    return bytes(b)
+
+
+class UsnScanCoverage(unittest.TestCase):
+    """C2/A02: a cobertura só é completa com progressão inequívoca até end_usn."""
+
+    def _pages(self, *pages):
+        seq = list(pages)
+        def read(cur):
+            return seq.pop(0) if seq else (False, 38, b"")
+        return read
+
+    def test_complete_reaches_end(self):
+        r = sup.usn_scan_coverage(self._pages(_usn_page(200, _usn_rec_v2(120, frn=77), _usn_rec_v2(150))),
+                                  100, 200, {77}, set())
+        self.assertTrue(r["read_complete"]); self.assertIsNone(r["reason"])
+        self.assertEqual([h["frn"] for h in r["hits"]], [77])
+
+    def test_nonprogress_cursor_incomplete(self):
+        r = sup.usn_scan_coverage(self._pages(_usn_page(100)), 100, 200, set(), set())
+        self.assertFalse(r["read_complete"]); self.assertEqual(r["reason"], "USN_CURSOR_NOT_ADVANCING")
+
+    def test_eof_before_end_incomplete(self):
+        r = sup.usn_scan_coverage(lambda c: (False, 38, b""), 100, 200, set(), set())
+        self.assertFalse(r["read_complete"]); self.assertEqual(r["reason"], "USN_EOF_BEFORE_END")
+
+    def test_ioctl_failure_incomplete(self):
+        r = sup.usn_scan_coverage(lambda c: (False, 5, b""), 100, 200, set(), set())
+        self.assertFalse(r["read_complete"]); self.assertTrue(r["reason"].startswith("USN_READ_FAILED"))
+
+    def test_journal_entry_deleted_incomplete(self):
+        r = sup.usn_scan_coverage(lambda c: (False, 1181, b""), 100, 200, set(), set())
+        self.assertFalse(r["read_complete"]); self.assertEqual(r["reason"], "USN_JOURNAL_ENTRY_DELETED")
+
+    def test_malformed_record_incomplete(self):
+        bad = _usn_page(200, (4).to_bytes(4, "little") + (2).to_bytes(2, "little") + b"\x00\x00")
+        r = sup.usn_scan_coverage(self._pages(bad), 100, 200, set(), set())
+        self.assertFalse(r["read_complete"]); self.assertEqual(r["reason"], "USN_RECORD_MALFORMED")
+
+    def test_unknown_version_incomplete(self):
+        rec = (64).to_bytes(4, "little") + (9).to_bytes(2, "little") + b"\x00" * 58
+        r = sup.usn_scan_coverage(self._pages(_usn_page(200, rec)), 100, 200, set(), set())
+        self.assertFalse(r["read_complete"]); self.assertTrue(r["reason"].startswith("USN_RECORD_VERSION_UNSUPPORTED"))
+
+    def test_frn128_high_bits_unmappable(self):
+        nb = "x".encode("utf-16-le"); rl = 76 + len(nb); rl += (-rl) % 8
+        b = bytearray(rl); b[0:4] = rl.to_bytes(4, "little"); b[4:6] = (3).to_bytes(2, "little")
+        b[8:16] = (5).to_bytes(8, "little"); b[16:24] = (1).to_bytes(8, "little")  # FRN bits altos != 0
+        b[40:48] = (120).to_bytes(8, "little", signed=True); b[72:74] = len(nb).to_bytes(2, "little")
+        b[74:76] = (76).to_bytes(2, "little"); b[76:76 + len(nb)] = nb
+        r = sup.usn_scan_coverage(self._pages(_usn_page(200, bytes(b))), 100, 200, set(), set())
+        self.assertFalse(r["read_complete"]); self.assertEqual(r["reason"], "USN_FRN128_UNMAPPABLE")
+
+    def test_record_usn_out_of_window_rejected(self):
+        r = sup.usn_scan_coverage(self._pages(_usn_page(200, _usn_rec_v2(250))), 100, 200, set(), set())
+        self.assertFalse(r["read_complete"]); self.assertEqual(r["reason"], "USN_RECORD_ORDER_INVALID")
+
+    def test_bounds_absent(self):
+        self.assertFalse(sup.usn_scan_coverage(lambda c: _usn_page(c + 1), None, 200, set(), set())["read_complete"])
+
+
+class W04UsnCoverageProof(unittest.TestCase):
+    """C2: w04_verdict exige a PROVA de cobertura, não só o booleano read_complete."""
+
+    def test_coverage_absent_blocks(self):
+        g = good_w04(); g["usn"].pop("coverage")
+        v = sup.w04_verdict(**g)
+        self.assertEqual(v["w04_full"], "BLOCKED"); self.assertIn("USN_COVERAGE_PROOF_ABSENT", v["gaps"])
+
+    def test_coverage_short_of_end_blocks(self):
+        g = good_w04(); g["usn"]["coverage"] = dict(g["usn"]["coverage"], covered_to=800)
+        v = sup.w04_verdict(**g)
+        self.assertEqual(v["w04_full"], "BLOCKED"); self.assertIn("USN_COVERAGE_SHORT_OF_END", v["gaps"])
+
+    def test_coverage_incomplete_reason_blocks(self):
+        g = good_w04(); g["usn"]["coverage"] = dict(g["usn"]["coverage"], read_complete=False, reason="USN_EOF_BEFORE_END")
+        v = sup.w04_verdict(**g)
+        self.assertEqual(v["w04_full"], "BLOCKED")
+        self.assertTrue(any(x.startswith("USN_COVERAGE_INCOMPLETE") for x in v["gaps"]))
+
+
+class TreeVerifiedEmpty(unittest.TestCase):
+    def test_requires_two_consecutive(self):
+        self.assertFalse(sup.tree_verified_empty(0))
+        self.assertFalse(sup.tree_verified_empty(1))
+        self.assertTrue(sup.tree_verified_empty(2))
+        self.assertTrue(sup.tree_verified_empty(3))
+
+
+class StartFailureDisposition(unittest.TestCase):
+    def test_no_child(self):
+        self.assertEqual(sup.start_failure_disposition(child_created=False, assigned=False, resumed_threads=0),
+                         "NO_CHILD_NO_EFFECT")
+
+    def test_suspended_never_resumed_rolls_back(self):
+        self.assertEqual(sup.start_failure_disposition(child_created=True, assigned=False, resumed_threads=0),
+                         "ROLLBACK_OWN_SUSPENDED_CHILD")
+        self.assertEqual(sup.start_failure_disposition(child_created=True, assigned=True, resumed_threads=0),
+                         "ROLLBACK_OWN_SUSPENDED_CHILD")
+
+    def test_running_child_never_terminated(self):
+        self.assertEqual(sup.start_failure_disposition(child_created=True, assigned=True, resumed_threads=1),
+                         "CHILD_RUNNING_UNDER_CUSTODY")
+
+
+class OwnerDispositionAndRelease(unittest.TestCase):
+    def _doc(self, **o):
+        d = {"schema": sup.OWNER_DISPOSITION_SCHEMA, "disposition": "RELEASE_CUSTODY_LEAVE_TREE_RUNNING",
+             "ack_label": "L", "ack_child_pid": 4242, "owner_statement": "autorizo deixar rodando"}
+        d.update(o); return d
+
+    def test_absent_is_wait(self):
+        self.assertEqual(sup.owner_disposition_verdict(None, label="L", child_pid=4242)["disposition"], "WAIT")
+
+    def test_valid_release(self):
+        self.assertEqual(sup.owner_disposition_verdict(self._doc(), label="L", child_pid=4242)["disposition"], "RELEASE")
+
+    def test_ack_mismatch_is_wait(self):
+        self.assertEqual(sup.owner_disposition_verdict(self._doc(ack_child_pid=9), label="L", child_pid=4242)["disposition"], "WAIT")
+        self.assertEqual(sup.owner_disposition_verdict(self._doc(ack_label="X"), label="L", child_pid=4242)["disposition"], "WAIT")
+
+    def test_wrong_schema_is_wait(self):
+        self.assertEqual(sup.owner_disposition_verdict(self._doc(schema="x"), label="L", child_pid=4242)["disposition"], "WAIT")
+
+    def test_release_plan_requires_flag_cleared(self):
+        self.assertTrue(sup.owner_release_plan(kill_on_close_cleared=True)["release"])
+        bad = sup.owner_release_plan(kill_on_close_cleared=False)
+        self.assertFalse(bad["release"]); self.assertTrue(bad["kill_risk"])
+
+
+class TerminalEvidence(unittest.TestCase):
+    STATUS = {"schema": sup.STATUS_SCHEMA_V003, "PHASE": "SYNTHETIC_COMMITTED", "COMMITTED": 3, "TOTAL": 3,
+              "PCT": 100.0, "RATE": "UNKNOWN", "ETA": 0.0, "FINISH": "NOW", "ACTIVE": 0, "READY_WAITING": 0,
+              "CHECKPOINT": "s3", "SAFE_STOP": "NO", "PROCESS_TREE_CLEAN": "YES", "STOP_REQUESTED": False,
+              "run_instance": "4242_999", "out_root": "/o", "mode": "SYNTHETIC", "updated_at": "t"}
+
+    def _v(self, mode="COMPLETION", status=None, **kw):
+        base = dict(mode=mode, status=status if status is not None else dict(self.STATUS), status_state="OK",
+                    pre_run_instance=None, supervised_pids={4242}, expected_out_root="/o",
+                    checkpoint_ok=True, checkpoint_completed=3)
+        base.update(kw)
+        return sup.terminal_evidence_verdict(**base)
+
+    def test_complete(self):
+        self.assertEqual(self._v()["terminal"], "COMPLETE")
+
+    def test_absent_status_incomplete(self):
+        self.assertEqual(self._v(status={}, status_state="ABSENT")["terminal"], "INCOMPLETE")
+
+    def test_stale_run_instance_rejected(self):
+        self.assertIn("STATUS_NOT_FRESH_FOR_THIS_ATTEMPT", self._v(pre_run_instance="4242_999")["gaps"])
+
+    def test_foreign_producer_rejected(self):
+        self.assertIn("STATUS_PRODUCER_NOT_IN_SUPERVISED_TREE", self._v(supervised_pids={9999})["gaps"])
+
+    def test_not_fully_committed_rejected(self):
+        st = dict(self.STATUS, COMMITTED=2)
+        self.assertIn("STATUS_NOT_FULLY_COMMITTED", self._v(status=st, checkpoint_completed=2)["gaps"])
+
+    def test_checkpoint_mismatch_rejected(self):
+        self.assertIn("CHECKPOINT_COMMITTED_MISMATCH", self._v(checkpoint_completed=2)["gaps"])
+
+    def test_tree_not_clean_rejected(self):
+        st = dict(self.STATUS, PROCESS_TREE_CLEAN="NO")
+        self.assertIn("STATUS_PROCESS_TREE_NOT_CLEAN", self._v(status=st)["gaps"])
+
+    def test_out_root_mismatch_rejected(self):
+        self.assertIn("STATUS_OUT_ROOT_MISMATCH", self._v(expected_out_root="/other")["gaps"])
+
+    def test_safe_stop_mode(self):
+        st = dict(self.STATUS, SAFE_STOP="YES", COMMITTED=1, TOTAL=3, PCT=33.3)
+        self.assertEqual(self._v(mode="SAFE_STOP", status=st, checkpoint_completed=1)["terminal"], "COMPLETE")
+
+
+class CompletionTerminalRequired(unittest.TestCase):
+    INV = {"a": {"type": "file", "sha256": "1"}}
+    TERM = {"terminal": "COMPLETE", "mode": "COMPLETION", "gaps": []}
+    LIN = {"lineage": "GAPLESS_NATIVE_JOB", "processes": 1}
+    JIT = {"jit": "W04_ARMED_BEFORE_CHILD_CREATION_HELD_UNTIL_TREE_EMPTY"}
+    W = {"w04_full": "PASS_NATIVE_SAME_ATTEMPT"}
+
+    def _c(self, **kw):
+        base = dict(child_exit=0, tree_empty=True, run_lock_present=False, inventory_a=self.INV,
+                    inventory_b=dict(self.INV), w04=self.W, terminal=self.TERM, lineage=self.LIN, jit=self.JIT)
+        base.update(kw)
+        return sup.completion_verdict(**base)
+
+    def test_all_proven_completes(self):
+        self.assertTrue(self._c()["completed"])
+
+    def test_missing_terminal_blocks(self):
+        v = self._c(terminal=None)
+        self.assertFalse(v["completed"]); self.assertTrue(any("TERMINAL_EVIDENCE_NOT_PROVEN" in g for g in v["gaps"]))
+
+    def test_incomplete_terminal_blocks(self):
+        v = self._c(terminal={"terminal": "INCOMPLETE", "mode": "COMPLETION", "gaps": ["STATUS_ABSENT"]})
+        self.assertFalse(v["completed"])
+
+    def test_missing_lineage_blocks(self):
+        v = self._c(lineage={"lineage": "BLOCKED", "cause": "x"})
+        self.assertFalse(v["completed"]); self.assertTrue(any("LINEAGE_NOT_PROVEN" in g for g in v["gaps"]))
+
+    def test_missing_jit_blocks(self):
+        v = self._c(jit={"jit": "BLOCKED"})
+        self.assertFalse(v["completed"]); self.assertTrue(any("JIT_ORDER_NOT_PROVEN" in g for g in v["gaps"]))
+
+    def test_posix_observational_lineage_ok_when_w04_non_native(self):
+        v = self._c(w04={"w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"},
+                    lineage={"lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF", "processes_observed": 1})
+        self.assertTrue(v["completed"])
+
+
+class PlanIsolation(unittest.TestCase):
+    def _plan(self, argv, out="/tmp/out", economic=False):
+        return {"schema": sup.RUN_PLAN_SCHEMA, "argv": argv, "out_root": out, "economic": economic}
+
+    def test_synthetic_chain_isolated(self):
+        v = sup.plan_isolation_verdict(self._plan(["py", "-B", str(ROOT / "tests" / "synthetic_chain.py"),
+                                                   "--out", "/tmp/o"]), package_root=ROOT)
+        self.assertEqual(v["isolation"], "ISOLATED_NON_ECONOMIC", v)
+
+    def test_code_runtime_rejected(self):
+        v = sup.plan_isolation_verdict(self._plan(["py", "-I", str(ROOT / "CODE" / "pegasus_entry.py"), "run-b"]),
+                                       package_root=ROOT)
+        self.assertEqual(v["isolation"], "NOT_ISOLATED")
+        self.assertTrue(any("ECONOMIC" in g for g in v["gaps"]))
+
+    def test_economic_module_name_rejected(self):
+        v = sup.plan_isolation_verdict(self._plan(["py", "-m", "r1r11_full_2026"]), package_root=ROOT)
+        self.assertEqual(v["isolation"], "NOT_ISOLATED")
+
+    def test_out_inside_package_rejected(self):
+        v = sup.plan_isolation_verdict(self._plan(["py", "-B", str(ROOT / "tests" / "synthetic_chain.py")],
+                                                  out=str(ROOT / "inside")), package_root=ROOT)
+        self.assertIn("OUT_ROOT_INSIDE_SEALED_PACKAGE", v["gaps"])
+
+
+class _ExcCustody(_ReconcileCustody):
+    """Custódia-dupla parametrizável para exceções do loop: injeta falhas em stop/observe."""
+    def __init__(self, *, live_polls=3, stop_raises=None, stop_result=None, observe_raises=0):
+        super().__init__(live_polls=live_polls)
+        self._stop_raises = stop_raises
+        self._stop_result = stop_result
+        self._observe_raises = observe_raises
+        self.stop_calls = 0
+
+    def request_stop(self):
+        self.stop_calls += 1
+        if self._stop_raises is not None:
+            raise self._stop_raises
+        return self._stop_result if self._stop_result is not None else {"delivered": True}
+
+    def observe_tree(self):
+        if self._observe_raises > 0:
+            self._observe_raises -= 1
+            raise RuntimeError("JOB_ACCOUNTING_FAILED_INJECTED")
+        return "EMPTY" if self.tree_empty() else "LIVE"
+
+
+class SupervisionCustodyExceptions(unittest.TestCase):
+    """C1/I2: nenhuma exceção pós-spawn sai de run(); close() nunca com árvore viva; sem kill."""
+
+    def _run(self, cust, *, out_fields=None, stop_after=None):
+        guard = _ReconcileGuard()
+        with mock.patch.object(sup, "make_custody", lambda log: cust), \
+                mock.patch.object(sup, "W04Guard", lambda root, log: guard), \
+                mock.patch.object(sup, "RECONCILE_HOLD_S", 0.0):
+            with tempfile.TemporaryDirectory() as t:
+                ev = Path(t) / "ev"; ev.mkdir(); out = Path(t) / "out"; out.mkdir()
+                if out_fields is not None:
+                    (out / "TELEMETRY").mkdir(parents=True)
+                    (out / "TELEMETRY" / "R1R11_STATUS.json").write_text(json.dumps(out_fields), encoding="utf-8")
+                s = sup.Supervision(evidence=ev, protected_root=Path(t) / "p", out_root=out, label="L",
+                                    stop_after_committed=stop_after, log=lambda *a, **k: None)
+                result = s.run(["x"], {}, timeout_s=0.2)
+        return result, cust
+
+    def _assert_safe(self, cust, result):
+        self.assertIsInstance(result, dict)
+        self.assertEqual(cust.closed, 1)
+        self.assertEqual(cust.closed_while_live, 0)
+
+    def test_stop_raises_holds_until_empty(self):
+        c = _ExcCustody(live_polls=3, stop_raises=RuntimeError("CTRL_C_DELIVERY_FAILED helper_exit=7"))
+        r, c = self._run(c, out_fields={"COMMITTED": 1, "TOTAL": 3, "ACTIVE": 1}, stop_after=1)
+        self._assert_safe(c, r)
+
+    def test_stop_structured_failure_holds(self):
+        c = _ExcCustody(live_polls=3, stop_result={"delivered": False, "helper_exit": 7})
+        r, c = self._run(c, out_fields={"COMMITTED": 1, "TOTAL": 3, "ACTIVE": 1}, stop_after=1)
+        self._assert_safe(c, r)
+
+    def test_observe_raises_holds(self):
+        c = _ExcCustody(live_polls=2, observe_raises=2)
+        r, c = self._run(c)
+        self._assert_safe(c, r)
+
+    def test_corrupt_telemetry_non_int_holds(self):
+        c = _ExcCustody(live_polls=2)
+        r, c = self._run(c, out_fields={"COMMITTED": "x?", "TOTAL": 3, "ACTIVE": "!"})
+        self._assert_safe(c, r)
+
+    def test_committed_gt_total_holds(self):
+        c = _ExcCustody(live_polls=2)
+        r, c = self._run(c, out_fields={"COMMITTED": 9, "TOTAL": 3, "ACTIVE": 1})
+        self._assert_safe(c, r)
+
+    def test_revalidate_raises_holds(self):
+        guard = _ReconcileGuard()
+        def boom():
+            raise RuntimeError("W04_REVALIDATE_INJECTED")
+        guard.revalidate = boom
+        c = _ExcCustody(live_polls=2)
+        with mock.patch.object(sup, "make_custody", lambda log: c), \
+                mock.patch.object(sup, "W04Guard", lambda root, log: guard), \
+                mock.patch.object(sup, "RECONCILE_HOLD_S", 0.0):
+            with tempfile.TemporaryDirectory() as t:
+                ev = Path(t) / "ev"; ev.mkdir(); out = Path(t) / "out"; out.mkdir()
+                s = sup.Supervision(evidence=ev, protected_root=Path(t) / "p", out_root=out, label="L", log=lambda *a, **k: None)
+                r = s.run(["x"], {}, timeout_s=0.2)
+        self._assert_safe(c, r)
+
+
+class AdmissionSealed(unittest.TestCase):
+    """C4/INT-13: --admission só aceita o módulo sintético selado do pacote (caminho + SHA)."""
+
+    def test_unsealed_path_refused(self):
+        with tempfile.TemporaryDirectory() as t:
+            eviladm = Path(t) / "evil.py"
+            eviladm.write_text("ADMISSION=None\n", encoding="utf-8")
+            ns = type("NS", (), {"admission": str(eviladm)})()
+            with self.assertRaises(sup.SupervisorBlocked) as c:
+                sup._load_admission(ns)
+            self.assertIn("ADMISSION_MODULE_NOT_SEALED_SYNTHETIC", str(c.exception))
+
+    def test_default_without_flag(self):
+        ns = type("NS", (), {"admission": None})()
+        self.assertIsInstance(sup._load_admission(ns), sup.DefaultReleaseAdmission)
 
 
 if __name__ == "__main__":

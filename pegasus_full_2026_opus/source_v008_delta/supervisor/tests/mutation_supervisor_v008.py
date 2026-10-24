@@ -50,8 +50,8 @@ MUTANTS = [
      'if isinstance(code, bool) or not isinstance(code, int):\n        return "PASS"'),
     ("unknown_nonzero_classified_pass", 'return EXIT_CLASSES.get(code, "UNCLASSIFIED_NONZERO_FAIL" if code != 0 else "PASS")',
      'return EXIT_CLASSES.get(code, "PASS")'),
-    ("technical_failure_exits_zero", '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        return EXIT_FAIL',
-     '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        return EXIT_PASS'),
+    ('technical_failure_exits_zero', '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        print(json.dumps({"schema": SCHEMA, "result": "FAIL_TECHNICAL", "cause": ("%s: %s" % (type(exc).__name__, exc))[:800],\n                          "exit_code": EXIT_FAIL, "exit_class": classify_exit(EXIT_FAIL), **GATES}, sort_keys=True), flush=True)\n        return EXIT_FAIL\n',
+     '        print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)\n        print(json.dumps({"schema": SCHEMA, "result": "FAIL_TECHNICAL", "cause": ("%s: %s" % (type(exc).__name__, exc))[:800],\n                          "exit_code": EXIT_FAIL, "exit_class": classify_exit(EXIT_FAIL), **GATES}, sort_keys=True), flush=True)\n        return EXIT_PASS\n'),
     # F01: o gate W04 na conclusão não pode ser desligado.
     ("completion_ignores_w04", 'if (w04 or {}).get("w04_full") not in ("PASS_NATIVE_SAME_ATTEMPT", "NOT_ATTESTED_NON_NATIVE_PLATFORM"):',
      'if False:'),
@@ -77,12 +77,45 @@ MUTANTS = [
     ("reconcile_step_reserved_finalizes_live_tree",
      'if decision == "RESERVED_DECISION_FAIL_CLOSED_NO_KILL" and not reserved_reported:\n        return "REPORT_RESERVED_THEN_HOLD"',
      'if decision == "RESERVED_DECISION_FAIL_CLOSED_NO_KILL" and not reserved_reported:\n        return "FINALIZE_SAFE"'),
+    # R15 (C1): árvore vazia exige DUAS observações consecutivas; uma só não basta.
+    ("tree_verified_empty_accepts_single", "    return int(consecutive_empty) >= 2",
+     "    return int(consecutive_empty) >= 1"),
+    # R15 (C1): rollback só do filho suspenso que nunca retomou thread; nunca de um filho em execução.
+    ("start_failure_rolls_back_running_child", "    if int(resumed_threads) <= 0:\n        return \"ROLLBACK_OWN_SUSPENDED_CHILD\"",
+     "    if int(resumed_threads) >= 0:\n        return \"ROLLBACK_OWN_SUSPENDED_CHILD\""),
+    # R15 (C1): liberação pelo titular só com KILL_ON_JOB_CLOSE removido; nunca fechar com o flag ativo.
+    ("owner_release_plan_releases_without_clear", "    if kill_on_close_cleared is True:\n        return {\"release\": True,",
+     "    if True:\n        return {\"release\": True,"),
+    # R15 (C2): cursor USN não progressivo NÃO pode ser declarado cobertura completa.
+    ("usn_coverage_accepts_nonprogress", 'return result(False, "USN_CURSOR_NOT_ADVANCING", cur, pages, nrec, hits)',
+     'return result(True, None, cur, pages, nrec, hits)'),
+    # R15 (C2): w04_verdict exige a prova de cobertura até end_usn (não só o booleano).
+    ("w04_ignores_usn_coverage_short", "        if short:\n            gaps.append(\"USN_COVERAGE_SHORT_OF_END\")",
+     "        if False:\n            gaps.append(\"USN_COVERAGE_SHORT_OF_END\")"),
+    # R15 (C3): conclusão exige evidência terminal do filho vinculada à tentativa.
+    ("completion_ignores_terminal_evidence",
+     '    # R15 (A03): conclusão exige a evidência terminal do filho vinculada a esta tentativa.\n    if (terminal or {}).get("terminal") != "COMPLETE" or (terminal or {}).get("mode") != "COMPLETION":',
+     '    # R15 (A03): conclusão exige a evidência terminal do filho vinculada a esta tentativa.\n    if False:'),
+    # R15 (C3): STATUS de outra tentativa (stale) não vale como evidência terminal.
+    ("terminal_accepts_stale_run_instance", "    elif pre_run_instance is not None and inst == pre_run_instance:",
+     "    elif False and inst == pre_run_instance:"),
+    # R15 (C4): --admission só aceita o módulo sintético SELADO (caminho + SHA do manifesto).
+    ("admission_accepts_unsealed_module",
+     '    if Path(path).resolve() != sealed:\n        raise SupervisorBlocked("ADMISSION_MODULE_NOT_SEALED_SYNTHETIC:" + str(Path(path).resolve()))',
+     '    if False:\n        raise SupervisorBlocked("ADMISSION_MODULE_NOT_SEALED_SYNTHETIC:" + str(Path(path).resolve()))'),
+    # R15 (C4): argv de plano não econômico não pode apontar o runtime econômico (CODE/).
+    ("plan_isolation_allows_economic_entry",
+     '                    gaps.append("ARGV_TARGETS_ECONOMIC_RUNTIME:" + Path(a).name)',
+     '                    pass'),
 ]
 
 SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlatform",
           "SafeStopRedelivery", "CustodyLifecycleContract", "RunPathWiring", "ExitClassification",
           "W04PrespawnGate", "LineageUnresolvedIdentity", "JobCloseNoKill",
-          "JobClosePlan", "GrandchildContained", "CustodyFinalizeDecision", "ReconcileStepAction"]
+          "JobClosePlan", "GrandchildContained", "CustodyFinalizeDecision", "ReconcileStepAction",
+          "UsnScanCoverage", "W04UsnCoverageProof", "TreeVerifiedEmpty", "StartFailureDisposition",
+          "OwnerDispositionAndRelease", "TerminalEvidence", "CompletionTerminalRequired", "PlanIsolation",
+          "AdmissionSealed", "SupervisionCustodyExceptions"]
 
 
 def main() -> int:

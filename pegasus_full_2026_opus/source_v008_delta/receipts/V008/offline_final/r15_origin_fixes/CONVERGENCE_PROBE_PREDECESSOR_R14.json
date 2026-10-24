@@ -1,0 +1,71 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R15_CONVERGENCE_PROBE",
+ "tree": "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/frozen_r14/tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008",
+ "supervisor_sha256": "E724B221DE0E63BE1A564002492C8977F38E84CC74B67F0DB72DC7ECCAAEF55D",
+ "all_safe": false,
+ "probes": [
+  {
+   "probe": "A01_safe_stop_helper_nonzero_live_tree",
+   "verdict": "UNSAFE",
+   "outcome": "EXCEPTION",
+   "closed": 1,
+   "closed_while_live": 1,
+   "killed": 0,
+   "error": "RuntimeError: CTRL_C_DELIVERY_FAILED helper_exit=7"
+  },
+  {
+   "probe": "A01b_safe_stop_helper_structured_fail",
+   "verdict": "SAFE",
+   "outcome": "RETURNED",
+   "closed": 1,
+   "closed_while_live": 0,
+   "killed": 0
+  },
+  {
+   "probe": "INT01_eta_committed_gt_total_live",
+   "verdict": "UNSAFE",
+   "outcome": "EXCEPTION",
+   "closed_while_live": 1,
+   "error": "SupervisorBlocked: PROGRESS_COUNTERS_INVALID"
+  },
+  {
+   "probe": "INT02_corrupt_telemetry_non_int",
+   "verdict": "UNSAFE",
+   "outcome": "EXCEPTION",
+   "closed_while_live": 1,
+   "error": "ValueError: invalid literal for int() with base 10: 'x?'"
+  },
+  {
+   "probe": "INT03_job_query_fails_during_drain",
+   "verdict": "UNSAFE",
+   "completion": null,
+   "outcome": "EXCEPTION",
+   "closed_while_live": 1
+  },
+  {
+   "probe": "INT04_w04_revalidate_raises_live",
+   "verdict": "UNSAFE",
+   "outcome": "EXCEPTION",
+   "closed_while_live": 1,
+   "error": "RuntimeError: W04_REVALIDATE_INJECTED"
+  },
+  {
+   "probe": "A03_completion_requires_terminal_status",
+   "verdict": "UNSAFE",
+   "completed": true,
+   "terminal": null
+  },
+  {
+   "probe": "A04_structured_receipt_on_technical_failure",
+   "verdict": "UNSAFE",
+   "probe_error": "AttributeError(\"<module 'pegasus_supervisor_v008' from '/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/frozen_r14/tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py'> does not have the attribute 'plan_isolation_verdict'\")",
+   "tb": "age_root: {\"isolation\": \"ISOLATED_NON_ECONOMIC\", \"gaps\": []}):\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/lib/python3.13/unittest/mock.py\", line 1503, in __enter__\n    original, local = self.get_original()\n                      ~~~~~~~~~~~~~~~~~^^\n  File \"/usr/lib/python3.13/unittest/mock.py\", line 1473, in get_original\n    raise AttributeError(\n        \"%s does not have the attribute %r\" % (target, name)\n    )\nAttributeError: <module 'pegasus_supervisor_v008' from '/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/frozen_r14/tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py'> does not have the attribute 'plan_isolation_verdict'\n"
+  },
+  {
+   "probe": "A02_usn_nonprogress_blocks_w04",
+   "verdict": "UNSAFE",
+   "probe_error": "AttributeError(\"module 'pegasus_supervisor_v008' has no attribute 'usn_scan_coverage'\")",
+   "tb": "Traceback (most recent call last):\n  File \"/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/r15_controls/converge_probe.py\", line 96, in P\n    try: fn()\n         ~~^^\n  File \"/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/r15_controls/converge_probe.py\", line 163, in A02_usn_nonprogress_blocks_w04\n    cov = sup.usn_scan_coverage(page, 100, 200, set(), set())\n          ^^^^^^^^^^^^^^^^^^^^^\nAttributeError: module 'pegasus_supervisor_v008' has no attribute 'usn_scan_coverage'\n"
+  }
+ ]
+}

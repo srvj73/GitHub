@@ -134,6 +134,12 @@ class SupervisorBlocked(RuntimeError):
     """Fail-closed: nenhuma invariante não comprovada é convertida em PASS."""
 
 
+class PrespawnBlocked(SupervisorBlocked):
+    """R15 (INT-07): bloqueio com NENHUM filho vivo (antes do spawn, ou rollback confirmado do
+    próprio filho suspenso que nunca executou). Sem efeito: classificação exit 2, não 3."""
+    effects = "NONE"
+
+
 def sha256_file(path: Path) -> str:
     h = hashlib.sha256()
     with Path(path).open("rb") as f:
@@ -145,7 +151,7 @@ def sha256_file(path: Path) -> str:
 def write_json_new(path: Path, obj) -> str:
     """Escrita exclusiva + fsync; nunca sobrescreve evidência."""
     path = Path(path)
-    data = (json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
+    data = (json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False, default=str) + "\n").encode("utf-8")
     with path.open("xb") as f:
         f.write(data)
         f.flush()
@@ -156,7 +162,7 @@ def write_json_new(path: Path, obj) -> str:
 def write_json_atomic(path: Path, obj) -> None:
     path = Path(path)
     tmp = path.with_name(path.name + ".tmp")
-    data = (json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False) + "\n").encode("utf-8")
+    data = (json.dumps(obj, indent=2, sort_keys=True, ensure_ascii=False, default=str) + "\n").encode("utf-8")
     with tmp.open("wb") as f:
         f.write(data)
         f.flush()
@@ -212,6 +218,22 @@ def w04_verdict(*, native: bool, lease: Mapping, dirs: Mapping, usn: Mapping,
         gaps.append("USN_JOURNAL_PURGED_DURING_ATTEMPT")
     if usn.get("read_complete") is not True:
         gaps.append("USN_READ_INCOMPLETE")
+    # R15 (A02): o booleano não basta. Exige a PROVA de cobertura produzida por usn_scan_coverage,
+    # coerente com os limites do próprio recibo e cobrindo até end_usn.
+    cov = usn.get("coverage")
+    if not isinstance(cov, Mapping):
+        gaps.append("USN_COVERAGE_PROOF_ABSENT")
+    else:
+        if cov.get("read_complete") is not True or cov.get("reason") is not None:
+            gaps.append("USN_COVERAGE_INCOMPLETE:%s" % cov.get("reason"))
+        if cov.get("start_usn") != usn.get("start_usn") or cov.get("end_usn") != usn.get("end_usn"):
+            gaps.append("USN_COVERAGE_BOUNDS_MISMATCH")
+        try:
+            short = int(cov.get("covered_to")) < int(usn.get("end_usn"))
+        except (TypeError, ValueError):
+            short = True
+        if short:
+            gaps.append("USN_COVERAGE_SHORT_OF_END")
     if usn.get("records_on_protected"):
         gaps.append("PROTECTED_SET_MODIFIED:%d" % len(usn["records_on_protected"]))
     for k in ("reparse_points", "id_changes", "sha_mismatch", "link_count_changes"):
@@ -241,6 +263,102 @@ def w04_verdict(*, native: bool, lease: Mapping, dirs: Mapping, usn: Mapping,
             "census_unresolved_reported": int(census.get("unresolved", 0)),
             "census_unresolved_semantics": "NOT_ABSENCE_PROOF;COVERED_BY_KERNEL_SHARE_ACCESS_LEASE",
             **census_diag}
+
+
+USN_ERROR_HANDLE_EOF = 38
+USN_ERROR_JOURNAL_ENTRY_DELETED = 1181
+USN_MAX_PAGES = 1_000_000
+
+
+def usn_scan_coverage(read_page: Callable, start_usn, end_usn, frns, dir_frns,
+                      max_pages: int = USN_MAX_PAGES) -> dict:
+    """R15 (A02): varredura PURA do diário USN de [start_usn, end_usn) com PROVA de cobertura.
+
+    `read_page(cursor) -> (ok, winerror, raw)` devolve a página de FSCTL_READ_USN_JOURNAL a partir
+    de `cursor` (8 bytes do próximo USN seguidos de registros USN_RECORD_V2/V3). A camada nativa só
+    adapta DeviceIoControl; toda a decisão de completude vive aqui, testável sem Win32.
+
+    A leitura só é completa quando a cobertura chega inequivocamente a end_usn: cursor estritamente
+    progressivo em cada página, registros estruturalmente válidos (comprimento alinhado e dentro da
+    página, versão suportada, nome dentro do registro, USN monotônico dentro de [cursor, próximo)),
+    FRN 128 bits mapeável em 64 bits (NTFS). Qualquer outra situação — EOF antes do fim, erro de
+    IOCTL, registro apagado/expurgado, página truncada, cursor parado — devolve INCOMPLETO com a
+    razão; nunca levanta."""
+    def result(complete, reason, cur, pages, nrec, hits):
+        return {"read_complete": bool(complete), "reason": reason, "start_usn": start_usn,
+                "end_usn": end_usn, "covered_to": cur, "pages": pages, "records_parsed": nrec,
+                "hits": hits}
+
+    if not isinstance(start_usn, int) or not isinstance(end_usn, int):
+        return result(False, "USN_BOUNDS_ABSENT", start_usn, 0, 0, [])
+    if end_usn < start_usn:
+        return result(False, "USN_END_BEFORE_START", start_usn, 0, 0, [])
+    frns, dir_frns = set(frns), set(dir_frns)
+    cur, pages, nrec, hits = start_usn, 0, 0, []
+    while cur < end_usn:
+        if pages >= max_pages:
+            return result(False, "USN_PAGE_LIMIT_EXCEEDED", cur, pages, nrec, hits)
+        pages += 1
+        try:
+            ok, err, raw = read_page(cur)
+        except Exception as exc:  # adaptador nativo falhou: incompleto, com causa
+            return result(False, "USN_READ_EXCEPTION:%s" % type(exc).__name__, cur, pages, nrec, hits)
+        if not ok:
+            if err == USN_ERROR_HANDLE_EOF:
+                return result(False, "USN_EOF_BEFORE_END", cur, pages, nrec, hits)
+            if err == USN_ERROR_JOURNAL_ENTRY_DELETED:
+                return result(False, "USN_JOURNAL_ENTRY_DELETED", cur, pages, nrec, hits)
+            return result(False, "USN_READ_FAILED:%s" % err, cur, pages, nrec, hits)
+        raw = bytes(raw or b"")
+        if len(raw) < 8:
+            return result(False, "USN_PAGE_TRUNCATED", cur, pages, nrec, hits)
+        nxt = int.from_bytes(raw[:8], "little", signed=True)
+        if nxt <= cur:
+            return result(False, "USN_CURSOR_NOT_ADVANCING", cur, pages, nrec, hits)
+        off, last, reached_end = 8, None, False
+        while off < len(raw):
+            if len(raw) - off < 8:
+                return result(False, "USN_RECORD_TRUNCATED", cur, pages, nrec, hits)
+            rl = int.from_bytes(raw[off:off + 4], "little")
+            major = int.from_bytes(raw[off + 4:off + 6], "little")
+            if major == 2:
+                hdr = 60
+            elif major == 3:
+                hdr = 76
+            else:
+                return result(False, "USN_RECORD_VERSION_UNSUPPORTED:%d" % major, cur, pages, nrec, hits)
+            if rl < hdr or rl % 8 != 0 or off + rl > len(raw):
+                return result(False, "USN_RECORD_MALFORMED", cur, pages, nrec, hits)
+            rec = raw[off:off + rl]
+            if major == 2:
+                frn = int.from_bytes(rec[8:16], "little")
+                par = int.from_bytes(rec[16:24], "little")
+                usn = int.from_bytes(rec[24:32], "little", signed=True)
+                reason = int.from_bytes(rec[40:44], "little")
+                nl, no = int.from_bytes(rec[56:58], "little"), int.from_bytes(rec[58:60], "little")
+            else:
+                if int.from_bytes(rec[16:24], "little") or int.from_bytes(rec[32:40], "little"):
+                    return result(False, "USN_FRN128_UNMAPPABLE", cur, pages, nrec, hits)
+                frn = int.from_bytes(rec[8:16], "little")
+                par = int.from_bytes(rec[24:32], "little")
+                usn = int.from_bytes(rec[40:48], "little", signed=True)
+                reason = int.from_bytes(rec[56:60], "little")
+                nl, no = int.from_bytes(rec[72:74], "little"), int.from_bytes(rec[74:76], "little")
+            if no < hdr or nl % 2 or no + nl > rl:
+                return result(False, "USN_RECORD_NAME_OUT_OF_BOUNDS", cur, pages, nrec, hits)
+            if usn < cur or usn >= nxt or (last is not None and usn <= last):
+                return result(False, "USN_RECORD_ORDER_INVALID", cur, pages, nrec, hits)
+            last = usn
+            nrec += 1
+            if usn >= end_usn:
+                reached_end = True
+                break
+            if frn in frns or frn in dir_frns or par in dir_frns:
+                hits.append({"usn": usn, "frn": frn, "parent_frn": par, "reason": reason,
+                             "name": rec[no:no + nl].decode("utf-16-le", "replace")})
+            off += rl
+        cur = max(nxt, end_usn) if reached_end else nxt
+    return result(True, None, cur, pages, nrec, hits)
 
 
 def job_close_disposition(active_processes: int) -> str:
@@ -299,6 +417,60 @@ def reconcile_step_action(*, tree_empty: bool, deadline_reached: bool, productio
     if decision == "RESERVED_DECISION_FAIL_CLOSED_NO_KILL" and not reserved_reported:
         return "REPORT_RESERVED_THEN_HOLD"
     return "HOLD"
+
+
+def tree_verified_empty(consecutive_empty: int) -> bool:
+    """R15 (A01/INT-03): a árvore só é considerada vazia após DUAS observações consecutivas
+    bem-sucedidas que a mostraram vazia. Observação que falha é UNKNOWN e zera a sequência —
+    falha de consulta nunca autoriza TREE_EMPTY nem liberação de custódia."""
+    return int(consecutive_empty) >= 2
+
+
+def start_failure_disposition(*, child_created: bool, assigned: bool, resumed_threads: int) -> str:
+    """R15 (INT-10): o que fazer quando a criação suspensa → Assign → Resume falha. PURO.
+
+    - nenhum filho criado -> NO_CHILD_NO_EFFECT;
+    - filho criado e NENHUMA thread retomada (Assign falhou ou Resume falhou antes da 1ª thread):
+      é filho próprio que nunca executou código -> ROLLBACK_OWN_SUSPENDED_CHILD (único término
+      admitido; não é kill de processo em execução nem atinge terceiros);
+    - qualquer thread retomada: o filho EXECUTA -> CHILD_RUNNING_UNDER_CUSTODY (nunca terminar;
+      supervisão e hold normais)."""
+    if not child_created:
+        return "NO_CHILD_NO_EFFECT"
+    if int(resumed_threads) <= 0:
+        return "ROLLBACK_OWN_SUSPENDED_CHILD"
+    return "CHILD_RUNNING_UNDER_CUSTODY"
+
+
+OWNER_DISPOSITION_SCHEMA = "PEGASUS_FULL_2026_V008_OWNER_CUSTODY_DISPOSITION"
+
+
+def owner_disposition_verdict(doc, *, label: str, child_pid) -> dict:
+    """R15 (A01/INT-19): disposição EXPLÍCITA do titular para uma árvore viva que não drena.
+    Única via não automática de sair do hold sem árvore vazia. O software nunca mata: a única
+    disposição de liberação deixa a árvore rodando (sem W04) e exige confirmação de rótulo e PID.
+    Qualquer documento ausente/inválido equivale a WAIT."""
+    if doc is None:
+        return {"disposition": "WAIT", "reason": "ABSENT"}
+    if not isinstance(doc, Mapping) or doc.get("schema") != OWNER_DISPOSITION_SCHEMA:
+        return {"disposition": "WAIT", "reason": "INVALID_SCHEMA"}
+    if doc.get("disposition") != "RELEASE_CUSTODY_LEAVE_TREE_RUNNING":
+        return {"disposition": "WAIT", "reason": "UNSUPPORTED_DISPOSITION:%s" % doc.get("disposition")}
+    if doc.get("ack_label") != label or _as_int(doc.get("ack_child_pid")) != _as_int(child_pid):
+        return {"disposition": "WAIT", "reason": "ACK_MISMATCH"}
+    if not str(doc.get("owner_statement", "")).strip():
+        return {"disposition": "WAIT", "reason": "OWNER_STATEMENT_ABSENT"}
+    return {"disposition": "RELEASE", "reason": "OWNER_EXPLICIT_RELEASE"}
+
+
+def owner_release_plan(*, kill_on_close_cleared: bool) -> dict:
+    """R15: liberação autorizada pelo titular só fecha os handles do Job se KILL_ON_JOB_CLOSE foi
+    removido ANTES — fechar com o flag ativo mataria a árvore. Flag não removível => recusa e o
+    hold continua (NO_KILL acima da disposição)."""
+    if kill_on_close_cleared is True:
+        return {"release": True, "close_job_handles": True, "kill_risk": False}
+    return {"release": False, "close_job_handles": False, "kill_risk": True,
+            "reason": "KILL_ON_JOB_CLOSE_NOT_CLEARABLE_RELEASE_REFUSED_HOLD_CONTINUES"}
 
 
 def job_close_plan(active_processes: int, clear_kill_ok: bool) -> dict:
@@ -414,11 +586,95 @@ def lineage_verdict(*, native_job: bool, new_process: Sequence[Mapping],
             "processes_observed": len(idents)}
 
 
+STATUS_SCHEMA_V003 = "MINOTAURO_R1R11_RUNTIME_STATUS_V001"
+STATUS_REQUIRED_V003 = ("schema", "PHASE", "COMMITTED", "TOTAL", "PCT", "RATE", "ETA", "FINISH",
+                        "ACTIVE", "READY_WAITING", "CHECKPOINT", "SAFE_STOP", "PROCESS_TREE_CLEAN",
+                        "run_instance", "out_root", "mode", "updated_at")
+
+
+def _as_int(value, default=None):
+    """Inteiro estrito para campos de telemetria: bool/str/None/float não são aceitos."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        return default
+    return value
+
+
+def terminal_evidence_verdict(*, mode: str, status: Mapping, status_state: str, pre_run_instance,
+                              supervised_pids, expected_out_root, checkpoint_ok: bool,
+                              checkpoint_completed) -> dict:
+    """R15 (A03/INT-14): evidência terminal do filho VINCULADA a esta tentativa.
+
+    Contrato V003 (r1r11_runtime_status / coordenador): STATUS com esquema e campos obrigatórios,
+    `run_instance = "<pid>_<ns>"` do processo dono do RunLock, `PROCESS_TREE_CLEAN=YES` e `ACTIVE=0`
+    gravados por `close()`; na conclusão `COMMITTED == TOTAL > 0`; no SAFE_STOP `SAFE_STOP=YES`; e
+    `CHECKPOINT.json` autoverificável com o mesmo nº de sessões. O vínculo à tentativa exige
+    `run_instance` diferente do existente antes do spawn e PID produtor dentro da árvore
+    supervisionada — STATUS de execução anterior (raiz reutilizada) ou de outro processo não conta.
+    mode: "COMPLETION" | "SAFE_STOP"."""
+    gaps = []
+    st = status if isinstance(status, Mapping) else {}
+    if status_state != "OK":
+        gaps.append("STATUS_" + str(status_state))
+    if st.get("schema") != STATUS_SCHEMA_V003:
+        gaps.append("STATUS_SCHEMA_INVALID")
+    missing = [k for k in STATUS_REQUIRED_V003 if k not in st]
+    if missing:
+        gaps.append("STATUS_FIELDS_MISSING:%d" % len(missing))
+    try:
+        same_root = Path(str(st.get("out_root"))).resolve() == Path(expected_out_root).resolve()
+    except Exception:
+        same_root = False
+    if not same_root:
+        gaps.append("STATUS_OUT_ROOT_MISMATCH")
+    inst = st.get("run_instance")
+    producer = None
+    if isinstance(inst, str) and "_" in inst:
+        producer = _as_int(int(inst.split("_", 1)[0]) if inst.split("_", 1)[0].isdigit() else None)
+    if not isinstance(inst, str) or producer is None:
+        gaps.append("STATUS_RUN_INSTANCE_INVALID")
+    elif pre_run_instance is not None and inst == pre_run_instance:
+        gaps.append("STATUS_NOT_FRESH_FOR_THIS_ATTEMPT")
+    if producer is not None and producer not in {int(p) for p in (supervised_pids or [])}:
+        gaps.append("STATUS_PRODUCER_NOT_IN_SUPERVISED_TREE")
+    if st.get("PROCESS_TREE_CLEAN") != "YES":
+        gaps.append("STATUS_PROCESS_TREE_NOT_CLEAN")
+    if _as_int(st.get("ACTIVE")) != 0:
+        gaps.append("STATUS_ACTIVE_NONZERO")
+    committed, total = _as_int(st.get("COMMITTED")), _as_int(st.get("TOTAL"))
+    if not checkpoint_ok:
+        gaps.append("CHECKPOINT_INVALID")
+    elif committed is None or _as_int(checkpoint_completed) != committed:
+        gaps.append("CHECKPOINT_COMMITTED_MISMATCH")
+    if mode == "COMPLETION":
+        if total is None or total <= 0 or committed != total:
+            gaps.append("STATUS_NOT_FULLY_COMMITTED")
+        if st.get("SAFE_STOP") == "YES" or st.get("STOP_REQUESTED") is True:
+            gaps.append("STATUS_STOPPED_NOT_COMPLETED")
+    elif mode == "SAFE_STOP":
+        if st.get("SAFE_STOP") != "YES":
+            gaps.append("STATUS_NOT_SAFE_STOP")
+    else:
+        gaps.append("TERMINAL_MODE_INVALID")
+    return {"terminal": "COMPLETE" if not gaps else "INCOMPLETE", "mode": mode, "gaps": gaps,
+            "run_instance": inst, "producer_pid": producer, "committed": committed, "total": total}
+
+
 def safestop_verdict(*, stop_requested: bool, child_exit: Optional[int], tree_empty: bool,
                      status: Mapping, checkpoint_valid: bool, run_lock_present: bool,
-                     w04: Mapping) -> dict:
-    """Confirmação INDEPENDENTE do SAFE_STOP (o filho não se autoconfirma)."""
+                     w04: Mapping, terminal: Optional[Mapping] = None, lineage: Optional[Mapping] = None,
+                     jit: Optional[Mapping] = None) -> dict:
+    """Confirmação INDEPENDENTE do SAFE_STOP (o filho não se autoconfirma). R15: exige também a
+    evidência terminal vinculada a esta tentativa (`terminal_evidence_verdict(mode="SAFE_STOP")`)
+    e linhagem/JIT provados, como a conclusão."""
     gaps = []
+    if (terminal or {}).get("terminal") != "COMPLETE" or (terminal or {}).get("mode") != "SAFE_STOP":
+        gaps.append("TERMINAL_EVIDENCE_NOT_PROVEN:%s" % ",".join((terminal or {}).get("gaps", ["ABSENT"])))
+    lin = (lineage or {}).get("lineage")
+    native_w04 = (w04 or {}).get("w04_full") == "PASS_NATIVE_SAME_ATTEMPT"
+    if lin != "GAPLESS_NATIVE_JOB" and (native_w04 or lin != "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF"):
+        gaps.append("LINEAGE_NOT_PROVEN:%s" % (lineage or {}).get("cause", lin))
+    if not str((jit or {}).get("jit", "")).startswith("W04_ARMED_BEFORE_CHILD_CREATION"):
+        gaps.append("JIT_ORDER_NOT_PROVEN:%s" % (jit or {}).get("cause"))
     if not stop_requested:
         gaps.append("STOP_NOT_REQUESTED")
     if not is_cooperative_stop_exit(child_exit):
@@ -441,7 +697,9 @@ def safestop_verdict(*, stop_requested: bool, child_exit: Optional[int], tree_em
 
 
 def completion_verdict(*, child_exit: Optional[int], tree_empty: bool, run_lock_present: bool,
-                       inventory_a: Mapping, inventory_b: Mapping, w04: Mapping) -> dict:
+                       inventory_a: Mapping, inventory_b: Mapping, w04: Mapping,
+                       terminal: Optional[Mapping] = None, lineage: Optional[Mapping] = None,
+                       jit: Optional[Mapping] = None) -> dict:
     """COMPLETED só após exit 0 + árvore vazia + RUN.lock ausente + inventário estável + W04
     atestado. Também é a porta de captura de evidência (anti captura multi-instante).
 
@@ -461,6 +719,16 @@ def completion_verdict(*, child_exit: Optional[int], tree_empty: bool, run_lock_
         gaps.append("INVENTORY_UNSTABLE_BETWEEN_PASSES")
     if (w04 or {}).get("w04_full") not in ("PASS_NATIVE_SAME_ATTEMPT", "NOT_ATTESTED_NON_NATIVE_PLATFORM"):
         gaps.append("W04_NOT_ATTESTED:%s" % (w04 or {}).get("w04_full"))
+    # R15 (A03): conclusão exige a evidência terminal do filho vinculada a esta tentativa.
+    if (terminal or {}).get("terminal") != "COMPLETE" or (terminal or {}).get("mode") != "COMPLETION":
+        gaps.append("TERMINAL_EVIDENCE_NOT_PROVEN:%s" % ",".join((terminal or {}).get("gaps", ["ABSENT"])))
+    # R15 (INT-06/INT-18): linhagem e ordem JIT são dados obrigatórios, não exceções laterais.
+    lin = (lineage or {}).get("lineage")
+    native_w04 = (w04 or {}).get("w04_full") == "PASS_NATIVE_SAME_ATTEMPT"
+    if lin != "GAPLESS_NATIVE_JOB" and (native_w04 or lin != "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF"):
+        gaps.append("LINEAGE_NOT_PROVEN:%s" % (lineage or {}).get("cause", lin))
+    if not str((jit or {}).get("jit", "")).startswith("W04_ARMED_BEFORE_CHILD_CREATION"):
+        gaps.append("JIT_ORDER_NOT_PROVEN:%s" % (jit or {}).get("cause"))
     if gaps:
         return {"completed": False, "gaps": gaps}
     return {"completed": True, "inventory_entries": len(inventory_a),
@@ -507,17 +775,26 @@ def inventory(root: Path, *, include_sha: bool = True) -> Dict[str, dict]:
     return out
 
 
-def checkpoint_valid(out_root: Path) -> bool:
+def checkpoint_evidence(out_root: Path) -> dict:
+    """CHECKPOINT.json autoverificável (verificador do próprio V003) e nº de sessões concluídas.
+    R15 (INT-16): `CODE/` entra em sys.path uma única vez."""
     cp = Path(out_root) / "CHECKPOINT.json"
     if not cp.is_file():
-        return False
-    sys.path.insert(0, str(CODE))
+        return {"valid": False, "completed": None, "reason": "ABSENT"}
+    if str(CODE) not in sys.path:
+        sys.path.insert(0, str(CODE))
     try:
+        doc = json.loads(cp.read_text(encoding="utf-8"))
         from minotauro_v004_runner import _verify_checkpoint_self
-        _verify_checkpoint_self(json.loads(cp.read_text(encoding="utf-8")))
-        return True
-    except Exception:
-        return False
+        _verify_checkpoint_self(doc)
+    except Exception as exc:
+        return {"valid": False, "completed": None, "reason": "INVALID:%s" % type(exc).__name__}
+    comp = doc.get("completed") if isinstance(doc, dict) else None
+    return {"valid": True, "completed": len(comp) if isinstance(comp, list) else None, "reason": None}
+
+
+def checkpoint_valid(out_root: Path) -> bool:
+    return checkpoint_evidence(out_root)["valid"]
 
 
 # =====================================================================================
@@ -525,7 +802,9 @@ def checkpoint_valid(out_root: Path) -> bool:
 # =====================================================================================
 class PosixCustody:
     """Camada de teste/portabilidade: sessão própria (setsid). Observacional — NÃO é prova
-    nativa de Job; serve para qualificar offline a orquestração com o runtime real."""
+    nativa de Job; serve para qualificar offline a orquestração com o runtime real. Mesma
+    interface de custódia da camada Windows (R15): observe_tree tri-estado, request_stop
+    estruturado, child_state e liberação explícita pelo titular."""
     native_job = False
 
     def __init__(self, log: Callable[[str], None]):
@@ -534,6 +813,9 @@ class PosixCustody:
         self.seen: Dict[int, int] = {}
         self.marks: List[dict] = []
         self._closed = False
+        self.child_created = False
+        self.resumed_threads = 0
+        self.released_by_owner = False
 
     def mark(self, name: str) -> None:
         self.marks.append({"mark": name, "mono_ns": time.monotonic_ns()})
@@ -542,21 +824,35 @@ class PosixCustody:
     def _stat(pid: int):
         try:
             raw = Path("/proc/%d/stat" % pid).read_text()
-        except OSError:
+            rest = raw[raw.rindex(")") + 2:].split()
+            # campos após comm: state(3) ppid(4) pgrp(5) session(6) ... starttime(22)
+            return {"pid": pid, "ppid": int(rest[1]), "sid": int(rest[3]), "start": int(rest[19])}
+        except (OSError, ValueError, IndexError):
             return None
-        rest = raw[raw.rindex(")") + 2:].split()
-        # campos após comm: state(3) ppid(4) pgrp(5) session(6) ... starttime(22)
-        return {"pid": pid, "ppid": int(rest[1]), "sid": int(rest[3]), "start": int(rest[19])}
 
     def start(self, argv: Sequence[str], cwd: Path, env: Mapping, stdout_path: Path) -> int:
+        # R15 (INT-17): marco CHILD_CREATED só após o Popen ter sucesso; handle de stdout sempre fechado.
         fh = stdout_path.open("xb")
+        try:
+            self.proc = subprocess.Popen(list(argv), cwd=str(cwd), env=dict(env), stdout=fh,
+                                         stderr=subprocess.STDOUT, start_new_session=True)
+        finally:
+            fh.close()
+        self.child_created = True
+        self.resumed_threads = 1
         self.mark("CHILD_CREATED")
-        self.proc = subprocess.Popen(list(argv), cwd=str(cwd), env=dict(env), stdout=fh,
-                                     stderr=subprocess.STDOUT, start_new_session=True)
-        fh.close()
         self.mark("CHILD_RESUMED")
-        self.sample()
+        try:
+            self.sample()
+        except Exception as exc:  # amostragem é corroboração; a supervisão reamostra
+            self.log("POSIX_SAMPLE_AFTER_START_FAILED %s: %s" % (type(exc).__name__, exc))
         return self.proc.pid
+
+    def child_state(self) -> dict:
+        alive = self.proc is not None and self.proc.poll() is None
+        return {"child_created": self.child_created, "assigned": self.child_created,
+                "resumed_threads": self.resumed_threads, "rollback": None, "child_alive": alive,
+                "pid": self.proc.pid if self.proc is not None else None}
 
     def members(self) -> List[dict]:
         if self.proc is None:
@@ -576,20 +872,32 @@ class PosixCustody:
     def poll(self) -> Optional[int]:
         return None if self.proc is None else self.proc.poll()
 
-    def request_stop(self) -> None:
-        # Somente o coordenador recebe o sinal (workers V003 ignoram SIGINT).
-        os.kill(self.proc.pid, signal.SIGINT)
+    def request_stop(self) -> dict:
+        # Somente o coordenador recebe o sinal (workers V003 ignoram SIGINT). R15 (INT-11): corrida
+        # com a saída do filho não é exceção — é entrega não realizada, registrada pelo supervisor.
+        try:
+            os.kill(self.proc.pid, signal.SIGINT)
+            return {"delivered": True}
+        except ProcessLookupError:
+            return {"delivered": False, "error": "CHILD_ALREADY_EXITED"}
+        except OSError as exc:
+            return {"delivered": False, "error": "%s: %s" % (type(exc).__name__, exc)}
 
     def _assert_open(self) -> None:
         # Contrato espelhado do Windows (lá o handle do Job fica inválido após close): nenhuma
-        # consulta ao custodiante é válida depois de close(). Faz o caminho POSIX reproduzir,
-        # offline, a mesma classe de erro de ordenação que no nativo seria ERROR_INVALID_HANDLE.
+        # consulta ao custodiante é válida depois de close().
         if getattr(self, "_closed", False):
             raise RuntimeError("CUSTODY_QUERIED_AFTER_CLOSE")
 
-    def tree_empty(self) -> bool:
+    def observe_tree(self) -> str:
         self._assert_open()
-        return not self.members()
+        try:
+            return "EMPTY" if not self.members() else "LIVE"
+        except Exception:
+            return "UNKNOWN"
+
+    def tree_empty(self) -> bool:
+        return self.observe_tree() == "EMPTY"
 
     def accounting(self) -> dict:
         self._assert_open()
@@ -598,6 +906,13 @@ class PosixCustody:
     def new_process_events(self) -> List[dict]:
         self._assert_open()
         return [{"pid": p, "ctime": c} for p, c in sorted(self.seen.items())]
+
+    def release_live_tree_by_owner(self) -> dict:
+        # Sem Job no POSIX: a sessão continua após a saída do supervisor (não há kill-on-close).
+        plan = owner_release_plan(kill_on_close_cleared=True)
+        self.released_by_owner = True
+        self._closed = True
+        return {"released": True, "kill_on_close_cleared": True, "plan": plan}
 
     def close(self) -> None:
         self._closed = True
@@ -662,7 +977,31 @@ class W04Guard:
 # =====================================================================================
 # 5) EXECUÇÃO SUPERVISIONADA DE UM FILHO
 # =====================================================================================
+CUSTODY_STATE_SCHEMA = "PEGASUS_FULL_2026_V008_CUSTODY_STATE"
+MAX_RECORDED_ERRORS = 200
+_NO_RESULT = object()
+
+
 class Supervision:
+    """Execução supervisionada de UM filho como máquina de estados (R15).
+
+    PRESPAWN -> SPAWNING -> RUNNING -> STOP_REQUESTED -> DRAINING -> (LIVE_TREE_BLOCKED) ->
+    TREE_EMPTY -> W04_DISARMED -> CUSTODIAN_CLOSED (-> RESULT_PERSISTED, em _run_supervised).
+
+    Invariantes:
+      I1 a custódia (Job + lease W04) só é liberada com a árvore VERIFICADA vazia (duas observações
+         consecutivas bem-sucedidas), quando nenhum filho chegou a existir, ou por disposição
+         explícita do titular aplicada só se KILL_ON_JOB_CLOSE pôde ser removido antes;
+      I2 depois que um filho existe, nenhuma exceção sai de run(): cada falha é registrada (a 1ª
+         é a causa primária), persistida no CUSTODY_STATE e a supervisão continua; um defeito do
+         próprio código estruturado cai no hold de emergência antes de qualquer liberação;
+      I3 o supervisor nunca termina processo (exceção única: rollback do próprio filho que nunca
+         executou código, decidido por start_failure_disposition na camada de custódia);
+      I4 observação que falha é UNKNOWN, nunca vazio;
+      I5 o hold nunca é mudo: CUSTODY_STATE é regravado a cada heartbeat com fase, causa primária,
+         erros e a ação disponível ao titular.
+    """
+
     def __init__(self, *, evidence: Path, protected_root: Path, out_root: Path, label: str,
                  stop_after_committed: Optional[int] = None, log=print):
         self.evidence = Path(evidence)
@@ -670,16 +1009,109 @@ class Supervision:
         self.out_root = Path(out_root)
         self.label = label
         self.stop_after_committed = stop_after_committed
-        self.log = log
+        self._raw_log = log
+        self.log_failures = 0
         self.stop_requested = False
         self._prev_sigint = None
+        self.phase = "PRESPAWN"
+        self.errors: List[dict] = []
+        self.error_counts: Dict[str, int] = {}
+        self.primary_error: Optional[dict] = None
+        self.state_write_failures = 0
+        self._last_state_write = 0.0
+        self.custody_state_path = self.evidence / (label + "_CUSTODY_STATE.json")
+        self.disposition_path = self.evidence / (label + "_OWNER_CUSTODY_DISPOSITION.json")
+        self.ctx: Dict[str, object] = {}
 
-    def _status(self) -> dict:
+    # ------------------------------------------------------------ observabilidade que não derruba a custódia
+    def log(self, msg: str) -> None:
+        try:
+            self._raw_log(msg)
+        except Exception as exc:
+            self.log_failures += 1
+            try:
+                sys.stderr.write("PEGASUS_SUPERVISOR_LOG_FAILED %s | %s\n" % (type(exc).__name__, msg))
+            except Exception:
+                self.log_failures += 1
+
+    def _record_error(self, where: str, exc: BaseException) -> None:
+        text = ("%s: %s" % (type(exc).__name__, exc))[:800]
+        key = where + "|" + text
+        self.error_counts[key] = self.error_counts.get(key, 0) + 1
+        if self.error_counts[key] != 1:
+            return
+        rec = {"phase": self.phase, "where": where, "error": text, "mono_ns": time.monotonic_ns()}
+        if len(self.errors) < MAX_RECORDED_ERRORS:
+            self.errors.append(rec)
+        if self.primary_error is None:
+            self.primary_error = rec
+        self.log("SUPERVISION_ERROR phase=%s where=%s error=%s" % (self.phase, where, text))
+        self._persist_state(force=True)
+
+    def _guard(self, where: str, fn, default=None):
+        try:
+            return fn()
+        except Exception as exc:
+            self._record_error(where, exc)
+            return default
+
+    def _set_phase(self, phase: str) -> None:
+        if phase != self.phase:
+            self.phase = phase
+            self.log("SUPERVISION_PHASE=%s label=%s" % (phase, self.label))
+            self._persist_state(force=True)
+
+    def summary(self) -> dict:
+        return {"phase": self.phase, "primary_error": self.primary_error, "errors": list(self.errors),
+                "error_occurrences": sum(self.error_counts.values()), "log_failures": self.log_failures,
+                "custody_state_write_failures": self.state_write_failures,
+                "custody_state_file": str(self.custody_state_path), **{k: v for k, v in self.ctx.items()}}
+
+    def _persist_state(self, force: bool = False) -> None:
+        now = time.monotonic()
+        if not force and now - self._last_state_write < HEARTBEAT_S:
+            return
+        self._last_state_write = now
+        doc = {"schema": CUSTODY_STATE_SCHEMA, "label": self.label, "wall_time": time.strftime("%Y-%m-%dT%H:%M:%S"),
+               "stop_requested": self.stop_requested, "owner_disposition_file": str(self.disposition_path),
+               "no_kill": "SUPERVISOR_NEVER_TERMINATES_RUNNING_PROCESSES", **self.summary(), **GATES}
+        if self.phase == "LIVE_TREE_BLOCKED":
+            doc["owner_action"] = (
+                "Arvore viva nao drena; o custodiante segue VIVO com W04+Job e nunca mata. Opcoes do titular: "
+                "aguardar a drenagem; ou gravar %s com schema=%s, disposition=RELEASE_CUSTODY_LEAVE_TREE_RUNNING, "
+                "ack_label, ack_child_pid e owner_statement (a arvore continua rodando SEM W04; aplicado so se "
+                "KILL_ON_JOB_CLOSE puder ser removido antes)." % (self.disposition_path.name, OWNER_DISPOSITION_SCHEMA))
+        try:
+            self.evidence.mkdir(parents=True, exist_ok=True)
+            write_json_atomic(self.custody_state_path, doc)
+        except Exception as exc:
+            self.state_write_failures += 1
+            if self.state_write_failures in (1, 10, 100) or self.state_write_failures % 1000 == 0:
+                try:
+                    sys.stderr.write("PEGASUS_CUSTODY_STATE_WRITE_FAILED n=%d %s: %s\n"
+                                     % (self.state_write_failures, type(exc).__name__, exc))
+                except Exception:
+                    self.log_failures += 1
+
+    # ------------------------------------------------------------ telemetria tipada
+    def _status_read(self):
         p = self.out_root / "TELEMETRY" / "R1R11_STATUS.json"
         try:
-            return json.loads(p.read_text(encoding="utf-8"))
+            raw = p.read_text(encoding="utf-8")
+        except FileNotFoundError:
+            return {}, "ABSENT"
         except Exception:
-            return {}
+            return {}, "IO_ERROR"
+        try:
+            doc = json.loads(raw)
+        except Exception:
+            return {}, "CORRUPT"
+        if not isinstance(doc, dict):
+            return {}, "CORRUPT"
+        return doc, "OK"
+
+    def _status(self) -> dict:
+        return self._status_read()[0]
 
     def _on_sigint(self, *_):
         # Ctrl+C no supervisor = pedido de SAFE_STOP; nunca kill. 2º Ctrl+C: espera.
@@ -687,218 +1119,374 @@ class Supervision:
             self.log("SUPERVISOR_SAFE_STOP_REQUESTED=YES ADMISSION=CLOSED_BY_COORDINATOR NO_KILL")
         self.stop_requested = True
 
+    def _owner_disposition(self, child_pid) -> dict:
+        if not self.disposition_path.exists():
+            return owner_disposition_verdict(None, label=self.label, child_pid=child_pid)
+        try:
+            doc = json.loads(self.disposition_path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            return {"disposition": "WAIT", "reason": "UNREADABLE:%s" % type(exc).__name__}
+        return owner_disposition_verdict(doc, label=self.label, child_pid=child_pid)
+
+    # ------------------------------------------------------------ ciclo
+    def _observe(self, cust) -> str:
+        """Observação tri-estado da árvore; custodiante sem observe_tree usa tree_empty().
+        Qualquer exceção (inclusive atributo ausente) é contida pelo _guard chamador -> UNKNOWN."""
+        fn = getattr(cust, "observe_tree", None)
+        if fn is not None:
+            return fn()
+        return "EMPTY" if cust.tree_empty() else "LIVE"
+
+    def _prespawn_cleanup(self, cust, guard) -> None:
+        if guard is not None:
+            self._guard("prespawn_w04_release", lambda: guard.release())
+        self._guard("prespawn_custody_close", lambda: cust.close())
+
     def run(self, argv: Sequence[str], env: Mapping, timeout_s: Optional[float] = 900.0,
             stale_after_s: float = 120.0) -> dict:
-        """`stale_after_s`: watchdog de produção — se o heartbeat do STATUS do coordenador
-        (gravado a cada 10 s pelo V003) parar por mais que isso com o filho vivo, o supervisor
-        pede SAFE_STOP cooperativo (uma vez) e registra; nunca termina processo.
-        `timeout_s`: limite total usado só na qualificação (None em produção)."""
-        cust = make_custody(self.log)
-        # R11-ORIGIN-03 (revisão da origem): o custodiante (no Windows) já abriu Job + porta IOCP e
-        # iniciou a thread de bombeamento na construção. O arm, o gate pré-spawn (F02) e o start
-        # ficam DENTRO do try/finally para garantir que cust.close() rode EXATAMENTE UMA VEZ em todo
-        # caminho pré-spawn falho (prespawn BLOCKED, exceção em arm ou em start), sem vazar Job/
-        # IOCP/thread e sem matar processo (a árvore está vazia nesses ramos).
+        """Levanta somente `PrespawnBlocked` (nenhum filho vivo; nenhum efeito). Depois que um filho
+        existe, sempre devolve um resultado estruturado. `timeout_s` é só da qualificação (None em
+        produção); `stale_after_s` é o watchdog do heartbeat do coordenador (pede SAFE_STOP)."""
+        try:
+            cust = make_custody(self.log)
+        except Exception as exc:
+            raise PrespawnBlocked("CUSTODY_INIT_FAILED_NO_SPAWN:%s: %s" % (type(exc).__name__, exc)) from exc
+        guard = None
+        arm = None
         try:
             guard = W04Guard(self.protected_root, self.log)
             arm = guard.arm()
             cust.mark("W04_ARM")
-            # F02 (auditoria): gate PRÉ-SPAWN fail-closed. A proteção W04 tem de estar EFETIVAMENTE
-            # adquirida antes de criar qualquer filho. Se a lease não foi obtida em todos os alvos
-            # (sharing violation, erro de abertura, reparse no conjunto protegido), libera os handles
-            # parciais e BLOQUEIA sem spawn e sem efeitos protegidos — nunca cria o filho para só
-            # descobrir no disarm. Fora do Windows não há lease a adquirir (baseline de hash), então
-            # o veredito pré-spawn é limpo e o caminho offline não muda.
+            # F02: gate PRÉ-SPAWN fail-closed — a lease tem de estar EFETIVAMENTE adquirida.
             prespawn = guard.prespawn_verdict()
             if prespawn.get("prespawn") != "ACQUIRED_CLEAN":
-                guard.release()
-                raise SupervisorBlocked("W04_ARM_INCOMPLETE_NO_SPAWN_NO_PROTECTED_EFFECTS:" + ";".join(prespawn.get("gaps", [])))
-            if threading.current_thread() is threading.main_thread():
+                raise PrespawnBlocked("W04_ARM_INCOMPLETE_NO_SPAWN_NO_PROTECTED_EFFECTS:"
+                                      + ";".join(prespawn.get("gaps", [])))
+            pre_status, pre_state = self._status_read()
+            inst = pre_status.get("run_instance")
+            self.ctx["pre_run_instance"] = inst if isinstance(inst, str) else None
+            self.ctx["pre_status_state"] = pre_state
+        except BaseException as exc:
+            # R15 (INT-08): toda falha pré-spawn libera a lease parcial e fecha o custodiante vazio.
+            self._prespawn_cleanup(cust, guard)
+            if isinstance(exc, PrespawnBlocked):
+                raise
+            raise PrespawnBlocked("PRESPAWN_FAILED_NO_SPAWN:%s: %s" % (type(exc).__name__, exc)) from exc
+        if threading.current_thread() is threading.main_thread():
+            try:
                 self._prev_sigint = signal.signal(signal.SIGINT, self._on_sigint)
-            stdout = self.evidence / (self.label + ".child.log")
-            t0 = time.monotonic()
-            pid = cust.start(argv, self.evidence, env, stdout)
-            status_initial = None
-            last_hb = 0.0
-            rc = None
-            stop_deliveries = 0
-            last_stop_delivery = 0.0
-            stop_requested_at = None
-            last_updated = None
-            last_change = time.monotonic()
-            reconcile_reason = None
-            while True:
-                rc = cust.poll()
-                cust.sample()
-                now = time.monotonic()
-                st = self._status()
-                if status_initial is None and st:
-                    status_initial = int(st.get("COMMITTED", 0))
-                if st.get("updated_at") != last_updated:
-                    last_updated, last_change = st.get("updated_at"), now
-                elif rc is None and now - last_change > stale_after_s and not self.stop_requested:
-                    self.stop_requested = True
-                    self.log("WATCHDOG_STALE_HEARTBEAT seconds=%.1f ACTION=SAFE_STOP_REQUEST NO_KILL"
-                             % (now - last_change))
-                if (self.stop_after_committed is not None and not self.stop_requested and st
-                        and int(st.get("COMMITTED", 0)) >= self.stop_after_committed and rc is None):
-                    self.stop_requested = True
-                    self.log("SUPERVISOR_SAFE_STOP_INJECTED after_committed=%d" % int(st["COMMITTED"]))
-                if self.stop_requested and stop_requested_at is None:
-                    stop_requested_at = now
-                latched = bool(st.get("STOP_REQUESTED"))
-                if should_deliver_safe_stop(stop_requested=self.stop_requested, child_running=(rc is None),
-                                            latched=latched, active=int(st.get("ACTIVE", 0) or 0),
-                                            require_active_window=(os.name == "nt"), now=now,
-                                            last_delivery=last_stop_delivery, deliveries=stop_deliveries):
-                    # Entrega COOPERATIVA do SAFE_STOP SÓ com workers em execução (ACTIVE>0), fora da
-                    # janela de import/spawn; reentregue (em janela segura) até o coordenador LATCH-ar
-                    # (STATUS.STOP_REQUESTED=True) ou o filho sair. Nunca termina processo.
-                    cust.request_stop()
-                    stop_deliveries += 1
-                    last_stop_delivery = now
-                    self.log("SAFE_STOP_DELIVERY n=%d active=%s latched=False"
-                             % (stop_deliveries, st.get("ACTIVE")))
-                # Encrave: pedido feito mas o coordenador nunca LATCH-ou dentro do prazo -> falha-
-                # fechada rápida e clara (não pendura até o timeout total). Só enquanto não LATCH-ado.
-                if (self.stop_requested and not latched and rc is None and stop_requested_at is not None
-                        and now - stop_requested_at > SAFE_STOP_HONOR_DEADLINE_S):
-                    # R12-ORIGIN-01: não abandona a árvore viva. Sai do loop para a fase de
-                    # reconciliação com custódia preservada (W04+Job retidos; NO_KILL; drenagem
-                    # cooperativa até TREE_EMPTY). Nunca mata, nunca solta W04 com árvore viva.
-                    reconcile_reason = "SAFE_STOP_NOT_HONORED_NO_LATCH"
-                    break
-                if now - last_hb >= HEARTBEAT_S or rc is not None:
-                    guard.revalidate()
-                    if st:
-                        e = eta_status(committed=int(st.get("COMMITTED", 0)), total=int(st.get("TOTAL", 0)),
-                                       started_mono=t0, now_mono=now,
-                                       initial_committed=status_initial or 0)
-                        self.log("PEGASUS_SUPERVISOR_HEARTBEAT label=%s child=%d committed=%s/%s eta_s=%s"
-                                 % (self.label, pid, e["committed"], e["total"], e["eta_s"]))
-                    last_hb = now
-                if rc is not None:
-                    break
-                if timeout_s is not None and now - t0 > timeout_s:
-                    # R12-ORIGIN-01: idem — reconciliação com custódia preservada, sem abandonar/matar.
-                    reconcile_reason = "QUALIFICATION_TIMEOUT"
-                    break
-                time.sleep(0.05)
-            # Drenagem / reconciliação com CUSTÓDIA PRESERVADA (R12-ORIGIN-01). A árvore só é vazia
-            # pelo próprio custodiante. Enquanto houver árvore viva, o supervisor permanece VIVO
-            # supervisionando: mantém a lease W04 (revalida), reentrega o SAFE_STOP cooperativo em
-            # janela segura e NUNCA mata. W04 só é liberada (disarm) ao atingir TREE_EMPTY — logo a
-            # proteção cobre TODA a vida da árvore. Em produção (timeout_s=None) o hold é sem prazo
-            # (custodiante vivo = custódia durável); na qualificação, esgotado o prazo com árvore
-            # viva, é decisão reservada à origem (fail-closed, sem kill, sem soltar W04).
-            reconcile_deadline = time.monotonic() + RECONCILE_HOLD_S
-            reserved_reported = False
-            while True:
-                now = time.monotonic()
-                action = reconcile_step_action(tree_empty=cust.tree_empty(),
-                                               deadline_reached=(now > reconcile_deadline),
-                                               production=(timeout_s is None),
-                                               reserved_reported=reserved_reported)
-                if action == "FINALIZE_SAFE":
-                    break  # ÚNICA saída do hold: árvore vazia -> fechar é inofensivo.
-                cust.sample()
-                st = self._status()
-                latched = bool(st.get("STOP_REQUESTED"))
-                if should_deliver_safe_stop(stop_requested=self.stop_requested, child_running=True,
-                                            latched=latched, active=int(st.get("ACTIVE", 0) or 0),
-                                            require_active_window=(os.name == "nt"), now=now,
-                                            last_delivery=last_stop_delivery, deliveries=stop_deliveries):
-                    cust.request_stop()
-                    stop_deliveries += 1
-                    last_stop_delivery = now
-                guard.revalidate()  # W04 mantida durante TODA a vida da árvore; NUNCA mata/fecha handle
-                if action == "REPORT_RESERVED_THEN_HOLD":
-                    # R13-ORIGIN-01: a decisão reservada à origem NÃO encerra o supervisor. Com a
-                    # árvore viva, levantar/retornar faria o processo terminar e seus handles fecharem
-                    # -> com KILL_ON_JOB_CLOSE ativo mataria a árvore; removido, a deixaria órfã sem
-                    # W04. Então o custodiante PERMANECE VIVO (W04 + Job retidos, handle do Job ABERTO
-                    # => KILL_ON_JOB_CLOSE, ativo ou removido, NÃO dispara) e apenas SURGE a decisão à
-                    # origem UMA vez; a saída do hold só ocorre em TREE_EMPTY (ou disposição autorizada
-                    # pela origem). Nunca mata, nunca solta W04, nunca autoriza kill implícito.
-                    reserved_reported = True
-                    reconcile_reason = (reconcile_reason or "DRAIN") + "+RESERVED_DECISION_HELD_ALIVE_NO_KILL"
-                    try:
-                        write_json_atomic(self.evidence / (self.label + "_W04_NOKILL_RESERVED_DECISION.json"), {
-                            "schema": "PEGASUS_FULL_2026_V008_W04_NOKILL_LIVE_TREE_RESERVED_DECISION",
-                            "label": self.label, "child_pid": pid, "reconcile_reason": reconcile_reason,
-                            "custodian": "ALIVE_SUPERVISING_HOLDS_W04_AND_JOB_NO_KILL",
-                            "disposition": "RESERVED_FOR_ORIGIN (drenar ate TREE_EMPTY / autorizar kill / handoff de custodia)",
-                            "supervisor_never": ["KILL", "CLOSE_JOB_HANDLE_ON_LIVE_TREE",
-                                                 "RELEASE_W04_ON_LIVE_TREE", "SELF_TERMINATE_ON_LIVE_TREE"],
-                            "kill_on_job_close_note": "handle do Job mantido ABERTO pelo custodiante vivo => KILL_ON_JOB_CLOSE (ativo ou removido) NAO dispara"})
-                    except Exception:
-                        pass
-                    self.log("CUSTODY_RECONCILE_DEADLINE_RESERVED_DECISION_NO_KILL pid=%d: supervisor permanece VIVO "
-                             "(W04+Job retidos, NO_KILL); aguarda TREE_EMPTY ou disposicao da origem" % pid)
-                time.sleep(0.2)
-            cust.mark("TREE_EMPTY")
-            w04 = guard.disarm(tree_empty=True)
-            cust.mark("W04_DISARM")
-            # Evidência terminal capturada ANTES de fechar o custodiante. No Windows,
-            # cust.close() fecha o handle do Job (KILL_ON_JOB_CLOSE é só o fail-safe de
-            # queda do supervisor); consultá-lo depois daria ERROR_INVALID_HANDLE. Nenhuma
-            # consulta ao custodiante pode ocorrer após close() — os custodiantes recusam.
-            final_accounting = cust.accounting()
-            final_tree_empty = int(final_accounting.get("ActiveProcesses", -1)) == 0
-            new_proc_events = cust.new_process_events()
-            marks_snapshot = list(cust.marks)
-            native_job = cust.native_job
-            breakaway_allowed = getattr(cust, "breakaway_allowed", False)
+            except Exception as exc:
+                self._record_error("sigint_install", exc)
+        try:
+            return self._run_spawned(cust, guard, arm, argv, env, timeout_s, stale_after_s)
         finally:
             if self._prev_sigint is not None:
-                signal.signal(signal.SIGINT, self._prev_sigint)
-            # R11-ORIGIN-01/03: close() nunca mata nem fecha o handle do Job com a árvore viva
-            # (ver WindowsJobCustody.close); roda exatamente uma vez em todo caminho (sucesso ou
-            # falha pré-spawn/arm/start). Se a árvore ficou viva num encerramento controlado
-            # (timeout/SAFE_STOP não honrado), registra a DECISÃO RESERVADA à origem: NO_KILL pelo
-            # supervisor, W04 e Job retidos (não liberados/fechados), reconciliação na próxima
-            # execução; a única morte possível (no fim do processo, se o flag não pôde ser limpo)
-            # é falha-fechada reservada, não ação do supervisor.
-            cust.close()
-            if getattr(cust, "live_tree_at_close", False):
-                rec = {"schema": "PEGASUS_FULL_2026_V008_W04_NOKILL_LIVE_TREE_RESERVED_DECISION",
-                       "label": self.label,
-                       "kill_on_job_close_cleared": getattr(cust, "kill_on_job_close_cleared", None),
-                       "kill_risk_at_process_exit": getattr(cust, "close_kill_risk", None),
-                       "job_handles": "RETAINED_NOT_CLOSED_ON_LIVE_TREE_NO_KILL_BY_SUPERVISOR",
-                       "w04_lease": "RETAINED_UNTIL_PROCESS_EXIT_NOT_RELEASED_EARLY",
-                       "reconciliation": "RESERVED_DECISION_FOR_ORIGIN (drenar / autorizar kill / handoff de custódia); orfão reconciliado por RUN.lock+journal na próxima execução",
-                       "no_kill": "SUPERVISOR_PERFORMS_NO_KILL_AND_NO_HANDLE_CLOSE_ON_LIVE_TREE"}
                 try:
-                    write_json_atomic(self.evidence / (self.label + "_W04_NOKILL_RESERVED_DECISION.json"), rec)
-                except Exception:
-                    pass
-                self.log("W04_NOKILL_LIVE_TREE_RESERVED_DECISION cleared=%s kill_risk=%s"
-                         % (getattr(cust, "kill_on_job_close_cleared", None), getattr(cust, "close_kill_risk", None)))
-        lineage = lineage_verdict(native_job=native_job, new_process=new_proc_events,
-                                  accounting=final_accounting, active_zero_seen=final_tree_empty,
-                                  breakaway_allowed=breakaway_allowed)
-        jit = jit_verdict([m for m in marks_snapshot if m["mark"] != "W04_ARM_BEGIN"])
-        run_lock = (self.out_root / "RUN.lock").exists()
-        inv_a = inventory(self.out_root)
-        inv_b = inventory(self.out_root)
-        result = {"label": self.label, "child_pid": pid, "child_exit": rc, "w04_arm": arm,
-                  "w04": w04, "jit": jit, "lineage": lineage, "run_lock_present": run_lock,
-                  "job_pids": sorted({int(e["pid"]) for e in new_proc_events}),
-                  # F03 (auditoria): identidades (pid, creation_time) observadas no Job, para prova
-                  # de pertença/contenção por identidade temporal — não só por PID histórico.
-                  "job_idents": sorted([int(e["pid"]), int(e.get("ctime") or 0)] for e in new_proc_events),
-                  "status": self._status(), "stop_requested": self.stop_requested,
-                  "reconcile_reason": reconcile_reason}
+                    signal.signal(signal.SIGINT, self._prev_sigint)
+                except Exception as exc:
+                    self._record_error("sigint_restore", exc)
+
+    def _run_spawned(self, cust, guard, arm, argv, env, timeout_s, stale_after_s) -> dict:
+        stdout = self.evidence / (self.label + ".child.log")
+        t0 = time.monotonic()
+        self._set_phase("SPAWNING")
+        try:
+            pid = cust.start(argv, self.evidence, env, stdout)
+        except BaseException as exc:
+            cs = self._guard("child_state", lambda: cust.child_state(), {}) or {}
+            self.ctx["start_failure"] = {"error": ("%s: %s" % (type(exc).__name__, exc))[:800],
+                                         **{k: cs.get(k) for k in ("child_created", "assigned", "resumed_threads",
+                                                                   "rollback", "child_alive", "pid")}}
+            if cs.get("child_alive") is False:
+                # Nenhum filho vivo (não criado, ou rollback do próprio suspenso confirmado): sem efeito.
+                self._prespawn_cleanup(cust, guard)
+                raise PrespawnBlocked("CHILD_START_FAILED_NO_LIVE_CHILD:%s: %s rollback=%s"
+                                      % (type(exc).__name__, exc, cs.get("rollback"))) from exc
+            # Filho vivo ou estado desconhecido: fail-closed para a custódia — supervisiona e segura.
+            self._record_error("start", exc)
+            pid = cs.get("pid")
+        self.ctx["child_pid"] = pid
+        self.ctx["effects_started"] = True
+        self._set_phase("RUNNING")
+        try:
+            loop = self._supervise_loop(cust, guard, pid, t0, timeout_s, stale_after_s)
+            return self._finalize(cust, guard, arm, pid, loop)
+        except BaseException as exc:  # defesa em profundidade: defeito no código estruturado
+            self._record_error("supervision_unexpected", exc)
+            return self._emergency_hold_and_result(cust, guard, arm, pid)
+
+    def _supervise_loop(self, cust, guard, pid, t0, timeout_s, stale_after_s) -> dict:
+        rc = None
+        status_initial = None
+        last_hb = 0.0
+        stop_deliveries = stop_failures = 0
+        last_stop_delivery = 0.0
+        stop_requested_at = None
+        last_updated, last_change = None, time.monotonic()
+        reconcile_reason = None
+        reconcile_deadline = None
+        reserved_reported = False
+        consecutive_empty = unknown_streak = 0
+        last_disposition_check = 0.0
+        release_refusals = 0
+        draining = False
+        while True:
+            now = time.monotonic()
+            if rc is None:
+                rc = self._guard("poll", lambda: cust.poll(), None)
+                if rc is not None:
+                    self.ctx["child_exit"] = rc
+            self._guard("sample", lambda: cust.sample())
+            st, st_state = self._status_read()
+            self.ctx["status_state"] = st_state
+            committed = _as_int(st.get("COMMITTED"))
+            active = _as_int(st.get("ACTIVE"), 0)
+            if status_initial is None and committed is not None:
+                status_initial = committed
+            if st.get("updated_at") != last_updated:
+                last_updated, last_change = st.get("updated_at"), now
+            elif rc is None and now - last_change > stale_after_s and not self.stop_requested:
+                self.stop_requested = True
+                self.log("WATCHDOG_STALE_HEARTBEAT seconds=%.1f ACTION=SAFE_STOP_REQUEST NO_KILL" % (now - last_change))
+            if (self.stop_after_committed is not None and not self.stop_requested and committed is not None
+                    and committed >= self.stop_after_committed and rc is None):
+                self.stop_requested = True
+                self.log("SUPERVISOR_SAFE_STOP_INJECTED after_committed=%d" % committed)
+            if self.stop_requested and stop_requested_at is None:
+                stop_requested_at = now
+                if not draining:
+                    self._set_phase("STOP_REQUESTED")
+            latched = st.get("STOP_REQUESTED") is True
+            if should_deliver_safe_stop(stop_requested=self.stop_requested, child_running=(rc is None),
+                                        latched=latched, active=active, require_active_window=(os.name == "nt"),
+                                        now=now, last_delivery=last_stop_delivery, deliveries=stop_deliveries):
+                # A01: entrega cooperativa; qualquer falha (nonzero, timeout, spawn do helper, corrida)
+                # é ERRO PERSISTIDO e contado — nunca encerra a custódia nem vira PASS.
+                stop_deliveries += 1
+                last_stop_delivery = now
+                res = self._guard("request_stop", lambda: cust.request_stop(), _NO_RESULT)
+                delivered = res is None or (isinstance(res, Mapping) and res.get("delivered") is True)
+                if not delivered:
+                    stop_failures += 1
+                    if isinstance(res, Mapping):
+                        self._record_error("request_stop", RuntimeError("SAFE_STOP_DELIVERY_FAILED %s"
+                                                                         % (res.get("error") or res.get("helper_exit"))))
+                self.ctx.update(stop_deliveries=stop_deliveries, stop_delivery_failures=stop_failures)
+                self.log("SAFE_STOP_DELIVERY n=%d delivered=%s active=%s" % (stop_deliveries, delivered, active))
+            if not draining:
+                if (self.stop_requested and not latched and rc is None and stop_requested_at is not None
+                        and now - stop_requested_at > SAFE_STOP_HONOR_DEADLINE_S):
+                    reconcile_reason = "SAFE_STOP_NOT_HONORED_NO_LATCH"
+                elif rc is not None:
+                    reconcile_reason = "CHILD_EXITED"
+                elif timeout_s is not None and now - t0 > timeout_s:
+                    reconcile_reason = "QUALIFICATION_TIMEOUT"
+                if reconcile_reason is not None:
+                    draining = True
+                    reconcile_deadline = now + RECONCILE_HOLD_S
+                    self.ctx["reconcile_reason"] = reconcile_reason
+                    self._set_phase("DRAINING")
+            if draining:
+                obs = self._guard("observe_tree", lambda: self._observe(cust), "UNKNOWN")
+                if obs not in ("EMPTY", "LIVE", "UNKNOWN"):
+                    obs = "UNKNOWN"
+                consecutive_empty = consecutive_empty + 1 if obs == "EMPTY" else 0
+                unknown_streak = unknown_streak + 1 if obs == "UNKNOWN" else 0
+                self.ctx.update(tree=obs, consecutive_empty=consecutive_empty, tree_unknown_streak=unknown_streak)
+                action = reconcile_step_action(tree_empty=tree_verified_empty(consecutive_empty),
+                                               deadline_reached=(now > reconcile_deadline),
+                                               production=(timeout_s is None), reserved_reported=reserved_reported)
+                if action == "FINALIZE_SAFE":
+                    if rc is None:
+                        rc = self._guard("poll_final", lambda: cust.poll(), None)
+                        self.ctx["child_exit"] = rc
+                    self.ctx["tree_verified_empty"] = True
+                    return {"exit": "TREE_EMPTY", "rc": rc, "reconcile_reason": reconcile_reason,
+                            "reserved_reported": reserved_reported}
+                if not reserved_reported and (action == "REPORT_RESERVED_THEN_HOLD" or now > reconcile_deadline):
+                    reserved_reported = True
+                    reconcile_reason = reconcile_reason + "+RESERVED_DECISION_HELD_ALIVE_NO_KILL"
+                    self.ctx["reconcile_reason"] = reconcile_reason
+                    self._set_phase("LIVE_TREE_BLOCKED")
+                    self._report_live_tree_blocked(pid, reconcile_reason)
+                if unknown_streak in (1, 50) or (unknown_streak and unknown_streak % 500 == 0):
+                    self.log("CUSTODY_TREE_OBSERVATION_UNKNOWN streak=%d HOLD_CONTINUES_NO_RELEASE" % unknown_streak)
+                if now - last_disposition_check >= 2.0:
+                    last_disposition_check = now
+                    disp = self._guard("owner_disposition", lambda: self._owner_disposition(pid), {"disposition": "WAIT"})
+                    if (disp or {}).get("disposition") == "RELEASE":
+                        rel = self._guard("owner_release", lambda: cust.release_live_tree_by_owner(), None)
+                        if isinstance(rel, Mapping) and rel.get("released") is True:
+                            self.ctx["owner_release"] = dict(rel)
+                            return {"exit": "OWNER_RELEASED", "rc": rc, "reconcile_reason": reconcile_reason,
+                                    "reserved_reported": reserved_reported}
+                        release_refusals += 1
+                        self.ctx["owner_release_refusals"] = release_refusals
+                        self._record_error("owner_release", RuntimeError("OWNER_RELEASE_REFUSED_HOLD_CONTINUES %s"
+                                                                         % (rel or {}).get("reason")))
+            if now - last_hb >= HEARTBEAT_S:
+                self._guard("w04_revalidate", lambda: guard.revalidate())
+                if committed is not None:
+                    total = _as_int(st.get("TOTAL"), 0)
+                    e = self._guard("telemetry_eta", lambda: eta_status(
+                        committed=committed, total=total, started_mono=t0, now_mono=now,
+                        initial_committed=status_initial or 0), None)
+                    if e is not None:
+                        self.log("PEGASUS_SUPERVISOR_HEARTBEAT label=%s child=%s phase=%s committed=%s/%s eta_s=%s"
+                                 % (self.label, pid, self.phase, e["committed"], e["total"], e["eta_s"]))
+                self._persist_state(force=True)
+                last_hb = now
+            time.sleep(0.2 if draining else 0.05)
+
+    def _report_live_tree_blocked(self, pid, reason) -> None:
+        # R13-ORIGIN-01/R15: surge à origem UMA vez; o custodiante continua VIVO (W04+Job, handle do
+        # Job aberto => KILL_ON_JOB_CLOSE ativo ou removido não dispara). Falha de escrita é ERRO
+        # registrado (nunca `except: pass` mudo) e o hold continua observável pelo CUSTODY_STATE.
+        rec = {"schema": "PEGASUS_FULL_2026_V008_W04_NOKILL_LIVE_TREE_RESERVED_DECISION",
+               "label": self.label, "child_pid": pid, "reconcile_reason": reason,
+               "custodian": "ALIVE_SUPERVISING_HOLDS_W04_AND_JOB_NO_KILL",
+               "disposition": "RESERVED_FOR_OWNER_ORIGIN (aguardar drenagem / disposicao explicita do titular)",
+               "owner_disposition_file": str(self.disposition_path),
+               "supervisor_never": ["KILL", "CLOSE_JOB_HANDLE_ON_LIVE_TREE", "RELEASE_W04_ON_LIVE_TREE",
+                                    "SELF_TERMINATE_ON_LIVE_TREE"],
+               "external_failure_note": "termino forcado do proprio supervisor e falha externa irrecuperavel: o kernel fecha os handles (fail-safe KILL_ON_JOB_CLOSE); estado V003 consistente a falhas, nunca PASS"}
+        self._guard("reserved_decision_receipt",
+                    lambda: write_json_atomic(self.evidence / (self.label + "_W04_NOKILL_RESERVED_DECISION.json"), rec))
+        self.log("CUSTODY_LIVE_TREE_BLOCKED pid=%s reason=%s: supervisor permanece VIVO (W04+Job retidos, NO_KILL); "
+                 "estado em %s" % (pid, reason, self.custody_state_path.name))
+
+    def _finalize(self, cust, guard, arm, pid, loop) -> dict:
+        acc = events = None
+        marks = []
+        if loop["exit"] == "TREE_EMPTY":
+            self._set_phase("TREE_EMPTY")
+            self._guard("mark_tree_empty", lambda: cust.mark("TREE_EMPTY"))
+            w04 = self._guard("w04_disarm", lambda: guard.disarm(tree_empty=True), None)
+            if not isinstance(w04, Mapping) or "w04_full" not in w04:
+                w04 = {"w04_full": "BLOCKED", "gaps": ["W04_DISARM_FAILED"]}
+            self._set_phase("W04_DISARMED")
+            self._guard("mark_w04_disarm", lambda: cust.mark("W04_DISARM"))
+            # Evidência terminal ANTES de fechar o custodiante (após close() não há consulta válida).
+            acc = self._guard("final_accounting", lambda: cust.accounting(), None)
+            events = self._guard("final_events", lambda: cust.new_process_events(), None)
+            marks = list(getattr(cust, "marks", []) or [])
+            self._guard("custody_close", lambda: cust.close())
+            self.ctx["custody_closed"] = True
+            self._set_phase("CUSTODIAN_CLOSED")
+            outcome = "TREE_EMPTY_CUSTODY_CLOSED"
+        else:
+            # Disposição explícita do titular já aplicada pelo custodiante (flag removido antes).
+            w04 = {"w04_full": "BLOCKED", "gaps": ["LEASE_RELEASED_BEFORE_TREE_EMPTY_BY_OWNER_DISPOSITION"]}
+            self._guard("owner_release_w04", lambda: guard.release())
+            marks = list(getattr(cust, "marks", []) or [])
+            self.ctx["custody_closed"] = True
+            self._set_phase("CUSTODIAN_RELEASED_BY_OWNER")
+            outcome = "LIVE_TREE_RELEASED_BY_OWNER_NO_KILL"
+        return self._compute_result(cust, arm, pid, loop.get("rc"), w04, acc, events, marks, outcome,
+                                    loop.get("reconcile_reason"))
+
+    def _compute_result(self, cust, arm, pid, rc, w04, acc, events, marks, outcome, reconcile_reason) -> dict:
+        native_job = bool(getattr(cust, "native_job", False))
+        events = list(events or [])
+        acc_ok = isinstance(acc, Mapping)
+        final_tree_empty = acc_ok and _as_int(acc.get("ActiveProcesses")) == 0 and bool(self.ctx.get("tree_verified_empty"))
+        try:
+            lineage = lineage_verdict(native_job=native_job, new_process=events, accounting=acc if acc_ok else {},
+                                      active_zero_seen=final_tree_empty,
+                                      breakaway_allowed=getattr(cust, "breakaway_allowed", False))
+        except Exception as exc:
+            lineage = {"lineage": "BLOCKED", "cause": ("%s: %s" % (type(exc).__name__, exc))[:400]}
+        try:
+            jit = jit_verdict([m for m in marks if m.get("mark") != "W04_ARM_BEGIN"])
+        except Exception as exc:
+            jit = {"jit": "BLOCKED", "cause": ("%s: %s" % (type(exc).__name__, exc))[:400]}
+        run_lock = self._guard("run_lock_probe", lambda: (self.out_root / "RUN.lock").exists(), True)
+        inv_a = self._guard("inventory_a", lambda: inventory(self.out_root), None)
+        inv_b = self._guard("inventory_b", lambda: inventory(self.out_root), None)
+        if inv_a is None or inv_b is None:
+            inv_a, inv_b = {"<inventory_read_failed>": {"type": "error"}}, {}
+        status, st_state = self._status_read()
+        cp = self._guard("checkpoint_evidence", lambda: checkpoint_evidence(self.out_root),
+                         {"valid": False, "completed": None, "reason": "EXCEPTION"})
+        pids = {int(e["pid"]) for e in events if isinstance(e, Mapping) and _as_int(e.get("pid")) is not None}
+        if _as_int(pid) is not None:
+            pids.add(int(pid))
+        mode = "SAFE_STOP" if self.stop_requested else "COMPLETION"
+        terminal = terminal_evidence_verdict(mode=mode, status=status, status_state=st_state,
+                                             pre_run_instance=self.ctx.get("pre_run_instance"),
+                                             supervised_pids=pids, expected_out_root=self.out_root,
+                                             checkpoint_ok=bool(cp.get("valid")), checkpoint_completed=cp.get("completed"))
+        result = {"label": self.label, "child_pid": pid, "child_exit": rc, "w04_arm": arm, "w04": dict(w04),
+                  "jit": jit, "lineage": lineage, "run_lock_present": run_lock,
+                  "job_pids": sorted({int(e["pid"]) for e in events if isinstance(e, Mapping) and "pid" in e}),
+                  # F03: identidades (pid, creation_time) observadas no Job — prova por identidade temporal.
+                  "job_idents": sorted([int(e["pid"]), int(e.get("ctime") or 0)] for e in events
+                                       if isinstance(e, Mapping) and "pid" in e),
+                  "status": status, "status_state": st_state, "checkpoint": cp, "terminal_evidence": terminal,
+                  "stop_requested": self.stop_requested, "reconcile_reason": reconcile_reason,
+                  "outcome": outcome, "effects_started": True}
         if self.stop_requested:
             result["safe_stop"] = safestop_verdict(
-                stop_requested=True, child_exit=rc, tree_empty=final_tree_empty, status=result["status"],
-                checkpoint_valid=checkpoint_valid(self.out_root), run_lock_present=run_lock, w04=w04)
+                stop_requested=True, child_exit=rc, tree_empty=final_tree_empty, status=status,
+                checkpoint_valid=bool(cp.get("valid")), run_lock_present=run_lock, w04=w04, terminal=terminal,
+                lineage=lineage, jit=jit)
         else:
             result["completion"] = completion_verdict(child_exit=rc, tree_empty=final_tree_empty,
-                                                      run_lock_present=run_lock,
-                                                      inventory_a=inv_a, inventory_b=inv_b, w04=w04)
+                                                      run_lock_present=run_lock, inventory_a=inv_a, inventory_b=inv_b,
+                                                      w04=w04, terminal=terminal, lineage=lineage, jit=jit)
+        result["supervision"] = self.summary()
         return result
+
+    def _emergency_hold_and_result(self, cust, guard, arm, pid) -> dict:
+        """Hold mínimo quando o próprio código estruturado falhou: nada é liberado sem árvore
+        verificada vazia (ou disposição explícita do titular). Só primitivas protegidas."""
+        w04 = {"w04_full": "BLOCKED", "gaps": ["SUPERVISION_UNEXPECTED_EXCEPTION"]}
+        outcome = "FAIL_TECHNICAL_AFTER_SPAWN_TREE_EMPTY"
+        if not self.ctx.get("custody_closed"):
+            if not self.ctx.get("tree_verified_empty"):
+                self._set_phase("LIVE_TREE_BLOCKED")
+                consecutive = 0
+                released = False
+                while True:
+                    obs = self._guard("emergency_observe", lambda: self._observe(cust), "UNKNOWN")
+                    consecutive = consecutive + 1 if obs == "EMPTY" else 0
+                    self.ctx.update(tree=obs, consecutive_empty=consecutive)
+                    if tree_verified_empty(consecutive):
+                        self.ctx["tree_verified_empty"] = True
+                        break
+                    disp = self._guard("emergency_disposition", lambda: self._owner_disposition(pid), None) or {}
+                    if disp.get("disposition") == "RELEASE":
+                        rel = self._guard("emergency_owner_release", lambda: cust.release_live_tree_by_owner(), None)
+                        if isinstance(rel, Mapping) and rel.get("released") is True:
+                            self.ctx["owner_release"] = dict(rel)
+                            released = True
+                            break
+                    self._persist_state()
+                    time.sleep(0.5)
+                if released:
+                    self._guard("emergency_w04_release", lambda: guard.release())
+                    outcome = "LIVE_TREE_RELEASED_BY_OWNER_NO_KILL"
+                    self.ctx["custody_closed"] = True
+            if not self.ctx.get("custody_closed"):
+                got = self._guard("emergency_w04_disarm", lambda: guard.disarm(tree_empty=True), None)
+                if isinstance(got, Mapping) and got.get("w04_full") == "BLOCKED":
+                    w04 = dict(got)
+                self._guard("emergency_custody_close", lambda: cust.close())
+                self.ctx["custody_closed"] = True
+        self._set_phase("CUSTODIAN_CLOSED")
+        verdict = {"completed": False, "gaps": ["SUPERVISION_UNEXPECTED_EXCEPTION"]}
+        res = {"label": self.label, "child_pid": pid, "child_exit": self.ctx.get("child_exit"), "w04_arm": arm,
+               "w04": w04, "jit": {"jit": "BLOCKED", "cause": "SUPERVISION_UNEXPECTED_EXCEPTION"},
+               "lineage": {"lineage": "BLOCKED", "cause": "SUPERVISION_UNEXPECTED_EXCEPTION"},
+               "run_lock_present": True, "job_pids": [], "job_idents": [], "status": self._status(),
+               "stop_requested": self.stop_requested, "reconcile_reason": self.ctx.get("reconcile_reason"),
+               "outcome": outcome, "effects_started": True}
+        if self.stop_requested:
+            res["safe_stop"] = {"safe_stop": "NOT_CONFIRMED", "gaps": verdict["gaps"]}
+        else:
+            res["completion"] = verdict
+        res["supervision"] = self.summary()
+        return res
 
 
 # =====================================================================================
@@ -966,13 +1554,61 @@ class DefaultReleaseAdmission:
         raise SupervisorBlocked("RELEASE_ADMISSION_RETURNED_WITHOUT_EXTERNAL_MODULE")
 
 
+SEALED_SYNTHETIC_ADMISSION_REL = "supervisor/tests/pegasus_synthetic_admission_v008.py"
+ECONOMIC_ENTRY_MODULES = ("pegasus_entry", "r1r11_full_2026", "r1r11_correct_full_controller",
+                          "r1r11_perf_next_controller", "r1r11_activation_controller", "r1r11_owner_gates",
+                          "r1r11_postpilot_promotion", "r1r11_full_homologation")
+
+
+def plan_isolation_verdict(plan: Mapping, *, package_root: Path) -> dict:
+    """R15 (C4/INT-13): isolamento EFETIVO, verificado no código, entre um plano não econômico e
+    os caminhos econômicos/produtivos: o argv não pode apontar arquivo sob `CODE/` (runtime
+    econômico) nem módulo/entrypoint econômico (`-m`, `-c` ou caminho), e a saída tem de ficar
+    fora do pacote selado. Não substitui a dupla barreira econômica; é a prova do lado sintético."""
+    gaps = []
+    root = Path(package_root).resolve()
+    code_dir = (root / "CODE").resolve()
+    if plan.get("economic"):
+        gaps.append("PLAN_MARKED_ECONOMIC")
+    try:
+        if Path(str(plan.get("out_root"))).resolve().is_relative_to(root):
+            gaps.append("OUT_ROOT_INSIDE_SEALED_PACKAGE")
+    except Exception:
+        gaps.append("OUT_ROOT_UNRESOLVABLE")
+    argv = [str(a) for a in (plan.get("argv") or [])]
+    if not argv:
+        gaps.append("ARGV_EMPTY")
+    for i, a in enumerate(argv):
+        if i == 0:
+            continue  # o interpretador
+        lowered = a.replace("\\", "/")
+        if "/" in lowered or lowered.endswith(".py"):
+            try:
+                if Path(a).resolve().is_relative_to(code_dir):
+                    gaps.append("ARGV_TARGETS_ECONOMIC_RUNTIME:" + Path(a).name)
+            except Exception:
+                gaps.append("ARGV_PATH_UNRESOLVABLE")
+        if argv[i - 1] in ("-m", "-c") or i == 1:
+            for mod in ECONOMIC_ENTRY_MODULES:
+                if mod in a:
+                    gaps.append("ARGV_REFERENCES_ECONOMIC_ENTRY:" + mod)
+    return {"isolation": "ISOLATED_NON_ECONOMIC" if not gaps else "NOT_ISOLATED", "gaps": sorted(set(gaps))}
+
+
 def _load_admission(ns):
     """Default: DefaultReleaseAdmission. `--admission <arquivo.py>` injeta um módulo de
-    admissão — permitido SOMENTE para qualificação sintética isolada; um módulo injetado
-    jamais pode produzir um plano econômico (make_run_plan recusa)."""
+    admissão — permitido SOMENTE para qualificação sintética isolada. R15 (INT-13): só é aceito o
+    módulo sintético SELADO do próprio pacote (caminho exato + SHA do manifesto); qualquer outro
+    arquivo é recusado ANTES de ser carregado (nenhum código arbitrário é executado)."""
     path = getattr(ns, "admission", None)
     if not path:
         return DefaultReleaseAdmission()
+    sealed = (ROOT / SEALED_SYNTHETIC_ADMISSION_REL).resolve()
+    if Path(path).resolve() != sealed:
+        raise SupervisorBlocked("ADMISSION_MODULE_NOT_SEALED_SYNTHETIC:" + str(Path(path).resolve()))
+    expected = json.loads((ROOT / "MANIFEST_SHA256.json").read_text(encoding="utf-8")).get(SEALED_SYNTHETIC_ADMISSION_REL)
+    if not expected or str(expected).upper() != sha256_file(sealed):
+        raise SupervisorBlocked("ADMISSION_MODULE_IDENTITY_MISMATCH")
     import importlib.util
     # Identidade única de módulo: quando rodando como script (__main__), registra este
     # módulo sob o nome canônico para que o `import pegasus_supervisor_v008` do módulo de
@@ -988,9 +1624,34 @@ def _load_admission(ns):
     return adm
 
 
+SUPERVISED_RUN_SCHEMA = "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT"
+
+
+def persist_run_receipt(evidence: Path, label: str, doc: dict) -> dict:
+    """R15 (A04): persiste o recibo no caminho canônico; se falhar, grava um recibo alternativo
+    exclusivo com a causa. Só o caminho canônico conta para 0/130 — nunca levanta."""
+    primary = Path(evidence) / (label + "_SUPERVISED_RUN_RESULT.json")
+    try:
+        Path(evidence).mkdir(parents=True, exist_ok=True)
+        write_json_atomic(primary, doc)
+        return {"persisted": True, "path": str(primary), "error": None}
+    except Exception as exc:
+        err = ("%s: %s" % (type(exc).__name__, exc))[:600]
+    try:
+        alt = Path(evidence) / ("%s_SUPERVISED_RUN_RESULT.FALLBACK_%d_%d.json" % (label, os.getpid(), time.time_ns()))
+        write_json_new(alt, {**doc, "result": "FAIL_SUPERVISED_RUN", "exit_code": EXIT_FAIL,
+                             "exit_class": classify_exit(EXIT_FAIL), "receipt_write_error": err})
+        return {"persisted": False, "path": str(alt), "error": err}
+    except Exception as exc2:
+        return {"persisted": False, "path": None, "error": err + " | fallback %s: %s" % (type(exc2).__name__, exc2)}
+
+
 def _run_supervised(plan, *, evidence: Path, entry, log=print) -> int:
     """Executa o argv admitido sob supervisão plena: W04 armado antes do filho, Job com
-    linhagem, SAFE_STOP cooperativo, watchdog, retomada e porta de conclusão/evidência."""
+    linhagem, SAFE_STOP cooperativo, watchdog, retomada e porta de conclusão/evidência.
+    R15: todo desfecho tem recibo estruturado; 0 e 130 exigem recibo persistido no caminho
+    canônico; bloqueio sem filho vivo é 2 (sem efeito); qualquer outro desfecho após o spawn é 3,
+    com causa primária e estado de efeitos."""
     if plan.get("schema") != RUN_PLAN_SCHEMA:
         raise SupervisorBlocked("RUN_PLAN_SCHEMA_INVALID")
     if plan["economic"]:
@@ -1000,41 +1661,61 @@ def _run_supervised(plan, *, evidence: Path, entry, log=print) -> int:
         # revalida `release_admission` por dentro; neste artefato isso bloqueia de novo.
         entry.release_admission({}, "C" if "run-c" in plan["argv"] else "B")
         raise SupervisorBlocked("ECONOMIC_EXECUTION_STILL_BLOCKED_BY_ENTRY_RELEASE_ADMISSION")
+    iso = plan_isolation_verdict(plan, package_root=ROOT)
+    if iso["isolation"] != "ISOLATED_NON_ECONOMIC":
+        raise SupervisorBlocked("RUN_PLAN_NOT_ISOLATED:" + ";".join(iso["gaps"]))
     evidence = Path(evidence)
     evidence.mkdir(parents=True, exist_ok=True)
     out_root = Path(plan["out_root"])
+    label = plan["label"]
+    plan_view = {k: plan[k] for k in ("label", "economic", "admission_schema", "admission_sha256")}
     s = Supervision(evidence=evidence, protected_root=Path(plan["protected_root"]), out_root=out_root,
-                    label=plan["label"], stop_after_committed=plan.get("stop_after_committed"), log=log)
+                    label=label, stop_after_committed=plan.get("stop_after_committed"), log=log)
     env = {**os.environ, "PYTHONNOUSERSITE": "1", "PYTHONDONTWRITEBYTECODE": "1",
            "OPENBLAS_NUM_THREADS": "1", "OMP_NUM_THREADS": "1"}
     env.pop("PYTHONPATH", None)
     env.pop("PYTHONHOME", None)
     try:
         result = s.run(plan["argv"], env, timeout_s=plan.get("timeout_s"))
-    except SupervisorBlocked as exc:
-        # O filho já foi criado: bloqueio aqui é falha APÓS início de efeito (exit 3), com
-        # recibo; o supervisor não mata processo e exige reconciliação.
-        fail = {"schema": "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT", "result": "FAIL_SUPERVISED_RUN",
-                "cause": str(exc), "exit_code": EXIT_FAIL, "exit_class": classify_exit(EXIT_FAIL),
-                "plan": {k: plan[k] for k in ("label", "economic", "admission_schema", "admission_sha256")}}
-        write_json_atomic(evidence / (plan["label"] + "_SUPERVISED_RUN_RESULT.json"), fail)
-        print(json.dumps({"schema": fail["schema"], "result": fail["result"], "cause": fail["cause"]}, sort_keys=True))
+    except PrespawnBlocked as exc:
+        doc = {"schema": SUPERVISED_RUN_SCHEMA, "result": "BLOCKED_PRESPAWN_NO_EFFECT", "cause": str(exc),
+               "effects_started": False, "exit_code": EXIT_BLOCKED, "exit_class": classify_exit(EXIT_BLOCKED),
+               "plan": plan_view, "isolation": iso, "supervision": s.summary(), **GATES}
+        rec = persist_run_receipt(evidence, label, doc)
+        print(json.dumps({"schema": SUPERVISED_RUN_SCHEMA, "result": doc["result"], "cause": doc["cause"],
+                          "effects_started": False, "receipt": rec}, sort_keys=True, default=str))
+        return EXIT_BLOCKED
+    except BaseException as exc:  # run() não levanta após o spawn; defesa com recibo técnico
+        doc = {"schema": SUPERVISED_RUN_SCHEMA, "result": "FAIL_TECHNICAL_SUPERVISION",
+               "cause": ("%s: %s" % (type(exc).__name__, exc))[:800],
+               "effects_started": bool(s.ctx.get("effects_started")), "exit_code": EXIT_FAIL,
+               "exit_class": classify_exit(EXIT_FAIL), "plan": plan_view, "supervision": s.summary(), **GATES}
+        rec = persist_run_receipt(evidence, label, doc)
+        print(json.dumps({"schema": SUPERVISED_RUN_SCHEMA, "result": doc["result"], "cause": doc["cause"],
+                          "receipt": rec}, sort_keys=True, default=str))
         return EXIT_FAIL
-    result["schema"] = "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT"
-    result["plan"] = {k: plan[k] for k in ("label", "economic", "admission_schema", "admission_sha256")}
-    completed = result.get("completion", {}).get("completed") is True
-    stopped = (result.get("safe_stop", {}) or {}).get("safe_stop", "").startswith("CONFIRMED_BY_SUPERVISOR")
+    result["schema"] = SUPERVISED_RUN_SCHEMA
+    result["plan"] = plan_view
+    result["isolation"] = iso
+    completed = (result.get("completion") or {}).get("completed") is True
+    stopped = str((result.get("safe_stop") or {}).get("safe_stop", "")).startswith("CONFIRMED_BY_SUPERVISOR")
     # Desfecho real -> exit: concluído 0; SAFE_STOP confirmado 130 (retomável); qualquer
-    # outro desfecho (filho falhou, parada não confirmada) é falha após início de efeito: 3.
+    # outro desfecho (filho falhou, parada não confirmada, evidência faltante) é 3.
     code = EXIT_PASS if completed else (EXIT_SAFE_STOP if stopped else EXIT_FAIL)
     result["exit_code"] = code
     result["exit_class"] = classify_exit(code)
     result["result"] = ("PASS_SUPERVISED_RUN" if completed else
                         "SAFE_STOP_CONFIRMED_SUPERVISED_RUN" if stopped else "FAIL_SUPERVISED_RUN")
-    write_json_atomic(evidence / (plan["label"] + "_SUPERVISED_RUN_RESULT.json"), result)
-    print(json.dumps({k: result[k] for k in ("schema", "result", "label", "child_exit") if k in result}
-                     | {"w04_full": result.get("w04", {}).get("w04_full"),
-                        "lineage": result.get("lineage", {}).get("lineage")}, sort_keys=True))
+    result["primary_cause"] = (s.primary_error or {}).get("error")
+    rec = persist_run_receipt(evidence, label, result)
+    if not rec["persisted"]:
+        # Recibo canônico não gravado => nunca 0/130 (evidência faltante).
+        code = EXIT_FAIL
+    s._set_phase("RESULT_PERSISTED" if rec["persisted"] else "RESULT_PERSIST_FAILED")
+    print(json.dumps({k: result[k] for k in ("schema", "result", "label", "child_exit", "outcome") if k in result}
+                     | {"w04_full": (result.get("w04") or {}).get("w04_full"),
+                        "lineage": (result.get("lineage") or {}).get("lineage"),
+                        "exit_code": code, "receipt": rec}, sort_keys=True, default=str))
     return code
 
 
@@ -1116,6 +1797,13 @@ def main(argv=None) -> int:
         import traceback
         traceback.print_exc()
         print("PEGASUS_SUPERVISOR=FAIL_TECHNICAL " + type(exc).__name__ + ": " + str(exc), flush=True)
+        print(json.dumps({"schema": SCHEMA, "result": "FAIL_TECHNICAL", "cause": ("%s: %s" % (type(exc).__name__, exc))[:800],
+                          "exit_code": EXIT_FAIL, "exit_class": classify_exit(EXIT_FAIL), **GATES}, sort_keys=True), flush=True)
+        return EXIT_FAIL
+    except KeyboardInterrupt:
+        # Ctrl+C fora da supervisão (que o converte em SAFE_STOP): falha técnica explícita, nunca 0/1.
+        print(json.dumps({"schema": SCHEMA, "result": "FAIL_TECHNICAL", "cause": "KEYBOARD_INTERRUPT_OUTSIDE_SUPERVISION",
+                          "exit_code": EXIT_FAIL, "exit_class": classify_exit(EXIT_FAIL), **GATES}, sort_keys=True), flush=True)
         return EXIT_FAIL
     return EXIT_BLOCKED
 

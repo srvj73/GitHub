@@ -1,23 +1,23 @@
-# PEGASUS FULL 2026 — Engenharia Final V008R14
+# PEGASUS FULL 2026 — Engenharia Final V008R15
 
-- `delivery/` — release imutável: `PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R14_20261023.zip` (SHA-256 `012D4347…`, 2.956 membros, manifesto `18CB6265…`), bootstrap PS 5.1 com pins (`9FF6CDD9…`), recibos externos, `00_START_HERE_PEGASUS_V008R14.md` e a atestação nativa R9 preservada. Texto de retorno: `RESPOSTA_CHATGPT_RUNNER_PARALELO_14_V008R14.md`.
-- `source_v008_delta/` — delta V008 sobre o payload V003 (`supervisor/`, `docs/V008/`, `receipts/V008/` incl. `offline_final/native_campaign_r9/`, `r10_boundary_fix/`, `r11_audit_fixes/`, `r12_origin_fixes/`, `r13_origin_fixes/`, `r14_origin_fixes/`, `00_START_HERE_V008.md`).
-- `build/` — `build_v008.py`, `make_delivery_receipts_v008r14.py`, `ps_parse_check.ps1`.
+- `delivery/` — release imutável: `PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R15_20261023.zip` (SHA-256 `75EE96E700408876B4F5509DB2B6397517AE993C29A05BA713480D912C5A1490`, 2.963 membros, manifesto `ABCEB1E6…`), bootstrap PS 5.1 com pins (`036193A3…`), recibos externos, `00_START_HERE_PEGASUS_V008R15.md` e a atestação nativa R9 preservada. Texto de retorno: `RESPOSTA_CHATGPT_RUNNER_PARALELO_14_V008R15.md`.
+- `source_v008_delta/` — delta V008 sobre o payload V003 (`supervisor/`, `docs/V008/` incl. `INTERNAL_AUDIT_R15.md`, `INVARIANTS_AND_EXCEPTIONS_MATRIX_R15.md`, `WINDOWS_DIRECTED_QUALIFICATION_PROTOCOL_R15.md`; `receipts/V008/` incl. `offline_final/native_campaign_r9/`, `r10_boundary_fix/`, `r11_audit_fixes/`, `r12_origin_fixes/`, `r13_origin_fixes/`, `r14_origin_fixes/`, `r15_origin_fixes/`, `00_START_HERE_V008.md`).
+- `build/` — `build_v008.py`, `make_delivery_receipts_v008r15.py`, `ps_parse_check.ps1`.
 
-## V008R14 — correção da revisão física da origem sobre a R13
+## V008R15 — convergência integrada única sobre a auditoria preparatória profunda da origem
 
-A origem recebeu e verificou fisicamente o ZIP R13 (`PACKAGE_INTEGRITY=PASS`; `MANIFEST=2953/2953 PASS`) e apontou um bloqueio material ainda aberto em `R12-ORIGIN-01` (tratado como **R13-ORIGIN-01**), corrigido fail-closed com controle negativo, preservando todos os PASS válidos (R9 23/23 `MET`; F01–F04; R11-ORIGIN-01/02/03; R12-ORIGIN-01/02):
+A origem auditou profundamente o candidato R14 (`PACKAGE_INTEGRITY_R14=PASS`; `MANIFEST=2955/2955`) e exigiu **um único candidato definitivo** que tratasse a implementação como sistema completo e qualificasse a integração por **invariantes e classes de falha** — não mais uma versão por achado isolado. Esta R15 fecha, fail-closed e com controle negativo por família, as deficiências materialmente demonstráveis no escopo autorizado, preservando todos os PASS válidos (R9 23/23 `MET`; F01–F04; R11-ORIGIN-01/02/03; R12-ORIGIN-01/02; R13-ORIGIN-01):
 
-- **R13-ORIGIN-01** no esgotamento do prazo de reconciliação com a árvore viva, `Supervision.run` levantava `SupervisorBlocked` e entrava no `finally: cust.close()`, encerrando o supervisor — e handles retidos só no processo supervisor **não são custódia durável** (com `KILL_ON_JOB_CLOSE` ativo a queda mata a árvore; removido, a deixa órfã sem W04). Correção: função pura `reconcile_step_action` + laço **report-and-hold**: a decisão reservada **surge à origem uma vez** e o **custodiante permanece VIVO** (W04 + Job retidos, handle do Job **aberto** ⇒ `KILL_ON_JOB_CLOSE` ativo **ou** removido **não dispara**), NO_KILL; única saída = `TREE_EMPTY`. Removido o `raise` que encerrava a custódia; a reservada não é autorização implícita para matar.
+- **A01 — nenhuma exceção pós-spawn encerra a custódia com a árvore viva.** `Supervision` é máquina de estados; toda chamada pós-spawn em `_guard`; `request_stop` estruturado; `observe_tree` tri-estado (`UNKNOWN` nunca libera); `close()` só com árvore **VERIFICADA vazia** (duas observações). `UNSAFE` reproduzido nos bytes R14; `all_safe` nos bytes R15.
+- **A02 — sem falsa completude de USN.** `usn_scan_coverage` (pura) prova cobertura até `end_usn`; `w04_verdict` exige o bloco de prova, não só o booleano.
+- **A03 — evidência terminal vinculada à tentativa.** `terminal_evidence_verdict` exigido em `completion_verdict`/`safestop_verdict` (caso Q17).
+- **A04 — recibo estruturado em todo desfecho.** `persist_run_receipt` canônico; `main()` JSON `FAIL_TECHNICAL`; `PrespawnBlocked=2`.
+- **INT + C4 — fronteiras/exceções e isolamento.** `start_failure_disposition` (rollback só do suspenso), `owner_release_plan` (liberação só com `KILL_ON_JOB_CLOSE` removido), `--admission` selado + `plan_isolation_verdict`.
 
-Fechamento em `receipts/V008/offline_final/r14_origin_fixes/` (`ORIGIN_FIXES_CLOSURE_V008R14.json`, `all_closed=true`, incl. F01–F04, R11-ORIGIN-01/02/03, R12-ORIGIN-01/02 e R13-ORIGIN-01). Regressões: `ReconcileStepAction`, `SupervisionReconcileHold`.
+Fechamento em `receipts/V008/offline_final/r15_origin_fixes/` (`ORIGIN_FIXES_CLOSURE_V008R15.json`, `all_closed=true`: A01, A02, A03, A04, INT-FAMILY, C4-ISOLATION, PRIOR_PRESERVED; `FALSE_COMPLETENESS_SEARCH_V008R15.json` = `NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED`). Regressões: `UsnScanCoverage`, `W04UsnCoverageProof`, `TerminalEvidence`, `CompletionTerminalRequired`, `SupervisionCustodyExceptions`, `TreeVerifiedEmpty`, `StartFailureDisposition`, `OwnerDispositionAndRelease`, `PlanIsolation`, `AdmissionSealed` + 9 mutantes R15.
 
-**tested=packaged=delivered:** M1 (`838D9E29…`) → M2 (`18CB6265…`) difere só por 16 arquivos de evidência sob `receipts/V008/offline_final/`; código e docs byte-idênticos. Extrato reconfere 2.955/2.955; verify e **106/106** unit sobre os bytes entregues; mutantes do supervisor **32/32**; fronteira do bootstrap 20/20 + 8/8; cadeia V003 19/19; qualificação 17/17 PASS (incl. Q16) + 2 SKIPPED_NON_NATIVE.
+**tested=packaged=delivered:** M1 (`945481B3…`) → M2 (`ABCEB1E6…`) difere só por 18 arquivos de evidência sob `receipts/V008/offline_final/`; código e docs byte-idênticos. Extrato reconfere 2.962/2.962; verify e **156/156** unit sobre os bytes entregues; mutantes do supervisor **41/41**; fronteira do bootstrap 20/20 + 8/8; cadeia V003 19/19; qualificação **18 PASS** (incl. Q16, Q17) + 2 SKIPPED_NON_NATIVE; probe de convergência `all_safe` nos bytes finais.
 
-Supersede o V008R13 (`2643D628…`). O payload V003 completo (2.867 arquivos byte-idênticos) está dentro do ZIP.
+Supersede o V008R14 (`012D4347…`). O payload V003 completo está dentro do ZIP.
 
 `G4=FROZEN · QS4=NO · FULL_ECONOMIC=NO · PHASE_C=FORBIDDEN · RESELECTION_2026=FORBIDDEN · RUN_RELEASED=NO · FULL_RELEASED=NO`
-
-Engenharia completa; auditoria R10 (F01–F04) e revisões da origem R11 (R11-ORIGIN-01/02/03), R12 (R12-ORIGIN-01/02) e física R13 (R13-ORIGIN-01) fechadas; `native_completeness_evaluation=MET` sobre os bytes R9 (preservada). A reauditoria focal, a selagem formal de `CANDIDATE_COMPLETENESS=PASS`, a prova nativa dirigida de custódia durável/NO_KILL em processos sintéticos e o passo `-Mode Install` são do titular/origem. A custódia normativa MASTER/HEAD permanece exclusivamente com o ChatGPT de origem.
-
-`RESULT_RETURN_TO=ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14`

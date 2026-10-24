@@ -1,0 +1,206 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R15_CONVERGENCE_CLOSURE",
+ "audit_trail": "R10 FAIL (F01-F04, fechados R11); R11/R12/R13-ORIGIN (R12-R14); auditoria preparatória profunda R14 (A01-A04 + matriz de fronteiras) -> convergência integrada R15",
+ "supersedes_candidate_sha256": "012D4347D7283B46EDC59A2BB49A58DBC1AE54F250E463FB002102031AF3D7CF",
+ "final_tree_convergence_probe": {
+  "all_safe": true,
+  "supervisor_sha256": "431737F98484881F3235BC539F23008825FF0B615EB0A5CF650477AFF0DB2623"
+ },
+ "predecessor_r14_reproduction": {
+  "all_safe": false,
+  "a01": {
+   "verdict": "UNSAFE"
+  }
+ },
+ "findings": [
+  {
+   "finding": "A01",
+   "title": "exceção/falha de SAFE_STOP causava saída da custódia com árvore viva",
+   "fix": "Supervision.run é máquina de estados; request_stop estruturado; toda chamada pós-spawn em _guard; nenhuma exceção sai de run() após o spawn; close() só com árvore VERIFICADA vazia; observe_tree tri-estado",
+   "negative_control_final_tree": {
+    "probe": "A01_safe_stop_helper_nonzero_live_tree",
+    "verdict": "SAFE",
+    "outcome": "RETURNED",
+    "closed": 1,
+    "closed_while_live": 0,
+    "killed": 0,
+    "error": null
+   },
+   "reproduced_on_r14": {
+    "verdict": "UNSAFE",
+    "error": "RuntimeError: CTRL_C_DELIVERY_FAILED helper_exit=7",
+    "closed_while_live": 1
+   },
+   "source": {
+    "state_machine": true,
+    "structured_request_stop": true,
+    "guarded_loop": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "A02",
+   "title": "leitor USN declarava cobertura completa com cursor não progressivo => W04 falso PASS",
+   "fix": "usn_scan_coverage (pura) prova cobertura até end_usn (cursor progressivo, EOF, IOCTL, malformado, FRN128); _read_usn é adaptador fino; w04_verdict exige o bloco coverage, não só o booleano; disarm nunca levanta",
+   "negative_control_pure": {
+    "nonprogress_reason": "USN_CURSOR_NOT_ADVANCING",
+    "nonprogress_complete": false,
+    "w04_blocked_on_nonprogress": "BLOCKED",
+    "w04_blocked_on_coverage_absent": "BLOCKED"
+   },
+   "reproduced_on_r14": {
+    "evidence": "PEGASUS_V008R14_USN_NONPROGRESS_SYNTHETIC_PROBE_20261023.json",
+    "source_sha256": "97A9543C3FB4FBA51360DED7EEFB00F8BFFEA1F4F1BC9B460549AA904BB289D9",
+    "falsely_attested": true
+   },
+   "source": {
+    "usn_scan_coverage_present": true,
+    "read_usn_is_adapter": true,
+    "w04_requires_coverage": true,
+    "disarm_no_raise": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "A03",
+   "title": "completion não exigia STATUS/receipt terminal do filho vinculado à tentativa",
+   "fix": "terminal_evidence_verdict (STATUS esquema/frescor/produtor na árvore/COMMITTED==TOTAL/CHECKPOINT); completion_verdict e safestop_verdict exigem-no; _status tri-estado; linhagem/JIT como dados",
+   "negative_control_pure": {
+    "terminal_absent": "INCOMPLETE",
+    "completion_without_terminal": false,
+    "completion_gaps": [
+     "TERMINAL_EVIDENCE_NOT_PROVEN:ABSENT"
+    ]
+   },
+   "integrated_case_Q17": {
+    "result": "PASS",
+    "terminal": "INCOMPLETE"
+   },
+   "source": {
+    "terminal_evidence_verdict": true,
+    "completion_requires_terminal": true,
+    "status_tristate": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "A04",
+   "title": "falha técnica inesperada podia não produzir recibo estruturado de execução",
+   "fix": "_run_supervised persiste recibo em TODO desfecho (persist_run_receipt); PrespawnBlocked=2 sem efeito; pós-spawn=3 com causa primária; 0/130 só com recibo canônico; main() emite JSON técnico e nunca 0/1",
+   "negative_control_probe": {
+    "probe": "A04_structured_receipt_on_technical_failure",
+    "verdict": "SAFE",
+    "exit_code": 3,
+    "receipt": true,
+    "result": "FAIL_TECHNICAL_SUPERVISION"
+   },
+   "source": {
+    "persist_run_receipt": true,
+    "prespawn_blocked_class": true,
+    "canonical_receipt_gate": true,
+    "main_structured_fail": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "INT-FAMILY",
+   "title": "exceções do ciclo de vida (telemetria, consulta do Job, revalidação W04, helper de stop)",
+   "fix": "Supervision._guard contém toda chamada pós-spawn; observação que falha é UNKNOWN (nunca vazio); custódia só libera com árvore verificada vazia; hold observável por CUSTODY_STATE",
+   "negative_controls_final_tree": [
+    {
+     "probe": "A01_safe_stop_helper_nonzero_live_tree",
+     "verdict": "SAFE",
+     "outcome": "RETURNED",
+     "closed": 1,
+     "closed_while_live": 0,
+     "killed": 0,
+     "error": null
+    },
+    {
+     "probe": "A01b_safe_stop_helper_structured_fail",
+     "verdict": "SAFE",
+     "outcome": "RETURNED",
+     "closed": 1,
+     "closed_while_live": 0,
+     "killed": 0
+    },
+    {
+     "probe": "INT01_eta_committed_gt_total_live",
+     "verdict": "SAFE",
+     "outcome": "RETURNED",
+     "closed_while_live": 0,
+     "error": null
+    },
+    {
+     "probe": "INT02_corrupt_telemetry_non_int",
+     "verdict": "SAFE",
+     "outcome": "RETURNED",
+     "closed_while_live": 0,
+     "error": null
+    },
+    {
+     "probe": "INT03_job_query_fails_during_drain",
+     "verdict": "SAFE",
+     "completion": false,
+     "outcome": "RETURNED",
+     "closed_while_live": 0
+    },
+    {
+     "probe": "INT04_w04_revalidate_raises_live",
+     "verdict": "SAFE",
+     "outcome": "RETURNED",
+     "closed_while_live": 0,
+     "error": null
+    },
+    {
+     "probe": "A03_completion_requires_terminal_status",
+     "verdict": "SAFE",
+     "completed": false,
+     "terminal": "INCOMPLETE"
+    },
+    {
+     "probe": "A02_usn_nonprogress_blocks_w04",
+     "verdict": "SAFE",
+     "w04_full": "BLOCKED",
+     "reason": "USN_CURSOR_NOT_ADVANCING"
+    }
+   ],
+   "source": {
+    "guard": true,
+    "custody_state": true,
+    "observe_tristate": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "C4-ISOLATION",
+   "title": "--admission executava qualquer .py; isolamento só documentado",
+   "fix": "_load_admission só aceita o módulo sintético SELADO (caminho + SHA do manifesto); plan_isolation_verdict recusa argv apontando o runtime econômico (CODE/) ou saída dentro do pacote",
+   "negative_control_pure": {
+    "synthetic_isolated": "ISOLATED_NON_ECONOMIC",
+    "economic_entry_rejected": "NOT_ISOLATED"
+   },
+   "source": {
+    "sealed_admission": true,
+    "plan_isolation": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "PRIOR_PRESERVED",
+   "title": "F01-F04 (R11), R11/R12/R13-ORIGIN (R12-R14), campanha R9 preservados",
+   "source": {
+    "f02_prespawn": true,
+    "f03_lineage": true,
+    "r11o1_job_close": true,
+    "r12o1_custody_finalize": true,
+    "r12o2_grandchild": true,
+    "r13o1_reconcile": true
+   },
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Convergência integrada: a supervisão pós-spawn é uma máquina de estados cujas transições não levantam; a única saída de custódia é a árvore VERIFICADA vazia (duas observações), ou um bloqueio pré-spawn sem efeito, ou a disposição explícita do titular aplicada só com KILL_ON_JOB_CLOSE removido. A01-A04 e as famílias INT fechadas por controle negativo (probe sobre os bytes finais = all_safe; reprodução UNSAFE nos bytes R14 congelados). A02 por cobertura USN certificada (usn_scan_coverage). A03 por evidência terminal vinculada (terminal_evidence_verdict + Q17). A04 por recibo estruturado em todo desfecho. Limites físicos honestos: término forçado do próprio supervisor e efetividade Win32 ficam na qualificação dirigida (processos sintéticos, hash-bound, sem kill não autorizado).",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

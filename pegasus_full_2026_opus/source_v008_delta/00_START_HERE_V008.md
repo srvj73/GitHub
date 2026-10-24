@@ -100,6 +100,18 @@ A origem recebeu e verificou fisicamente o ZIP R13 (`PACKAGE_INTEGRITY=PASS`; `M
 
 Regressões: `ReconcileStepAction` (nunca finaliza árvore viva) e `SupervisionReconcileHold` (dupla de custódia: sem `raise`; `close()` só com árvore vazia; `disarm` da W04 só em `TREE_EMPTY`; sem kill). Unit 106/106; mutantes 32/32 (adiciona `reconcile_step_reserved_finalizes_live_tree`). Fechamento em `receipts/V008/offline_final/r14_origin_fixes/`. A prova nativa dirigida (custódia durável/NO_KILL em processos sintéticos) fica para o titular/origem.
 
+## Convergência integrada V008R15 — auditoria preparatória profunda da origem sobre a R14
+
+A origem auditou o R14 como sistema e pediu UMA convergência integrada (não mais microcorreções). A supervisão pós-spawn virou **máquina de estados** cujas transições não levantam; a **única** saída de custódia é a árvore VERIFICADA vazia (duas observações), um bloqueio pré-spawn sem efeito, ou a disposição explícita do titular aplicada só com `KILL_ON_JOB_CLOSE` removido. Achados fechados por controle negativo, preservando R9 23/23 MET e todas as correções R10–R14:
+
+- **A01** exceção/falha de SAFE_STOP não encerra mais a custódia com árvore viva (`_guard` em toda chamada pós-spawn; `request_stop` estruturado; `observe_tree` tri-estado; `close()` só com árvore vazia). Reproduzido nos bytes R14; SAFE no R15.
+- **A02** `usn_scan_coverage` (pura) prova a cobertura até `end_usn`; `w04_verdict` exige essa prova — cursor não progressivo/EOF/malformado ⇒ `BLOCKED`, nunca falso PASS.
+- **A03** `terminal_evidence_verdict` vincula conclusão/SAFE_STOP ao STATUS terminal da tentativa (produtor na árvore, `COMMITTED==TOTAL`, checkpoint válido); caso integrado Q17.
+- **A04** recibo estruturado em todo desfecho; pré-spawn=2 sem efeito, pós-spawn=3 com causa; 0/130 só com recibo.
+- **INT/C4** exceções do ciclo contidas e observáveis (`CUSTODY_STATE`); `--admission` selado + `plan_isolation_verdict`.
+
+Regressões: 10 novas classes de teste. Unit **155/155**; mutantes **41/41**; qualificação **18/18 PASS** (incl. Q16, Q17) **+ 2 SKIP**; probe de convergência `all_safe` nos bytes finais e UNSAFE reproduzido nos bytes R14. Fechamento em `receipts/V008/offline_final/r15_origin_fixes/`. Auditoria interna e matriz em `docs/V008/INTERNAL_AUDIT_R15.md` e `INVARIANTS_AND_EXCEPTIONS_MATRIX_R15.md`; protocolo Windows dirigido em `WINDOWS_DIRECTED_QUALIFICATION_PROTOCOL_R15.md`. Limites honestos: término forçado do próprio supervisor (fail-safe do kernel) e efetividade Win32 ficam na qualificação dirigida.
+
 ## Estado honesto dos gates
 
 Ver `receipts/V008/GATE_LEDGER_V008.json`. Em resumo: implementação integral e qualificação offline sobre os bytes finais concluídas; a prova nativa Windows de W04/Job/SAFE_STOP (G2, G3, G5) depende da campanha única `QualifyNative`; o binding de um harness QS4 sucessor ao adaptador G4 do V003 está provadamente ausente e exige qualificação QS4 própria, vedada nesta missão. Nenhum PASS foi declarado sem execução efetiva.

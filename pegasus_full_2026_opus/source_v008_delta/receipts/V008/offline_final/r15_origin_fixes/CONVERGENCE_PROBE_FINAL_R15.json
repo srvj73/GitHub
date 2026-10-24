@@ -1,0 +1,72 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R15_CONVERGENCE_PROBE",
+ "tree": "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008",
+ "supervisor_sha256": "431737F98484881F3235BC539F23008825FF0B615EB0A5CF650477AFF0DB2623",
+ "all_safe": true,
+ "probes": [
+  {
+   "probe": "A01_safe_stop_helper_nonzero_live_tree",
+   "verdict": "SAFE",
+   "outcome": "RETURNED",
+   "closed": 1,
+   "closed_while_live": 0,
+   "killed": 0,
+   "error": null
+  },
+  {
+   "probe": "A01b_safe_stop_helper_structured_fail",
+   "verdict": "SAFE",
+   "outcome": "RETURNED",
+   "closed": 1,
+   "closed_while_live": 0,
+   "killed": 0
+  },
+  {
+   "probe": "INT01_eta_committed_gt_total_live",
+   "verdict": "SAFE",
+   "outcome": "RETURNED",
+   "closed_while_live": 0,
+   "error": null
+  },
+  {
+   "probe": "INT02_corrupt_telemetry_non_int",
+   "verdict": "SAFE",
+   "outcome": "RETURNED",
+   "closed_while_live": 0,
+   "error": null
+  },
+  {
+   "probe": "INT03_job_query_fails_during_drain",
+   "verdict": "SAFE",
+   "completion": false,
+   "outcome": "RETURNED",
+   "closed_while_live": 0
+  },
+  {
+   "probe": "INT04_w04_revalidate_raises_live",
+   "verdict": "SAFE",
+   "outcome": "RETURNED",
+   "closed_while_live": 0,
+   "error": null
+  },
+  {
+   "probe": "A03_completion_requires_terminal_status",
+   "verdict": "SAFE",
+   "completed": false,
+   "terminal": "INCOMPLETE"
+  },
+  {
+   "probe": "A04_structured_receipt_on_technical_failure",
+   "verdict": "SAFE",
+   "exit_code": 3,
+   "receipt": true,
+   "result": "FAIL_TECHNICAL_SUPERVISION"
+  },
+  {
+   "probe": "A02_usn_nonprogress_blocks_w04",
+   "verdict": "SAFE",
+   "w04_full": "BLOCKED",
+   "reason": "USN_CURSOR_NOT_ADVANCING"
+  }
+ ]
+}

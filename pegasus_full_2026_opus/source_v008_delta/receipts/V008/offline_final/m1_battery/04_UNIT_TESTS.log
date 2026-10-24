@@ -1,6 +1,14 @@
 QS4_SUPERVISED=BLOCKED QS4_EXECUTION_FORBIDDEN_NO_EXTERNAL_ADMISSION
+test_default_without_flag (__main__.AdmissionSealed.test_default_without_flag) ... ok
+test_unsealed_path_refused (__main__.AdmissionSealed.test_unsealed_path_refused) ... ok
 test_run_modes_blocked_before_any_effect (__main__.CliFailClosed.test_run_modes_blocked_before_any_effect) ... ok
 test_verify_package (__main__.CliFailClosed.test_verify_package) ... ok
+test_all_proven_completes (__main__.CompletionTerminalRequired.test_all_proven_completes) ... ok
+test_incomplete_terminal_blocks (__main__.CompletionTerminalRequired.test_incomplete_terminal_blocks) ... ok
+test_missing_jit_blocks (__main__.CompletionTerminalRequired.test_missing_jit_blocks) ... ok
+test_missing_lineage_blocks (__main__.CompletionTerminalRequired.test_missing_lineage_blocks) ... ok
+test_missing_terminal_blocks (__main__.CompletionTerminalRequired.test_missing_terminal_blocks) ... ok
+test_posix_observational_lineage_ok_when_w04_non_native (__main__.CompletionTerminalRequired.test_posix_observational_lineage_ok_when_w04_non_native) ... ok
 test_empty_tree_finalizes (__main__.CustodyFinalizeDecision.test_empty_tree_finalizes) ... ok
 test_live_tree_holds_before_deadline (__main__.CustodyFinalizeDecision.test_live_tree_holds_before_deadline) ... ok
 test_never_finalizes_live_tree (__main__.CustodyFinalizeDecision.test_never_finalizes_live_tree) ... ok
@@ -9,7 +17,13 @@ test_qualification_deadline_reserved_fail_closed (__main__.CustodyFinalizeDecisi
 test_terminal_evidence_capturable_before_close_then_refused_after (__main__.CustodyLifecycleContract.test_terminal_evidence_capturable_before_close_then_refused_after) ... ok
 test_absent_or_bogus_code_never_pass (__main__.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
 test_known_codes (__main__.ExitClassification.test_known_codes) ... ok
-test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... ok
+test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... Traceback (most recent call last):
+  File "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 1780, in main
+    return cmd_verify(ns)
+  File "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/tests/test_supervisor_v008.py", line 428, in boom
+    raise RuntimeError("boom")
+RuntimeError: boom
+ok
 test_absent_pid_rejected (__main__.GrandchildContained.test_absent_pid_rejected) ... ok
 test_ambiguous_pid_rejected (__main__.GrandchildContained.test_ambiguous_pid_rejected) ... ok
 test_divergent_ctime_rejected (__main__.GrandchildContained.test_divergent_ctime_rejected) ... ok
@@ -39,6 +53,15 @@ test_all_pass_complete_records_every_case (__main__.NativeNegativesReplay.test_a
 test_first_failure_raises_and_stops (__main__.NativeNegativesReplay.test_first_failure_raises_and_stops) ... ok
 test_incomplete_child_is_fail_closed (__main__.NativeNegativesReplay.test_incomplete_child_is_fail_closed) ... ok
 test_missing_case_is_fail_closed (__main__.NativeNegativesReplay.test_missing_case_is_fail_closed) ... ok
+test_absent_is_wait (__main__.OwnerDispositionAndRelease.test_absent_is_wait) ... ok
+test_ack_mismatch_is_wait (__main__.OwnerDispositionAndRelease.test_ack_mismatch_is_wait) ... ok
+test_release_plan_requires_flag_cleared (__main__.OwnerDispositionAndRelease.test_release_plan_requires_flag_cleared) ... ok
+test_valid_release (__main__.OwnerDispositionAndRelease.test_valid_release) ... ok
+test_wrong_schema_is_wait (__main__.OwnerDispositionAndRelease.test_wrong_schema_is_wait) ... ok
+test_code_runtime_rejected (__main__.PlanIsolation.test_code_runtime_rejected) ... ok
+test_economic_module_name_rejected (__main__.PlanIsolation.test_economic_module_name_rejected) ... ok
+test_out_inside_package_rejected (__main__.PlanIsolation.test_out_inside_package_rejected) ... ok
+test_synthetic_chain_isolated (__main__.PlanIsolation.test_synthetic_chain_isolated) ... ok
 test_bound_when_pinned_and_hooks (__main__.QS4Binding.test_bound_when_pinned_and_hooks) ... ok
 test_mismatch_blocks (__main__.QS4Binding.test_mismatch_blocks) ... ok
 test_missing_durable_hooks_blocks (__main__.QS4Binding.test_missing_durable_hooks_blocks) ... ok
@@ -66,6 +89,7 @@ test_confirmed (__main__.SafeStopCompletion.test_confirmed) ... ok
 test_eta (__main__.SafeStopCompletion.test_eta) ... ok
 test_exit_not_130 (__main__.SafeStopCompletion.test_exit_not_130) ... ok
 test_lock_and_w04 (__main__.SafeStopCompletion.test_lock_and_w04) ... ok
+test_noncooperative_exit_blocks_even_with_full_evidence (__main__.SafeStopCompletion.test_noncooperative_exit_blocks_even_with_full_evidence) ... ok
 test_not_drained (__main__.SafeStopCompletion.test_not_drained) ... ok
 test_completion_exit_never_confirms_stop (__main__.SafeStopExitPlatform.test_completion_exit_never_confirms_stop) ... ok
 test_crash_code_not_confirmed_even_on_windows (__main__.SafeStopExitPlatform.test_crash_code_not_confirmed_even_on_windows) ... ok
@@ -82,12 +106,44 @@ test_no_delivery_in_spawn_window_active_zero_on_windows (__main__.SafeStopRedeli
 test_no_delivery_without_request (__main__.SafeStopRedelivery.test_no_delivery_without_request) ... ok
 test_posix_delivers_regardless_of_active (__main__.SafeStopRedelivery.test_posix_delivers_regardless_of_active) ... ok
 test_waits_interval_between_deliveries (__main__.SafeStopRedelivery.test_waits_interval_between_deliveries) ... ok
+test_no_child (__main__.StartFailureDisposition.test_no_child) ... ok
+test_running_child_never_terminated (__main__.StartFailureDisposition.test_running_child_never_terminated) ... ok
+test_suspended_never_resumed_rolls_back (__main__.StartFailureDisposition.test_suspended_never_resumed_rolls_back) ... ok
+test_committed_gt_total_holds (__main__.SupervisionCustodyExceptions.test_committed_gt_total_holds) ... ok
+test_corrupt_telemetry_non_int_holds (__main__.SupervisionCustodyExceptions.test_corrupt_telemetry_non_int_holds) ... ok
+test_observe_raises_holds (__main__.SupervisionCustodyExceptions.test_observe_raises_holds) ... ok
+test_revalidate_raises_holds (__main__.SupervisionCustodyExceptions.test_revalidate_raises_holds) ... ok
+test_stop_raises_holds_until_empty (__main__.SupervisionCustodyExceptions.test_stop_raises_holds_until_empty) ... ok
+test_stop_structured_failure_holds (__main__.SupervisionCustodyExceptions.test_stop_structured_failure_holds) ... ok
 test_close_once_on_prespawn_block (__main__.SupervisionPrespawnLifecycle.test_close_once_on_prespawn_block) ... ok
 test_close_once_on_start_exception (__main__.SupervisionPrespawnLifecycle.test_close_once_on_start_exception) ... ok
 test_reserved_deadline_holds_then_finalizes_on_tree_empty (__main__.SupervisionReconcileHold.test_reserved_deadline_holds_then_finalizes_on_tree_empty) ... ok
+test_absent_status_incomplete (__main__.TerminalEvidence.test_absent_status_incomplete) ... ok
+test_checkpoint_mismatch_rejected (__main__.TerminalEvidence.test_checkpoint_mismatch_rejected) ... ok
+test_complete (__main__.TerminalEvidence.test_complete) ... ok
+test_foreign_producer_rejected (__main__.TerminalEvidence.test_foreign_producer_rejected) ... ok
+test_not_fully_committed_rejected (__main__.TerminalEvidence.test_not_fully_committed_rejected) ... ok
+test_out_root_mismatch_rejected (__main__.TerminalEvidence.test_out_root_mismatch_rejected) ... ok
+test_safe_stop_mode (__main__.TerminalEvidence.test_safe_stop_mode) ... ok
+test_stale_run_instance_rejected (__main__.TerminalEvidence.test_stale_run_instance_rejected) ... ok
+test_tree_not_clean_rejected (__main__.TerminalEvidence.test_tree_not_clean_rejected) ... ok
+test_requires_two_consecutive (__main__.TreeVerifiedEmpty.test_requires_two_consecutive) ... ok
+test_bounds_absent (__main__.UsnScanCoverage.test_bounds_absent) ... ok
+test_complete_reaches_end (__main__.UsnScanCoverage.test_complete_reaches_end) ... ok
+test_eof_before_end_incomplete (__main__.UsnScanCoverage.test_eof_before_end_incomplete) ... ok
+test_frn128_high_bits_unmappable (__main__.UsnScanCoverage.test_frn128_high_bits_unmappable) ... ok
+test_ioctl_failure_incomplete (__main__.UsnScanCoverage.test_ioctl_failure_incomplete) ... ok
+test_journal_entry_deleted_incomplete (__main__.UsnScanCoverage.test_journal_entry_deleted_incomplete) ... ok
+test_malformed_record_incomplete (__main__.UsnScanCoverage.test_malformed_record_incomplete) ... ok
+test_nonprogress_cursor_incomplete (__main__.UsnScanCoverage.test_nonprogress_cursor_incomplete) ... ok
+test_record_usn_out_of_window_rejected (__main__.UsnScanCoverage.test_record_usn_out_of_window_rejected) ... ok
+test_unknown_version_incomplete (__main__.UsnScanCoverage.test_unknown_version_incomplete) ... ok
 test_clean_acquisition_allows_spawn (__main__.W04PrespawnGate.test_clean_acquisition_allows_spawn) ... ok
 test_open_error_and_reparse_block_spawn (__main__.W04PrespawnGate.test_open_error_and_reparse_block_spawn) ... ok
 test_sharing_violation_blocks_spawn (__main__.W04PrespawnGate.test_sharing_violation_blocks_spawn) ... ok
+test_coverage_absent_blocks (__main__.W04UsnCoverageProof.test_coverage_absent_blocks) ... ok
+test_coverage_incomplete_reason_blocks (__main__.W04UsnCoverageProof.test_coverage_incomplete_reason_blocks) ... ok
+test_coverage_short_of_end_blocks (__main__.W04UsnCoverageProof.test_coverage_short_of_end_blocks) ... ok
 test_census_external_writer (__main__.W04Verdict.test_census_external_writer) ... ok
 test_census_truncated (__main__.W04Verdict.test_census_truncated) ... ok
 test_dirs (__main__.W04Verdict.test_dirs) ... ok
@@ -107,6 +163,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 106 tests in 4.544s
+Ran 156 tests in 9.545s
 
 OK

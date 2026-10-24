@@ -265,6 +265,10 @@ def run_qualification(evidence: Path, workers_ref: int = 1, workers_multi: int =
         # W04 PASS -> COMPLETED (o mesmo gate, provado nos dois sentidos). Não entra nos 23 casos
         # nativos (preserva o recibo R9); é regressão de integração do gate.
         _w04_blocked_integrated_negative(evidence, inputs, env, case, log)
+        # Q17 (R15/A03) — negativo INTEGRADO da evidência terminal: um filho que sai 0 SEM gravar o
+        # STATUS terminal do runtime V003 (ou com STATUS adulterado) NÃO pode ser aceito como
+        # COMPLETED. Prova que a conclusão exige evidência terminal vinculada, não só exit 0.
+        _terminal_evidence_integrated_negative(evidence, inputs, env, case, log)
         receipt["result"] = "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC"
         receipt["w04_g2_g3_native"] = "QUALIFIED_ON_THIS_HOST" if os.name == "nt" else "NOT_NATIVE_HOST_NOT_PROMOTED"
         rc = sup.EXIT_PASS
@@ -580,6 +584,27 @@ def _w04_blocked_integrated_negative(evidence, inputs, env, case, log):
         detail = "NON_NATIVE_HASH_CONTINUITY_BLOCKS_COMPLETION"
     case("Q16_W04_BLOCKED_BLOCKS_COMPLETION_INTEGRATED", ok,
          platform_branch=detail, mutated=mutated, w04=r.get("w04"), completion=comp, child_exit=r.get("child_exit"))
+
+
+# =====================================================================================
+# Q17 (R15/A03) — negativo integrado da evidência terminal do filho
+# =====================================================================================
+def _terminal_evidence_integrated_negative(evidence, inputs, env, case, log):
+    py = sys.executable
+    prot = evidence / "Q17_protected"; prot.mkdir(parents=True, exist_ok=True)
+    (prot / "fixture.txt").write_text("original", encoding="utf-8")
+    out = evidence / "Q17_out"; out.mkdir(parents=True, exist_ok=True)
+    # Filho trivial que NÃO é o runtime V003: sai 0 sem jamais gravar TELEMETRY/R1R11_STATUS.json
+    # nem CHECKPOINT.json. Sem evidência terminal vinculada, a conclusão tem de ser recusada.
+    s = sup.Supervision(evidence=evidence, protected_root=prot, out_root=out, label="Q17_no_terminal", log=log)
+    r = s.run([py, "-I", "-B", "-c", "import sys; sys.exit(0)"], env, timeout_s=120)
+    comp = r.get("completion", {}) or {}
+    term = r.get("terminal_evidence", {}) or {}
+    ok = (r.get("child_exit") == 0 and comp.get("completed") is False
+          and any(str(g).startswith("TERMINAL_EVIDENCE_NOT_PROVEN") for g in comp.get("gaps", []))
+          and term.get("terminal") == "INCOMPLETE")
+    case("Q17_COMPLETION_REQUIRES_TERMINAL_EVIDENCE", ok,
+         child_exit=r.get("child_exit"), completion=comp, terminal_evidence=term)
 
 
 # =====================================================================================

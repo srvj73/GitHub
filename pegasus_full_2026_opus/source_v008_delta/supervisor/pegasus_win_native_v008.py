@@ -188,29 +188,60 @@ class WindowsJobCustody:
         self.log = log
         self.marks = []
         self.proc = None
-        self.events = {}            # (pid, ctime) -> True
+        self.events = {}            # (pid, ctime) -> True; protegido por _events_lock (INT-20)
+        self._events_lock = threading.Lock()
         self.exits = 0
         self.active_zero = False
         self._closed = False
         self._stop = threading.Event()
-        self.job = CreateJobObjectW(None, None)
-        if not self.job:
-            raise _err("CREATE_JOB_FAILED")
-        info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
-        info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-        if not SetInformationJobObject(self.job, JobObjectExtendedLimitInformation, ctypes.byref(info), ctypes.sizeof(info)):
-            raise _err("SET_JOB_LIMITS_FAILED")
-        self.port = CreateIoCompletionPort(INVALID_HANDLE_VALUE, None, 0, 1)
-        if not self.port:
-            raise _err("CREATE_IOCP_FAILED")
-        assoc = JOBOBJECT_ASSOCIATE_COMPLETION_PORT(ctypes.c_void_p(1), self.port)
-        if not SetInformationJobObject(self.job, JobObjectAssociateCompletionPortInformation, ctypes.byref(assoc), ctypes.sizeof(assoc)):
-            raise _err("ASSOCIATE_IOCP_FAILED")
-        self._pump = threading.Thread(target=self._pump_loop, name="PEGASUS_JOB_IOCP", daemon=True)
-        self._pump.start()
+        self.job = None
+        self.port = None
+        self._pump = None
+        self.child_created = False
+        self.assigned = False
+        self.resumed_threads = 0
+        self.rollback = None
+        self.env = {}
+        # R15 (INT-09): falha parcial na construção fecha o que já foi aberto (idempotente) e
+        # levanta — nenhum filho existe ainda, logo nenhum efeito.
+        try:
+            self.job = CreateJobObjectW(None, None)
+            if not self.job:
+                raise _err("CREATE_JOB_FAILED")
+            info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
+            info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
+            if not SetInformationJobObject(self.job, JobObjectExtendedLimitInformation, ctypes.byref(info), ctypes.sizeof(info)):
+                raise _err("SET_JOB_LIMITS_FAILED")
+            self.port = CreateIoCompletionPort(INVALID_HANDLE_VALUE, None, 0, 1)
+            if not self.port:
+                raise _err("CREATE_IOCP_FAILED")
+            assoc = JOBOBJECT_ASSOCIATE_COMPLETION_PORT(ctypes.c_void_p(1), self.port)
+            if not SetInformationJobObject(self.job, JobObjectAssociateCompletionPortInformation, ctypes.byref(assoc), ctypes.sizeof(assoc)):
+                raise _err("ASSOCIATE_IOCP_FAILED")
+            self._pump = threading.Thread(target=self._pump_loop, name="PEGASUS_JOB_IOCP", daemon=True)
+            self._pump.start()
+        except BaseException:
+            self._init_cleanup()
+            raise
+
+    def _init_cleanup(self):
+        self._stop.set()
+        for name in ("port", "job"):
+            h = getattr(self, name, None)
+            if h:
+                CloseHandle(h)
+                setattr(self, name, None)
+        self._closed = True
 
     def mark(self, name):
         self.marks.append({"mark": name, "mono_ns": time.monotonic_ns()})
+
+    def _add_event(self, pid, ct):
+        with self._events_lock:
+            if ct and (pid, 0) in self.events:
+                self.events.pop((pid, 0), None)
+            if not any(p == pid and c == ct for (p, c) in self.events):
+                self.events[(pid, ct or 0)] = True
 
     def _pump_loop(self):
         msg, key, ov = wintypes.DWORD(), ctypes.c_size_t(), ctypes.c_void_p()
@@ -219,7 +250,7 @@ class WindowsJobCustody:
                 continue
             pid = int(ov.value or 0)
             if msg.value == MSG_NEW_PROCESS:
-                self.events[(pid, process_ctime(pid) or 0)] = True
+                self._add_event(pid, process_ctime(pid) or 0)
             elif msg.value in (MSG_EXIT_PROCESS, MSG_ABNORMAL_EXIT):
                 self.exits += 1
             elif msg.value == MSG_ACTIVE_PROCESS_ZERO:
@@ -243,6 +274,7 @@ class WindowsJobCustody:
                         if ResumeThread(th) == 0xFFFFFFFF:
                             raise _err("RESUME_THREAD_FAILED")
                         resumed += 1
+                        self.resumed_threads = resumed
                     finally:
                         CloseHandle(th)
                 ok = Thread32Next(snap, ctypes.byref(te))
@@ -250,29 +282,71 @@ class WindowsJobCustody:
             CloseHandle(snap)
         return resumed
 
+    def _rollback_own_suspended_child(self, cause: str) -> None:
+        # Único término admitido (start_failure_disposition): filho PRÓPRIO, criado SUSPENSO, com
+        # zero threads retomadas — nunca executou código. Confirma a saída antes de declarar.
+        ok = bool(TerminateProcess(int(self.proc._handle), 1))
+        exited = False
+        try:
+            self.proc.wait(timeout=10)
+            exited = True
+        except Exception:
+            exited = self.proc.poll() is not None
+        self.rollback = {"cause": cause, "terminate_ok": ok, "exited": exited}
+        self.log("START_ROLLBACK_OWN_SUSPENDED_CHILD_NEVER_RESUMED cause=%s terminate_ok=%s exited=%s"
+                 % (cause, ok, exited))
+
     def start(self, argv, cwd, env, stdout_path) -> int:
         import subprocess
-        fh = Path(stdout_path).open("xb")
-        self.mark("CHILD_CREATED")
+        from pegasus_supervisor_v008 import start_failure_disposition
         # Console próprio OCULTO: o Ctrl+C do SAFE_STOP é entregue só ao coordenador e aos seus
         # workers (que o ignoram), nunca ao supervisor nem ao PowerShell do bootstrap.
         si = subprocess.STARTUPINFO()
         si.dwFlags |= STARTF_USESHOWWINDOW
         si.wShowWindow = SW_HIDE
         self.env = dict(env)
-        self.proc = subprocess.Popen(list(argv), cwd=str(cwd), env=self.env, stdout=fh, stderr=subprocess.STDOUT,
-                                     creationflags=CREATE_SUSPENDED | CREATE_NEW_CONSOLE, startupinfo=si,
-                                     close_fds=True)
-        fh.close()
+        fh = Path(stdout_path).open("xb")
+        try:
+            self.proc = subprocess.Popen(list(argv), cwd=str(cwd), env=self.env, stdout=fh, stderr=subprocess.STDOUT,
+                                         creationflags=CREATE_SUSPENDED | CREATE_NEW_CONSOLE, startupinfo=si,
+                                         close_fds=True)
+        finally:
+            fh.close()
+        self.child_created = True
+        self.mark("CHILD_CREATED")
         if not AssignProcessToJobObject(self.job, int(self.proc._handle)):
             code = ctypes.get_last_error()
-            # Filho próprio, SUSPENSO, que nunca executou código: abortado antes do Resume.
-            TerminateProcess(int(self.proc._handle), 1)
-            raise RuntimeError("ASSIGN_TO_JOB_FAILED_SUSPENDED_CHILD_ABORTED winerror=%d" % code)
-        if self._resume_threads(self.proc.pid) < 1:
-            raise RuntimeError("NO_THREAD_RESUMED")
+            disp = start_failure_disposition(child_created=True, assigned=False, resumed_threads=0)
+            if disp == "ROLLBACK_OWN_SUSPENDED_CHILD":
+                self._rollback_own_suspended_child("ASSIGN_TO_JOB_FAILED winerror=%d" % code)
+            raise RuntimeError("ASSIGN_TO_JOB_FAILED_SUSPENDED_CHILD_ROLLED_BACK winerror=%d" % code)
+        self.assigned = True
+        try:
+            if self._resume_threads(self.proc.pid) < 1:
+                raise RuntimeError("NO_THREAD_RESUMED")
+        except Exception as exc:
+            disp = start_failure_disposition(child_created=True, assigned=True, resumed_threads=self.resumed_threads)
+            if disp == "ROLLBACK_OWN_SUSPENDED_CHILD":
+                self._rollback_own_suspended_child("RESUME_FAILED %s" % exc)
+            # CHILD_RUNNING_UNDER_CUSTODY: não termina; o supervisor segura a árvore (child_state).
+            raise
         self.mark("CHILD_RESUMED")
         return self.proc.pid
+
+    def child_state(self) -> dict:
+        alive = None
+        if self.proc is None:
+            alive = False
+        else:
+            try:
+                alive = self.proc.poll() is None
+                if not alive and self.assigned:
+                    alive = self.observe_tree() != "EMPTY"   # netos ainda no Job contam como vivos
+            except Exception:
+                alive = None
+        return {"child_created": self.child_created, "assigned": self.assigned,
+                "resumed_threads": self.resumed_threads, "rollback": self.rollback, "child_alive": alive,
+                "pid": self.proc.pid if self.proc is not None else None}
 
     def sample(self):
         n = 4096
@@ -284,14 +358,11 @@ class WindowsJobCustody:
             for i in range(listed):
                 pid = int(ids[i])
                 ct = process_ctime(pid)
-                if ct and not any(p == pid and c == ct for (p, c) in self.events):
-                    # Mesma identidade vista antes sem ctime: substitui o registro incompleto.
-                    self.events.pop((pid, 0), None)
-                    self.events[(pid, ct)] = True
+                if ct:
+                    self._add_event(pid, ct)
 
     def _assert_open(self):
-        # Após close() o handle do Job é fechado (KILL_ON_JOB_CLOSE só como fail-safe de queda
-        # do supervisor); consultá-lo daria ERROR_INVALID_HANDLE. Recusa explícita > handle solto.
+        # Após close() o handle do Job é fechado; consultá-lo daria ERROR_INVALID_HANDLE.
         if self._closed:
             raise RuntimeError("CUSTODY_QUERIED_AFTER_CLOSE")
 
@@ -309,64 +380,98 @@ class WindowsJobCustody:
     def poll(self):
         return None if self.proc is None else self.proc.poll()
 
-    def tree_empty(self) -> bool:
-        return self.accounting()["ActiveProcesses"] == 0
+    def observe_tree(self) -> str:
+        # R15 (A01/INT-03): consulta que falha é UNKNOWN — nunca vazio. Filho não associado ao Job
+        # (assign falhou) é observado pelo próprio handle do processo.
+        if self._closed:
+            return "UNKNOWN"
+        if self.proc is None:
+            return "EMPTY"
+        try:
+            if not self.assigned:
+                return "LIVE" if self.proc.poll() is None else "EMPTY"
+            return "EMPTY" if self._accounting_raw()["ActiveProcesses"] == 0 else "LIVE"
+        except Exception:
+            return "UNKNOWN"
 
-    def request_stop(self):
+    def tree_empty(self) -> bool:
+        return self.observe_tree() == "EMPTY"
+
+    def request_stop(self) -> dict:
         # Ctrl+C REAL somente no console privado do coordenador, pelo helper do próprio V003
         # (CODE/r1r11_signal.py: FreeConsole -> AttachConsole(pid) -> ignora em si -> CTRL_C).
-        # O coordenador fecha a admissão na fronteira de commit; workers ignoram SIGINT.
+        # R15 (A01): nonzero, timeout e falha de spawn do helper viram resultado estruturado —
+        # nunca exceção que encerre a custódia.
         import subprocess
-        helper = Path(__file__).resolve().parent.parent / "CODE" / "r1r11_signal.py"
         import sys as _sys
-        rc = subprocess.run([_sys.executable, "-I", "-B", str(helper), "--pid", str(self.proc.pid)],
-                            env=self.env, capture_output=True, text=True, timeout=60).returncode
-        self.log("SAFE_STOP_CTRL_C_DELIVERED_TO_CHILD_CONSOLE helper_exit=%d" % rc)
-        if rc != 0:
-            raise RuntimeError("CTRL_C_DELIVERY_FAILED helper_exit=%d" % rc)
+        helper = Path(__file__).resolve().parent.parent / "CODE" / "r1r11_signal.py"
+        try:
+            p = subprocess.run([_sys.executable, "-I", "-B", str(helper), "--pid", str(self.proc.pid)],
+                               env=self.env, capture_output=True, text=True, timeout=60)
+        except subprocess.TimeoutExpired:
+            self.log("SAFE_STOP_CTRL_C_HELPER_TIMEOUT")
+            return {"delivered": False, "error": "HELPER_TIMEOUT_60S"}
+        except Exception as exc:
+            self.log("SAFE_STOP_CTRL_C_HELPER_SPAWN_FAILED %s" % exc)
+            return {"delivered": False, "error": "HELPER_SPAWN_FAILED %s: %s" % (type(exc).__name__, exc)}
+        self.log("SAFE_STOP_CTRL_C_DELIVERED_TO_CHILD_CONSOLE helper_exit=%d" % p.returncode)
+        if p.returncode != 0:
+            return {"delivered": False, "helper_exit": p.returncode,
+                    "error": "CTRL_C_DELIVERY_FAILED helper_exit=%d stderr=%s" % (p.returncode, (p.stderr or "")[-300:])}
+        return {"delivered": True, "helper_exit": 0}
 
     def new_process_events(self):
-        return [{"pid": p, "ctime": c} for (p, c) in sorted(self.events)]
+        with self._events_lock:
+            snapshot = list(self.events)
+        return [{"pid": p, "ctime": c} for (p, c) in sorted(snapshot)]
 
-    def close(self):
-        self._stop.set()
-        self._pump.join(2)
-        # Emptiness avaliada pelo acessor cru (handle ainda aberto) e ANTES de marcar fechado,
-        # para não disparar a própria recusa de pós-close.
-        active = self._accounting_raw()["ActiveProcesses"]
-        self._closed = True
-        self.live_tree_at_close = active > 0
-        if active <= 0:
-            # R11-ORIGIN-01: árvore vazia — fechar é inofensivo.
-            from pegasus_supervisor_v008 import job_close_plan
-            plan = job_close_plan(active, True)
-            self.close_disposition = plan
-            CloseHandle(self.port)
-            CloseHandle(self.job)
-            return
-        # R11-ORIGIN-01 (revisão da origem) — NO_KILL REAL com árvore viva (encerramento controlado:
-        # timeout/SAFE_STOP não honrado -> SupervisorBlocked -> exit 3 -> CLI encerra). O supervisor
-        # NUNCA fecha os handles do Job aqui e NUNCA mata: fechar deixaria o KILL_ON_JOB_CLOSE
-        # disparar (se o flag não pôde ser limpo) ou descartaria a custódia (se limpo). Tenta limpar
-        # KILL_ON_JOB_CLOSE (melhor esforço) SOMENTE para reduzir o risco no fim do processo, mas a
-        # decisão de fechar é tomada ANTES, pelo plano puro, e com árvore viva é sempre "não fechar".
-        # Assim não há CloseHandle-antes-de-raise nem fechamento algum do Job na árvore viva; a
-        # custódia (Job) e a proteção W04 (lease não liberada no caminho de falha) permanecem retidas
-        # até o fim do processo. O resíduo (morte no fim do processo, só possível se o flag não pôde
-        # ser limpo) é DECISÃO RESERVADA à origem, registrada pelo Supervision.run; não é ação do
-        # supervisor. O fail-safe de QUEDA do supervisor permanece durante a operação normal.
+    def release_live_tree_by_owner(self) -> dict:
+        # Disposição EXPLÍCITA do titular (owner_disposition_verdict). Remove KILL_ON_JOB_CLOSE ANTES;
+        # só então fecha os handles (a árvore continua rodando, sem W04). Flag não removível => recusa.
+        from pegasus_supervisor_v008 import owner_release_plan
         info = JOBOBJECT_EXTENDED_LIMIT_INFORMATION()
-        info.BasicLimitInformation.LimitFlags = 0  # tenta remover KILL_ON_JOB_CLOSE (melhor esforço)
+        info.BasicLimitInformation.LimitFlags = 0
         cleared = bool(SetInformationJobObject(self.job, JobObjectExtendedLimitInformation,
                                                ctypes.byref(info), ctypes.sizeof(info)))
+        plan = owner_release_plan(kill_on_close_cleared=cleared)
+        if not plan["release"]:
+            self.log("OWNER_RELEASE_REFUSED KILL_ON_JOB_CLOSE_NOT_CLEARABLE winerror=%d HOLD_CONTINUES" % ctypes.get_last_error())
+            return {"released": False, "kill_on_close_cleared": False, "plan": plan, "reason": plan["reason"]}
+        self._stop.set()
+        if self._pump is not None:
+            self._pump.join(2)
+        self._closed = True
+        CloseHandle(self.port)
+        CloseHandle(self.job)
+        self.log("OWNER_RELEASE_APPLIED KILL_ON_JOB_CLOSE_CLEARED JOB_HANDLES_CLOSED TREE_LEFT_RUNNING_NO_KILL")
+        return {"released": True, "kill_on_close_cleared": True, "plan": plan}
+
+    def close(self):
+        if self._closed:
+            return
+        self._stop.set()
+        if self._pump is not None:
+            self._pump.join(2)
+        # O supervisor só chama close() com a árvore VERIFICADA vazia (R15). Defesa: se ainda assim
+        # houver árvore viva (ou a consulta falhar), o handle NÃO é fechado (fechar acionaria o
+        # KILL_ON_JOB_CLOSE): job_close_plan decide antes de qualquer CloseHandle.
         from pegasus_supervisor_v008 import job_close_plan
-        plan = job_close_plan(active, cleared)
+        try:
+            active = self._accounting_raw()["ActiveProcesses"]
+        except Exception as exc:
+            self.close_disposition = {"close_handles": False, "reason": "ACCOUNTING_FAILED %s" % exc}
+            self.live_tree_at_close = True
+            self.log("JOB_CLOSE_REFUSED_ACCOUNTING_FAILED_HANDLES_RETAINED %s" % exc)
+            return
+        plan = job_close_plan(active, False)
         self.close_disposition = plan
-        self.kill_on_job_close_cleared = cleared
-        self.close_kill_risk = plan["kill_risk"]
-        # plan["close_handles"] é SEMPRE False com árvore viva: nenhum CloseHandle no Job/porta.
-        self.log("JOB_LIVE_TREE_CUSTODY_RETAINED_NO_CLOSE active=%d kill_on_job_close_cleared=%s "
-                 "kill_risk_at_process_exit=%s RESERVED_DECISION_FOR_ORIGIN" % (active, cleared, plan["kill_risk"]))
+        self.live_tree_at_close = active > 0
+        if not plan["close_handles"]:
+            self.log("JOB_LIVE_TREE_CUSTODY_RETAINED_NO_CLOSE active=%d (supervisor nao fecha nem mata)" % active)
+            return
+        self._closed = True
+        CloseHandle(self.port)
+        CloseHandle(self.job)
 
 
 # =====================================================================================
@@ -432,52 +537,22 @@ class W04NativeLease:
             raise RuntimeError("USN_JOURNAL_NOT_ACTIVE" if code == ERROR_JOURNAL_NOT_ACTIVE else "USN_QUERY_FAILED winerror=%d" % code)
         return {"journal_id": int(jd.UsnJournalID), "first_usn": int(jd.FirstUsn), "next_usn": int(jd.NextUsn)}
 
-    def _read_usn(self, start_usn: int, end_usn: int, journal_id: int, frns: set, dir_frns: set):
-        hits, complete = [], False
+    def _read_usn(self, start_usn: int, end_usn: int, journal_id: int, frns: set, dir_frns: set) -> dict:
+        # R15 (A02): adaptador fino. Só traduz DeviceIoControl em páginas; a decisão de cobertura
+        # (cursor progressivo, EOF antes do fim, registros malformados, FRN 128) é da função pura
+        # usn_scan_coverage, qualificada offline. Nunca levanta: falha => cobertura incompleta.
+        from pegasus_supervisor_v008 import usn_scan_coverage
         buf = ctypes.create_string_buffer(1 << 16)
-        cur = start_usn
-        while cur < end_usn:
-            rq = READ_USN_JOURNAL_DATA_V0(cur, 0xFFFFFFFF, 0, 0, 0, journal_id)
+
+        def read_page(cursor):
+            rq = READ_USN_JOURNAL_DATA_V0(cursor, 0xFFFFFFFF, 0, 0, 0, journal_id)
             ret = wintypes.DWORD()
-            if not DeviceIoControl(self.volume, FSCTL_READ_USN_JOURNAL, ctypes.byref(rq), ctypes.sizeof(rq), buf, len(buf), ctypes.byref(ret), None):
-                if ctypes.get_last_error() == ERROR_HANDLE_EOF:
-                    complete = True
-                    break
-                raise _err("USN_READ_FAILED")
-            raw = buf.raw[:ret.value]
-            nxt = int.from_bytes(raw[:8], "little", signed=True)
-            off = 8
-            while off + 60 <= len(raw):
-                rl = int.from_bytes(raw[off:off + 4], "little")
-                major = int.from_bytes(raw[off + 4:off + 6], "little")
-                if rl == 0:
-                    break
-                if major == 2:
-                    frn = int.from_bytes(raw[off + 8:off + 16], "little")
-                    par = int.from_bytes(raw[off + 16:off + 24], "little")
-                    usn = int.from_bytes(raw[off + 24:off + 32], "little", signed=True)
-                    reason = int.from_bytes(raw[off + 40:off + 44], "little")
-                    nl, no = (int.from_bytes(raw[off + 56:off + 58], "little"), int.from_bytes(raw[off + 58:off + 60], "little"))
-                else:  # USN_RECORD_V3 (FRN 128 bits; NTFS usa os 64 bits baixos)
-                    frn = int.from_bytes(raw[off + 8:off + 16], "little")
-                    par = int.from_bytes(raw[off + 24:off + 32], "little")
-                    usn = int.from_bytes(raw[off + 40:off + 48], "little", signed=True)
-                    reason = int.from_bytes(raw[off + 56:off + 60], "little")
-                    nl, no = (int.from_bytes(raw[off + 72:off + 74], "little"), int.from_bytes(raw[off + 74:off + 76], "little"))
-                if usn >= end_usn:
-                    complete = True
-                    break
-                if frn in frns or frn in dir_frns or par in dir_frns:
-                    name = raw[off + no:off + no + nl].decode("utf-16-le", "replace")
-                    hits.append({"usn": usn, "frn": frn, "parent_frn": par, "reason": reason, "name": name})
-                off += rl
-            if nxt <= cur:
-                complete = True
-                break
-            cur = nxt
-        if cur >= end_usn:
-            complete = True
-        return hits, complete
+            if not DeviceIoControl(self.volume, FSCTL_READ_USN_JOURNAL, ctypes.byref(rq), ctypes.sizeof(rq),
+                                   buf, len(buf), ctypes.byref(ret), None):
+                return False, ctypes.get_last_error(), b""
+            return True, 0, buf.raw[:ret.value]
+
+        return usn_scan_coverage(read_page, start_usn, end_usn, frns, dir_frns)
 
     # ---- census (corroboração)
     def _census(self):
@@ -580,8 +655,8 @@ class W04NativeLease:
         for n, (h, info) in list(self.files.items()) + list(self.dirs.items()):
             try:
                 now = _info(h)
-            except RuntimeError as exc:
-                self.reval_fail.append({"path": n, "error": str(exc)})
+            except Exception as exc:  # R15 (INT-04): toda falha de verificação vira lacuna W04
+                self.reval_fail.append({"path": n, "error": "%s: %s" % (type(exc).__name__, exc)})
                 continue
             if now["frn"] != info["frn"] or now["vol"] != info["vol"]:
                 self.id_changes.append(n)
@@ -589,13 +664,36 @@ class W04NativeLease:
                 self.link_changes.append(n)
 
     def disarm(self, tree_empty: bool) -> dict:
+        # R15 (INT-05/INT-22): o desarme nunca levanta. Cada falha (consulta/leitura USN, census,
+        # contagem) vira causa registrada e o veredito W04 resulta BLOCKED — nunca PASS por omissão.
+        disarm_errors = []
         self.revalidate()
-        end = self._query_usn()
+        try:
+            end = self._query_usn()
+        except Exception as exc:
+            end = {"journal_id": None, "first_usn": None, "next_usn": None}
+            disarm_errors.append("USN_QUERY_FAILED:%s" % exc)
         frns = {i["frn"] for (_h, i) in self.files.values()}
         dfrns = {i["frn"] for (_h, i) in self.dirs.values()}
-        hits, complete = self._read_usn(self.usn_start["next_usn"], end["next_usn"], self.usn_start["journal_id"], frns, dfrns)
-        census_end = self._census()
-        n_files = sum(1 for p in self.root.rglob("*") if p.is_file())
+        if end["next_usn"] is not None:
+            cov = self._read_usn(self.usn_start["next_usn"], end["next_usn"], self.usn_start["journal_id"], frns, dfrns)
+        else:
+            cov = {"read_complete": False, "reason": "USN_END_UNAVAILABLE", "start_usn": self.usn_start["next_usn"],
+                   "end_usn": None, "covered_to": None, "pages": 0, "records_parsed": 0, "hits": []}
+        hits, complete = cov["hits"], cov["read_complete"]
+        try:
+            census_end = self._census()
+        except Exception as exc:
+            census_end = {"truncated": True, "external_writers_under_target": [], "unresolved": 0,
+                          "stats": None, "attempts": None}
+            disarm_errors.append("CENSUS_FAILED:%s" % exc)
+        try:
+            n_files = sum(1 for p in self.root.rglob("*") if p.is_file())
+        except Exception as exc:
+            n_files = None
+            disarm_errors.append("FILE_COUNT_FAILED:%s" % exc)
+        if disarm_errors:
+            self.reval_fail.extend({"path": "<disarm>", "error": e} for e in disarm_errors)
         rep = {
             "lease": {"targets": len(self.files) + len(self.violations) + len([e for e in self.errors if not Path(e["path"]).is_dir()]),
                       "acquired": len(self.files), "sharing_violations": self.violations,
@@ -607,7 +705,8 @@ class W04NativeLease:
                      "held_until_tree_empty": bool(tree_empty)},
             "usn": {"journal_id_start": self.usn_start["journal_id"], "journal_id_end": end["journal_id"],
                     "first_usn_end": end["first_usn"], "start_usn": self.usn_start["next_usn"],
-                    "end_usn": end["next_usn"], "read_complete": complete, "records_on_protected": hits},
+                    "end_usn": end["next_usn"], "read_complete": complete, "records_on_protected": hits,
+                    "coverage": {k: v for k, v in cov.items() if k != "hits"}},
             "identity": {"reparse_points": self.reparse, "id_changes": self.id_changes, "sha_mismatch": [],
                          "link_count_changes": self.link_changes},
             "census": {"truncated": self.census_start["truncated"] or census_end["truncated"],
@@ -617,8 +716,7 @@ class W04NativeLease:
                        "stats_start": self.census_start["stats"], "stats_end": census_end["stats"],
                        "attempts": [self.census_start.get("attempts"), census_end.get("attempts")]},
         }
-        for h, _i in list(self.files.values()) + list(self.dirs.values()):
-            CloseHandle(h)
-        CloseHandle(self.volume)
-        self.log("W04_DISARMED usn_hits=%d read_complete=%s" % (len(hits), complete))
+        self.release()
+        self.log("W04_DISARMED usn_hits=%d read_complete=%s reason=%s errors=%d"
+                 % (len(hits), complete, cov.get("reason"), len(disarm_errors)))
         return rep
