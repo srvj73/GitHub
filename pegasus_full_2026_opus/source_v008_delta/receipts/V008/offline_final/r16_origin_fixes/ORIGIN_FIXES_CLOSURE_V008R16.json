@@ -1,0 +1,122 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R16_CONVERGENCE_CLOSURE",
+ "audit_trail": "R10 FAIL (F01-F04, R11); R11/R12/R13-ORIGIN (R12-R14); auditoria profunda R14 (A01-A04 + INT, R15); parecer fisico R15 (N1/N2/N3) -> convergencia sistemica R16",
+ "supersedes_candidate_sha256": "75EE96E700408876B4F5509DB2B6397517AE993C29A05BA713480D912C5A1490",
+ "final_tree_convergence_probe": {
+  "all_safe": true,
+  "supervisor_sha256": "360E9059202D7F3D879337C38585E06B771ACED1F947DC2490C0B1BC543B3A79"
+ },
+ "predecessor_r15_reproduction": {
+  "all_safe": false,
+  "probes": [
+   {
+    "probe": "N1_EFFECT_CLASS_RESUMED",
+    "safe": false
+   },
+   {
+    "probe": "N2_CLOSE_PROOF",
+    "safe": false
+   },
+   {
+    "probe": "N3_OUTCOME_COHERENCE",
+    "safe": false
+   }
+  ]
+ },
+ "findings": [
+  {
+   "finding": "N1",
+   "title": "tentativa que retomou thread (executou) era classificada NO_EFFECT (exit 2)",
+   "fix": "start_failure_effect_class classifica por created/assigned/resumed/rollback/incerteza; _run_spawned so sai BLOCKED sem efeito quando PROVADO (sem filho, ou suspenso revertido); retomada>=1 ou incerteza => effects_started e FAIL exit 3 / hold, nunca exit 2",
+   "negative_control_pure": {
+    "resumed_thread_class": "EFFECTS_POSSIBLE_CHILD_EXECUTED",
+    "no_child_class": "NO_EFFECT_NO_CHILD"
+   },
+   "source": {
+    "effect_class": true,
+    "run_spawned_gate": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "N2",
+   "title": "supervisor declarava CUSTODIAN_CLOSED apos fechamento recusado",
+   "fix": "close() devolve prova estruturada (closed/active_processes); _finalize reconfere a contabilidade final antes de disarm/close e so declara CUSTODIAN_CLOSED com custody_close_confirmed; contradicao/recusa => hold observavel (W04+Job, NO_KILL)",
+   "negative_control_pure": {
+    "none_rejected": true,
+    "active_rejected": true,
+    "proof_accepted": true
+   },
+   "source": {
+    "close_proof_fn": true,
+    "finalize_gate": true,
+    "win_close_proof": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "N3",
+   "title": "resumo imprimia result=PASS com exit_code=3 quando o recibo falhava",
+   "fix": "supervised_final_outcome centraliza o desfecho; recibo nao persistido => FAIL (nunca 0/130); result/exit_code/exit_class/fase/banner derivam do mesmo desfecho; emissao do resumo e a prova de falha (nao altera o codigo nem derruba)",
+   "negative_control_pure": {
+    "receipt_fail": {
+     "exit_code": 3,
+     "result": "FAIL_SUPERVISED_RUN_RECEIPT_NOT_PERSISTED",
+     "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START"
+    },
+    "receipt_ok_result": "PASS_SUPERVISED_RUN"
+   },
+   "source": {
+    "outcome_fn": true,
+    "run_recompute": true,
+    "custody_gate": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "INT-NEIGHBORS-R16",
+   "title": "contrato unico fase x efeitos x custodia x persistencia x excecao x classificacao",
+   "reviewed": [
+    "pre-spawn",
+    "pos-resume",
+    "saida-rapida",
+    "netos",
+    "rollback",
+    "Job-UNKNOWN",
+    "SAFE_STOP-helper-falho",
+    "USN/W04-incompleto",
+    "terminal-evidence",
+    "telemetria/receipt/print-falhos",
+    "loops-de-hold",
+    "close/finally-falho",
+    "perda-de-escrita",
+    "recovery",
+    "RUN.lock/journals"
+   ],
+   "source": {
+    "guarded_loop": true,
+    "emergency_hold": true,
+    "summary_emit_safe": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "PRIOR_PRESERVED",
+   "title": "F01-F04 (R11), R11/R12/R13-ORIGIN, A01-A04/INT (R15) e R9 23/23 MET preservados",
+   "source": {
+    "f02_prespawn": true,
+    "f03_lineage": true,
+    "r11o1_job_close": true,
+    "r12o1_custody_finalize": true,
+    "r13o1_reconcile": true,
+    "a02_usn": true,
+    "a03_terminal": true,
+    "r15_closure_all_closed": true
+   },
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Familia causal unica: contrato exaustivo entre fase real do filho, efeitos ja possiveis, custodia/handles realmente retidos ou liberados, resultado terminal e recibo/exit final. N1: classificacao de efeitos por fatos (retomada>=1 EXECUTOU). N2: close() com prova; CUSTODIAN_CLOSED so com fechamento comprovado; senao hold observavel (NO_KILL). N3: desfecho unico e coerente; recibo ausente nunca e sucesso. D4 (termino forcado do supervisor) NAO autorizado; efetividade Win32 das rotas modificadas fica na qualificacao dirigida (processos sinteticos, hash-bound).",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

@@ -28,8 +28,9 @@ MUTANTS = [
     ("breakaway_allowed", 'if breakaway_allowed:\n        raise', 'if False:\n        raise'),
     ("safestop_any_exit", 'if not is_cooperative_stop_exit(child_exit):', 'if False:'),
     ("safestop_windows_accepts_any_code", 'return code in (1, EXIT_CTRL_C_WINDOWS)', 'return True'),
-    ("custody_guard_after_close_disabled", '    def close(self) -> None:\n        self._closed = True',
-     '    def close(self) -> None:\n        self._closed = False'),
+    ("custody_guard_after_close_disabled",
+     '        if active == 0:\n            self._closed = True\n            return {"closed": True, "handles_closed": True, "active_processes": 0,',
+     '        if active == 0:\n            self._closed = False\n            return {"closed": True, "handles_closed": True, "active_processes": 0,'),
     ("safestop_redeliver_ignores_latch", 'if not stop_requested or not child_running or latched:',
      'if not stop_requested or not child_running:'),
     ("safestop_delivers_in_spawn_window", '    if require_active_window and active <= 0:\n        return False',
@@ -107,6 +108,34 @@ MUTANTS = [
     ("plan_isolation_allows_economic_entry",
      '                    gaps.append("ARGV_TARGETS_ECONOMIC_RUNTIME:" + Path(a).name)',
      '                    pass'),
+    # R16 (N1): um filho que retomou >=1 thread EXECUTOU; não pode ser classificado sem efeito.
+    ("n1_resumed_thread_classified_no_effect",
+     '    if int(resumed_threads or 0) >= 1:\n        return "EFFECTS_POSSIBLE_CHILD_EXECUTED"',
+     '    if False:\n        return "EFFECTS_POSSIBLE_CHILD_EXECUTED"'),
+    # R16 (N1): _run_spawned não pode decidir 'sem efeito' só por child_alive=False (bug R15).
+    ("n1_run_spawned_no_effect_on_dead_child",
+     '            if start_failure_is_no_effect(klass):',
+     '            if cs.get("child_alive") is False:'),
+    # R16 (N2): fechamento com closed!=True não é prova.
+    ("n2_close_ignores_closed_flag",
+     '    if close_result.get("closed") is not True:\n        return False',
+     '    if False:\n        return False'),
+    # R16 (N2): fechamento com processos ativos não é prova.
+    ("n2_close_ignores_active",
+     '    if _as_int(close_result.get("active_processes")) != 0:\n        return False',
+     '    if False:\n        return False'),
+    # R16 (N2): _finalize não pode declarar CUSTODIAN_CLOSED sem prova de fechamento.
+    ("n2_finalize_marks_closed_without_proof",
+     '            if not custody_close_confirmed(close_result, tree_verified_empty=bool(self.ctx.get("tree_verified_empty"))):',
+     '            if False:'),
+    # R16 (N3): recibo canônico ausente nunca pode ser sucesso.
+    ("n3_outcome_receipt_fail_is_success",
+     '    if not receipt_persisted:\n        return {"exit_code": EXIT_FAIL, "result": "FAIL_SUPERVISED_RUN_RECEIPT_NOT_PERSISTED",',
+     '    if False:\n        return {"exit_code": EXIT_FAIL, "result": "FAIL_SUPERVISED_RUN_RECEIPT_NOT_PERSISTED",'),
+    # R16 (N3): _run_supervised deve recalcular o desfecho com a persistência REAL do recibo.
+    ("n3_run_supervised_ignores_real_persist",
+     '    final = supervised_final_outcome(completed=completed, stopped=stopped, receipt_persisted=bool(rec["persisted"]))',
+     '    final = supervised_final_outcome(completed=completed, stopped=stopped, receipt_persisted=True)'),
 ]
 
 SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlatform",
@@ -115,7 +144,8 @@ SUBSET = ["W04Verdict", "JitAndLineage", "SafeStopCompletion", "SafeStopExitPlat
           "JobClosePlan", "GrandchildContained", "CustodyFinalizeDecision", "ReconcileStepAction",
           "UsnScanCoverage", "W04UsnCoverageProof", "TreeVerifiedEmpty", "StartFailureDisposition",
           "OwnerDispositionAndRelease", "TerminalEvidence", "CompletionTerminalRequired", "PlanIsolation",
-          "AdmissionSealed", "SupervisionCustodyExceptions"]
+          "AdmissionSealed", "SupervisionCustodyExceptions",
+          "R16EffectClassPure", "R16CloseProofPure", "R16OutcomeCoherencePure", "R16Integration"]
 
 
 def main() -> int:

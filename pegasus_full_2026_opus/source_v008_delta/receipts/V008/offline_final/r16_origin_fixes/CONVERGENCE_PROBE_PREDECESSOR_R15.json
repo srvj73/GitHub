@@ -1,0 +1,23 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R16_CONVERGENCE_PROBE",
+ "tree": "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/frozen_r15/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008",
+ "supervisor_sha256": "431737F98484881F3235BC539F23008825FF0B615EB0A5CF650477AFF0DB2623",
+ "all_safe": false,
+ "probes": [
+  {
+   "probe": "N1_EFFECT_CLASS_RESUMED",
+   "safe": false,
+   "error": "AttributeError: module 'sup_probe_r16' has no attribute 'start_failure_effect_class'"
+  },
+  {
+   "probe": "N2_CLOSE_PROOF",
+   "safe": false,
+   "error": "AttributeError: module 'sup_probe_r16' has no attribute 'custody_close_confirmed'"
+  },
+  {
+   "probe": "N3_OUTCOME_COHERENCE",
+   "safe": false,
+   "error": "AttributeError: module 'sup_probe_r16' has no attribute 'supervised_final_outcome'"
+  }
+ ]
+}

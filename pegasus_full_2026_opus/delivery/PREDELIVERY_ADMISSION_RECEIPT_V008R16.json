@@ -1,0 +1,57 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R16_PREDELIVERY_ADMISSION_RECEIPT",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R16_20261024.zip",
+      "sha256": "CE1E923D9403774496906A51F849AB2E896277469E5FEDD412BACCD52DA656FD",
+      "bytes": 87508969,
+      "members": 2969
+    },
+    "manifest_sha256": "6332DCAD249CF74B149AEDE177BC87348AACC0A17F8797B8FC936BA752A25EBE",
+    "tested_manifest_sha256_m1": "776A54F3E250B97CBE0C088CA78424DA31E8DD502ECCADEB3A0261CCD5406F8B",
+    "bootstrap": {
+      "name": "BOOTSTRAP_PEGASUS_FULL_2026_V008R16_PS51.ps1",
+      "sha256": "B1983D678177DE0734F537E5C0FFE77E67B0D8719E0122AD1EC57868B0F4D319",
+      "bytes": 22863
+    },
+    "supersedes_v008r15": {
+      "zip_sha256": "75EE96E700408876B4F5509DB2B6397517AE993C29A05BA713480D912C5A1490",
+      "reason": "origin physical review of R15 reproduced three synthetic negatives (N1/N2/N3) converging on one causal class: no single exhaustive contract binding child phase, effects already possible, custody/handles actually held or released, terminal result and final receipt/exit. R16 closes the class: N1 start_failure_effect_class classifies effects by facts (resumed_threads>=1 executed -> effects possible, never no-effect exit 2); N2 close() returns structured proof and _finalize re-checks final accounting before disarm/close, declaring CUSTODIAN_CLOSED only via custody_close_confirmed (else observable hold, W04+Job retained, NO_KILL); N3 supervised_final_outcome centralizes the outcome so result/exit_code/exit_class/phase/banner always agree and a missing canonical receipt is never success. Regression N1/N2/N3 fail on frozen R15 and pass on R16; convergence probe all_safe on final bytes and UNSAFE reproduced on R15 bytes. R15 frozen, V003 core, prior PASS (F01-F04, R11/R12/R13-ORIGIN, A01-A04/INT) and R9 native 23/23 MET all preserved. D4 (forced supervisor kill) not authorized."
+    },
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB"
+  },
+  "components": {
+    "00_START_HERE_PEGASUS_V008R16.md": "E80F5D24A79C7C56523049E5D1A8558DBFAB5B45D3169BEE6149DDE8EA480F3D",
+    "BOOTSTRAP_PEGASUS_FULL_2026_V008R16_PS51.ps1": "B1983D678177DE0734F537E5C0FFE77E67B0D8719E0122AD1EC57868B0F4D319",
+    "CANDIDATE_COMPLETENESS_RECEIPT_V008R16.json": "64CA06CAC157BAB486F633038D340CE5FE369317754545D71288B6C9F471D321",
+    "G0_OFFLINE_RECEIPT_V008R16.json": "62CEEDB294B4D01EE474B8690547B89B6D690F81B3B56B5E017529578B93041E",
+    "MISSION_LOCK_V008R16_DELIVERY.json": "C99D4AC4FE19052CED4C7AA8B02AD77CA78F7687D40A51599560F4BCF309A307",
+    "NATIVE_QUALIFICATION_ACHIEVED_V008R9.json": "BBAF442D0B9300830B7FD0A8F6AC1F8B7BB86A23131D46F5D9079B4C3E7E84A6",
+    "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R16_20261024.zip": "CE1E923D9403774496906A51F849AB2E896277469E5FEDD412BACCD52DA656FD",
+    "PREDELIVERY_CONTROL_MATRIX_V008R16.json": "B5A69196576EA93CDA523A1968390515490A46FAD2BAE34662FE81D94E7F12ED",
+    "RESPOSTA_CHATGPT_RUNNER_PARALELO_14_V008R16.md": "37BBB027A49AEABF8DF9A464AB1108535DE35E588E12A00CDE019DF2A68F2C85",
+    "TESTED_EQUALS_PACKAGED_DELIVERED_RECEIPT_V008R16.json": "3EBE6F3A4D40504D5A1A86728843DAF12EC8EADDA3F1BF3B94BDEAB8FCAA5431",
+    "native_result_r9/CAMPAIGN_RESULT.json": "1C957F3B7AFF98A895EAA2AA1A13F6B6186C74BE3E6B7332B17C95A7B7F1BA76",
+    "native_result_r9/V008_QUALIFICATION_RECEIPT.json": "9112FA3C4E50AB1B8D370E7DB1E2F9066D43E0996C3DCAEBC4E0DF39D073BDFD"
+  },
+  "admitted_for": "OWNER_WINDOWS_NON_ECONOMIC_CAMPAIGN + ORIGIN_FOCAL_REAUDIT (Verify -> opcional QualifyNative confirmatório; prova dirigida de custódia durável/NO_KILL só sob autorização, com processos sintéticos, sem matar processos salvo salvaguardas autorizadas)",
+  "not_admitted_for": [
+    "QS4",
+    "FULL economico",
+    "Phase B/C economicas",
+    "reselection",
+    "RUN_RELEASED",
+    "Install/Rollback produtivo sem autorização",
+    "alteração de política/MASTER/HEAD"
+  ],
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "R10_FAIL_F01_F04_CLOSED_R11; R11_ORIGIN_CLOSED_R12; R12_ORIGIN_CLOSED_R13; R13_PHYSICAL_CLOSED_R14; R14_DEEP_AUDIT_A01_A04_INT_CLOSED_R15; R15_PHYSICAL_PARECER_N1_N3_CLOSED_R16; FORMAL_REAUDIT_PENDING_ORIGIN",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14"
+}

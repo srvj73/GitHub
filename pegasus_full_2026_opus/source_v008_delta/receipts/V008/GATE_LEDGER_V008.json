@@ -1,6 +1,6 @@
 {
  "schema": "PEGASUS_FULL_2026_V008_GATE_LEDGER",
- "date": "2026-10-23",
+ "date": "2026-10-24",
  "project": "Pegasus Original",
  "thread": "Implementação Runner Paralelo 14",
  "role": "IMPLEMENTADOR_INTEGRADO_NOT_INDEPENDENT_AUDITOR",
@@ -74,7 +74,9 @@
    "native_campaign_r6": "22/23 nativos PASS; so Q11 breakaway restante, criterio corrigido para contencao real em R7",
    "r10_boundary_fix": "CLOSED_V008R10: subprocess rc==0 required before accepting replayed native-negative cases (fail-closed); negative control reproduces defect; false-completeness search consolidated (economic triple-block terminal; no mandatory integration unimplemented)",
    "r11_audit_fixes": "CLOSED_V008R11: F01 (W04 gate em completion/exit + per-case), F02 (pre-spawn fail-closed NO_SPAWN), F03 (identidade temporal; unresolved bloqueia GAPLESS; Q11 pid+ctime), F04 (NO_KILL no close de arvore viva). Controles negativos + 86/86 unit + 28/28 mutantes.",
-   "r12_origin_fixes": "CLOSED_V008R12: R11-ORIGIN-01 (job_close_plan: árvore viva nunca fecha handle/mata; decisão reservada registrada), R11-ORIGIN-02 (grandchild_contained por (pid,ctime) único), R11-ORIGIN-03 (cust.close() garantido 1x em pré-spawn falho). Unit 94/94; mutantes 30/30. Prova nativa dirigida de timeout/kill e identidade temporal real: titular/origem."
+   "r12_origin_fixes": "CLOSED_V008R12: R11-ORIGIN-01 (job_close_plan: árvore viva nunca fecha handle/mata; decisão reservada registrada), R11-ORIGIN-02 (grandchild_contained por (pid,ctime) único), R11-ORIGIN-03 (cust.close() garantido 1x em pré-spawn falho). Unit 94/94; mutantes 30/30. Prova nativa dirigida de timeout/kill e identidade temporal real: titular/origem.",
+   "r15_convergence": "CLOSED_V008R15: auditoria profunda da origem sobre R14 (A01 exceção pós-spawn não encerra custódia; A02 cobertura USN certificada; A03 evidência terminal vinculada; A04 recibo estruturado em todo desfecho; INT + isolamento --admission).",
+   "r16_systemic_closure": "CLOSED_V008R16: parecer físico da origem sobre R15 (família causal única). N1 start_failure_effect_class (efeitos por fatos; retomada>=1 EXECUTOU, nunca sem-efeito/exit 2); N2 custody_close_confirmed + close() com prova + _finalize reconferindo contabilidade final (CUSTODIAN_CLOSED só com fechamento provado; senão hold NO_KILL); N3 supervised_final_outcome (recibo ausente nunca é sucesso; result/exit/fase/banner coerentes; emissão à prova de falha). Unit 173/173; mutantes 48/48; regressões N1/N2/N3 falham na R15 e PASS na R16; probe all_safe em R16 e UNSAFE na R15. Prova nativa dirigida das rotas modificadas (processos sintéticos); D4 não autorizado."
   }
  },
  "boundaries": {
@@ -89,10 +91,10 @@
   "independent_audit": "STARTED_R10_FAIL_FINDINGS_CLOSED_R11"
  },
  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 14",
- "revision": "V008R15",
+ "revision": "V008R16",
  "supersedes": {
-  "v008r14_zip_sha256": "012D4347D7283B46EDC59A2BB49A58DBC1AE54F250E463FB002102031AF3D7CF",
-  "reason": "origin deep preparatory audit of R14 found four demonstrated findings (A01 SAFE_STOP exception exits custody with live tree; A02 USN reader false completeness -> W04 PASS; A03 completion lacked terminal STATUS/receipt proof; A04 technical failure may not emit structured receipt) plus a broad boundary/exception matrix to close as a system. R15 integrated convergence: Supervision is a state machine whose post-spawn transitions never raise; custody only releases on a VERIFIED-empty tree (two observations), a no-effect pre-spawn block, or an explicit owner disposition applied only with KILL_ON_JOB_CLOSE cleared. usn_scan_coverage proves USN coverage; terminal_evidence_verdict binds completion/safe-stop to the attempt; persist_run_receipt emits a structured receipt in every outcome; --admission is sealed and plan argv isolated. All prior fixes (F01-F04, R11/R12/R13-ORIGIN) and R9 native 23/23 MET preserved."
+  "v008r15_zip_sha256": "75EE96E700408876B4F5509DB2B6397517AE993C29A05BA713480D912C5A1490",
+  "reason": "origin physical review of R15 reproduced three synthetic negatives (N1/N2/N3) converging on one causal class: no single exhaustive contract binding child phase, effects already possible, custody/handles actually held or released, terminal result and final receipt/exit. R16 closes the class as a system: N1 start_failure_effect_class classifies effects by facts (resumed_threads>=1 executed -> effects possible, never no-effect exit 2); N2 close() returns structured proof and _finalize re-checks final accounting before disarm/close, declaring CUSTODIAN_CLOSED only via custody_close_confirmed (else observable hold, W04+Job retained, NO_KILL); N3 supervised_final_outcome centralizes the outcome so result/exit_code/exit_class/phase/banner always agree and a missing canonical receipt is never success. Regression N1/N2/N3 fail on frozen R15 and pass on R16; convergence probe all_safe on final bytes and UNSAFE reproduced on R15 bytes. R15 frozen, V003 core, prior PASS (F01-F04, R11/R12/R13-ORIGIN, A01-A04/INT) and R9 native 23/23 MET all preserved. D4 (forced supervisor kill) not authorized."
  },
  "native_campaign_r1_root_cause": "PS5.1 Start-Process -PassThru nao retem handle; ExitCode $null coagido a 0 (falso PASS). S01/S02 stdout validos; os exit codes daquele run NAO sao evidencia valida.",
  "native_campaign_r2_result": {

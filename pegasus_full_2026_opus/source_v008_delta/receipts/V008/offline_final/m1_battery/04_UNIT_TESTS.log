@@ -18,7 +18,7 @@ test_terminal_evidence_capturable_before_close_then_refused_after (__main__.Cust
 test_absent_or_bogus_code_never_pass (__main__.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
 test_known_codes (__main__.ExitClassification.test_known_codes) ... ok
 test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... Traceback (most recent call last):
-  File "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 1780, in main
+  File "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 1900, in main
     return cmd_verify(ns)
   File "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/tests/test_supervisor_v008.py", line 428, in boom
     raise RuntimeError("boom")
@@ -70,6 +70,23 @@ test_required_adapter_is_v003_g4 (__main__.QS4Binding.test_required_adapter_is_v
 test_safestop_adapter_wired_on_orchestrator (__main__.QS4Binding.test_safestop_adapter_wired_on_orchestrator) ... ok
 test_supervised_main_blocks_without_external_admission (__main__.QS4Binding.test_supervised_main_blocks_without_external_admission) ... ok
 test_tampered_harness_blocks (__main__.QS4Binding.test_tampered_harness_blocks) ... ok
+test_active_nonzero_is_not_proof (__main__.R16CloseProofPure.test_active_nonzero_is_not_proof) ... ok
+test_closed_false_is_not_proof (__main__.R16CloseProofPure.test_closed_false_is_not_proof) ... ok
+test_full_proof_confirms (__main__.R16CloseProofPure.test_full_proof_confirms) ... ok
+test_none_is_not_proof (__main__.R16CloseProofPure.test_none_is_not_proof) ... ok
+test_tree_not_verified_is_not_proof (__main__.R16CloseProofPure.test_tree_not_verified_is_not_proof) ... ok
+test_alive_no_resume_supervise (__main__.R16EffectClassPure.test_alive_no_resume_supervise) ... ok
+test_no_child_is_no_effect (__main__.R16EffectClassPure.test_no_child_is_no_effect) ... ok
+test_resumed_thread_is_effects_possible (__main__.R16EffectClassPure.test_resumed_thread_is_effects_possible) ... ok
+test_suspended_rolled_back_is_no_effect (__main__.R16EffectClassPure.test_suspended_rolled_back_is_no_effect) ... ok
+test_uncertain_is_fail_closed_not_no_effect (__main__.R16EffectClassPure.test_uncertain_is_fail_closed_not_no_effect) ... ok
+test_n1_run_spawned_resumed_thread_is_not_no_effect (__main__.R16Integration.test_n1_run_spawned_resumed_thread_is_not_no_effect) ... ok
+test_n2_finalize_close_refused_is_not_custodian_closed (__main__.R16Integration.test_n2_finalize_close_refused_is_not_custodian_closed) ... ok
+test_n3_run_supervised_receipt_fail_is_coherent (__main__.R16Integration.test_n3_run_supervised_receipt_fail_is_coherent) ... ok
+test_completed_not_persisted_is_fail (__main__.R16OutcomeCoherencePure.test_completed_not_persisted_is_fail) ... ok
+test_completed_persisted_pass (__main__.R16OutcomeCoherencePure.test_completed_persisted_pass) ... ok
+test_nothing_persisted_fail (__main__.R16OutcomeCoherencePure.test_nothing_persisted_fail) ... ok
+test_stopped_persisted_safe_stop (__main__.R16OutcomeCoherencePure.test_stopped_persisted_safe_stop) ... ok
 test_empty_tree_is_the_only_finalize (__main__.ReconcileStepAction.test_empty_tree_is_the_only_finalize) ... ok
 test_live_before_deadline_holds (__main__.ReconcileStepAction.test_live_before_deadline_holds) ... ok
 test_live_production_holds_after_deadline (__main__.ReconcileStepAction.test_live_production_holds_after_deadline) ... ok
@@ -163,6 +180,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 156 tests in 9.545s
+Ran 173 tests in 11.461s
 
 OK

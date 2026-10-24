@@ -1,0 +1,27 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R16_CONVERGENCE_PROBE",
+ "tree": "/tmp/claude-0/-home-user-GitHub/0a535720-44d0-5ebf-8b94-695cc97e72f6/scratchpad/build_v008_final_tree/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008",
+ "supervisor_sha256": "360E9059202D7F3D879337C38585E06B771ACED1F947DC2490C0B1BC543B3A79",
+ "all_safe": true,
+ "probes": [
+  {
+   "probe": "N1_EFFECT_CLASS_RESUMED",
+   "safe": true,
+   "class": "EFFECTS_POSSIBLE_CHILD_EXECUTED"
+  },
+  {
+   "probe": "N2_CLOSE_PROOF",
+   "safe": true,
+   "none_rejected": true,
+   "active_rejected": true,
+   "proof_accepted": true
+  },
+  {
+   "probe": "N3_OUTCOME_COHERENCE",
+   "safe": true,
+   "receipt_fail_exit": 3,
+   "receipt_fail_result": "FAIL_SUPERVISED_RUN_RECEIPT_NOT_PERSISTED",
+   "receipt_ok_result": "PASS_SUPERVISED_RUN"
+  }
+ ]
+}

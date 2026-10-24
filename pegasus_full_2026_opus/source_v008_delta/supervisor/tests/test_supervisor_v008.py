@@ -854,6 +854,9 @@ class _ReconcileCustody:
         self.closed += 1
         if not self._empty:
             self.closed_while_live += 1
+        # R16 (N2): devolve prova estruturada; só confirma fechamento com a árvore vazia.
+        return {"closed": bool(self._empty), "handles_closed": bool(self._empty),
+                "active_processes": 0 if self._empty else 1, "reason": "FAKE_RECONCILE_CLOSE"}
 
 
 class _ReconcileGuard:
@@ -1415,6 +1418,246 @@ class AdmissionSealed(unittest.TestCase):
     def test_default_without_flag(self):
         ns = type("NS", (), {"admission": None})()
         self.assertIsInstance(sup._load_admission(ns), sup.DefaultReleaseAdmission)
+
+
+# =====================================================================================
+# R16 — fechamento sistêmico da família causal N1/N2/N3 (parecer físico da origem sobre a R15).
+# Cada teste FALHA na R15 congelada (símbolo ausente ou comportamento contraditório) e PASSA nos
+# bytes R16. Fixtures sintéticas; nenhum processo real; nenhuma chamada Win32.
+# =====================================================================================
+class _N1Custody:
+    """start() falha DEPOIS de retomar 1 thread; o filho então morre rápido (child_alive=False).
+    Efeitos são POSSÍVEIS: o supervisor não pode declarar bloqueio pré-spawn sem efeito."""
+    native_job = False
+    breakaway_allowed = False
+
+    def __init__(self):
+        self.closed = 0
+        self.marks = []
+        self._empty_after = 0
+
+    def start(self, *a, **k):
+        self.mark("CHILD_CREATED")
+        raise RuntimeError("SIMULATED_FAILURE_AFTER_FIRST_THREAD_RESUME")
+
+    def child_state(self):
+        return {"child_created": True, "assigned": True, "resumed_threads": 1, "rollback": None,
+                "child_alive": False, "pid": 777}
+
+    def mark(self, n):
+        self.marks.append({"mark": n, "mono_ns": 1})
+
+    def poll(self):
+        return 1  # filho morto rapidamente, exit != 0
+
+    def sample(self):
+        pass
+
+    def observe_tree(self):
+        return "EMPTY"
+
+    def request_stop(self):
+        return {"delivered": True}
+
+    def accounting(self):
+        return {"TotalProcesses": 1, "ActiveProcesses": 0}
+
+    def new_process_events(self):
+        return [{"pid": 777, "ctime": 5}]
+
+    def close(self):
+        self.closed += 1
+        return {"closed": True, "handles_closed": True, "active_processes": 0, "reason": "FAKE_N1_CLOSE"}
+
+
+class _N2Custody:
+    """accounting final consistente com árvore vazia, mas close() RECUSA (prova closed=False)."""
+    native_job = False
+    breakaway_allowed = False
+
+    def __init__(self):
+        self.closed = 0
+        self.marks = []
+
+    def mark(self, n):
+        self.marks.append({"mark": n, "mono_ns": 1})
+
+    def accounting(self):
+        return {"TotalProcesses": 1, "ActiveProcesses": 0}
+
+    def new_process_events(self):
+        return []
+
+    def observe_tree(self):
+        return "EMPTY"
+
+    def tree_empty(self):
+        return True
+
+    def release_live_tree_by_owner(self):
+        return {"released": False, "reason": "NO_OWNER_DISPOSITION"}
+
+    def close(self):
+        self.closed += 1
+        # N2: o adaptador NÃO prova fechamento (handles retidos) — retorno sem prova.
+        return {"closed": False, "handles_closed": False, "active_processes": 1,
+                "reason": "FAKE_N2_CLOSE_REFUSED"}
+
+
+class _N2Guard:
+    def __init__(self):
+        self.disarmed = 0
+        self.released = 0
+
+    def disarm(self, tree_empty):
+        self.disarmed += 1
+        return {"w04_full": "BLOCKED", "gaps": ["FAKE"]}
+
+    def release(self):
+        self.released += 1
+
+
+class _N3Supervision:
+    """Supervisão sintética que devolve conclusão positiva com custódia resolvida."""
+    def __init__(self, **kw):
+        self.primary_error = None
+        self.phase = "CUSTODIAN_CLOSED"
+        self.ctx = {"custody_closed": True}
+
+    def run(self, *a, **k):
+        return {"label": "RECEIPT_FAIL", "child_exit": 0, "outcome": "TREE_EMPTY_CUSTODY_CLOSED",
+                "w04": {"w04_full": "PASS_NATIVE_SAME_ATTEMPT"}, "lineage": {"lineage": "GAPLESS_NATIVE_JOB"},
+                "completion": {"completed": True}}
+
+    def _set_phase(self, *a, **k):
+        pass
+
+    def summary(self):
+        return {"phase": self.phase}
+
+
+class R16EffectClassPure(unittest.TestCase):
+    """N1 puro: classificação de efeitos por fatos (não por 'morto na consulta')."""
+
+    def test_resumed_thread_is_effects_possible(self):
+        k = sup.start_failure_effect_class(child_created=True, assigned=True, resumed_threads=1,
+                                           child_alive=False, rollback_confirmed=False)
+        self.assertEqual(k, "EFFECTS_POSSIBLE_CHILD_EXECUTED")
+        self.assertFalse(sup.start_failure_is_no_effect(k))
+
+    def test_no_child_is_no_effect(self):
+        k = sup.start_failure_effect_class(child_created=False, assigned=False, resumed_threads=0,
+                                           child_alive=False, rollback_confirmed=False)
+        self.assertTrue(sup.start_failure_is_no_effect(k))
+
+    def test_suspended_rolled_back_is_no_effect(self):
+        k = sup.start_failure_effect_class(child_created=True, assigned=False, resumed_threads=0,
+                                           child_alive=False, rollback_confirmed=True)
+        self.assertEqual(k, "NO_EFFECT_SUSPENDED_ROLLED_BACK")
+        self.assertTrue(sup.start_failure_is_no_effect(k))
+
+    def test_uncertain_is_fail_closed_not_no_effect(self):
+        k = sup.start_failure_effect_class(child_created=True, assigned=True, resumed_threads=0,
+                                           child_alive=None, rollback_confirmed=False)
+        self.assertEqual(k, "EFFECTS_UNCERTAIN_FAIL_CLOSED")
+        self.assertFalse(sup.start_failure_is_no_effect(k))
+
+    def test_alive_no_resume_supervise(self):
+        k = sup.start_failure_effect_class(child_created=True, assigned=True, resumed_threads=0,
+                                           child_alive=True, rollback_confirmed=False)
+        self.assertFalse(sup.start_failure_is_no_effect(k))
+
+
+class R16CloseProofPure(unittest.TestCase):
+    """N2 puro: fechamento só confirmado com prova (closed=True, ativo=0, árvore verificada)."""
+
+    def test_none_is_not_proof(self):
+        self.assertFalse(sup.custody_close_confirmed(None, tree_verified_empty=True))
+
+    def test_closed_false_is_not_proof(self):
+        self.assertFalse(sup.custody_close_confirmed({"closed": False, "active_processes": 0}, tree_verified_empty=True))
+
+    def test_active_nonzero_is_not_proof(self):
+        self.assertFalse(sup.custody_close_confirmed({"closed": True, "active_processes": 1}, tree_verified_empty=True))
+
+    def test_tree_not_verified_is_not_proof(self):
+        self.assertFalse(sup.custody_close_confirmed({"closed": True, "active_processes": 0}, tree_verified_empty=False))
+
+    def test_full_proof_confirms(self):
+        self.assertTrue(sup.custody_close_confirmed({"closed": True, "active_processes": 0}, tree_verified_empty=True))
+
+
+class R16OutcomeCoherencePure(unittest.TestCase):
+    """N3 puro: desfecho único e coerente; recibo ausente nunca é sucesso."""
+
+    def test_completed_persisted_pass(self):
+        o = sup.supervised_final_outcome(completed=True, stopped=False, receipt_persisted=True)
+        self.assertEqual((o["result"], o["exit_code"]), ("PASS_SUPERVISED_RUN", sup.EXIT_PASS))
+
+    def test_completed_not_persisted_is_fail(self):
+        o = sup.supervised_final_outcome(completed=True, stopped=False, receipt_persisted=False)
+        self.assertEqual(o["exit_code"], sup.EXIT_FAIL)
+        self.assertTrue(o["result"].startswith("FAIL"))
+
+    def test_stopped_persisted_safe_stop(self):
+        o = sup.supervised_final_outcome(completed=False, stopped=True, receipt_persisted=True)
+        self.assertEqual(o["exit_code"], sup.EXIT_SAFE_STOP)
+
+    def test_nothing_persisted_fail(self):
+        o = sup.supervised_final_outcome(completed=False, stopped=False, receipt_persisted=False)
+        self.assertEqual(o["exit_code"], sup.EXIT_FAIL)
+
+
+class R16Integration(unittest.TestCase):
+    """N1/N2/N3 nos módulos reais: comportamento contraditório da R15 vira fail-closed coerente."""
+
+    def test_n1_run_spawned_resumed_thread_is_not_no_effect(self):
+        cust, guard = _N1Custody(), _ReconcileGuard()
+        with mock.patch.object(sup, "RECONCILE_HOLD_S", 0.0):
+            with tempfile.TemporaryDirectory() as t:
+                ev = Path(t) / "ev"; ev.mkdir(); out = Path(t) / "out"; out.mkdir()
+                s = sup.Supervision(evidence=ev, protected_root=Path(t) / "p", out_root=out, label="N1",
+                                    log=lambda *a, **k: None)
+                # Na R15 isto LEVANTA PrespawnBlocked (bug N1). Na R16 devolve um resultado estruturado.
+                result = s._run_spawned(cust, guard, {"armed": "X"}, ["x"], {}, 5, 120.0)
+        self.assertIsInstance(result, dict)
+        self.assertTrue(result.get("effects_started"))
+        self.assertIsNot((result.get("completion") or {}).get("completed"), True)
+        self.assertEqual(s.ctx.get("start_failure", {}).get("effect_class"), "EFFECTS_POSSIBLE_CHILD_EXECUTED")
+
+    def test_n2_finalize_close_refused_is_not_custodian_closed(self):
+        cust, guard = _N2Custody(), _N2Guard()
+        with tempfile.TemporaryDirectory() as t:
+            ev = Path(t) / "ev"; ev.mkdir(); out = Path(t) / "out"; out.mkdir()
+            s = sup.Supervision(evidence=ev, protected_root=Path(t) / "p", out_root=out, label="N2",
+                                log=lambda *a, **k: None)
+            s.ctx["tree_verified_empty"] = True  # evita o laço de hold; isola a prova de fechamento
+            with mock.patch.object(sup.Supervision, "_compute_result",
+                                   lambda self, *a, **k: {"_compute": "R15_TERMINAL_PATH"}):
+                s._finalize(cust, guard, {"armed": "X"}, 777, {"exit": "TREE_EMPTY", "rc": 0})
+        # N2: close() recusou => NUNCA custody_closed=True nem fase CUSTODIAN_CLOSED.
+        self.assertIsNot(s.ctx.get("custody_closed"), True)
+        self.assertNotEqual(s.phase, "CUSTODIAN_CLOSED")
+
+    def test_n3_run_supervised_receipt_fail_is_coherent(self):
+        import contextlib, io
+        plan = dict(schema=sup.RUN_PLAN_SCHEMA, economic=False, label="RECEIPT_FAIL",
+                    argv=["py", "-B", "synthetic.py"], out_root="/tmp/o", protected_root="/tmp/p",
+                    admission_schema="SYNTH", admission_sha256="ABC")
+        buf = io.StringIO()
+        with tempfile.TemporaryDirectory() as t, \
+                mock.patch.object(sup, "Supervision", _N3Supervision), \
+                mock.patch.object(sup, "plan_isolation_verdict",
+                                  lambda *a, **k: {"isolation": "ISOLATED_NON_ECONOMIC", "gaps": []}), \
+                mock.patch.object(sup, "persist_run_receipt",
+                                  lambda *a, **k: {"persisted": False, "path": None, "error": "SIMULATED_IO_ERROR"}):
+            with contextlib.redirect_stdout(buf):
+                code = sup._run_supervised(plan, evidence=Path(t), entry=object())
+        last = json.loads(buf.getvalue().strip().splitlines()[-1])
+        # N3: coerência total — recibo não persistido => exit 3 E result FAIL (nunca PASS).
+        self.assertEqual(code, sup.EXIT_FAIL)
+        self.assertEqual(last["exit_code"], sup.EXIT_FAIL)
+        self.assertTrue(str(last["result"]).startswith("FAIL"))
 
 
 if __name__ == "__main__":

@@ -446,9 +446,11 @@ class WindowsJobCustody:
         self.log("OWNER_RELEASE_APPLIED KILL_ON_JOB_CLOSE_CLEARED JOB_HANDLES_CLOSED TREE_LEFT_RUNNING_NO_KILL")
         return {"released": True, "kill_on_close_cleared": True, "plan": plan}
 
-    def close(self):
+    def close(self) -> dict:
+        # N2 (R16): close() devolve PROVA ESTRUTURADA do desfecho; o supervisor nunca declara
+        # CUSTODIAN_CLOSED sem closed=True + active_processes=0. Retorno None jamais é prova.
         if self._closed:
-            return
+            return {"closed": True, "handles_closed": True, "active_processes": 0, "reason": "ALREADY_CLOSED"}
         self._stop.set()
         if self._pump is not None:
             self._pump.join(2)
@@ -462,16 +464,20 @@ class WindowsJobCustody:
             self.close_disposition = {"close_handles": False, "reason": "ACCOUNTING_FAILED %s" % exc}
             self.live_tree_at_close = True
             self.log("JOB_CLOSE_REFUSED_ACCOUNTING_FAILED_HANDLES_RETAINED %s" % exc)
-            return
+            return {"closed": False, "handles_closed": False, "active_processes": None,
+                    "reason": "ACCOUNTING_FAILED_HANDLES_RETAINED:%s" % type(exc).__name__}
         plan = job_close_plan(active, False)
         self.close_disposition = plan
         self.live_tree_at_close = active > 0
         if not plan["close_handles"]:
             self.log("JOB_LIVE_TREE_CUSTODY_RETAINED_NO_CLOSE active=%d (supervisor nao fecha nem mata)" % active)
-            return
+            return {"closed": False, "handles_closed": False, "active_processes": int(active),
+                    "reason": "LIVE_TREE_HANDLES_RETAINED_NO_KILL"}
         self._closed = True
         CloseHandle(self.port)
         CloseHandle(self.job)
+        return {"closed": True, "handles_closed": True, "active_processes": 0,
+                "reason": "TREE_EMPTY_JOB_HANDLES_CLOSED"}
 
 
 # =====================================================================================

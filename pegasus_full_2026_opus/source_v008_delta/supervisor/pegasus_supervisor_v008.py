@@ -473,6 +473,63 @@ def owner_release_plan(*, kill_on_close_cleared: bool) -> dict:
             "reason": "KILL_ON_JOB_CLOSE_NOT_CLEARABLE_RELEASE_REFUSED_HOLD_CONTINUES"}
 
 
+def start_failure_effect_class(*, child_created: bool, assigned: bool, resumed_threads,
+                               child_alive, rollback_confirmed: bool) -> str:
+    """R16 (N1): classifica, por FATOS de criação/atribuição/retomada/rollback/incerteza, se uma
+    falha de `start` pôde ou não produzir efeitos. PURA.
+
+    Um filho que retomou >= 1 thread EXECUTOU código: efeitos são possíveis mesmo que esteja morto
+    na consulta posterior (saída rápida). 'Sem efeito' só é declarável quando PROVADO:
+      - nenhum filho foi criado; OU
+      - um filho suspenso foi criado, NENHUMA thread foi retomada, o rollback do próprio suspenso
+        foi confirmado e ele não está vivo.
+    Qualquer outra combinação (retomada >=1, vivo, ou estado incerto sem rollback confirmado)
+    conta como efeito possível/incerto e NUNCA pode sair como bloqueio pré-spawn sem efeito."""
+    if not child_created:
+        return "NO_EFFECT_NO_CHILD"
+    if int(resumed_threads or 0) >= 1:
+        return "EFFECTS_POSSIBLE_CHILD_EXECUTED"
+    if child_alive is True:
+        return "CHILD_ALIVE_NO_RESUME_SUPERVISE"
+    if child_alive is False and rollback_confirmed is True:
+        return "NO_EFFECT_SUSPENDED_ROLLED_BACK"
+    return "EFFECTS_UNCERTAIN_FAIL_CLOSED"
+
+
+def start_failure_is_no_effect(klass: str) -> bool:
+    """O bloqueio pré-spawn SEM efeito (exit 2) só é admitido para classes provadamente sem efeito."""
+    return str(klass).startswith("NO_EFFECT")
+
+
+def custody_close_confirmed(close_result, *, tree_verified_empty: bool) -> bool:
+    """R16 (N2): o fechamento do custodiante só é CONFIRMADO quando o adaptador PROVA o fechamento
+    (`closed is True`), a contabilidade final não mostra processos ativos (`active_processes == 0`)
+    e a árvore foi verificada vazia. Retorno None/ausente, `closed` != True, ou qualquer processo
+    ativo NÃO são prova de fechamento — exigem hold observável com Job + W04 retidos (NO_KILL)."""
+    if not isinstance(close_result, Mapping):
+        return False
+    if close_result.get("closed") is not True:
+        return False
+    if _as_int(close_result.get("active_processes")) != 0:
+        return False
+    return bool(tree_verified_empty)
+
+
+def supervised_final_outcome(*, completed: bool, stopped: bool, receipt_persisted: bool) -> dict:
+    """R16 (N3): desfecho ÚNICO e coerente de `_run_supervised`. A ausência do recibo canônico
+    (evidência faltante) NUNCA é sucesso, qualquer que seja completed/stopped. `result`, `exit_code`
+    e `exit_class` derivam todos desta decisão; o banner humano e a fase usam os MESMOS campos."""
+    if not receipt_persisted:
+        return {"exit_code": EXIT_FAIL, "result": "FAIL_SUPERVISED_RUN_RECEIPT_NOT_PERSISTED",
+                "exit_class": classify_exit(EXIT_FAIL)}
+    if completed:
+        return {"exit_code": EXIT_PASS, "result": "PASS_SUPERVISED_RUN", "exit_class": classify_exit(EXIT_PASS)}
+    if stopped:
+        return {"exit_code": EXIT_SAFE_STOP, "result": "SAFE_STOP_CONFIRMED_SUPERVISED_RUN",
+                "exit_class": classify_exit(EXIT_SAFE_STOP)}
+    return {"exit_code": EXIT_FAIL, "result": "FAIL_SUPERVISED_RUN", "exit_class": classify_exit(EXIT_FAIL)}
+
+
 def job_close_plan(active_processes: int, clear_kill_ok: bool) -> dict:
     """R11-ORIGIN-01: plano PURO de ações ao fechar a custódia do Job, honrando NO_KILL.
 
@@ -914,8 +971,20 @@ class PosixCustody:
         self._closed = True
         return {"released": True, "kill_on_close_cleared": True, "plan": plan}
 
-    def close(self) -> None:
-        self._closed = True
+    def close(self) -> dict:
+        # N2: devolve PROVA de fechamento. No POSIX não há handle de Job (sem kill-on-close); ainda
+        # assim o fechamento só é declarado com a sessão sem membros ativos.
+        try:
+            active = len(self.members())
+        except Exception as exc:
+            return {"closed": False, "handles_closed": False, "active_processes": None,
+                    "reason": "POSIX_MEMBERS_QUERY_FAILED:%s" % type(exc).__name__}
+        if active == 0:
+            self._closed = True
+            return {"closed": True, "handles_closed": True, "active_processes": 0,
+                    "reason": "POSIX_SESSION_CLOSED"}
+        return {"closed": False, "handles_closed": False, "active_processes": active,
+                "reason": "POSIX_CLOSE_REFUSED_LIVE_MEMBERS"}
 
 
 def make_custody(log):
@@ -1194,16 +1263,26 @@ class Supervision:
             pid = cust.start(argv, self.evidence, env, stdout)
         except BaseException as exc:
             cs = self._guard("child_state", lambda: cust.child_state(), {}) or {}
+            klass = start_failure_effect_class(
+                child_created=bool(cs.get("child_created")), assigned=bool(cs.get("assigned")),
+                resumed_threads=_as_int(cs.get("resumed_threads"), 0),
+                child_alive=cs.get("child_alive"), rollback_confirmed=isinstance(cs.get("rollback"), Mapping))
             self.ctx["start_failure"] = {"error": ("%s: %s" % (type(exc).__name__, exc))[:800],
+                                         "effect_class": klass,
                                          **{k: cs.get(k) for k in ("child_created", "assigned", "resumed_threads",
                                                                    "rollback", "child_alive", "pid")}}
-            if cs.get("child_alive") is False:
-                # Nenhum filho vivo (não criado, ou rollback do próprio suspenso confirmado): sem efeito.
+            if start_failure_is_no_effect(klass):
+                # N1: desfecho SEM efeito só é admitido quando PROVADO (nenhum filho; ou suspenso
+                # revertido que nunca retomou thread). Libera a lease parcial, fecha o custodiante
+                # vazio e sai BLOCKED sem efeito (exit 2).
                 self._prespawn_cleanup(cust, guard)
-                raise PrespawnBlocked("CHILD_START_FAILED_NO_LIVE_CHILD:%s: %s rollback=%s"
-                                      % (type(exc).__name__, exc, cs.get("rollback"))) from exc
-            # Filho vivo ou estado desconhecido: fail-closed para a custódia — supervisiona e segura.
+                raise PrespawnBlocked("CHILD_START_FAILED_NO_EFFECT:%s:%s: %s rollback=%s"
+                                      % (klass, type(exc).__name__, exc, cs.get("rollback"))) from exc
+            # N1: o filho retomou thread (EXECUTOU), está vivo, ou o estado é incerto — efeitos são
+            # POSSÍVEIS. A custódia assume e NUNCA sai sem efeito: marca effects_started e segue à
+            # supervisão/finalização (hold se a árvore viver; FAIL exit 3 se já estiver vazia).
             self._record_error("start", exc)
+            self.ctx["effects_started"] = True
             pid = cs.get("pid")
         self.ctx["child_pid"] = pid
         self.ctx["effects_started"] = True
@@ -1361,16 +1440,37 @@ class Supervision:
         if loop["exit"] == "TREE_EMPTY":
             self._set_phase("TREE_EMPTY")
             self._guard("mark_tree_empty", lambda: cust.mark("TREE_EMPTY"))
+            # N2: colher a evidência terminal e a contabilidade final ANTES de qualquer disarm/close
+            # (após close() não há consulta válida). A contabilidade final tem de CONFIRMAR a árvore
+            # vazia; se a observação contradizer TREE_EMPTY (ativos>0, consulta falha/UNKNOWN), NADA é
+            # liberado — nem disarm, nem close, nem transição terminal: hold observável (W04+Job sob
+            # custódia, NO_KILL).
+            acc = self._guard("final_accounting", lambda: cust.accounting(), None)
+            events = self._guard("final_events", lambda: cust.new_process_events(), None)
+            acc_active = _as_int(acc.get("ActiveProcesses")) if isinstance(acc, Mapping) else None
+            if acc_active != 0:
+                self.ctx["finalize_contradiction"] = {"final_accounting": acc, "active": acc_active}
+                self.ctx["tree_verified_empty"] = False
+                self._record_error("finalize_tree_not_empty",
+                                   RuntimeError("FINAL_ACCOUNTING_NOT_EMPTY active=%s" % acc_active))
+                return self._emergency_hold_and_result(cust, guard, arm, pid)
             w04 = self._guard("w04_disarm", lambda: guard.disarm(tree_empty=True), None)
             if not isinstance(w04, Mapping) or "w04_full" not in w04:
                 w04 = {"w04_full": "BLOCKED", "gaps": ["W04_DISARM_FAILED"]}
             self._set_phase("W04_DISARMED")
             self._guard("mark_w04_disarm", lambda: cust.mark("W04_DISARM"))
-            # Evidência terminal ANTES de fechar o custodiante (após close() não há consulta válida).
-            acc = self._guard("final_accounting", lambda: cust.accounting(), None)
-            events = self._guard("final_events", lambda: cust.new_process_events(), None)
+            # Marks colhidas APÓS registrar W04_DISARM (a ordem JIT exige esta marca) e ANTES do close
+            # (após close não há consulta válida à custódia).
             marks = list(getattr(cust, "marks", []) or [])
-            self._guard("custody_close", lambda: cust.close())
+            # N2: close() devolve PROVA estruturada; CUSTODIAN_CLOSED só com prova (closed=True,
+            # active_processes=0). Retorno None/closed!=True/ativo!=0 => sem fechamento provado => hold.
+            close_result = self._guard("custody_close", lambda: cust.close(), None)
+            self.ctx["custody_close_result"] = close_result if isinstance(close_result, Mapping) else {"closed": None}
+            if not custody_close_confirmed(close_result, tree_verified_empty=bool(self.ctx.get("tree_verified_empty"))):
+                self.ctx["custody_closed"] = False
+                self._record_error("custody_close_unconfirmed",
+                                   RuntimeError("CUSTODY_CLOSE_NOT_CONFIRMED result=%s" % (close_result,)))
+                return self._emergency_hold_and_result(cust, guard, arm, pid)
             self.ctx["custody_closed"] = True
             self._set_phase("CUSTODIAN_CLOSED")
             outcome = "TREE_EMPTY_CUSTODY_CLOSED"
@@ -1471,9 +1571,12 @@ class Supervision:
                 got = self._guard("emergency_w04_disarm", lambda: guard.disarm(tree_empty=True), None)
                 if isinstance(got, Mapping) and got.get("w04_full") == "BLOCKED":
                     w04 = dict(got)
-                self._guard("emergency_custody_close", lambda: cust.close())
-                self.ctx["custody_closed"] = True
-        self._set_phase("CUSTODIAN_CLOSED")
+                close_result = self._guard("emergency_custody_close", lambda: cust.close(), None)
+                self.ctx["custody_close_result"] = close_result if isinstance(close_result, Mapping) else {"closed": None}
+                # N2: mesmo no hold de emergência, CUSTODIAN_CLOSED exige prova de fechamento.
+                if custody_close_confirmed(close_result, tree_verified_empty=bool(self.ctx.get("tree_verified_empty"))):
+                    self.ctx["custody_closed"] = True
+        self._set_phase("CUSTODIAN_CLOSED" if self.ctx.get("custody_closed") else "LIVE_TREE_BLOCKED")
         verdict = {"completed": False, "gaps": ["SUPERVISION_UNEXPECTED_EXCEPTION"]}
         res = {"label": self.label, "child_pid": pid, "child_exit": self.ctx.get("child_exit"), "w04_arm": arm,
                "w04": w04, "jit": {"jit": "BLOCKED", "cause": "SUPERVISION_UNEXPECTED_EXCEPTION"},
@@ -1699,23 +1802,40 @@ def _run_supervised(plan, *, evidence: Path, entry, log=print) -> int:
     result["isolation"] = iso
     completed = (result.get("completion") or {}).get("completed") is True
     stopped = str((result.get("safe_stop") or {}).get("safe_stop", "")).startswith("CONFIRMED_BY_SUPERVISOR")
-    # Desfecho real -> exit: concluído 0; SAFE_STOP confirmado 130 (retomável); qualquer
-    # outro desfecho (filho falhou, parada não confirmada, evidência faltante) é 3.
-    code = EXIT_PASS if completed else (EXIT_SAFE_STOP if stopped else EXIT_FAIL)
-    result["exit_code"] = code
-    result["exit_class"] = classify_exit(code)
-    result["result"] = ("PASS_SUPERVISED_RUN" if completed else
-                        "SAFE_STOP_CONFIRMED_SUPERVISED_RUN" if stopped else "FAIL_SUPERVISED_RUN")
+    # N2/N3: a custódia tem de estar comprovadamente encerrada (ou liberada pelo titular) para um
+    # desfecho terminal; se o fechamento não foi provado, nunca é sucesso, qualquer que seja o
+    # veredito de conclusão.
+    custody_resolved = bool(s.ctx.get("custody_closed")) or bool(s.ctx.get("owner_release"))
+    if not custody_resolved:
+        completed = False
+        stopped = False
+        result.setdefault("gaps", []).append("CUSTODY_NOT_PROVEN_CLOSED")
     result["primary_cause"] = (s.primary_error or {}).get("error")
+    result["custody_resolved"] = custody_resolved
+    # N3: desfecho ÚNICO e coerente. Grava-se o recibo canônico com o desfecho otimista (assume
+    # persistência); em seguida o desfecho é RECALCULADO com o resultado REAL da persistência e TODOS
+    # os campos (result, exit_code, exit_class, banner e fase) passam a exprimir o MESMO desfecho.
+    optimistic = supervised_final_outcome(completed=completed, stopped=stopped, receipt_persisted=True)
+    result.update(optimistic)
     rec = persist_run_receipt(evidence, label, result)
-    if not rec["persisted"]:
-        # Recibo canônico não gravado => nunca 0/130 (evidência faltante).
-        code = EXIT_FAIL
+    final = supervised_final_outcome(completed=completed, stopped=stopped, receipt_persisted=bool(rec["persisted"]))
+    result.update(final)
+    result["receipt"] = rec
+    code = final["exit_code"]
     s._set_phase("RESULT_PERSISTED" if rec["persisted"] else "RESULT_PERSIST_FAILED")
-    print(json.dumps({k: result[k] for k in ("schema", "result", "label", "child_exit", "outcome") if k in result}
-                     | {"w04_full": (result.get("w04") or {}).get("w04_full"),
-                        "lineage": (result.get("lineage") or {}).get("lineage"),
-                        "exit_code": code, "receipt": rec}, sort_keys=True, default=str))
+    # N3: a falha de emissão do PRÓPRIO resumo não pode alterar o desfecho nem derrubar o processo.
+    try:
+        print(json.dumps({k: result[k] for k in ("schema", "result", "label", "child_exit", "outcome") if k in result}
+                         | {"w04_full": (result.get("w04") or {}).get("w04_full"),
+                            "lineage": (result.get("lineage") or {}).get("lineage"),
+                            "exit_code": code, "exit_class": result["exit_class"],
+                            "custody_resolved": custody_resolved, "receipt": rec}, sort_keys=True, default=str))
+    except Exception as exc:
+        try:
+            sys.stderr.write("PEGASUS_SUPERVISOR_SUMMARY_EMIT_FAILED %s exit_code=%s result=%s\n"
+                             % (type(exc).__name__, code, result.get("result")))
+        except Exception:
+            pass
     return code
 
 
