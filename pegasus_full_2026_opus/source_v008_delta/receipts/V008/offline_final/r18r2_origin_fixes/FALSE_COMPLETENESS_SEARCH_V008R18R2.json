@@ -1,0 +1,49 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R18R2_FALSE_COMPLETENESS_SEARCH",
+ "method": "adversarial enumeration bound to the new bytes (R18R2 delta over R18R1)",
+ "anchors_in_source": {
+  "windows_handle_deny_write_delete": true,
+  "getfinalpathbyhandle_real_scope": true,
+  "read_from_handle_no_reopen": true,
+  "bundle_content_pin_mandatory": true,
+  "require_under_physical": true,
+  "forbid_under_physical": true,
+  "fail_closed_without_native_guarantee": true,
+  "safe_under_no_early_resolve": true,
+  "load_bundle_no_exists_precheck": true,
+  "posix_openat_preserved": true
+ },
+ "consumers": [
+  {
+   "consumer": "file_identity_all_platforms_all_routes",
+   "wired_at": "_read_authenticated_bytes (POSIX openat / Windows handle) + verify_gate_file + _load_bundle + load_external_admission_module",
+   "qualified_by": "R18R2IdentityAndContentPin + R18R1ReparseHardening (POSIX) + windows_identity_qualifier_v008r18r2 (POSIX agora; junction/handle no alvo Windows)",
+   "status": "IMPLEMENTED_HARDENED_R18R2_POSIX_PROVEN_WINDOWS_RUNNER_READY",
+   "findings_closed": "R18R1-PREFLIGHT-02"
+  },
+  {
+   "consumer": "prior_reparse_i03_i01_i02_preserved",
+   "wired_at": "R18R1/R18/R17 code paths",
+   "qualified_by": "regressions PASS nos bytes R18R2; native R9 preserved",
+   "status": "PRESERVED",
+   "findings_closed": "ALL_PRIOR"
+  }
+ ],
+ "mandatory_integration_unimplemented": [],
+ "dead_consumers_or_uncalled_integrations": [],
+ "internally_correctable_defects_remaining": [],
+ "windows_native_pending": {
+  "what": "junction de ancestral + identidade por handle sob corrida real",
+  "how": "windows_identity_qualifier_v008r18r2.py via bootstrap PS5.1 no PC do titular (hash-bound, pre-efeito)",
+  "declared": "TARGET_RUNTIME_PENDING; NAO declarado PASS nativo a partir do Linux"
+ },
+ "policy_boundaries_out_of_scope": {
+  "qs4": "NO",
+  "full_economic": "NOT_STARTED",
+  "run_released": "NO",
+  "real_economic_execution": "RESERVED_OWNER_RELEASE_DECISION",
+  "note": "politica nao lida"
+ },
+ "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED_FILE_IDENTITY_CLASS_CLOSED_WINDOWS_NATIVE_RUNNER_DELIVERED",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}

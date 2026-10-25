@@ -1836,13 +1836,21 @@ def _write_physical_gates(bundle_root, release_id=_RELEASE_ID):
     return gates
 
 
+def _seal_bundle(b):
+    """R18R2: carimba o auto-hash de conteúdo canônico obrigatório (pinagem de conteúdo do bundle)."""
+    body = {k: v for k, v in b.items() if k != "bundle_content_sha256"}
+    b["bundle_content_sha256"] = hashlib.sha256(
+        json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")).hexdigest().upper()
+    return b
+
+
 def _physical_bundle(bundle_root, *, phase_chain=None, release_id=_RELEASE_ID, external_module=None):
     b = {"schema": sup.PRODUCTION_AUTH_SCHEMA, "release_id": release_id,
          "gates": _write_physical_gates(bundle_root, release_id),
          "phase_chain": phase_chain if phase_chain is not None else {"B": "PASS", "C": "PASS"}}
     if external_module is not None:
         b["external_admission_module"] = external_module
-    return b
+    return _seal_bundle(b)
 
 
 class _FakeEntryRunDisabled:
@@ -1913,6 +1921,7 @@ class R18ProductionAdmissionPhysicalGates(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             b = _physical_bundle(t)
             b["gates"]["QS4_SUCCESSOR_QUALIFICATION"]["sha256"] = "B" * 64  # SHA inventado
+            _seal_bundle(b)  # bundle internamente consistente; o defeito esta no gate
             v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
             self.assertEqual(v["admission"], "BLOCKED")
             self.assertTrue(any("GATE_CONTENT_SHA_MISMATCH" in x for x in v["gaps"]))
@@ -1928,6 +1937,7 @@ class R18ProductionAdmissionPhysicalGates(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             b = _physical_bundle(t)
             b["gates"]["QS5_B06_INDEPENDENT_AUDIT"]["status"] = "PENDING"
+            _seal_bundle(b)
             v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
             self.assertTrue(any("GATE_NOT_PASS" in x for x in v["gaps"]))
 
@@ -1935,6 +1945,7 @@ class R18ProductionAdmissionPhysicalGates(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             b = _physical_bundle(t)
             b["gates"]["SOURCE_ADMISSION_BY_HASH"]["release_id"] = "OTHER_STALE_RELEASE"
+            _seal_bundle(b)
             v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
             self.assertTrue(any("GATE_PROVENANCE_RELEASE_ID_MISMATCH_OR_STALE" in x for x in v["gaps"]))
 
@@ -1962,6 +1973,7 @@ class R18ProductionAdmissionPhysicalGates(unittest.TestCase):
         with tempfile.TemporaryDirectory() as t:
             b = _physical_bundle(t)
             b["gates"]["RUNTIME_PYTHON_3_14_7_PS_5_1"]["path"] = "../escape.json"
+            _seal_bundle(b)
             v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
             self.assertTrue(any("ESCAPE" in x or "OUTSIDE" in x for x in v["gaps"]))
 
@@ -2191,6 +2203,78 @@ class R18R1ReparseHardening(unittest.TestCase):
             with self.assertRaises(entry.Blocked) as cm:
                 adm.admit(phase="B", package_root=Path(pkg), entry=entry, ns=None)
             self.assertIn("AUTHORIZATION_BUNDLE_ABSENT", str(cm.exception))
+
+
+# =====================================================================================
+# R18R2 — endurecimento de IDENTIDADE FÍSICA (Windows handle nativo) + PINAGEM DE CONTEÚDO
+# obrigatória do bundle + FAIL-CLOSED sem garantia nativa + vínculo físico à árvore autorizada.
+# O leitor Windows (handle deny-write/deny-delete + GetFinalPathNameByHandle) é qualificado no alvo
+# (runner nativo); aqui prova-se o contrato logico, a pinagem de conteudo e o fail-closed no POSIX.
+# =====================================================================================
+class R18R2IdentityAndContentPin(unittest.TestCase):
+    def test_bundle_content_pin_missing_blocked(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            b.pop("bundle_content_sha256", None)  # sem pinagem de conteudo
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertEqual(v["admission"], "BLOCKED")
+            self.assertIn("AUTHORIZATION_BUNDLE_CONTENT_SHA_MISSING_OR_MISMATCH", v["gaps"])
+
+    def test_bundle_content_pin_tamper_blocked(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            # adultera um campo SEM re-selar => o auto-hash nao bate (adulteracao detectada)
+            b["release_id"] = b["release_id"] + "_TAMPERED"
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertEqual(v["admission"], "BLOCKED")
+            self.assertIn("AUTHORIZATION_BUNDLE_CONTENT_SHA_MISSING_OR_MISMATCH", v["gaps"])
+
+    def test_sealed_bundle_passes_content_pin(self):
+        with tempfile.TemporaryDirectory() as t:
+            v = sup.production_admission_verdict(_physical_bundle(t), phase="B", bundle_root=Path(t))
+            self.assertEqual(v["admission"], "ADMITTED_GATES_PHYSICALLY_VERIFIED")
+
+    def test_native_guarantee_unavailable_is_fail_closed(self):
+        # Sem openat (O_NOFOLLOW=0) e fora do Windows => NAO cair em leitura por caminho vulneravel.
+        with tempfile.TemporaryDirectory() as t:
+            f = Path(t) / "x.bin"; f.write_bytes(b"data")
+            with mock.patch.object(sup, "_O_NOFOLLOW", 0), mock.patch.object(sup.os, "name", "posix"):
+                with self.assertRaises(sup.SupervisorBlocked) as cm:
+                    sup._read_authenticated_bytes(str(f), kind="PROBE")
+            self.assertIn("NATIVE_IDENTITY_GUARANTEE_UNAVAILABLE_FAIL_CLOSED", str(cm.exception))
+
+    def test_windows_native_reader_present(self):
+        # Presenca estrutural do leitor nativo e dos helpers de escopo fisico (comportamento Windows
+        # qualificado no runner dirigido do alvo; nao executavel no Linux).
+        self.assertTrue(callable(getattr(sup, "_win_read_authenticated_bytes", None)))
+        self.assertTrue(callable(getattr(sup, "_canon", None)))
+        self.assertTrue(callable(getattr(sup, "_under", None)))
+
+    def test_posix_authentic_read_under_tree(self):
+        # Controle positivo: leitura autentica com require_under satisfeito (POSIX race-free).
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t) / "root"; root.mkdir()
+            f = root / "a" / "b.bin"; f.parent.mkdir(parents=True); f.write_bytes(b"hello")
+            data = sup._read_authenticated_bytes(f, expected_sha256=hashlib.sha256(b"hello").hexdigest().upper(),
+                                                 require_under=root, kind="PROBE")
+            self.assertEqual(data, b"hello")
+
+    def test_posix_require_under_rejects_outside(self):
+        with tempfile.TemporaryDirectory() as t:
+            root = Path(t) / "root"; root.mkdir()
+            other = Path(t) / "other"; other.mkdir()
+            f = other / "b.bin"; f.write_bytes(b"x")
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                sup._read_authenticated_bytes(f, require_under=root, kind="PROBE")
+            self.assertIn("OUTSIDE_AUTHORIZED_TREE", str(cm.exception))
+
+    def test_posix_forbid_under_rejects_inside(self):
+        with tempfile.TemporaryDirectory() as t:
+            sealed = Path(t) / "sealed"; sealed.mkdir()
+            f = sealed / "b.bin"; f.write_bytes(b"x")
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                sup._read_authenticated_bytes(f, forbid_under=sealed, kind="PROBE")
+            self.assertIn("INSIDE_SEALED_PACKAGE_FORBIDDEN", str(cm.exception))
 
 
 class R17W04EvaluateVsRelease(unittest.TestCase):

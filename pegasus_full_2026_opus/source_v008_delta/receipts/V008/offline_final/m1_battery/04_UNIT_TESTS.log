@@ -7,7 +7,7 @@ SUPERVISION_PHASE=W04_EVALUATED_HELD label=SYNTH_ECON_B
 SUPERVISION_PHASE=W04_DISARMED label=SYNTH_ECON_B
 SUPERVISION_PHASE=CUSTODIAN_CLOSED label=SYNTH_ECON_B
 SUPERVISION_PHASE=RESULT_PERSISTED label=SYNTH_ECON_B
-{"child_exit": 0, "custody_resolved": true, "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START", "exit_code": 3, "label": "SYNTH_ECON_B", "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF", "outcome": "TREE_EMPTY_CUSTODY_CLOSED", "receipt": {"error": null, "path": "/tmp/tmpb7643wng/SYNTH_ECON_B_SUPERVISED_RUN_RESULT.json", "persisted": true}, "result": "FAIL_SUPERVISED_RUN", "schema": "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT", "w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
+{"child_exit": 0, "custody_resolved": true, "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START", "exit_code": 3, "label": "SYNTH_ECON_B", "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF", "outcome": "TREE_EMPTY_CUSTODY_CLOSED", "receipt": {"error": null, "path": "/tmp/tmp0_j43h_0/SYNTH_ECON_B_SUPERVISED_RUN_RESULT.json", "persisted": true}, "result": "FAIL_SUPERVISED_RUN", "schema": "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT", "w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
 test_default_without_flag (__main__.AdmissionSealed.test_default_without_flag) ... ok
 test_unsealed_path_refused (__main__.AdmissionSealed.test_unsealed_path_refused) ... ok
 test_run_modes_blocked_before_any_effect (__main__.CliFailClosed.test_run_modes_blocked_before_any_effect) ... ok
@@ -27,7 +27,7 @@ test_terminal_evidence_capturable_before_close_then_refused_after (__main__.Cust
 test_absent_or_bogus_code_never_pass (__main__.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
 test_known_codes (__main__.ExitClassification.test_known_codes) ... ok
 test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... Traceback (most recent call last):
-  File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 2429, in main
+  File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 2545, in main
     return cmd_verify(ns)
   File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/tests/test_supervisor_v008.py", line 441, in boom
     raise RuntimeError("boom")
@@ -127,6 +127,14 @@ test_module_bad_sha_rejected (__main__.R18R1ReparseHardening.test_module_bad_sha
 test_module_concurrent_identity_swap_detected (__main__.R18R1ReparseHardening.test_module_concurrent_identity_swap_detected) ... ok
 test_module_direct_symlink_rejected (__main__.R18R1ReparseHardening.test_module_direct_symlink_rejected) ... ok
 test_module_inside_sealed_package_rejected (__main__.R18R1ReparseHardening.test_module_inside_sealed_package_rejected) ... ok
+test_bundle_content_pin_missing_blocked (__main__.R18R2IdentityAndContentPin.test_bundle_content_pin_missing_blocked) ... ok
+test_bundle_content_pin_tamper_blocked (__main__.R18R2IdentityAndContentPin.test_bundle_content_pin_tamper_blocked) ... ok
+test_native_guarantee_unavailable_is_fail_closed (__main__.R18R2IdentityAndContentPin.test_native_guarantee_unavailable_is_fail_closed) ... ok
+test_posix_authentic_read_under_tree (__main__.R18R2IdentityAndContentPin.test_posix_authentic_read_under_tree) ... ok
+test_posix_forbid_under_rejects_inside (__main__.R18R2IdentityAndContentPin.test_posix_forbid_under_rejects_inside) ... ok
+test_posix_require_under_rejects_outside (__main__.R18R2IdentityAndContentPin.test_posix_require_under_rejects_outside) ... ok
+test_sealed_bundle_passes_content_pin (__main__.R18R2IdentityAndContentPin.test_sealed_bundle_passes_content_pin) ... ok
+test_windows_native_reader_present (__main__.R18R2IdentityAndContentPin.test_windows_native_reader_present) ... ok
 test_bundle_inside_sealed_package_forbidden (__main__.R18ReservedOwnerReleaseDecision.test_bundle_inside_sealed_package_forbidden) ... ok
 test_frozen_entry_yields_reserved_decision (__main__.R18ReservedOwnerReleaseDecision.test_frozen_entry_yields_reserved_decision) ... ok
 test_incomplete_bundle_blocks_before_signal (__main__.R18ReservedOwnerReleaseDecision.test_incomplete_bundle_blocks_before_signal) ... ok
@@ -224,6 +232,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 208 tests in 9.102s
+Ran 216 tests in 9.039s
 
 OK

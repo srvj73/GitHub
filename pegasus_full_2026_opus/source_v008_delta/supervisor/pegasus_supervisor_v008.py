@@ -1831,59 +1831,159 @@ def _read_fd_nofollow(path: Path, kind: str) -> bytes:
         os.close(dirfd)
 
 
-def _read_authenticated_bytes(path, *, expected_sha256=None, forbid_under=None, kind: str) -> bytes:
-    """Lê os bytes de um arquivo garantindo identidade: cadeia livre de reparse (ancestrais + alvo,
-    sem resolver), opcionalmente FORA de `forbid_under` (pacote selado), leitura race-free por fd no
-    POSIX, e — quando `expected_sha256` é dado — o SHA é conferido sobre OS BYTES LIDOS (fecha a
-    substituição entre verificação e uso). Levanta SupervisorBlocked com causa exata em qualquer
-    violação. Preserva a leitura dos bytes efetivamente autenticados (é ela que retorna)."""
+def _win_read_authenticated_bytes(path, kind: str):
+    """R18R2 (Windows): abre o arquivo UMA vez por handle nativo com NEGAÇÃO de escrita/exclusão/rename
+    (FILE_SHARE_READ apenas) e FILE_FLAG_OPEN_REPARSE_POINT (não segue um reparse no alvo). Confirma a
+    identidade FÍSICA do objeto efetivamente aberto (não um reparse, não diretório) e devolve o caminho
+    canônico real do handle (GetFinalPathNameByHandleW) e os bytes LIDOS DO HANDLE. Enquanto o handle
+    vive, o objeto não pode ser trocado/renomeado/apagado — fecha a corrida entre verificação e uso. A
+    checagem de escopo é feita pelo chamador sobre o caminho REAL retornado (não sobre a string de
+    entrada). Fail-closed em qualquer falha de abertura/consulta/leitura. Só roda em os.name=='nt'."""
+    import ctypes
+    from ctypes import wintypes
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    GENERIC_READ = 0x80000000
+    FILE_SHARE_READ = 0x00000001            # nega WRITE e DELETE: objeto pinado enquanto o handle vive
+    OPEN_EXISTING = 3
+    FILE_FLAG_OPEN_REPARSE_POINT = 0x00200000
+    INVALID = ctypes.c_void_p(-1).value
+    FILE_ATTRIBUTE_REPARSE_POINT = 0x400
+    FILE_ATTRIBUTE_DIRECTORY = 0x10
+    ERROR_FILE_NOT_FOUND, ERROR_PATH_NOT_FOUND = 2, 3
+
+    class BHFI(ctypes.Structure):
+        _fields_ = [("attrs", wintypes.DWORD), ("ct", wintypes.FILETIME), ("at", wintypes.FILETIME),
+                    ("wt", wintypes.FILETIME), ("vsn", wintypes.DWORD), ("szh", wintypes.DWORD),
+                    ("szl", wintypes.DWORD), ("nl", wintypes.DWORD), ("ih", wintypes.DWORD),
+                    ("il", wintypes.DWORD)]
+    CreateFileW = k32.CreateFileW
+    CreateFileW.restype = wintypes.HANDLE
+    CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
+                            wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
+    h = CreateFileW(str(path), GENERIC_READ, FILE_SHARE_READ, None, OPEN_EXISTING,
+                    FILE_FLAG_OPEN_REPARSE_POINT, None)
+    if h == INVALID or not h:
+        err = ctypes.get_last_error()
+        if err in (ERROR_FILE_NOT_FOUND, ERROR_PATH_NOT_FOUND):
+            raise SupervisorBlocked("%s_ABSENT:%d" % (kind, err))
+        raise SupervisorBlocked("%s_OPEN_FAILED:%d" % (kind, err))
+    try:
+        gfibh = k32.GetFileInformationByHandle
+        gfibh.argtypes = [wintypes.HANDLE, ctypes.POINTER(BHFI)]
+        gfibh.restype = wintypes.BOOL
+        bi = BHFI()
+        if not gfibh(h, ctypes.byref(bi)):
+            raise SupervisorBlocked("%s_INFO_FAILED:%d" % (kind, ctypes.get_last_error()))
+        if bi.attrs & FILE_ATTRIBUTE_REPARSE_POINT:
+            raise SupervisorBlocked("%s_REPARSE_OR_ALIAS:final" % kind)
+        if bi.attrs & FILE_ATTRIBUTE_DIRECTORY:
+            raise SupervisorBlocked("%s_NOT_REGULAR_FILE" % kind)
+        gfpn = k32.GetFinalPathNameByHandleW
+        gfpn.argtypes = [wintypes.HANDLE, wintypes.LPWSTR, wintypes.DWORD, wintypes.DWORD]
+        gfpn.restype = wintypes.DWORD
+        n = gfpn(h, None, 0, 0)
+        if not n:
+            raise SupervisorBlocked("%s_FINALPATH_FAILED:%d" % (kind, ctypes.get_last_error()))
+        buf = ctypes.create_unicode_buffer(n + 1)
+        if not gfpn(h, buf, n + 1, 0):
+            raise SupervisorBlocked("%s_FINALPATH_FAILED:%d" % (kind, ctypes.get_last_error()))
+        real = buf.value
+        readfile = k32.ReadFile
+        readfile.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD,
+                             ctypes.POINTER(wintypes.DWORD), ctypes.c_void_p]
+        readfile.restype = wintypes.BOOL
+        cbuf = (ctypes.c_char * (1 << 20))()
+        got = wintypes.DWORD()
+        chunks = []
+        while True:
+            if not readfile(h, cbuf, 1 << 20, ctypes.byref(got), None):
+                raise SupervisorBlocked("%s_READ_FAILED:%d" % (kind, ctypes.get_last_error()))
+            if got.value == 0:
+                break
+            chunks.append(cbuf.raw[:got.value])
+        return b"".join(chunks), real
+    finally:
+        k32.CloseHandle(h)
+
+
+def _canon(p) -> str:
+    """Forma canônica para comparação FÍSICA de escopo: tira o prefixo \\\\?\\, normaliza e, no
+    Windows, normaliza a caixa (NTFS é case-insensitive)."""
+    s = os.fspath(p)
+    if s.startswith("\\\\?\\"):
+        s = s[4:]
+    s = os.path.normpath(s)
+    if os.name == "nt":
+        s = os.path.normcase(s)
+    return s
+
+
+def _under(child: str, base) -> bool:
+    try:
+        b = _canon(Path(base).resolve())
+    except Exception:
+        b = _canon(base)
+    c = _canon(child)
+    return c == b or c.startswith(b + os.sep)
+
+
+def _read_authenticated_bytes(path, *, expected_sha256=None, forbid_under=None, require_under=None,
+                              kind: str) -> bytes:
+    """Lê os bytes de um arquivo GARANTINDO IDENTIDADE FÍSICA do objeto aberto:
+      - cadeia livre de reparse (ancestrais + alvo), sem resolver, como pré-filtro barato;
+      - POSIX: openat+O_NOFOLLOW por componente (race-free); `real` == caminho lexical (sem reparse);
+      - Windows: handle nativo com deny-write/deny-delete + OPEN_REPARSE_POINT; `real` = caminho
+        canônico do handle (GetFinalPathNameByHandle), que reflete ancestrais reais;
+      - escopo verificado sobre `real` (o objeto EFETIVAMENTE aberto), não sobre a string de entrada:
+        `forbid_under` (não pode estar fisicamente dentro do pacote selado) e `require_under` (tem de
+        estar fisicamente dentro da árvore autorizada). Um ancestral reparse que redirecione para fora
+        é pego aqui; um que redirecione para fora da árvore exigida também;
+      - SHA (quando fixado) conferido sobre OS BYTES LIDOS do mesmo handle/descritor (sem reabrir);
+      - ausência genuína (ENOENT/FILE_NOT_FOUND) distinguida de alias/identidade/escopo;
+      - FAIL-CLOSED se a garantia nativa (openat no POSIX, Win32 no Windows) não estiver disponível."""
     exp = None
     if expected_sha256 is not None:
         exp = str(expected_sha256).upper()
         if len(exp) != 64 or any(c not in _HEXSET for c in exp):
             raise SupervisorBlocked("%s_SHA_PIN_INVALID" % kind)
-    lexical = _reparse_free_chain(path, kind)
-    if forbid_under is not None:
-        try:
-            fb = os.path.normpath(str(Path(forbid_under).resolve()))
-        except Exception:
-            fb = os.path.normpath(str(forbid_under))
-        lx = os.path.normpath(str(lexical))
-        if lx == fb or lx.startswith(fb + os.sep):
-            raise SupervisorBlocked("%s_INSIDE_SEALED_PACKAGE_FORBIDDEN" % kind)
+    lexical = _reparse_free_chain(path, kind)  # pré-filtro (ancestrais+alvo), sem resolver
     if (os.open in getattr(os, "supports_dir_fd", set())) and _O_NOFOLLOW:
-        data = _read_fd_nofollow(lexical, kind)  # POSIX: autentica a leitura, race-free
+        data = _read_fd_nofollow(lexical, kind)       # POSIX race-free
+        real = _canon(lexical)                        # sem reparse na cadeia => lexical é o real
+    elif os.name == "nt":
+        data, real = _win_read_authenticated_bytes(lexical, kind)  # handle nativo, objeto pinado
     else:
-        # Windows/sem openat: cadeia já provada livre de reparse (lexical). Semântica nativa de
-        # junction é qualificada no alvo Windows (não declarada do Linux).
-        p = Path(lexical)
-        if _is_reparse(p) or not p.is_file():
-            raise SupervisorBlocked("%s_ABSENT_OR_ALIAS" % kind)
-        data = p.read_bytes()
+        # Sem garantia nativa de identidade/corrida: NÃO cair em leitura por caminho vulnerável.
+        raise SupervisorBlocked("%s_NATIVE_IDENTITY_GUARANTEE_UNAVAILABLE_FAIL_CLOSED" % kind)
+    if forbid_under is not None and _under(real, forbid_under):
+        raise SupervisorBlocked("%s_INSIDE_SEALED_PACKAGE_FORBIDDEN" % kind)
+    if require_under is not None and not _under(real, require_under):
+        raise SupervisorBlocked("%s_OUTSIDE_AUTHORIZED_TREE" % kind)
     if exp is not None and _sha_bytes(data) != exp:
         raise SupervisorBlocked("%s_IDENTITY_MISMATCH_OR_CONCURRENT_SWAP" % kind)
     return data
 
 
 def _safe_under(root: Path, rel: str):
-    """R18: resolve `rel` sob `root` SEM seguir aliases/reparse. Recusa escape (``..``), caminho
-    absoluto, qualquer componente link/junction e resolução final fora de `root`. Devolve o Path
-    resolvido ou levanta a razão exata. Fecha os negativos reparse/alias e bundle-fora-do-escopo."""
-    root = Path(root).resolve()
+    """R18R2: compõe `rel` sob `root` PRESERVANDO a identidade do caminho (NÃO resolve `root` nem o
+    alvo — a resolução antecipada apagaria a identidade e poderia mascarar alias). Recusa `rel`
+    ausente/absoluto/com `..`. Faz um pré-filtro barato de reparse por componente, mas a garantia
+    física (o objeto aberto está realmente sob `root`, sem ancestral reparse redirecionando) é do
+    leitor autenticado via `require_under`. Devolve o Path lexical composto (não resolvido)."""
     if rel is None or not isinstance(rel, str) or not rel.strip():
         raise SupervisorBlocked("GATE_PATH_ABSENT")
     r = Path(rel)
     if r.is_absolute() or any(part == ".." for part in r.parts):
         raise SupervisorBlocked("GATE_PATH_ABSOLUTE_OR_ESCAPE:%s" % rel)
-    cur = root
+    base = Path(root)
+    if not base.is_absolute():
+        base = Path.cwd() / base
+    cur = base
     for part in r.parts:
         cur = cur / part
-        if cur.is_symlink() or (hasattr(cur, "is_junction") and cur.is_junction()):
+        if _is_reparse(cur):
             raise SupervisorBlocked("GATE_PATH_REPARSE_OR_ALIAS:%s" % rel)
-    real = cur.resolve()
-    if not (real == root or real.is_relative_to(root)):
-        raise SupervisorBlocked("GATE_PATH_RESOLVES_OUTSIDE_BUNDLE:%s" % rel)
-    return real
+    return cur
 
 
 def verify_gate_file(bundle_root: Path, rec, *, release_id) -> dict:
@@ -1904,13 +2004,16 @@ def verify_gate_file(bundle_root: Path, rec, *, release_id) -> dict:
         return {"ok": False, "reason": "GATE_PROVENANCE_RELEASE_ID_MISMATCH_OR_STALE"}
     try:
         p = _safe_under(bundle_root, rec.get("path"))
-        # R18R1: leitura AUTENTICADA (reparse-free + race-free + SHA sobre os bytes lidos). Fecha o
-        # TOCTOU entre a verificação de caminho e o hash, e a substituição por alias do arquivo.
-        _read_authenticated_bytes(p, expected_sha256=declared, kind="GATE_FILE")
+        # R18R1/R18R2: leitura AUTENTICADA por identidade física (reparse-free + race-free no POSIX /
+        # handle nativo no Windows + SHA sobre os bytes lidos) e vínculo FÍSICO à árvore do bundle
+        # (require_under) sobre o objeto REALMENTE aberto. Fecha o TOCTOU e o alias de ancestral.
+        _read_authenticated_bytes(p, expected_sha256=declared, require_under=bundle_root, kind="GATE_FILE")
     except SupervisorBlocked as exc:
         reason = str(exc)
         if "IDENTITY_MISMATCH_OR_CONCURRENT_SWAP" in reason:
             reason = "GATE_CONTENT_SHA_MISMATCH_OR_CONCURRENT_MUTATION"
+        elif "OUTSIDE_AUTHORIZED_TREE" in reason:
+            reason = "GATE_PATH_RESOLVES_OUTSIDE_BUNDLE:%s" % rec.get("path")
         elif "REPARSE" in reason or "ALIAS" in reason:
             reason = "GATE_PATH_REPARSE_OR_ALIAS:%s" % rec.get("path")
         elif "ABSENT" in reason or "MISSING" in reason or "NOT_REGULAR" in reason:
@@ -1935,6 +2038,16 @@ def production_admission_verdict(bundle, *, phase, bundle_root) -> dict:
     release_id = bundle.get("release_id")
     if not release_id or not isinstance(release_id, str):
         return {"admission": "BLOCKED", "gaps": ["AUTHORIZATION_BUNDLE_RELEASE_ID_ABSENT"]}
+    # R18R2: PINAGEM DE CONTEÚDO OBRIGATÓRIA do bundle — ele deve carregar um auto-hash canônico
+    # (sobre todo o conteúdo exceto o próprio campo). Fecha a lacuna apontada: a leitura do bundle
+    # passa a ter pinagem de conteúdo obrigatória, não só identidade de caminho. Detecta adulteração
+    # de qualquer campo (gates/external_module/phase_chain/release_id).
+    declared_bsha = str(bundle.get("bundle_content_sha256", "")).upper()
+    body = {k: v for k, v in bundle.items() if k != "bundle_content_sha256"}
+    calc_bsha = _sha_bytes(json.dumps(body, sort_keys=True, separators=(",", ":"),
+                                      ensure_ascii=False).encode("utf-8"))
+    if len(declared_bsha) != 64 or declared_bsha != calc_bsha:
+        return {"admission": "BLOCKED", "gaps": ["AUTHORIZATION_BUNDLE_CONTENT_SHA_MISSING_OR_MISMATCH"]}
     gates = bundle.get("gates") if isinstance(bundle.get("gates"), Mapping) else {}
     chain = bundle.get("phase_chain") if isinstance(bundle.get("phase_chain"), Mapping) else {}
     gaps: List[str] = []
@@ -2034,13 +2147,16 @@ class ProductionReleaseAdmission:
         p = Path(self.bundle_path)
         if not p.is_absolute():
             p = Path.cwd() / p
-        # Ausência genuína (sem reparse no caminho) => (None, None) => veredito ABSENT. Um symlink/alias
-        # no alvo NÃO conta como ausência: cai na leitura autenticada, que o recusa (fail-closed).
-        if not _is_reparse(p) and not p.exists():
-            return None, None
-        # R18R1: verificação reparse-free (ancestrais + alvo) ANTES de resolver, leitura race-free e
-        # recusa de alias; o bundle fica FORA do pacote selado (auto-autorização proibida).
-        data = _read_authenticated_bytes(p, forbid_under=package_root, kind="AUTHORIZATION_BUNDLE")
+        # R18R2: NÃO pré-classificar ausência por p.exists() (segue ancestrais e pode mascarar alias).
+        # A leitura autenticada decide: ancestral/alvo reparse => recusa; ENOENT genuíno => ABSENT, que
+        # aqui vira (None, None) => veredito ABSENT. Leitura por identidade física + fora do selado.
+        try:
+            data = _read_authenticated_bytes(p, forbid_under=package_root, kind="AUTHORIZATION_BUNDLE")
+        except SupervisorBlocked as exc:
+            msg = str(exc)
+            if "AUTHORIZATION_BUNDLE_ABSENT" in msg and "REPARSE" not in msg and "ALIAS" not in msg:
+                return None, None  # ausência genuína (sem alias): vira veredito ABSENT
+            raise
         try:
             return json.loads(data), p.parent
         except Exception as exc:

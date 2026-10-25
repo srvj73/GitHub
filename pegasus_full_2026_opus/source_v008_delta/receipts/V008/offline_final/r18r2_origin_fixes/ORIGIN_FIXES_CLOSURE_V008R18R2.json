@@ -1,0 +1,80 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R18R2_CONVERGENCE_CLOSURE",
+ "audit_trail": "O preflight independente apontou que a rota WINDOWS de _read_authenticated_bytes ainda fazia verificacao lexical e REABRIA por nome (p.read_bytes()), permitindo troca concorrente de ancestral/alvo por junction/symlink; e que o bundle nao tinha pinagem de conteudo obrigatoria; e que forbid_under comparava apenas strings. R18R2 fecha a classe no Windows com identidade FISICA por handle nativo.",
+ "defect_reproduced_on_r18r1_zip_sha256": "5D5EBAE1A2DB734FBA37A2610C41290F0EED197B241BC253F0DC313F243FFEC1",
+ "supersedes_candidate_sha256": "5D5EBAE1A2DB734FBA37A2610C41290F0EED197B241BC253F0DC313F243FFEC1",
+ "final_tree_convergence_probe": {
+  "all_safe": true,
+  "supervisor_sha256": "00560307A62FB164AD76D93C715EB6DA6D8EEBA19D6DDF999611B44C5A3683CC",
+  "win_native_sha256": "D1A59BF71A7DF4B07CF24122F8CB9AFB96B45986845202287B7EAA410388A0C6",
+  "windows_identity_qualifier_sha256": "F3F12C5AFFDE814C6ACAE4F7218706F7E1797355B672954B21A43E32ABFA0FB1",
+  "posix_qualifier_result": {
+   "result": "PASS",
+   "platform": "posix",
+   "native_read_path": "POSIX_OPENAT_O_NOFOLLOW",
+   "required_pass": "11/11",
+   "skipped": [
+    "MODULE_ANCESTOR_JUNCTION"
+   ],
+   "exit": 0
+  },
+  "probes": [
+   {
+    "probe": "WINDOWS_NATIVE_HANDLE_IDENTITY",
+    "safe": true,
+    "qualified_on": "WINDOWS_TARGET_RUNNER"
+   },
+   {
+    "probe": "BUNDLE_CONTENT_PIN_MANDATORY",
+    "safe": true
+   },
+   {
+    "probe": "PHYSICAL_SCOPE_BINDING_REQUIRE_FORBID_UNDER",
+    "safe": true
+   },
+   {
+    "probe": "FAIL_CLOSED_WITHOUT_NATIVE_GUARANTEE",
+    "safe": true
+   }
+  ]
+ },
+ "predecessor_r18r1_reproduction": {
+  "all_safe": false,
+  "probes": [
+   {
+    "probe": "WINDOWS_REOPEN_BY_NAME_AFTER_CHECK",
+    "safe": false,
+    "reason": "R18R1 no ramo Windows: verificacao lexical + is_reparse + is_file e DEPOIS p.read_bytes() reabria por nome => troca concorrente de ancestral/alvo possivel."
+   },
+   {
+    "probe": "BUNDLE_WITHOUT_MANDATORY_CONTENT_PIN",
+    "safe": false,
+    "reason": "R18R1 _load_bundle lia o bundle sem pinagem de conteudo obrigatoria."
+   }
+  ]
+ },
+ "findings": [
+  {
+   "finding": "R18R1-PREFLIGHT-02",
+   "title": "identidade fisica do arquivo no Windows (handle) + escopo fisico + pin de conteudo do bundle",
+   "fix": "Rota Windows de _read_authenticated_bytes agora usa _win_read_authenticated_bytes: CreateFileW com FILE_SHARE_READ apenas (nega WRITE/DELETE/rename enquanto o handle vive) + FILE_FLAG_OPEN_REPARSE_POINT (nao segue reparse no alvo); recusa reparse/diretorio por atributo; obtem o caminho canonico REAL via GetFinalPathNameByHandleW; LE os bytes DO HANDLE (sem reabrir por caminho). Escopo (forbid_under/require_under) verificado sobre o caminho REAL do objeto aberto, nao sobre a string de entrada. POSIX preservado (openat+O_NOFOLLOW). _safe_under nao resolve mais root antecipadamente (preserva identidade); _load_bundle nao pre-classifica ausencia por p.exists() (distingue ABSENT de alias pela leitura autenticada). production_admission_verdict exige PINAGEM DE CONTEUDO do bundle (auto-hash canonico). FAIL-CLOSED se nao houver garantia nativa (nem openat nem Win32).",
+   "windows_qualification": "Qualificador dirigido windows_identity_qualifier_v008r18r2.py (hash-bound, pre-efeito) + bootstrap PS5.1. Casos reproduziveis PROVADOS no POSIX agora (openat): {\"result\": \"PASS\", \"platform\": \"posix\", \"native_read_path\": \"POSIX_OPENAT_O_NOFOLLOW\", \"required_pass\": \"11/11\", \"skipped\": [\"MODULE_ANCESTOR_JUNCTION\"], \"exit\": 0}. Junction de ancestral e identidade por handle nativo = prova no alvo Windows.",
+   "closed": true
+  },
+  {
+   "finding": "PRIOR_PRESERVED",
+   "title": "R18R1 (classe reparse), R18 (I-03A/B/C), R17 (I-01/I-02), R16 (N1/N2/N3), R15, F01-F04, R9 23/23 MET preservados",
+   "source": {
+    "reparse_free_chain": true,
+    "openat_posix": true,
+    "physical_gates": true,
+    "reserved_decision": true,
+    "native_r9": true
+   },
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Classe de identidade de arquivo fechada em AMBAS as plataformas: POSIX race-free (openat+O_NOFOLLOW); Windows por handle nativo com deny-write/deny-delete + GetFinalPathNameByHandle (objeto pinado, caminho real vinculado, bytes lidos do handle). Pinagem de conteudo obrigatoria do bundle. Escopo verificado sobre o objeto REALMENTE aberto. Fail-closed sem garantia nativa. A prova nativa de junction/corrida no Windows e do runner dirigido no alvo; o POSIX ja comprova os casos reproduziveis. G4/V003 FROZEN; QS4=NO; RUN_RELEASED=NO; execucao economica real = RESERVED_OWNER_RELEASE_DECISION; politica nao lida; D4 nao autorizado. R18 e R18R1 permanecem congeladas.",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}
