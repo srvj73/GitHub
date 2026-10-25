@@ -1,0 +1,85 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R18_CONVERGENCE_CLOSURE",
+ "audit_trail": "Continuacao da mesma engenharia (nao nova auditoria). O parecer de retomada sobre a R17 aponta que a rama economica B->C->FULL estava apenas SINTATICAMENTE encadeada (release_admission congelado sempre levanta; _run_supervised recusava plano economico) e que production_admission_verdict fazia prova SINTATICA (SHA textual). R18 conclui o I-03: prova FISICA dos gates, rota externamente autorizavel real, e classifica honestamente o release real como DECISAO RESERVADA do titular.",
+ "supersedes_candidate_sha256": "67BFF721609866ADA51CF283DDF67CCA5DF66FEC6183B3714AB665A389D396EA",
+ "final_tree_convergence_probe": {
+  "all_safe": true,
+  "supervisor_sha256": "1567FF51B4FC981406353D32DBE88F3F10202F2D9A8821B51927C429BD1E5819",
+  "win_native_sha256": "D1A59BF71A7DF4B07CF24122F8CB9AFB96B45986845202287B7EAA410388A0C6",
+  "probes": [
+   {
+    "probe": "I03A_PHYSICAL_GATE_VERIFICATION",
+    "safe": true,
+    "live_complete": "ADMITTED_GATES_PHYSICALLY_VERIFIED",
+    "live_invented_sha": "BLOCKED"
+   },
+   {
+    "probe": "I03B_EXTERNAL_ROUTE_REACHABLE_RESERVED_ON_FROZEN",
+    "safe": true
+   },
+   {
+    "probe": "I03C_SYNTHETIC_ISOLATED_E2E_NO_ECONOMY",
+    "safe": true
+   }
+  ]
+ },
+ "predecessor_r17_reproduction": {
+  "all_safe": false,
+  "probes": [
+   {
+    "probe": "I03A_PHYSICAL_GATE_VERIFICATION",
+    "safe": false,
+    "reason": "R17 production_admission_verdict aceitava gate com SHA hex de 64 e status=PASS sem ler/re-hashear o arquivo fisico (prova sintatica)."
+   },
+   {
+    "probe": "I03B_EXTERNAL_ROUTE_REACHABLE_RESERVED_ON_FROZEN",
+    "safe": false,
+    "reason": "R17 ProductionReleaseAdmission.admit chamava entry.release_admission e levantava SupervisorBlocked fixo; rama economica de _run_supervised recusava incondicionalmente => so sintaticamente encadeada."
+   }
+  ]
+ },
+ "findings": [
+  {
+   "finding": "I-03A",
+   "title": "prova FISICA dos gates (nao SHA textual)",
+   "fix": "production_admission_verdict(bundle, phase, bundle_root) le+re-hasheia cada arquivo de gate sob bundle_root; verify_gate_file confere SHA real do conteudo, existencia, tipo regular, proveniencia (release_id==bundle), path-safety (_safe_under: sem symlink/reparse/escape/absoluto/fora-do-bundle). Negativos cobertos: SHA inventado, arquivo ausente, status falso, mismatch, reparse/alias, stale (release_id), fase fora de ordem, manipulacao concorrente (re-hash no momento difere do declarado), bundle dentro do ZIP.",
+   "negative_control_live": {
+    "complete_physical": "ADMITTED_GATES_PHYSICALLY_VERIFIED",
+    "invented_sha": "BLOCKED",
+    "invented_sha_gap_present": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "I-03B",
+   "title": "rota externamente autorizavel REAL + decisao reservada",
+   "fix": "release_admission_signal LE o sinal do release_admission congelado SEM burlar: RUN_RELEASE_DISABLED (RELEASE_STATE qualification-only, artefato congelado) => RESERVED_OWNER_RELEASE_DECISION (decisao real do titular, nao erro de codigo); EXTERNAL_RELEASE_ADMISSION_NOT_INSTALLED (RUN_RELEASED, por desenho do V003) => delega ao modulo externo autorizado fisicamente vinculado por SHA (load_external_admission_module). _run_supervised executa plano economico SO com release_admission_receipt granted. Nao forja RUN_RELEASED/recibos; nao implementa bypass; nao antecipa QS4/B/C; nao cria Owner Gate.",
+   "reserved_decision": {
+    "classification": "RESERVED_OWNER_RELEASE_DECISION",
+    "proof": "O entry V003 congelado (SHA F77B5266...) levanta G00_RUN_RELEASE_DISABLED enquanto RELEASE_STATE!=RUN_RELEASED (dentro do pacote selado; virar = forjar, proibido) e, mesmo com RUN_RELEASED, levanta G00_EXTERNAL_RELEASE_ADMISSION_NOT_INSTALLED exigindo um modulo de admissao externo separadamente autorizado e fisicamente vinculado, inexistente neste artefato e que nao pode ser fabricado. Logo a liberacao legitima exige uma NOVA decisao do titular; a execucao economica real NAO e alcancavel aqui.",
+    "real_execution_reachable": false
+   },
+   "closed": true
+  },
+  {
+   "finding": "I-03C",
+   "title": "E2E SINTETICO isolado (sem efeito economico)",
+   "fix": "Com uma fixture SINTETICA (entry que sinaliza DEFER + modulo externo sintetico SHA-bound + runtime sintetico) a admissao positiva CONDICIONAL e demonstrada: o modulo externo produz um RunPlan economico de especie SYNTHETIC_ISOLATED e _run_supervised o EXECUTA sob supervisao sem tocar o V003 real. economic_plan_isolation_verdict garante que a especie SYNTHETIC_ISOLATED nunca aponte CODE/ nem modulos economicos reais. Uma admissao positiva simulada NUNCA e confundida com release real de V003.",
+   "closed": true
+  },
+  {
+   "finding": "PRIOR_PRESERVED",
+   "title": "R17 (I-01/I-02), R16 (N1/N2/N3), R15 (A01-A04/INT), F01-F04, R11/R12/R13-ORIGIN e R9 23/23 MET preservados",
+   "source": {
+    "i01_w04_retention": true,
+    "i02_terminal_truth": true,
+    "n1_n2_n3": true,
+    "native_r9": true
+   },
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "I-03 concluido como engenharia: prova fisica dos gates + rota externamente autorizavel completa; a execucao economica real e DECISAO RESERVADA do titular (impossivel sem nova decisao legitimamente autorizada), demonstrada honestamente e NAO declarada alcancavel. Testes E2E com modulos/instancias sinteticas isoladas, sem efeito economico. Fronteiras preservadas; politica nao lida; D4 nao autorizado.",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}

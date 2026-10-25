@@ -1,4 +1,13 @@
 QS4_SUPERVISED=BLOCKED QS4_EXECUTION_FORBIDDEN_NO_EXTERNAL_ADMISSION
+SUPERVISION_PHASE=SPAWNING label=SYNTH_ECON_B
+SUPERVISION_PHASE=RUNNING label=SYNTH_ECON_B
+SUPERVISION_PHASE=DRAINING label=SYNTH_ECON_B
+SUPERVISION_PHASE=TREE_EMPTY label=SYNTH_ECON_B
+SUPERVISION_PHASE=W04_EVALUATED_HELD label=SYNTH_ECON_B
+SUPERVISION_PHASE=W04_DISARMED label=SYNTH_ECON_B
+SUPERVISION_PHASE=CUSTODIAN_CLOSED label=SYNTH_ECON_B
+SUPERVISION_PHASE=RESULT_PERSISTED label=SYNTH_ECON_B
+{"child_exit": 0, "custody_resolved": true, "exit_class": "FAIL_TECHNICAL_AFTER_EFFECT_START", "exit_code": 3, "label": "SYNTH_ECON_B", "lineage": "OBSERVATIONAL_POSIX_SESSION_NOT_NATIVE_PROOF", "outcome": "TREE_EMPTY_CUSTODY_CLOSED", "receipt": {"error": null, "path": "/tmp/tmpzgnxg8ak/SYNTH_ECON_B_SUPERVISED_RUN_RESULT.json", "persisted": true}, "result": "FAIL_SUPERVISED_RUN", "schema": "PEGASUS_FULL_2026_V008_SUPERVISED_RUN_RESULT", "w04_full": "NOT_ATTESTED_NON_NATIVE_PLATFORM"}
 test_default_without_flag (__main__.AdmissionSealed.test_default_without_flag) ... ok
 test_unsealed_path_refused (__main__.AdmissionSealed.test_unsealed_path_refused) ... ok
 test_run_modes_blocked_before_any_effect (__main__.CliFailClosed.test_run_modes_blocked_before_any_effect) ... ok
@@ -18,9 +27,9 @@ test_terminal_evidence_capturable_before_close_then_refused_after (__main__.Cust
 test_absent_or_bogus_code_never_pass (__main__.ExitClassification.test_absent_or_bogus_code_never_pass) ... ok
 test_known_codes (__main__.ExitClassification.test_known_codes) ... ok
 test_main_technical_failure_exits_3_not_1 (__main__.ExitClassification.test_main_technical_failure_exits_3_not_1) ... Traceback (most recent call last):
-  File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 2121, in main
+  File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/pegasus_supervisor_v008.py", line 2311, in main
     return cmd_verify(ns)
-  File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/tests/test_supervisor_v008.py", line 428, in boom
+  File "/tmp/claude-0/-home-user-GitHub/652d9418-da8f-5720-ba45-14cb3fb88d0b/scratchpad/r16x/PEGASUS_FULL_2026_ENGINEERING_FINAL_V008/supervisor/tests/test_supervisor_v008.py", line 441, in boom
     raise RuntimeError("boom")
 RuntimeError: boom
 ok
@@ -87,16 +96,6 @@ test_completed_not_persisted_is_fail (__main__.R16OutcomeCoherencePure.test_comp
 test_completed_persisted_pass (__main__.R16OutcomeCoherencePure.test_completed_persisted_pass) ... ok
 test_nothing_persisted_fail (__main__.R16OutcomeCoherencePure.test_nothing_persisted_fail) ... ok
 test_stopped_persisted_safe_stop (__main__.R16OutcomeCoherencePure.test_stopped_persisted_safe_stop) ... ok
-test_bundle_inside_sealed_package_forbidden (__main__.R17ProductionAdmissionFailClosed.test_bundle_inside_sealed_package_forbidden) ... ok
-test_complete_bundle_still_blocks_at_final_seal (__main__.R17ProductionAdmissionFailClosed.test_complete_bundle_still_blocks_at_final_seal) ... ok
-test_incomplete_bundle_blocks_at_admission (__main__.R17ProductionAdmissionFailClosed.test_incomplete_bundle_blocks_at_admission) ... ok
-test_absent_bundle_blocked (__main__.R17ProductionAdmissionPure.test_absent_bundle_blocked) ... ok
-test_bad_schema_blocked (__main__.R17ProductionAdmissionPure.test_bad_schema_blocked) ... ok
-test_bad_sha_blocked (__main__.R17ProductionAdmissionPure.test_bad_sha_blocked) ... ok
-test_chain_predecessor_enforced (__main__.R17ProductionAdmissionPure.test_chain_predecessor_enforced) ... ok
-test_complete_bundle_reaches_final_seal_marker (__main__.R17ProductionAdmissionPure.test_complete_bundle_reaches_final_seal_marker) ... ok
-test_missing_gate_blocked (__main__.R17ProductionAdmissionPure.test_missing_gate_blocked) ... ok
-test_not_pass_blocked (__main__.R17ProductionAdmissionPure.test_not_pass_blocked) ... ok
 test_prespawn_block_with_canonical_receipt_is_exit_2 (__main__.R17TerminalCoherenceIntegration.test_prespawn_block_with_canonical_receipt_is_exit_2) ... ok
 test_prespawn_block_with_failed_receipt_is_exit_3_coherent (__main__.R17TerminalCoherenceIntegration.test_prespawn_block_with_failed_receipt_is_exit_3_coherent) ... ok
 test_post_spawn_fail_is_always_fail (__main__.R17TerminalCoherencePure.test_post_spawn_fail_is_always_fail) ... ok
@@ -105,6 +104,23 @@ test_prespawn_block_persisted_is_blocked (__main__.R17TerminalCoherencePure.test
 test_disarm_is_evaluate_then_release (__main__.R17W04EvaluateVsRelease.test_disarm_is_evaluate_then_release) ... ok
 test_evaluate_holds_handles (__main__.R17W04EvaluateVsRelease.test_evaluate_holds_handles) ... ok
 test_release_closes_only_after_explicit_call (__main__.R17W04EvaluateVsRelease.test_release_closes_only_after_explicit_call) ... ok
+test_defer_loads_external_module_and_admits_economic_plan (__main__.R18ExternalRouteSyntheticE2E.test_defer_loads_external_module_and_admits_economic_plan) ... ok
+test_external_module_identity_mismatch_rejected (__main__.R18ExternalRouteSyntheticE2E.test_external_module_identity_mismatch_rejected) ... ok
+test_run_supervised_economic_without_receipt_blocks (__main__.R18ExternalRouteSyntheticE2E.test_run_supervised_economic_without_receipt_blocks) ... ok
+test_supervised_executes_synthetic_economic_plan (__main__.R18ExternalRouteSyntheticE2E.test_supervised_executes_synthetic_economic_plan) ... ok
+test_absent_bundle_blocked (__main__.R18ProductionAdmissionPhysicalGates.test_absent_bundle_blocked) ... ok
+test_chain_predecessor_enforced (__main__.R18ProductionAdmissionPhysicalGates.test_chain_predecessor_enforced) ... ok
+test_concurrent_mutation_rejected (__main__.R18ProductionAdmissionPhysicalGates.test_concurrent_mutation_rejected) ... ok
+test_false_status_rejected (__main__.R18ProductionAdmissionPhysicalGates.test_false_status_rejected) ... ok
+test_invented_sha_rejected (__main__.R18ProductionAdmissionPhysicalGates.test_invented_sha_rejected) ... ok
+test_missing_file_rejected (__main__.R18ProductionAdmissionPhysicalGates.test_missing_file_rejected) ... ok
+test_path_escape_rejected (__main__.R18ProductionAdmissionPhysicalGates.test_path_escape_rejected) ... ok
+test_physically_verified_complete (__main__.R18ProductionAdmissionPhysicalGates.test_physically_verified_complete) ... ok
+test_reparse_alias_rejected (__main__.R18ProductionAdmissionPhysicalGates.test_reparse_alias_rejected) ... ok
+test_stale_provenance_rejected (__main__.R18ProductionAdmissionPhysicalGates.test_stale_provenance_rejected) ... ok
+test_bundle_inside_sealed_package_forbidden (__main__.R18ReservedOwnerReleaseDecision.test_bundle_inside_sealed_package_forbidden) ... ok
+test_frozen_entry_yields_reserved_decision (__main__.R18ReservedOwnerReleaseDecision.test_frozen_entry_yields_reserved_decision) ... ok
+test_incomplete_bundle_blocks_before_signal (__main__.R18ReservedOwnerReleaseDecision.test_incomplete_bundle_blocks_before_signal) ... ok
 test_empty_tree_is_the_only_finalize (__main__.ReconcileStepAction.test_empty_tree_is_the_only_finalize) ... ok
 test_live_before_deadline_holds (__main__.ReconcileStepAction.test_live_before_deadline_holds) ... ok
 test_live_production_holds_after_deadline (__main__.ReconcileStepAction.test_live_production_holds_after_deadline) ... ok
@@ -113,6 +129,7 @@ test_qualification_deadline_reports_reserved_once_then_holds (__main__.Reconcile
 test_default_admission_always_blocks (__main__.RunPathWiring.test_default_admission_always_blocks) ... ok
 test_make_run_plan_allows_non_economic (__main__.RunPathWiring.test_make_run_plan_allows_non_economic) ... ok
 test_make_run_plan_economic_with_proof_is_marked (__main__.RunPathWiring.test_make_run_plan_economic_with_proof_is_marked) ... ok
+test_make_run_plan_economic_without_receipt_refused (__main__.RunPathWiring.test_make_run_plan_economic_without_receipt_refused) ... ok
 test_make_run_plan_refuses_economic_without_proof (__main__.RunPathWiring.test_make_run_plan_refuses_economic_without_proof) ... ok
 test_run_supervised_refuses_economic_plan (__main__.RunPathWiring.test_run_supervised_refuses_economic_plan) ... ok
 test_run_supervised_rejects_bad_schema (__main__.RunPathWiring.test_run_supervised_rejects_bad_schema) ... ok
@@ -198,6 +215,6 @@ test_usn_journal_changed (__main__.W04Verdict.test_usn_journal_changed) ... ok
 test_usn_purged (__main__.W04Verdict.test_usn_purged) ... ok
 
 ----------------------------------------------------------------------
-Ran 191 tests in 9.614s
+Ran 199 tests in 9.829s
 
 OK

@@ -379,10 +379,20 @@ class RunPathWiring(unittest.TestCase):
         self.assertFalse(plan["economic"])
 
     def test_make_run_plan_economic_with_proof_is_marked(self):
+        # R18: um plano econômico exige TAMBÉM o recibo de release concedida (granted=True).
         plan = sup.make_run_plan(label="x", argv=["a"], protected_root="/i", out_root="/o",
                                  economic=True, external_authorization_proven=True,
-                                 admission_schema="s", admission_sha256="h")
+                                 admission_schema="s", admission_sha256="h",
+                                 release_admission_receipt={"granted": True, "kind": "SYNTHETIC_ISOLATED"},
+                                 plan_kind="SYNTHETIC_ISOLATED")
         self.assertTrue(plan["economic"] and plan["external_authorization_proven"])
+
+    def test_make_run_plan_economic_without_receipt_refused(self):
+        with self.assertRaises(sup.SupervisorBlocked) as cm:
+            sup.make_run_plan(label="x", argv=["a"], protected_root="/i", out_root="/o",
+                              economic=True, external_authorization_proven=True,
+                              admission_schema="s", admission_sha256="h")
+        self.assertIn("ECONOMIC_RUN_PLAN_WITHOUT_RELEASE_ADMISSION_RECEIPT", str(cm.exception))
 
     def test_default_admission_always_blocks(self):
         entry = sup._import_entry()
@@ -394,8 +404,11 @@ class RunPathWiring(unittest.TestCase):
         plan = {"schema": sup.RUN_PLAN_SCHEMA, "label": "e", "argv": ["run-b"], "protected_root": "/i",
                 "out_root": "/o", "economic": True, "external_authorization_proven": False}
         with tempfile.TemporaryDirectory() as t:
-            with self.assertRaises(sup.SupervisorBlocked):
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
                 sup._run_supervised(plan, evidence=Path(t) / "ev", entry=entry)
+            # causa ESPECÍFICA: mata o mutante que desliga o gate de autorização externa (sem o qual
+            # o ramo cairia no gate de recibo, com outra causa).
+            self.assertIn("ECONOMIC_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION", str(cm.exception))
 
     def test_run_supervised_rejects_bad_schema(self):
         entry = sup._import_entry()
@@ -1801,99 +1814,261 @@ class R17TerminalCoherenceIntegration(unittest.TestCase):
 # bloqueia no selo final. Falha na R16 (não havia ProductionReleaseAdmission/production_admission_
 # verdict; run-full escolhia phase=B) e PASSA nos bytes R17.
 # =====================================================================================
-_SHA = "A" * 64
+_RELEASE_ID = "SYNTHETIC_RELEASE_2026_R18_ISOLATED"
 
 
-def _complete_bundle(phase_chain=None):
-    gates = {g: {"sha256": _SHA, "status": "PASS"} for g in sup.REQUIRED_PRODUCTION_GATES}
-    return {"schema": sup.PRODUCTION_AUTH_SCHEMA, "gates": gates,
-            "phase_chain": phase_chain if phase_chain is not None else {"B": "PASS", "C": "PASS"}}
+def _sha_bytes(b):
+    return hashlib.sha256(b).hexdigest().upper()
 
 
-class _FakeEntryBlocked:
+def _write_physical_gates(bundle_root, release_id=_RELEASE_ID):
+    """Escreve um ARQUIVO físico por gate obrigatório sob bundle_root/gates/ e devolve os registros
+    com SHA REAL do conteúdo (prova física, não SHA textual)."""
+    gdir = Path(bundle_root) / "gates"
+    gdir.mkdir(parents=True, exist_ok=True)
+    gates = {}
+    for g in sup.REQUIRED_PRODUCTION_GATES:
+        rel = "gates/%s.json" % g
+        content = json.dumps({"gate": g, "release_id": release_id, "attestation": "SYNTHETIC_PASS"},
+                             sort_keys=True).encode("utf-8")
+        (Path(bundle_root) / rel).write_bytes(content)
+        gates[g] = {"path": rel, "sha256": _sha_bytes(content), "status": "PASS", "release_id": release_id}
+    return gates
+
+
+def _physical_bundle(bundle_root, *, phase_chain=None, release_id=_RELEASE_ID, external_module=None):
+    b = {"schema": sup.PRODUCTION_AUTH_SCHEMA, "release_id": release_id,
+         "gates": _write_physical_gates(bundle_root, release_id),
+         "phase_chain": phase_chain if phase_chain is not None else {"B": "PASS", "C": "PASS"}}
+    if external_module is not None:
+        b["external_admission_module"] = external_module
+    return b
+
+
+class _FakeEntryRunDisabled:
+    """V003 congelado: RELEASE_STATE != RUN_RELEASED => G00_RUN_RELEASE_DISABLED (decisão reservada)."""
     class Blocked(RuntimeError):
         pass
 
-    def __init__(self):
-        self.release_calls = []
+    def release_admission(self, req, phase):
+        raise self.Blocked("G00_RUN_RELEASE_DISABLED; QS2/QS3/QS4/QS5_B06_AND_R01_R06_PENDING")
+
+
+class _FakeEntryDefer:
+    """Fixture SINTÉTICA: RELEASE_STATE=RUN_RELEASED => o V003 delega ao módulo externo autorizado
+    (G00_EXTERNAL_RELEASE_ADMISSION_NOT_INSTALLED). NÃO é o entry real; serve só para exercitar a
+    plumbing de forma isolada, sem tocar o V003 real nem ser confundida com release real."""
+    class Blocked(RuntimeError):
+        pass
 
     def release_admission(self, req, phase):
-        # Selo final do V003: bloqueia incondicionalmente (RUN_RELEASED=NO) — nenhum req o promove.
-        self.release_calls.append(phase)
-        raise self.Blocked("G00_RUN_RELEASE_DISABLED")
+        raise self.Blocked("G00_EXTERNAL_RELEASE_ADMISSION_NOT_INSTALLED")
 
 
-class R17ProductionAdmissionPure(unittest.TestCase):
+_SYNTH_EXTERNAL_MODULE = '''
+"""Modulo de admissao EXTERNO SINTETICO e ISOLADO (nao e release real do V003)."""
+import os, sys, tempfile
+import pegasus_supervisor_v008 as sup
+
+class _Adm:
+    schema = "SYNTHETIC_ISOLATED_EXTERNAL_ADMISSION"
+    def admit(self, *, phase, package_root, entry, ns, verdict):
+        out = os.path.join(tempfile.mkdtemp(prefix="pegasus_synth_econ_"), "OUT")
+        prot = tempfile.mkdtemp(prefix="pegasus_synth_prot_")
+        receipt = {"granted": True, "kind": "SYNTHETIC_ISOLATED",
+                   "release_id": verdict.get("release_id"),
+                   "authority": "SYNTHETIC_EXTERNAL_MODULE_NOT_REAL_V003_RELEASE"}
+        # argv aponta um runtime SINTETICO (nunca CODE/ nem modulos economicos reais)
+        argv = [sys.executable, "-I", "-c",
+                "import os,sys; os.makedirs(sys.argv[1], exist_ok=True); "
+                "open(os.path.join(sys.argv[1],'SYNTH_ECON.txt'),'w').write('synthetic'); sys.exit(0)",
+                out]
+        return sup.make_run_plan(label="SYNTH_ECON_"+phase, argv=argv, protected_root=prot, out_root=out,
+                                 economic=True, external_authorization_proven=True,
+                                 admission_schema=self.schema, admission_sha256="SYNTH",
+                                 release_admission_receipt=receipt, plan_kind="SYNTHETIC_ISOLATED",
+                                 timeout_s=60)
+
+ADMISSION = _Adm()
+'''
+
+
+class R18ProductionAdmissionPhysicalGates(unittest.TestCase):
+    """Prova FÍSICA dos gates: lê+re-hasheia o arquivo, proveniência, path-safety. Falha na R17
+    (production_admission_verdict so aceitava SHA textual) e PASSA nos bytes R18."""
+
     def test_absent_bundle_blocked(self):
-        v = sup.production_admission_verdict(None, phase="B")
+        v = sup.production_admission_verdict(None, phase="B", bundle_root=None)
         self.assertEqual(v["admission"], "BLOCKED")
         self.assertIn("AUTHORIZATION_BUNDLE_ABSENT", v["gaps"])
 
-    def test_bad_schema_blocked(self):
-        v = sup.production_admission_verdict({"schema": "X"}, phase="B")
-        self.assertIn("AUTHORIZATION_BUNDLE_SCHEMA_INVALID", v["gaps"])
+    def test_physically_verified_complete(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertEqual(v["admission"], "ADMITTED_GATES_PHYSICALLY_VERIFIED")
+            self.assertEqual(set(v["gates_physically_verified"]), set(sup.REQUIRED_PRODUCTION_GATES))
 
-    def test_missing_gate_blocked(self):
-        b = _complete_bundle(); b["gates"].pop(sup.REQUIRED_PRODUCTION_GATES[0])
-        v = sup.production_admission_verdict(b, phase="B")
-        self.assertEqual(v["admission"], "BLOCKED")
-        self.assertTrue(any(x.startswith("GATE_MISSING") for x in v["gaps"]))
+    def test_invented_sha_rejected(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            b["gates"]["QS4_SUCCESSOR_QUALIFICATION"]["sha256"] = "B" * 64  # SHA inventado
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertEqual(v["admission"], "BLOCKED")
+            self.assertTrue(any("GATE_CONTENT_SHA_MISMATCH" in x for x in v["gaps"]))
 
-    def test_bad_sha_blocked(self):
-        b = _complete_bundle(); b["gates"]["QS4_SUCCESSOR_QUALIFICATION"]["sha256"] = "ZZ"
-        v = sup.production_admission_verdict(b, phase="B")
-        self.assertTrue(any(x.startswith("GATE_SHA_INVALID") for x in v["gaps"]))
+    def test_missing_file_rejected(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            (Path(t) / "gates" / "POLICYROOT_LIVE_CAPTURE.json").unlink()
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertTrue(any("GATE_FILE_ABSENT" in x for x in v["gaps"]))
 
-    def test_not_pass_blocked(self):
-        b = _complete_bundle(); b["gates"]["QS5_B06_INDEPENDENT_AUDIT"]["status"] = "PENDING"
-        v = sup.production_admission_verdict(b, phase="B")
-        self.assertTrue(any(x.startswith("GATE_NOT_PASS") for x in v["gaps"]))
+    def test_false_status_rejected(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            b["gates"]["QS5_B06_INDEPENDENT_AUDIT"]["status"] = "PENDING"
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertTrue(any("GATE_NOT_PASS" in x for x in v["gaps"]))
+
+    def test_stale_provenance_rejected(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            b["gates"]["SOURCE_ADMISSION_BY_HASH"]["release_id"] = "OTHER_STALE_RELEASE"
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertTrue(any("GATE_PROVENANCE_RELEASE_ID_MISMATCH_OR_STALE" in x for x in v["gaps"]))
+
+    def test_concurrent_mutation_rejected(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            # altera o conteúdo do arquivo APÓS o bundle ter sido escrito (manipulação concorrente)
+            (Path(t) / "gates" / "R01_R06_PHYSICAL_DEFINITIONS.json").write_bytes(b"tampered")
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertTrue(any("GATE_CONTENT_SHA_MISMATCH_OR_CONCURRENT_MUTATION" in x for x in v["gaps"]))
+
+    def test_reparse_alias_rejected(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            victim = Path(t) / "gates" / "VOLUME_SERIAL_AND_FREE_SPACE.json"
+            victim.unlink()
+            try:
+                victim.symlink_to(Path(t) / "gates" / "R01_R06_PHYSICAL_DEFINITIONS.json")
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink unavailable")
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertTrue(any("REPARSE_OR_ALIAS" in x for x in v["gaps"]))
+
+    def test_path_escape_rejected(self):
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t)
+            b["gates"]["RUNTIME_PYTHON_3_14_7_PS_5_1"]["path"] = "../escape.json"
+            v = sup.production_admission_verdict(b, phase="B", bundle_root=Path(t))
+            self.assertTrue(any("ESCAPE" in x or "OUTSIDE" in x for x in v["gaps"]))
 
     def test_chain_predecessor_enforced(self):
-        b = _complete_bundle(phase_chain={})  # FULL exige B e C
-        v = sup.production_admission_verdict(b, phase="FULL")
-        self.assertEqual(v["admission"], "BLOCKED")
-        self.assertTrue(any("PHASE_CHAIN_PREDECESSOR_NOT_PASS" in x for x in v["gaps"]))
-
-    def test_complete_bundle_reaches_final_seal_marker(self):
-        # Pacote completo: o veredito HABILITA o selo final (não é promoção por si só).
-        v = sup.production_admission_verdict(_complete_bundle(), phase="B")
-        self.assertEqual(v["admission"], "ADMITTED_PENDING_FINAL_SEAL")
-        self.assertEqual(set(v["gates"]), set(sup.REQUIRED_PRODUCTION_GATES))
+        with tempfile.TemporaryDirectory() as t:
+            b = _physical_bundle(t, phase_chain={})  # FULL exige B e C
+            v = sup.production_admission_verdict(b, phase="FULL", bundle_root=Path(t))
+            self.assertTrue(any("PHASE_CHAIN_PREDECESSOR_NOT_PASS" in x for x in v["gaps"]))
 
 
-class R17ProductionAdmissionFailClosed(unittest.TestCase):
-    def _write_bundle(self, d, obj):
+class R18ReservedOwnerReleaseDecision(unittest.TestCase):
+    """Sobre o artefato congelado a rota chega HONESTAMENTE à decisão reservada e para: nenhuma
+    execução econômica real é alcançável sem uma nova decisão de release legitimamente autorizada."""
+
+    def _bundle(self, d, **kw):
         p = Path(d) / "AUTH_BUNDLE.json"
-        p.write_text(json.dumps(obj), encoding="utf-8")
+        p.write_text(json.dumps(_physical_bundle(d, **kw)), encoding="utf-8")
         return str(p)
 
-    def test_incomplete_bundle_blocks_at_admission(self):
+    def test_frozen_entry_yields_reserved_decision(self):
         with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as pkg:
-            path = self._write_bundle(t, {"schema": "WRONG"})
-            adm = sup.ProductionReleaseAdmission(path)
-            entry = _FakeEntryBlocked()
+            adm = sup.ProductionReleaseAdmission(self._bundle(t))
+            entry = _FakeEntryRunDisabled()
+            with self.assertRaises(entry.Blocked) as cm:
+                adm.admit(phase="B", package_root=Path(pkg), entry=entry, ns=None)
+            self.assertIn("RESERVED_OWNER_RELEASE_DECISION", str(cm.exception))
+
+    def test_incomplete_bundle_blocks_before_signal(self):
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as pkg:
+            path = Path(t) / "AUTH_BUNDLE.json"
+            path.write_text(json.dumps({"schema": "WRONG"}), encoding="utf-8")
+            adm = sup.ProductionReleaseAdmission(str(path))
+            entry = _FakeEntryRunDisabled()
             with self.assertRaises(entry.Blocked) as cm:
                 adm.admit(phase="B", package_root=Path(pkg), entry=entry, ns=None)
             self.assertIn("PRODUCTION_ADMISSION_BLOCKED", str(cm.exception))
-            self.assertEqual(entry.release_calls, [])  # nem chegou ao selo final
-
-    def test_complete_bundle_still_blocks_at_final_seal(self):
-        # I-03 núcleo: mesmo um pacote completo e válido em SHA bloqueia no selo final do V003.
-        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as pkg:
-            path = self._write_bundle(t, _complete_bundle())
-            adm = sup.ProductionReleaseAdmission(path)
-            entry = _FakeEntryBlocked()
-            with self.assertRaises(entry.Blocked):
-                adm.admit(phase="B", package_root=Path(pkg), entry=entry, ns=None)
-            self.assertEqual(entry.release_calls, ["B"])  # chegou ao selo final e ele bloqueou
 
     def test_bundle_inside_sealed_package_forbidden(self):
         with tempfile.TemporaryDirectory() as pkg:
-            path = self._write_bundle(pkg, _complete_bundle())  # dentro do pacote selado
-            adm = sup.ProductionReleaseAdmission(path)
+            path = Path(pkg) / "AUTH_BUNDLE.json"
+            path.write_text(json.dumps(_physical_bundle(pkg)), encoding="utf-8")
+            adm = sup.ProductionReleaseAdmission(str(path))
             with self.assertRaises(sup.SupervisorBlocked):
-                adm.admit(phase="B", package_root=Path(pkg), entry=_FakeEntryBlocked(), ns=None)
+                adm.admit(phase="B", package_root=Path(pkg), entry=_FakeEntryRunDisabled(), ns=None)
+
+
+class R18ExternalRouteSyntheticE2E(unittest.TestCase):
+    """Demonstração E2E SINTÉTICA e ISOLADA: com RELEASE_STATE=RUN_RELEASED (fixture) o V003 delega
+    ao módulo externo autorizado (SHA-bound), que produz um RunPlan econômico de espécie
+    SYNTHETIC_ISOLATED; `_run_supervised` o EXECUTA sob supervisão SEM tocar o V003 real. Uma admissão
+    positiva simulada NUNCA é confundida com release real."""
+
+    def _external_module(self, d):
+        p = Path(d) / "external_release_admission.py"
+        p.write_text(_SYNTH_EXTERNAL_MODULE, encoding="utf-8")
+        return p
+
+    def test_external_module_identity_mismatch_rejected(self):
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as pkg:
+            modp = self._external_module(t)
+            b = _physical_bundle(t, external_module={"path": str(modp), "sha256": "C" * 64})
+            path = Path(t) / "AUTH_BUNDLE.json"; path.write_text(json.dumps(b), encoding="utf-8")
+            adm = sup.ProductionReleaseAdmission(str(path))
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                adm.admit(phase="B", package_root=Path(pkg), entry=_FakeEntryDefer(), ns=None)
+            self.assertIn("EXTERNAL_ADMISSION_MODULE_IDENTITY_MISMATCH", str(cm.exception))
+
+    def test_defer_loads_external_module_and_admits_economic_plan(self):
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as pkg:
+            modp = self._external_module(t)
+            import hashlib as _h
+            msha = _h.sha256(modp.read_bytes()).hexdigest().upper()
+            b = _physical_bundle(t, external_module={"path": str(modp), "sha256": msha})
+            path = Path(t) / "AUTH_BUNDLE.json"; path.write_text(json.dumps(b), encoding="utf-8")
+            adm = sup.ProductionReleaseAdmission(str(path))
+            plan = adm.admit(phase="B", package_root=Path(pkg), entry=_FakeEntryDefer(), ns=None)
+            self.assertEqual(plan["schema"], sup.RUN_PLAN_SCHEMA)
+            self.assertTrue(plan["economic"])
+            self.assertEqual(plan["plan_kind"], "SYNTHETIC_ISOLATED")
+            self.assertIs(plan["release_admission_receipt"]["granted"], True)
+
+    def test_supervised_executes_synthetic_economic_plan(self):
+        # A plumbing econômica é ALCANÇÁVEL: o plano sintético entra em _run_supervised (não é
+        # bloqueado por falta de recibo) e roda sob supervisão. (Resultado terminal nao e o foco.)
+        with tempfile.TemporaryDirectory() as t, tempfile.TemporaryDirectory() as pkg:
+            modp = self._external_module(t)
+            import hashlib as _h
+            msha = _h.sha256(modp.read_bytes()).hexdigest().upper()
+            b = _physical_bundle(t, external_module={"path": str(modp), "sha256": msha})
+            path = Path(t) / "AUTH_BUNDLE.json"; path.write_text(json.dumps(b), encoding="utf-8")
+            adm = sup.ProductionReleaseAdmission(str(path))
+            plan = adm.admit(phase="B", package_root=Path(pkg), entry=_FakeEntryDefer(), ns=None)
+            with tempfile.TemporaryDirectory() as ev:
+                code = sup._run_supervised(plan, evidence=Path(ev), entry=_FakeEntryDefer())
+            # NAO foi bloqueado por falta de recibo/isolamento: entrou na execucao supervisionada.
+            self.assertIn(code, (sup.EXIT_PASS, sup.EXIT_FAIL, sup.EXIT_SAFE_STOP))
+
+    def test_run_supervised_economic_without_receipt_blocks(self):
+        plan = dict(sup.make_run_plan(label="X", argv=["py", "-c", "0"], protected_root="/p",
+                                      out_root="/tmp/zzz_r18", economic=True,
+                                      external_authorization_proven=True, admission_schema="S",
+                                      admission_sha256="H",
+                                      release_admission_receipt={"granted": True, "kind": "SYNTHETIC_ISOLATED"}))
+        plan["release_admission_receipt"] = None  # recibo removido depois de criado
+        with self.assertRaises(sup.SupervisorBlocked) as cm:
+            sup._run_supervised(plan, evidence=Path("/tmp/zzz_r18_ev"), entry=_FakeEntryDefer())
+        self.assertIn("ECONOMIC_PLAN_WITHOUT_RELEASE_ADMISSION_RECEIPT", str(cm.exception))
 
 
 class R17W04EvaluateVsRelease(unittest.TestCase):

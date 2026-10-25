@@ -1698,15 +1698,22 @@ RUN_PLAN_SCHEMA = "PEGASUS_FULL_2026_V008_RUN_PLAN"
 
 def make_run_plan(*, label, argv, protected_root, out_root, economic,
                   external_authorization_proven=False, admission_schema, admission_sha256,
-                  stop_after_committed=None, timeout_s=None):
+                  stop_after_committed=None, timeout_s=None, release_admission_receipt=None,
+                  plan_kind="NON_ECONOMIC"):
     if economic and not external_authorization_proven:
         # Um plano econômico só pode existir com prova de autorização externa.
         raise SupervisorBlocked("ECONOMIC_RUN_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")
+    if economic and not (isinstance(release_admission_receipt, Mapping)
+                         and release_admission_receipt.get("granted") is True):
+        # R18: um plano econômico só existe com o RECIBO de uma admissão de release concedida
+        # (produzido por um módulo de release externo autorizado). O artefato congelado nunca o emite.
+        raise SupervisorBlocked("ECONOMIC_RUN_PLAN_WITHOUT_RELEASE_ADMISSION_RECEIPT")
     return {"schema": RUN_PLAN_SCHEMA, "label": str(label), "argv": [str(a) for a in argv],
             "protected_root": str(protected_root), "out_root": str(out_root),
             "economic": bool(economic), "external_authorization_proven": bool(external_authorization_proven),
             "admission_schema": admission_schema, "admission_sha256": admission_sha256,
-            "stop_after_committed": stop_after_committed, "timeout_s": timeout_s}
+            "stop_after_committed": stop_after_committed, "timeout_s": timeout_s,
+            "release_admission_receipt": release_admission_receipt, "plan_kind": plan_kind}
 
 
 class DefaultReleaseAdmission:
@@ -1748,49 +1755,160 @@ PHASE_CHAIN_PREDECESSORS = {"B": (), "C": ("B",), "FULL": ("B", "C")}
 _HEXSET = set("0123456789ABCDEF")
 
 
-def production_admission_verdict(bundle, *, phase) -> dict:
-    """PURO/testável offline. Verifica o pacote de autorização de produção fornecido EXTERNAMENTE
-    pelo titular: schema, fase e cada gate técnico obrigatório presente com recibo vinculado por
-    SHA-256 (sha + status=PASS). Verifica o encadeamento (C exige B; FULL exige B e C). NUNCA
-    promove: o veredito ADMITTED_PENDING_FINAL_SEAL apenas HABILITA o supervisor a chamar o selo
-    final (entry.release_admission), que bloqueia enquanto RUN_RELEASED=NO. Qualquer ausência,
-    schema inválido, gate faltante, SHA inválido/divergente ou status != PASS => BLOCKED com causa."""
+def _safe_under(root: Path, rel: str):
+    """R18: resolve `rel` sob `root` SEM seguir aliases/reparse. Recusa escape (``..``), caminho
+    absoluto, qualquer componente link/junction e resolução final fora de `root`. Devolve o Path
+    resolvido ou levanta a razão exata. Fecha os negativos reparse/alias e bundle-fora-do-escopo."""
+    root = Path(root).resolve()
+    if rel is None or not isinstance(rel, str) or not rel.strip():
+        raise SupervisorBlocked("GATE_PATH_ABSENT")
+    r = Path(rel)
+    if r.is_absolute() or any(part == ".." for part in r.parts):
+        raise SupervisorBlocked("GATE_PATH_ABSOLUTE_OR_ESCAPE:%s" % rel)
+    cur = root
+    for part in r.parts:
+        cur = cur / part
+        if cur.is_symlink() or (hasattr(cur, "is_junction") and cur.is_junction()):
+            raise SupervisorBlocked("GATE_PATH_REPARSE_OR_ALIAS:%s" % rel)
+    real = cur.resolve()
+    if not (real == root or real.is_relative_to(root)):
+        raise SupervisorBlocked("GATE_PATH_RESOLVES_OUTSIDE_BUNDLE:%s" % rel)
+    return real
+
+
+def verify_gate_file(bundle_root: Path, rec, *, release_id) -> dict:
+    """R18: PROVA FÍSICA de um gate. Lê e RE-HASHEIA o arquivo técnico apontado e confere o SHA
+    declarado, a existência, o tipo (arquivo regular, sem symlink/reparse), a proveniência
+    (``release_id`` do gate == do bundle) e o status. Devolve {ok, sha256, reason}. Fecha os
+    negativos: SHA inventado/divergente, arquivo ausente, status falso, mismatch, reparse/alias,
+    stale (release_id divergente), manipulação concorrente (o re-hash no momento da verificação
+    difere do SHA declarado)."""
+    if not isinstance(rec, Mapping):
+        return {"ok": False, "reason": "GATE_RECORD_INVALID"}
+    declared = str(rec.get("sha256", "")).upper()
+    if len(declared) != 64 or any(c not in _HEXSET for c in declared):
+        return {"ok": False, "reason": "GATE_SHA_INVALID"}
+    if rec.get("status") != "PASS":
+        return {"ok": False, "reason": "GATE_NOT_PASS"}
+    if rec.get("release_id") != release_id:
+        return {"ok": False, "reason": "GATE_PROVENANCE_RELEASE_ID_MISMATCH_OR_STALE"}
+    try:
+        p = _safe_under(bundle_root, rec.get("path"))
+    except SupervisorBlocked as exc:
+        return {"ok": False, "reason": str(exc)}
+    if not p.is_file():
+        return {"ok": False, "reason": "GATE_FILE_ABSENT_OR_NOT_REGULAR"}
+    measured = sha256_file(p)
+    if measured != declared:
+        return {"ok": False, "reason": "GATE_CONTENT_SHA_MISMATCH_OR_CONCURRENT_MUTATION"}
+    return {"ok": True, "sha256": measured, "path": rec.get("path")}
+
+
+def production_admission_verdict(bundle, *, phase, bundle_root) -> dict:
+    """R18: verifica o pacote de autorização de produção do titular com PROVA FÍSICA dos gates — não
+    mais apenas o SHA textual que acompanha ``status=PASS``. Cada gate técnico obrigatório é lido e
+    re-hasheado do seu arquivo físico sob `bundle_root` (fora do pacote selado), com proveniência
+    (`release_id`) e path-safety (sem symlink/reparse/escape). Verifica o encadeamento (C exige B;
+    FULL exige B e C). O veredito ADMITTED_GATES_PHYSICALLY_VERIFIED apenas atesta os gates; a
+    liberação em si é decidida adiante pelo sinal do `release_admission` do V003 (rota externa)."""
     if not isinstance(bundle, Mapping):
         return {"admission": "BLOCKED", "gaps": ["AUTHORIZATION_BUNDLE_ABSENT"]}
     if bundle.get("schema") != PRODUCTION_AUTH_SCHEMA:
         return {"admission": "BLOCKED", "gaps": ["AUTHORIZATION_BUNDLE_SCHEMA_INVALID"]}
     if phase not in PHASE_CHAIN_PREDECESSORS:
         return {"admission": "BLOCKED", "gaps": ["PHASE_INVALID:%s" % phase]}
+    release_id = bundle.get("release_id")
+    if not release_id or not isinstance(release_id, str):
+        return {"admission": "BLOCKED", "gaps": ["AUTHORIZATION_BUNDLE_RELEASE_ID_ABSENT"]}
     gates = bundle.get("gates") if isinstance(bundle.get("gates"), Mapping) else {}
     chain = bundle.get("phase_chain") if isinstance(bundle.get("phase_chain"), Mapping) else {}
     gaps: List[str] = []
-    satisfied: Dict[str, str] = {}
+    verified: Dict[str, str] = {}
     for g in REQUIRED_PRODUCTION_GATES:
         rec = gates.get(g)
         if not isinstance(rec, Mapping):
             gaps.append("GATE_MISSING:%s" % g)
             continue
-        sha = str(rec.get("sha256", "")).upper()
-        if len(sha) != 64 or any(c not in _HEXSET for c in sha):
-            gaps.append("GATE_SHA_INVALID:%s" % g)
+        res = verify_gate_file(bundle_root, rec, release_id=release_id)
+        if not res["ok"]:
+            gaps.append("%s:%s" % (res["reason"], g))
             continue
-        if rec.get("status") != "PASS":
-            gaps.append("GATE_NOT_PASS:%s" % g)
-            continue
-        satisfied[g] = sha
+        verified[g] = res["sha256"]
     for pre in PHASE_CHAIN_PREDECESSORS[phase]:
         if chain.get(pre) != "PASS":
             gaps.append("PHASE_CHAIN_PREDECESSOR_NOT_PASS:%s" % pre)
     if gaps:
         return {"admission": "BLOCKED", "gaps": sorted(gaps)}
-    return {"admission": "ADMITTED_PENDING_FINAL_SEAL", "phase": phase, "gates": satisfied}
+    return {"admission": "ADMITTED_GATES_PHYSICALLY_VERIFIED", "phase": phase,
+            "release_id": release_id, "gates_physically_verified": verified}
+
+
+def release_admission_signal(entry, request, phase) -> dict:
+    """R18: LÊ o sinal do `release_admission` congelado do V003 SEM burlá-lo. O entry V003 é, por
+    desenho, um stub de gate sem capacidade de promoção embutida: com RELEASE_STATE != RUN_RELEASED
+    levanta `G00_RUN_RELEASE_DISABLED` (bloqueio duro); com RUN_RELEASED levanta
+    `G00_EXTERNAL_RELEASE_ADMISSION_NOT_INSTALLED`, que é a DELEGAÇÃO a um módulo de admissão externo,
+    separadamente autorizado e fisicamente vinculado (o texto do próprio V003). Qualquer outra
+    Blocked é bloqueio. Um retorno (o entry congelado nunca retorna) é tratado como inesperado."""
+    rel_phase = phase if phase in ("B", "C") else "C"
+    try:
+        entry.release_admission(request, rel_phase)
+    except Exception as exc:
+        if type(exc).__name__ not in ("Blocked", "SupervisorBlocked"):
+            raise
+        msg = str(exc)
+        if "G00_RUN_RELEASE_DISABLED" in msg:
+            return {"decision": "RUN_RELEASE_DISABLED", "reason": msg}
+        if "G00_EXTERNAL_RELEASE_ADMISSION_NOT_INSTALLED" in msg:
+            return {"decision": "DEFER_TO_EXTERNAL_MODULE", "reason": msg}
+        return {"decision": "BLOCKED", "reason": msg}
+    return {"decision": "RETURNED_UNEXPECTED", "reason": "release_admission returned (frozen V003 nunca retorna)"}
+
+
+def load_external_admission_module(module_path, expected_sha256, package_root):
+    """R18: carrega o MÓDULO DE ADMISSÃO EXTERNO autorizado (fornecido por um release separado e
+    auditado), fisicamente vinculado por SHA-256. O arquivo deve existir FORA do pacote selado, não
+    ser symlink/reparse e bater exatamente com o SHA que o bundle fixa. Nenhum código é executado
+    antes da verificação de identidade. Devolve o objeto ADMISSION do módulo."""
+    import importlib.util
+    p = Path(module_path).resolve()
+    if p.is_relative_to(Path(package_root).resolve()):
+        raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_INSIDE_SEALED_PACKAGE_FORBIDDEN")
+    if p.is_symlink() or (hasattr(p, "is_junction") and p.is_junction()) or not p.is_file():
+        raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_ABSENT_OR_ALIAS")
+    exp = str(expected_sha256 or "").upper()
+    if len(exp) != 64 or any(c not in _HEXSET for c in exp):
+        raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_SHA_PIN_INVALID")
+    if sha256_file(p) != exp:
+        raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_IDENTITY_MISMATCH")
+    spec = importlib.util.spec_from_file_location("pegasus_external_release_admission", str(p))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    adm = getattr(mod, "ADMISSION", None)
+    if adm is None:
+        raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_NO_ADMISSION_OBJECT")
+    adm.loaded_from = str(p)
+    adm.loaded_sha256 = exp
+    return adm
 
 
 class ProductionReleaseAdmission:
-    """Admissão de produção REAL (I-03). Lê o pacote de autorização externo do titular (JSON, FORA
-    do pacote selado), verifica os gates técnicos por SHA via production_admission_verdict e SÓ ENTÃO
-    chama o selo final do V003. Mesmo um pacote completo bloqueia em entry.release_admission enquanto
-    RELEASE_STATE != RUN_RELEASED. Não fabrica nada; não antecipa QS4/B/C; não cria Owner Gate."""
+    """Admissão de produção REAL (R18). Rota externamente autorizável, COMPLETA e fail-closed:
+
+      1. carrega o pacote de autorização externo do titular (JSON, FORA do pacote selado);
+      2. PROVA FISICAMENTE cada gate técnico (lê+re-hasheia o arquivo, proveniência, path-safety);
+      3. LÊ o sinal do `release_admission` do V003 (sem burlar):
+         - `RUN_RELEASE_DISABLED` (RELEASE_STATE != RUN_RELEASED, caso do artefato congelado) =>
+           DECISÃO RESERVADA do titular: a liberação legítima exige uma NOVA decisão autorizada
+           (virar o RELEASE_STATE num release auditado e instalar o módulo externo). NÃO é erro de
+           código, não se resolve por renomear recibo nem instalar flag;
+         - `DEFER_TO_EXTERNAL_MODULE` (RUN_RELEASED + sem promoção embutida, por desenho do V003) =>
+           carrega o MÓDULO EXTERNO autorizado fisicamente vinculado por SHA e delega-lhe a admissão,
+           que devolve o RunPlan econômico com o recibo de release.
+
+    Nunca forja RUN_RELEASED nem recibos; nunca implementa bypass de `release_admission` (lê o seu
+    sinal); nunca antecipa QS4/Phase B/C; nunca cria Owner Gate. Sobre o artefato congelado, a rota
+    chega honestamente à DECISÃO RESERVADA e para — a execução econômica real NÃO é alcançável aqui."""
     schema = "PEGASUS_FULL_2026_V008_PRODUCTION_RELEASE_ADMISSION"
 
     def __init__(self, bundle_path):
@@ -1798,27 +1916,40 @@ class ProductionReleaseAdmission:
 
     def _load_bundle(self, package_root: Path):
         if not self.bundle_path:
-            return None
+            return None, None
         p = Path(self.bundle_path).resolve()
         # Auto-autorização proibida: o pacote de autorização NUNCA pode estar dentro do pacote selado.
         if p.is_relative_to(Path(package_root).resolve()):
             raise SupervisorBlocked("AUTHORIZATION_BUNDLE_INSIDE_SEALED_PACKAGE_FORBIDDEN")
-        if not p.is_file():
-            return None
+        if p.is_symlink() or (hasattr(p, "is_junction") and p.is_junction()) or not p.is_file():
+            return None, None
         try:
-            return json.loads(p.read_text(encoding="utf-8"))
+            return json.loads(p.read_text(encoding="utf-8")), p.parent
         except Exception as exc:
             raise SupervisorBlocked("AUTHORIZATION_BUNDLE_UNREADABLE:%s" % type(exc).__name__)
 
     def admit(self, *, phase, package_root, entry, ns):
-        bundle = self._load_bundle(package_root)
-        verdict = production_admission_verdict(bundle, phase=phase)
-        if verdict["admission"] != "ADMITTED_PENDING_FINAL_SEAL":
+        bundle, bundle_root = self._load_bundle(package_root)
+        verdict = production_admission_verdict(bundle, phase=phase, bundle_root=bundle_root)
+        if verdict["admission"] != "ADMITTED_GATES_PHYSICALLY_VERIFIED":
             raise entry.Blocked("PRODUCTION_ADMISSION_BLOCKED:" + ";".join(verdict["gaps"]))
-        # Gates técnicos presentes: ainda assim o selo final do runtime V003 decide — e bloqueia aqui
-        # (RUN_RELEASED=NO). O encadeamento econômico não existe sem a liberação legítima da origem.
-        entry.release_admission({"production_admission": verdict}, phase if phase in ("B", "C") else "C")
-        raise SupervisorBlocked("PRODUCTION_RELEASE_ADMISSION_REACHED_FINAL_SEAL_STILL_BLOCKED")
+        sig = release_admission_signal(entry, {"production_admission": verdict}, phase)
+        if sig["decision"] == "RUN_RELEASE_DISABLED":
+            # Conclusão honesta de engenharia: a liberação legítima é uma DECISÃO RESERVADA do titular.
+            raise entry.Blocked("RESERVED_OWNER_RELEASE_DECISION; RUN_RELEASED=NO "
+                                "(V003 RELEASE_STATE qualification-only; requer nova decisao de release "
+                                "legitimamente autorizada, nao e erro de codigo): " + sig["reason"])
+        if sig["decision"] != "DEFER_TO_EXTERNAL_MODULE":
+            raise entry.Blocked("PRODUCTION_ADMISSION_RELEASE_SIGNAL_UNEXPECTED:" + sig.get("reason", sig["decision"]))
+        # RELEASE_STATE=RUN_RELEASED e o V003 delega ao modulo externo autorizado (fisicamente vinculado).
+        extrec = bundle.get("external_admission_module")
+        if not isinstance(extrec, Mapping):
+            raise entry.Blocked("PRODUCTION_ADMISSION_EXTERNAL_MODULE_RECORD_ABSENT")
+        mod = load_external_admission_module(extrec.get("path"), extrec.get("sha256"), package_root)
+        plan = mod.admit(phase=phase, package_root=package_root, entry=entry, ns=ns, verdict=verdict)
+        if not isinstance(plan, Mapping) or plan.get("schema") != RUN_PLAN_SCHEMA:
+            raise entry.Blocked("EXTERNAL_ADMISSION_MODULE_RETURNED_INVALID_PLAN")
+        return plan
 
 
 SEALED_SYNTHETIC_ADMISSION_REL = "supervisor/tests/pegasus_synthetic_admission_v008.py"
@@ -1860,6 +1991,57 @@ def plan_isolation_verdict(plan: Mapping, *, package_root: Path) -> dict:
                 if mod in a:
                     gaps.append("ARGV_REFERENCES_ECONOMIC_ENTRY:" + mod)
     return {"isolation": "ISOLATED_NON_ECONOMIC" if not gaps else "NOT_ISOLATED", "gaps": sorted(set(gaps))}
+
+
+def economic_plan_isolation_verdict(plan: Mapping, *, package_root: Path) -> dict:
+    """R18: isolamento de um plano ECONÔMICO conforme a ESPÉCIE do recibo de release.
+
+    - `SYNTHETIC_ISOLATED` (demonstração E2E): embora marcado econômico, o argv NÃO pode apontar o
+      runtime econômico real sob `CODE/` nem os módulos econômicos reais, e a saída fica FORA do
+      pacote selado — uma admissão positiva SIMULADA nunca toca o V003 real nem é confundida com
+      release real. Reusa as mesmas barreiras de `plan_isolation_verdict` (menos a marca econômica).
+    - `REAL_V003` (release legítimo do titular): o argv DEVE apontar o controlador econômico real do
+      V003; a saída fica FORA do pacote selado. Esta espécie só existe com um recibo REAL, que o
+      artefato congelado nunca emite — presente por completude estrutural, inalcançável aqui."""
+    kind = (plan.get("release_admission_receipt") or {}).get("kind")
+    root = Path(package_root).resolve()
+    code_dir = (root / "CODE").resolve()
+    gaps = []
+    try:
+        if Path(str(plan.get("out_root"))).resolve().is_relative_to(root):
+            gaps.append("OUT_ROOT_INSIDE_SEALED_PACKAGE")
+    except Exception:
+        gaps.append("OUT_ROOT_UNRESOLVABLE")
+    argv = [str(a) for a in (plan.get("argv") or [])]
+    if not argv:
+        gaps.append("ARGV_EMPTY")
+    targets_code = False
+    refs_econ = False
+    for i, a in enumerate(argv):
+        if i == 0:
+            continue
+        lowered = a.replace("\\", "/")
+        if "/" in lowered or lowered.endswith(".py"):
+            try:
+                if Path(a).resolve().is_relative_to(code_dir):
+                    targets_code = True
+            except Exception:
+                gaps.append("ARGV_PATH_UNRESOLVABLE")
+        if argv[i - 1] in ("-m", "-c") or i == 1:
+            for mod in ECONOMIC_ENTRY_MODULES:
+                if mod in a:
+                    refs_econ = True
+    if kind == "SYNTHETIC_ISOLATED":
+        if targets_code:
+            gaps.append("SYNTHETIC_PLAN_TARGETS_REAL_ECONOMIC_RUNTIME")
+        if refs_econ:
+            gaps.append("SYNTHETIC_PLAN_REFERENCES_REAL_ECONOMIC_ENTRY")
+        return {"isolation": "OK" if not gaps else "NOT_ISOLATED", "kind": kind, "gaps": sorted(set(gaps))}
+    if kind == "REAL_V003":
+        if not (targets_code or refs_econ):
+            gaps.append("REAL_PLAN_DOES_NOT_TARGET_V003_ECONOMIC_RUNTIME")
+        return {"isolation": "OK" if not gaps else "NOT_ISOLATED", "kind": kind, "gaps": sorted(set(gaps))}
+    return {"isolation": "NOT_ISOLATED", "kind": kind, "gaps": ["RELEASE_RECEIPT_KIND_UNKNOWN:%s" % kind]}
 
 
 def _load_admission(ns):
@@ -1930,15 +2112,23 @@ def _run_supervised(plan, *, evidence: Path, entry, log=print) -> int:
     if plan.get("schema") != RUN_PLAN_SCHEMA:
         raise SupervisorBlocked("RUN_PLAN_SCHEMA_INVALID")
     if plan["economic"]:
+        # R18: o ramo econômico é ALCANÇÁVEL — porém SÓ com o recibo de uma admissão de release
+        # CONCEDIDA (produzida por um módulo de release externo autorizado, fisicamente vinculado).
+        # O artefato congelado nunca emite esse recibo (release_admission dá RUN_RELEASE_DISABLED ->
+        # DECISÃO RESERVADA), logo a execução econômica REAL não é alcançável aqui. Uma admissão
+        # positiva SIMULADA (espécie SYNTHETIC_ISOLATED) exercita a plumbing sem tocar o V003 real.
         if not plan.get("external_authorization_proven"):
             raise SupervisorBlocked("ECONOMIC_PLAN_WITHOUT_PROVEN_EXTERNAL_AUTHORIZATION")
-        # Dupla barreira: mesmo com plano econômico "autorizado", o executor econômico real
-        # revalida `release_admission` por dentro; neste artefato isso bloqueia de novo.
-        entry.release_admission({}, "C" if "run-c" in plan["argv"] else "B")
-        raise SupervisorBlocked("ECONOMIC_EXECUTION_STILL_BLOCKED_BY_ENTRY_RELEASE_ADMISSION")
-    iso = plan_isolation_verdict(plan, package_root=ROOT)
-    if iso["isolation"] != "ISOLATED_NON_ECONOMIC":
-        raise SupervisorBlocked("RUN_PLAN_NOT_ISOLATED:" + ";".join(iso["gaps"]))
+        rcpt = plan.get("release_admission_receipt")
+        if not (isinstance(rcpt, Mapping) and rcpt.get("granted") is True):
+            raise SupervisorBlocked("ECONOMIC_PLAN_WITHOUT_RELEASE_ADMISSION_RECEIPT")
+        iso = economic_plan_isolation_verdict(plan, package_root=ROOT)
+        if iso["isolation"] != "OK":
+            raise SupervisorBlocked("ECONOMIC_RUN_PLAN_NOT_ISOLATED:" + ";".join(iso["gaps"]))
+    else:
+        iso = plan_isolation_verdict(plan, package_root=ROOT)
+        if iso["isolation"] != "ISOLATED_NON_ECONOMIC":
+            raise SupervisorBlocked("RUN_PLAN_NOT_ISOLATED:" + ";".join(iso["gaps"]))
     evidence = Path(evidence)
     evidence.mkdir(parents=True, exist_ok=True)
     out_root = Path(plan["out_root"])
