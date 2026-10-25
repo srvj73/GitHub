@@ -2071,6 +2071,128 @@ class R18ExternalRouteSyntheticE2E(unittest.TestCase):
         self.assertIn("ECONOMIC_PLAN_WITHOUT_RELEASE_ADMISSION_RECEIPT", str(cm.exception))
 
 
+# =====================================================================================
+# R18R1 — correção da classe de falha de ORDEM-DE-VERIFICACAO/TOCTOU (preflight independente):
+# resolve-then-check aceitava modulo/bundle por ALIAS. A correcao verifica reparse-free (ancestrais
+# + alvo) ANTES de resolver, le race-free por fd e autentica os bytes lidos. Negativos dirigidos
+# para symlink, alias ancestral, escape do pacote selado, SHA incorreto e troca concorrente de
+# identidade. Junctions nativos do Windows ficam para a qualificacao dirigida no alvo.
+# =====================================================================================
+class R18R1ReparseHardening(unittest.TestCase):
+    def _real_module(self, d):
+        p = Path(d) / "external_release_admission.py"
+        p.write_text(_SYNTH_EXTERNAL_MODULE, encoding="utf-8")
+        return p
+
+    def _sha(self, p):
+        return hashlib.sha256(Path(p).read_bytes()).hexdigest().upper()
+
+    # ---- rota do MÓDULO DE ADMISSÃO EXTERNO ----
+    def test_module_direct_symlink_rejected(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as pkg:
+            real = self._real_module(d)
+            link = Path(d) / "alias_module.py"
+            try:
+                link.symlink_to(real)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink unavailable")
+            # SHA do conteudo REAL; mesmo assim o ALIAS deve ser recusado ANTES de qualquer uso.
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                sup.load_external_admission_module(str(link), self._sha(real), Path(pkg))
+            self.assertIn("REPARSE_OR_ALIAS", str(cm.exception))
+
+    def test_module_ancestor_symlink_rejected(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as pkg:
+            realdir = Path(d) / "realdir"; realdir.mkdir()
+            real = realdir / "external_release_admission.py"
+            real.write_text(_SYNTH_EXTERNAL_MODULE, encoding="utf-8")
+            aliasdir = Path(d) / "aliasdir"
+            try:
+                aliasdir.symlink_to(realdir, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink unavailable")
+            viapath = aliasdir / "external_release_admission.py"  # ancestral é symlink
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                sup.load_external_admission_module(str(viapath), self._sha(real), Path(pkg))
+            self.assertIn("REPARSE_OR_ALIAS", str(cm.exception))
+
+    def test_module_inside_sealed_package_rejected(self):
+        with tempfile.TemporaryDirectory() as pkg:
+            real = self._real_module(pkg)  # DENTRO do pacote selado
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                sup.load_external_admission_module(str(real), self._sha(real), Path(pkg))
+            self.assertIn("INSIDE_SEALED_PACKAGE", str(cm.exception))
+
+    def test_module_bad_sha_rejected(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as pkg:
+            real = self._real_module(d)
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                sup.load_external_admission_module(str(real), "D" * 64, Path(pkg))
+            self.assertIn("IDENTITY_MISMATCH", str(cm.exception))
+
+    def test_module_concurrent_identity_swap_detected(self):
+        # Pin do SHA do conteudo A; arquivo em disco carrega conteudo B => os bytes autenticados
+        # (lidos) nao batem com o pin: troca de identidade detectada, modulo NAO executado.
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as pkg:
+            real = self._real_module(d)
+            pinned = self._sha(real)
+            real.write_text(_SYNTH_EXTERNAL_MODULE + "\n# swapped identity\n", encoding="utf-8")
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                sup.load_external_admission_module(str(real), pinned, Path(pkg))
+            self.assertIn("IDENTITY_MISMATCH_OR_CONCURRENT_SWAP", str(cm.exception))
+
+    def test_module_authentic_bytes_execute(self):
+        # Preserva a leitura/execucao dos bytes efetivamente autenticados.
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as pkg:
+            real = self._real_module(d)
+            adm = sup.load_external_admission_module(str(real), self._sha(real), Path(pkg))
+            self.assertEqual(getattr(adm, "schema", None), "SYNTHETIC_ISOLATED_EXTERNAL_ADMISSION")
+
+    # ---- rota do BUNDLE de autorização ----
+    def _bundle_dir(self, d):
+        b = _physical_bundle(d)
+        p = Path(d) / "AUTH_BUNDLE.json"
+        p.write_text(json.dumps(b), encoding="utf-8")
+        return p
+
+    def test_bundle_direct_symlink_rejected(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as pkg:
+            real = self._bundle_dir(d)
+            link = Path(d) / "alias_bundle.json"
+            try:
+                link.symlink_to(real)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink unavailable")
+            adm = sup.ProductionReleaseAdmission(str(link))
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                adm.admit(phase="B", package_root=Path(pkg), entry=_FakeEntryRunDisabled(), ns=None)
+            self.assertIn("REPARSE_OR_ALIAS", str(cm.exception))
+
+    def test_bundle_ancestor_symlink_rejected(self):
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as pkg:
+            realdir = Path(d) / "realdir"; realdir.mkdir()
+            b = _physical_bundle(realdir)
+            (realdir / "AUTH_BUNDLE.json").write_text(json.dumps(b), encoding="utf-8")
+            aliasdir = Path(d) / "aliasdir"
+            try:
+                aliasdir.symlink_to(realdir, target_is_directory=True)
+            except (OSError, NotImplementedError):
+                self.skipTest("symlink unavailable")
+            adm = sup.ProductionReleaseAdmission(str(aliasdir / "AUTH_BUNDLE.json"))
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                adm.admit(phase="B", package_root=Path(pkg), entry=_FakeEntryRunDisabled(), ns=None)
+            self.assertIn("REPARSE_OR_ALIAS", str(cm.exception))
+
+    def test_bundle_genuinely_absent_is_blocked_verdict(self):
+        # Ausencia real (sem alias) NAO levanta: vira veredito ABSENT => entry.Blocked de admissao.
+        with tempfile.TemporaryDirectory() as d, tempfile.TemporaryDirectory() as pkg:
+            adm = sup.ProductionReleaseAdmission(str(Path(d) / "nope.json"))
+            entry = _FakeEntryRunDisabled()
+            with self.assertRaises(entry.Blocked) as cm:
+                adm.admit(phase="B", package_root=Path(pkg), entry=entry, ns=None)
+            self.assertIn("AUTHORIZATION_BUNDLE_ABSENT", str(cm.exception))
+
+
 class R17W04EvaluateVsRelease(unittest.TestCase):
     def test_evaluate_holds_handles(self):
         g = sup.W04Guard.__new__(sup.W04Guard)

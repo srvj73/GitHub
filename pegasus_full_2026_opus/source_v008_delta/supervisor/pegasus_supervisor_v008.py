@@ -1754,6 +1754,116 @@ REQUIRED_PRODUCTION_GATES = (
 PHASE_CHAIN_PREDECESSORS = {"B": (), "C": ("B",), "FULL": ("B", "C")}
 _HEXSET = set("0123456789ABCDEF")
 
+# R18R1 — correção da CLASSE de falha de ordem-de-verificação/TOCTOU em TODA leitura de arquivo
+# externo (gate, bundle, módulo de admissão externo). O defeito reproduzido: `Path(x).resolve()`
+# ANTES de `is_symlink()` apaga a identidade do link e o check morre. A correção:
+#   (1) prova reparse-free COMPONENTE A COMPONENTE, sem resolver, incluindo TODOS os ancestrais;
+#   (2) no POSIX lê por openat+O_NOFOLLOW relativo ao dirfd anterior (recusa symlink em qualquer
+#       componente de forma RACE-FREE, fechando a troca de identidade entre verificação e uso);
+#   (3) autentica o SHA sobre OS MESMOS BYTES LIDOS do descritor (nunca reabre por caminho).
+# No Windows a cadeia é provada livre de reparse (symlink/junction) lexicalmente e a semântica nativa
+# de junction fica para a qualificação dirigida no alvo — não se declara PASS nativo a partir do Linux.
+import stat as _statmod
+_O_NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
+_O_DIRECTORY = getattr(os, "O_DIRECTORY", 0)
+
+
+def _sha_bytes(b: bytes) -> str:
+    return hashlib.sha256(b).hexdigest().upper()
+
+
+def _is_reparse(p: Path) -> bool:
+    try:
+        return bool(p.is_symlink() or (hasattr(p, "is_junction") and p.is_junction()))
+    except OSError:
+        # Falha de stat é tratada como alias suspeito (fail-closed).
+        return True
+
+
+def _reparse_free_chain(path, kind: str) -> Path:
+    """Prova — componente a componente e SEM resolver — que nenhum ancestral nem o alvo é
+    symlink/junction. Devolve o Path lexical (não resolvido). Levanta na primeira reparse."""
+    p = Path(path)
+    if not p.is_absolute():
+        raise SupervisorBlocked("%s_PATH_NOT_ABSOLUTE" % kind)
+    cur = Path(p.anchor)
+    for part in p.parts[1:]:
+        cur = cur / part
+        if _is_reparse(cur):
+            raise SupervisorBlocked("%s_REPARSE_OR_ALIAS_COMPONENT:%s" % (kind, part))
+    return p
+
+
+def _read_fd_nofollow(path: Path, kind: str) -> bytes:
+    """POSIX race-free: abre cada componente com openat+O_NOFOLLOW relativo ao dirfd anterior (um
+    symlink em QUALQUER componente, inclusive trocado concorrentemente, falha aqui) e lê os bytes do
+    descritor final, confirmando que é arquivo regular."""
+    parts = Path(path).parts
+    dirfd = os.open(parts[0], os.O_RDONLY | _O_DIRECTORY | _O_NOFOLLOW)
+    try:
+        comps = parts[1:]
+        for i, comp in enumerate(comps):
+            last = i == len(comps) - 1
+            flags = os.O_RDONLY | _O_NOFOLLOW | (0 if last else _O_DIRECTORY)
+            try:
+                fd = os.open(comp, flags, dir_fd=dirfd)
+            except OSError as exc:
+                import errno as _errno
+                if exc.errno == _errno.ENOENT:
+                    raise SupervisorBlocked("%s_ABSENT:%s" % (kind, comp))
+                if exc.errno in (_errno.ELOOP, _errno.ENOTDIR):
+                    # O_NOFOLLOW em symlink => ELOOP; componente intermediário que é link/arquivo => ENOTDIR
+                    raise SupervisorBlocked("%s_REPARSE_OR_ALIAS:%s" % (kind, comp))
+                raise SupervisorBlocked("%s_OPEN_FAILED:%s:%d" % (kind, comp, exc.errno or 0))
+            os.close(dirfd)
+            dirfd = fd
+        st = os.fstat(dirfd)
+        if not _statmod.S_ISREG(st.st_mode):
+            raise SupervisorBlocked("%s_NOT_REGULAR_FILE" % kind)
+        chunks = []
+        while True:
+            b = os.read(dirfd, 1 << 20)
+            if not b:
+                break
+            chunks.append(b)
+        return b"".join(chunks)
+    finally:
+        os.close(dirfd)
+
+
+def _read_authenticated_bytes(path, *, expected_sha256=None, forbid_under=None, kind: str) -> bytes:
+    """Lê os bytes de um arquivo garantindo identidade: cadeia livre de reparse (ancestrais + alvo,
+    sem resolver), opcionalmente FORA de `forbid_under` (pacote selado), leitura race-free por fd no
+    POSIX, e — quando `expected_sha256` é dado — o SHA é conferido sobre OS BYTES LIDOS (fecha a
+    substituição entre verificação e uso). Levanta SupervisorBlocked com causa exata em qualquer
+    violação. Preserva a leitura dos bytes efetivamente autenticados (é ela que retorna)."""
+    exp = None
+    if expected_sha256 is not None:
+        exp = str(expected_sha256).upper()
+        if len(exp) != 64 or any(c not in _HEXSET for c in exp):
+            raise SupervisorBlocked("%s_SHA_PIN_INVALID" % kind)
+    lexical = _reparse_free_chain(path, kind)
+    if forbid_under is not None:
+        try:
+            fb = os.path.normpath(str(Path(forbid_under).resolve()))
+        except Exception:
+            fb = os.path.normpath(str(forbid_under))
+        lx = os.path.normpath(str(lexical))
+        if lx == fb or lx.startswith(fb + os.sep):
+            raise SupervisorBlocked("%s_INSIDE_SEALED_PACKAGE_FORBIDDEN" % kind)
+    if (os.open in getattr(os, "supports_dir_fd", set())) and _O_NOFOLLOW:
+        data = _read_fd_nofollow(lexical, kind)  # POSIX: autentica a leitura, race-free
+    else:
+        # Windows/sem openat: cadeia já provada livre de reparse (lexical). Semântica nativa de
+        # junction é qualificada no alvo Windows (não declarada do Linux).
+        p = Path(lexical)
+        if _is_reparse(p) or not p.is_file():
+            raise SupervisorBlocked("%s_ABSENT_OR_ALIAS" % kind)
+        data = p.read_bytes()
+    if exp is not None and _sha_bytes(data) != exp:
+        raise SupervisorBlocked("%s_IDENTITY_MISMATCH_OR_CONCURRENT_SWAP" % kind)
+    return data
+
 
 def _safe_under(root: Path, rel: str):
     """R18: resolve `rel` sob `root` SEM seguir aliases/reparse. Recusa escape (``..``), caminho
@@ -1794,14 +1904,19 @@ def verify_gate_file(bundle_root: Path, rec, *, release_id) -> dict:
         return {"ok": False, "reason": "GATE_PROVENANCE_RELEASE_ID_MISMATCH_OR_STALE"}
     try:
         p = _safe_under(bundle_root, rec.get("path"))
+        # R18R1: leitura AUTENTICADA (reparse-free + race-free + SHA sobre os bytes lidos). Fecha o
+        # TOCTOU entre a verificação de caminho e o hash, e a substituição por alias do arquivo.
+        _read_authenticated_bytes(p, expected_sha256=declared, kind="GATE_FILE")
     except SupervisorBlocked as exc:
-        return {"ok": False, "reason": str(exc)}
-    if not p.is_file():
-        return {"ok": False, "reason": "GATE_FILE_ABSENT_OR_NOT_REGULAR"}
-    measured = sha256_file(p)
-    if measured != declared:
-        return {"ok": False, "reason": "GATE_CONTENT_SHA_MISMATCH_OR_CONCURRENT_MUTATION"}
-    return {"ok": True, "sha256": measured, "path": rec.get("path")}
+        reason = str(exc)
+        if "IDENTITY_MISMATCH_OR_CONCURRENT_SWAP" in reason:
+            reason = "GATE_CONTENT_SHA_MISMATCH_OR_CONCURRENT_MUTATION"
+        elif "REPARSE" in reason or "ALIAS" in reason:
+            reason = "GATE_PATH_REPARSE_OR_ALIAS:%s" % rec.get("path")
+        elif "ABSENT" in reason or "MISSING" in reason or "NOT_REGULAR" in reason:
+            reason = "GATE_FILE_ABSENT_OR_NOT_REGULAR"
+        return {"ok": False, "reason": reason}
+    return {"ok": True, "sha256": declared, "path": rec.get("path")}
 
 
 def production_admission_verdict(bundle, *, phase, bundle_root) -> dict:
@@ -1866,28 +1981,27 @@ def release_admission_signal(entry, request, phase) -> dict:
 
 
 def load_external_admission_module(module_path, expected_sha256, package_root):
-    """R18: carrega o MÓDULO DE ADMISSÃO EXTERNO autorizado (fornecido por um release separado e
-    auditado), fisicamente vinculado por SHA-256. O arquivo deve existir FORA do pacote selado, não
-    ser symlink/reparse e bater exatamente com o SHA que o bundle fixa. Nenhum código é executado
-    antes da verificação de identidade. Devolve o objeto ADMISSION do módulo."""
-    import importlib.util
-    p = Path(module_path).resolve()
-    if p.is_relative_to(Path(package_root).resolve()):
-        raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_INSIDE_SEALED_PACKAGE_FORBIDDEN")
-    if p.is_symlink() or (hasattr(p, "is_junction") and p.is_junction()) or not p.is_file():
-        raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_ABSENT_OR_ALIAS")
+    """R18R1: carrega o MÓDULO DE ADMISSÃO EXTERNO autorizado (fornecido por um release separado e
+    auditado), fisicamente vinculado por SHA-256. CORREÇÃO do defeito do preflight: a verificação
+    reparse-free (ancestrais + alvo) ocorre ANTES de qualquer resolução, a leitura é race-free por
+    descritor (openat+O_NOFOLLOW no POSIX) e o módulo é EXECUTADO a partir DOS MESMOS BYTES
+    autenticados (compile+exec), nunca reaberto por caminho — fecha a aceitação por alias e a
+    substituição entre verificação e uso. O arquivo deve ficar FORA do pacote selado."""
+    import types
     exp = str(expected_sha256 or "").upper()
     if len(exp) != 64 or any(c not in _HEXSET for c in exp):
         raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_SHA_PIN_INVALID")
-    if sha256_file(p) != exp:
-        raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_IDENTITY_MISMATCH")
-    spec = importlib.util.spec_from_file_location("pegasus_external_release_admission", str(p))
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
+    # Lê os bytes AUTENTICADOS: cadeia livre de reparse, fora do pacote selado, SHA sobre os bytes lidos.
+    data = _read_authenticated_bytes(module_path, expected_sha256=exp, forbid_under=package_root,
+                                     kind="EXTERNAL_ADMISSION_MODULE")
+    mod = types.ModuleType("pegasus_external_release_admission")
+    mod.__file__ = os.fspath(module_path)
+    code = compile(data, "<pegasus_external_release_admission>", "exec")
+    exec(code, mod.__dict__)  # executa EXATAMENTE os bytes autenticados
     adm = getattr(mod, "ADMISSION", None)
     if adm is None:
         raise SupervisorBlocked("EXTERNAL_ADMISSION_MODULE_NO_ADMISSION_OBJECT")
-    adm.loaded_from = str(p)
+    adm.loaded_from = os.fspath(module_path)
     adm.loaded_sha256 = exp
     return adm
 
@@ -1917,14 +2031,18 @@ class ProductionReleaseAdmission:
     def _load_bundle(self, package_root: Path):
         if not self.bundle_path:
             return None, None
-        p = Path(self.bundle_path).resolve()
-        # Auto-autorização proibida: o pacote de autorização NUNCA pode estar dentro do pacote selado.
-        if p.is_relative_to(Path(package_root).resolve()):
-            raise SupervisorBlocked("AUTHORIZATION_BUNDLE_INSIDE_SEALED_PACKAGE_FORBIDDEN")
-        if p.is_symlink() or (hasattr(p, "is_junction") and p.is_junction()) or not p.is_file():
+        p = Path(self.bundle_path)
+        if not p.is_absolute():
+            p = Path.cwd() / p
+        # Ausência genuína (sem reparse no caminho) => (None, None) => veredito ABSENT. Um symlink/alias
+        # no alvo NÃO conta como ausência: cai na leitura autenticada, que o recusa (fail-closed).
+        if not _is_reparse(p) and not p.exists():
             return None, None
+        # R18R1: verificação reparse-free (ancestrais + alvo) ANTES de resolver, leitura race-free e
+        # recusa de alias; o bundle fica FORA do pacote selado (auto-autorização proibida).
+        data = _read_authenticated_bytes(p, forbid_under=package_root, kind="AUTHORIZATION_BUNDLE")
         try:
-            return json.loads(p.read_text(encoding="utf-8")), p.parent
+            return json.loads(data), p.parent
         except Exception as exc:
             raise SupervisorBlocked("AUTHORIZATION_BUNDLE_UNREADABLE:%s" % type(exc).__name__)
 

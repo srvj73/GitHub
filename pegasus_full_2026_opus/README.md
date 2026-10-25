@@ -1,8 +1,16 @@
-# PEGASUS FULL 2026 — Engenharia Final V008R18
+# PEGASUS FULL 2026 — Engenharia Final V008R18R1
 
-- `delivery/` — release imutável: `PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R18_20261024.zip` (SHA-256 `1A2DED4C6D8109357296DD7F739E3BAF13280E29C28F828BFE76CA643338417B`, 2.977 membros, manifesto `6794D5CD…`), bootstrap PS 5.1 com pins (`78DB2101…`), recibos externos, `00_START_HERE_PEGASUS_V008R18.md` e a atestação nativa R9 preservada. Texto de retorno: `RESPOSTA_CHATGPT_RUNNER_PARALELO_15_V008R18.md`.
-- `source_v008_delta/` — delta V008 sobre o payload V003 (`supervisor/`, `docs/V008/` incl. `INTERNAL_AUDIT_R18.md` e `WINDOWS_DIRECTED_QUALIFICATION_PROTOCOL_R18.md`; `receipts/V008/` incl. `offline_final/native_campaign_r9/`, `r10_boundary_fix/` … `r17_origin_fixes/`, `r18_origin_fixes/`, `00_START_HERE_V008.md`).
-- `build/` — `build_v008.py`, `make_delivery_receipts_v008r18.py` (M2+pacote+verificação), `make_r18_convergence_closure.py`, `qualify_build_v008r18_m1.py` (M1+bateria), `ps_parse_check.ps1`.
+- `delivery/` — release imutável: `PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R18R1_20261024.zip` (SHA-256 `5D5EBAE1A2DB734FBA37A2610C41290F0EED197B241BC253F0DC313F243FFEC1`, 2.981 membros, manifesto `8535A10E…`), bootstrap PS 5.1 com pins (`D8B81529…`), recibos externos, `00_START_HERE_PEGASUS_V008R18R1.md` e a atestação nativa R9 preservada. Texto de retorno: `RESPOSTA_CHATGPT_RUNNER_PARALELO_15_V008R18R1.md`.
+- `source_v008_delta/` — delta V008 sobre o payload V003 (`supervisor/`, `docs/V008/` incl. `INTERNAL_AUDIT_R18R1.md` e `WINDOWS_DIRECTED_QUALIFICATION_PROTOCOL_R18R1.md`; `receipts/V008/` incl. `offline_final/native_campaign_r9/`, `r10_boundary_fix/` … `r18_origin_fixes/`, `r18r1_origin_fixes/`, `00_START_HERE_V008.md`).
+- `build/` — `build_v008.py`, `make_delivery_receipts_v008r18r1.py` (M2+pacote+verificação), `make_r18r1_convergence_closure.py`, `qualify_build_v008r18r1_m1.py` (M1+bateria), `ps_parse_check.ps1`.
+
+## V008R18R1 — correção do defeito de preflight (classe TOCTOU/alias)
+
+O **preflight independente reprovou a R18** por defeito material (reproduzido no ZIP R18 `1A2DED4C…`): em `load_external_admission_module` e `_load_bundle`, `Path(x).resolve()` era chamado **antes** de `is_symlink()`/`is_junction()` — a resolução apaga a identidade do link e o check morre, aceitando módulo/bundle **por alias**. A R18R1 corrige **a classe inteira** nas **três** rotas (gate, bundle, módulo externo), incluindo ancestrais e proteção TOCTOU, e a **R18 permanece congelada**:
+
+- `_reparse_free_chain` prova ancestrais+alvo **sem resolver**; `_read_fd_nofollow` (POSIX) lê **race-free** por `openat`+`O_NOFOLLOW`; `_read_authenticated_bytes` confere o SHA **sobre os bytes lidos** e o módulo externo é **compilado/executado desses bytes** (sem reabrir por caminho). Negativos dirigidos (`R18R1ReparseHardening`): symlink direto/ancestral, dentro do selado, SHA incorreto, troca concorrente de identidade, ausência genuína (≠ alias). Semântica nativa de junction/reparse qualificada no alvo Windows (`WINDOWS_DIRECTED_QUALIFICATION_PROTOCOL_R18R1.md`); no POSIX a leitura é race-free.
+
+Fechamento em `receipts/V008/offline_final/r18r1_origin_fixes/` (`ORIGIN_FIXES_CLOSURE_V008R18R1.json`, `all_closed=true`: R18-PREFLIGHT-01, PRIOR_PRESERVED, `live_control.symlink_rejected=true`). **tested=packaged=delivered:** M1 (`6A89BB15…`) → M2 (`8535A10E…`), só +18 evidências; código/docs byte-idênticos; bytes entregues verificam `supervisor verify=PASS` e `entry PACKAGE_INTEGRITY=PASS` (2.981 arquivos). Unit **208/208**; mutantes **48/48**; qualificação 18 PASS + 2 SKIP; R9 23/23 MET preservada. Supersede V008R18 (`1A2DED4C…`). Execução econômica real = **`RESERVED_OWNER_RELEASE_DECISION`**.
 
 ## V008R18 — conclusão de engenharia do I-03 (continuação da mesma engenharia)
 

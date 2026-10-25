@@ -1,0 +1,85 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R18R1_CONVERGENCE_CLOSURE",
+ "audit_trail": "Preflight independente REPROVOU a R18 por defeito material: load_external_admission_module e _load_bundle chamavam Path(x).resolve() ANTES de is_symlink()/is_junction(), apagando a identidade do link e aceitando modulo/bundle por alias. R18R1 corrige a CLASSE inteira nas tres rotas (gate, bundle, modulo externo).",
+ "defect_reproduced_on_r18_zip_sha256": "1A2DED4C6D8109357296DD7F739E3BAF13280E29C28F828BFE76CA643338417B",
+ "supersedes_candidate_sha256": "1A2DED4C6D8109357296DD7F739E3BAF13280E29C28F828BFE76CA643338417B",
+ "final_tree_convergence_probe": {
+  "all_safe": true,
+  "supervisor_sha256": "36700BD589D03FB70E2F3548D46B455159DC3D63A0C9C80358D8BEE0508784FB",
+  "win_native_sha256": "D1A59BF71A7DF4B07CF24122F8CB9AFB96B45986845202287B7EAA410388A0C6",
+  "live_control": {
+   "symlink_rejected": true,
+   "authentic_executes": true
+  },
+  "probes": [
+   {
+    "probe": "REPARSE_FREE_BEFORE_RESOLVE_ALL_ROUTES",
+    "safe": true
+   },
+   {
+    "probe": "RACE_FREE_READ_AND_AUTHENTICATED_BYTES",
+    "safe": true
+   },
+   {
+    "probe": "ANCESTOR_ALIAS_REJECTED",
+    "safe": true
+   }
+  ]
+ },
+ "predecessor_r18_reproduction": {
+  "all_safe": false,
+  "probes": [
+   {
+    "probe": "MODULE_ACCEPTED_BY_SYMLINK_ALIAS",
+    "safe": false,
+    "reason": "R18 load_external_admission_module: Path(module_path).resolve() antes de is_symlink() => o check morria e o alias passava."
+   },
+   {
+    "probe": "BUNDLE_ACCEPTED_BY_SYMLINK_ALIAS",
+    "safe": false,
+    "reason": "R18 _load_bundle: mesmo defeito (resolve-then-check), JSON sintetico por link simbolico aceito."
+   }
+  ]
+ },
+ "findings": [
+  {
+   "finding": "R18-PREFLIGHT-01",
+   "title": "ordem-de-verificacao: resolve() antes de is_symlink() aceitava alias",
+   "fix": "Nova familia de helpers: _reparse_free_chain prova, componente a componente e SEM resolver, que nenhum ANCESTRAL nem o alvo e symlink/junction; _read_fd_nofollow (POSIX) abre cada componente com openat+O_NOFOLLOW relativo ao dirfd anterior (recusa symlink em qualquer componente de forma RACE-FREE); _read_authenticated_bytes le os bytes por esse caminho e, quando ha SHA fixado, confere-o sobre OS MESMOS BYTES LIDOS (fecha a substituicao entre verificacao e uso). As tres rotas passam a usa-los: verify_gate_file (gate), ProductionReleaseAdmission._load_bundle (bundle) e load_external_admission_module (modulo, que agora compila+executa os bytes autenticados, sem reabrir por caminho).",
+   "routes_fixed": [
+    "gate_file",
+    "authorization_bundle",
+    "external_admission_module"
+   ],
+   "negatives_covered": [
+    "symlink direto",
+    "junction (qualificado no Windows alvo)",
+    "alias ancestral",
+    "escape do pacote selado",
+    "SHA incorreto",
+    "troca concorrente de identidade",
+    "arquivo ausente (distinguido de alias por errno)"
+   ],
+   "windows_note": "Semantica nativa de junction/reparse e qualificada na prova dirigida do Windows alvo; nao se declara PASS nativo a partir do Linux. No POSIX a leitura e race-free via openat+O_NOFOLLOW.",
+   "live_control": {
+    "symlink_rejected": true,
+    "authentic_executes": true
+   },
+   "closed": true
+  },
+  {
+   "finding": "PRIOR_PRESERVED",
+   "title": "R18 (I-03A/B/C), R17 (I-01/I-02), R16 (N1/N2/N3), R15, F01-F04 e R9 23/23 MET preservados (bytes identicos onde aplicavel)",
+   "source": {
+    "i03_physical_gates": true,
+    "i03_reserved_decision": true,
+    "i01_i02": true,
+    "native_r9": true
+   },
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Classe de falha fechada integralmente: verificacao reparse-free (ancestrais inclusive) ANTES de resolver + leitura race-free por descritor + autenticacao dos bytes efetivamente lidos/executados. Preserva a leitura/execucao dos bytes autenticados. G4/V003 FROZEN; QS4=NO; RUN_RELEASED=NO; nenhuma execucao economica; politica nao lida; D4 nao autorizado. R18 permanece congelada (nao modificada); este e o sucessor corrigido.",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}

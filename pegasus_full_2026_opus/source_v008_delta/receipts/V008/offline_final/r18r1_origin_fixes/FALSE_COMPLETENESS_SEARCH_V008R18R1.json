@@ -1,0 +1,39 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R18R1_FALSE_COMPLETENESS_SEARCH",
+ "method": "adversarial enumeration bound to the new bytes (R18R1 delta over R18)",
+ "anchors_in_source": {
+  "reparse_free_chain_before_resolve": true,
+  "openat_o_nofollow_race_free_read": true,
+  "sha_over_bytes_read_not_reopened": true,
+  "module_exec_from_authenticated_bytes": true,
+  "gate_bundle_module_all_three_routes": true,
+  "forbid_under_sealed_package": true,
+  "absent_distinguished_from_alias_by_errno": true
+ },
+ "consumers": [
+  {
+   "consumer": "reparse_toctou_hardening_all_file_reads",
+   "wired_at": "_reparse_free_chain + _read_fd_nofollow + _read_authenticated_bytes; verify_gate_file + _load_bundle + load_external_admission_module",
+   "qualified_by": "R18R1ReparseHardening (symlink direto/ancestral, escape, SHA incorreto, troca concorrente, ausencia) nas duas rotas + gate",
+   "status": "IMPLEMENTED_HARDENED_R18R1",
+   "findings_closed": "R18-PREFLIGHT-01"
+  },
+  {
+   "consumer": "prior_i03_i01_i02_preserved",
+   "wired_at": "R18/R17 code paths",
+   "qualified_by": "R18*/R17*/R16* regressions PASS nos bytes R18R1; native R9 preserved",
+   "status": "PRESERVED",
+   "findings_closed": "I-03A,I-03B,I-03C,I-01,I-02"
+  }
+ ],
+ "mandatory_integration_unimplemented": [],
+ "policy_boundaries_out_of_scope": {
+  "qs4": "NO",
+  "full_economic": "NO",
+  "run_released": "NO",
+  "real_economic_execution": "RESERVED_OWNER_RELEASE_DECISION",
+  "note": "politica nao lida"
+ },
+ "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED_REPARSE_CLASS_CLOSED",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}
