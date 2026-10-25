@@ -1,4 +1,4 @@
-"""PEGASUS FULL 2026 — Qualificador DIRIGIDO de identidade de arquivo (R18R2), seguro pré-efeito.
+"""PEGASUS FULL 2026 — Qualificador DIRIGIDO de identidade de arquivo (R19), seguro pré-efeito.
 
 Exercita as TRÊS rotas de leitura de arquivo externo do supervisor contra fixtures SINTÉTICAS
 isoladas, cobrindo a classe TOCTOU/reparse que o preflight apontou:
@@ -14,7 +14,7 @@ ausente; falha de abertura. Cada caso tem veredito ESPERADO; o runner confirma o
 não lê política. Resultado é hash-bound (SHA-256 do supervisor). Exit 0 só se todos os casos
 obrigatórios da plataforma se comportarem como esperado; senão exit 3 (falha técnica de contrato).
 
-Uso (o bootstrap PS 5.1 chama):  python -I -B windows_identity_qualifier_v008r18r2.py --out <dir>
+Uso (o bootstrap PS 5.1 chama):  python -I -B windows_identity_qualifier_v008r19.py --out <dir>
 """
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from unittest.mock import patch
 
 HERE = Path(__file__).resolve().parent          # .../supervisor/tests
 SUP = HERE.parent                               # .../supervisor
@@ -206,32 +207,53 @@ def run_cases(outdir: Path) -> dict:
         else:
             rec("BUNDLE_FILE_SYMLINK", "both", None, {"result": "SKIPPED_SYMLINK_UNAVAILABLE"})
 
-        # ---- fail-closed: sem garantia nativa (openat ausente e não-Windows) ----
-        if not IS_WIN:
-            saved = sup._O_NOFOLLOW
+        # ---- R19: corrida de rename de ANCESTRAL (POSIX openat2 RESOLVE_BENEATH) ----
+        # Ancestral movido para fora da arvore confiavel ANTES da leitura => a resolucao atomica sob o
+        # root recusa (OUTSIDE/ABSENT). Controle positivo com o ancestral no lugar.
+        if (not IS_WIN) and sup._openat2_supported():
+            trust = d / "trusted"; trust.mkdir()
+            nested = trust / "nested"; nested.mkdir()
+            gate = nested / "gate.bin"; gate.write_bytes(b"R19_GATE")
+            gsha = _sha_bytes(b"R19_GATE")
+            okpos = False
             try:
-                sup._O_NOFOLLOW = 0
+                okpos = sup._read_authenticated_bytes(gate, expected_sha256=gsha, require_under=trust,
+                                                      kind="GATE_FILE") == b"R19_GATE"
+            except Exception:
+                okpos = False
+            nested.rename(d / "moved_nested")  # ancestral fora ANTES da chamada
+            blk = _expect_block(lambda: sup._read_authenticated_bytes(trust / "nested" / "gate.bin",
+                                expected_sha256=gsha, require_under=trust, kind="GATE_FILE"),
+                                "OUTSIDE_AUTHORIZED_TREE")
+            ok_blk = blk["ok"] or ("ABSENT" in blk.get("cause", ""))
+            rec("GATE_ANCESTOR_MOVED_BEFORE_OPEN", "posix", okpos and ok_blk,
+                {"result": "POS_OK_AND_BLOCKED" if (okpos and ok_blk) else ("blocked=%s" % blk)})
+        else:
+            rec("GATE_ANCESTOR_MOVED_BEFORE_OPEN", "posix", None,
+                {"result": "SKIPPED_WINDOWS_OR_NO_OPENAT2"})
+
+        # ---- fail-closed: sem garantia nativa (openat2 indisponivel e nao-Windows) ----
+        if not IS_WIN:
+            with patch.object(sup, "_openat2_supported", lambda: False):
                 probe = d / "probe.bin"; probe.write_bytes(b"x")
                 rec("FAIL_CLOSED_NO_NATIVE_GUARANTEE", "posix",
                     _expect_block(lambda: sup._read_authenticated_bytes(str(probe), kind="PROBE"),
                                   "NATIVE_IDENTITY_GUARANTEE_UNAVAILABLE_FAIL_CLOSED")["ok"],
                     {"result": "BLOCKED_EXPECTED"})
-            finally:
-                sup._O_NOFOLLOW = saved
         else:
             rec("FAIL_CLOSED_NO_NATIVE_GUARANTEE", "posix", None, {"result": "SKIPPED_ON_WINDOWS"})
 
     required = [c for c in cases if c["ok"] is not None]
     all_ok = all(c["ok"] for c in required)
     receipt = {
-        "schema": "PEGASUS_FULL_2026_V008R18R2_WINDOWS_IDENTITY_QUALIFICATION",
+        "schema": "PEGASUS_FULL_2026_V008R19_WINDOWS_IDENTITY_QUALIFICATION",
         "platform": "windows" if IS_WIN else ("posix" if os.name == "posix" else os.name),
         "python": sys.version.split()[0],
         "supervisor_sha256": _sha_file(SUP / "pegasus_supervisor_v008.py"),
         "win_native_sha256": _sha_file(SUP / "pegasus_win_native_v008.py"),
         "native_read_path": ("WIN32_HANDLE_DENY_WRITE_DELETE" if IS_WIN else
-                             ("POSIX_OPENAT_O_NOFOLLOW" if (os.open in getattr(os, "supports_dir_fd", set())
-                                                           and sup._O_NOFOLLOW) else "NONE_FAIL_CLOSED")),
+                             ("POSIX_OPENAT2_RESOLVE_BENEATH" if sup._openat2_supported()
+                              else "NONE_FAIL_CLOSED")),
         "cases": cases,
         "required_cases": len(required),
         "required_pass": sum(1 for c in required if c["ok"]),
@@ -243,13 +265,13 @@ def run_cases(outdir: Path) -> dict:
         "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15",
     }
     outdir.mkdir(parents=True, exist_ok=True)
-    rp = outdir / "WINDOWS_IDENTITY_QUALIFICATION_R18R2_RESULT.json"
+    rp = outdir / "WINDOWS_IDENTITY_QUALIFICATION_R19_RESULT.json"
     rp.write_text(json.dumps(receipt, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return receipt
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(prog="windows_identity_qualifier_v008r18r2")
+    ap = argparse.ArgumentParser(prog="windows_identity_qualifier_v008r19")
     ap.add_argument("--out", required=True)
     ns = ap.parse_args(argv)
     receipt = run_cases(Path(ns.out).resolve())

@@ -1,10 +1,10 @@
 {
-  "schema": "PEGASUS_FULL_2026_V008R18R2_TESTED_EQUALS_PACKAGED_DELIVERED",
-  "tested_manifest_sha256_m1": "8B637D5D892CA75756E95E03E64D43A8A064DCAEC4104D3BDC2CA1B707CE00C3",
-  "final_manifest_sha256_m2": "381A039602BB139C83E60DCCE58EAAB06B78A7EA47A7DF9CF23FF0DACED7FCEE",
+  "schema": "PEGASUS_FULL_2026_V008R19_TESTED_EQUALS_PACKAGED_DELIVERED",
+  "tested_manifest_sha256_m1": "59E4DC75C26A677F4DF9DD514F05FEE5281FFA396EAED595630315FCDD35FE1F",
+  "final_manifest_sha256_m2": "3EB6A5625BC5376EE416B04B9F888837AC3A1FB3E91D85B07963EE824828B7AB",
   "m1_to_m2": {
-    "m1_members": 2967,
-    "m2_members": 2985,
+    "m1_members": 2971,
+    "m2_members": 2989,
     "added": 18,
     "removed": 0,
     "changed": 0,
@@ -12,9 +12,9 @@
     "code_and_docs_byte_identical_m1_equals_m2": true
   },
   "delivered_zip_extract_verify": "PASS_DELIVERED_BYTES_VERIFIED",
-  "delivered_unit_tests": "216_OF_216_PASS",
+  "delivered_unit_tests": "220_OF_220_PASS",
   "delivered_supervisor_verify": "PASS_PACKAGE_VERIFIED",
-  "delivered_entry_verify": "PACKAGE_VERIFIED=381A039602BB139C83E60DCCE58EAAB06B78A7EA47A7DF9CF23FF0DACED7FCEE",
+  "delivered_entry_verify": "PACKAGE_VERIFIED=3EB6A5625BC5376EE416B04B9F888837AC3A1FB3E91D85B07963EE824828B7AB",
   "installed": "PENDING_OWNER_INSTALL_MODE",
   "result": "PASS_TESTED_EQUALS_PACKAGED_EQUALS_DELIVERED_OFFLINE",
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"

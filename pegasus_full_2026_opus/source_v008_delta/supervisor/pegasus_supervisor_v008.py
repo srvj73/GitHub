@@ -1763,9 +1763,23 @@ _HEXSET = set("0123456789ABCDEF")
 #   (3) autentica o SHA sobre OS MESMOS BYTES LIDOS do descritor (nunca reabre por caminho).
 # No Windows a cadeia é provada livre de reparse (symlink/junction) lexicalmente e a semântica nativa
 # de junction fica para a qualificação dirigida no alvo — não se declara PASS nativo a partir do Linux.
+import errno as _errno
 import stat as _statmod
+import struct as _struct
 _O_NOFOLLOW = getattr(os, "O_NOFOLLOW", 0)
 _O_DIRECTORY = getattr(os, "O_DIRECTORY", 0)
+# openat2(2) — resolução ATÔMICA de caminho sob um FD de root confiável (Linux >= 5.6). Fecha a
+# corrida de "rename de ancestral entre abrir o dirfd e abrir o alvo": não há mais walk multi-passo
+# com lacuna em espaço de usuário — o kernel resolve todos os componentes em UM syscall, recusando
+# escape do root (RESOLVE_BENEATH) e qualquer symlink/magic-link (RESOLVE_NO_SYMLINKS/NO_MAGICLINKS).
+_SYS_openat2 = 437                   # x86_64/aarch64/arm/riscv/generico
+_AT_FDCWD = -100
+_RESOLVE_NO_MAGICLINKS = 0x02
+_RESOLVE_NO_SYMLINKS = 0x04
+_RESOLVE_BENEATH = 0x08
+_O_PATH = getattr(os, "O_PATH", 0o010000000)
+_O_CLOEXEC = getattr(os, "O_CLOEXEC", 0o02000000)
+_openat2_state = {"supported": None}
 
 
 def _sha_bytes(b: bytes) -> str:
@@ -1782,7 +1796,8 @@ def _is_reparse(p: Path) -> bool:
 
 def _reparse_free_chain(path, kind: str) -> Path:
     """Prova — componente a componente e SEM resolver — que nenhum ancestral nem o alvo é
-    symlink/junction. Devolve o Path lexical (não resolvido). Levanta na primeira reparse."""
+    symlink/junction. Devolve o Path lexical (não resolvido). Pré-filtro barato; a garantia
+    atômica real é do openat2 (POSIX) / handle nativo (Windows)."""
     p = Path(path)
     if not p.is_absolute():
         raise SupervisorBlocked("%s_PATH_NOT_ABSOLUTE" % kind)
@@ -1794,41 +1809,90 @@ def _reparse_free_chain(path, kind: str) -> Path:
     return p
 
 
-def _read_fd_nofollow(path: Path, kind: str) -> bytes:
-    """POSIX race-free: abre cada componente com openat+O_NOFOLLOW relativo ao dirfd anterior (um
-    symlink em QUALQUER componente, inclusive trocado concorrentemente, falha aqui) e lê os bytes do
-    descritor final, confirmando que é arquivo regular."""
-    parts = Path(path).parts
-    dirfd = os.open(parts[0], os.O_RDONLY | _O_DIRECTORY | _O_NOFOLLOW)
-    try:
-        comps = parts[1:]
-        for i, comp in enumerate(comps):
-            last = i == len(comps) - 1
-            flags = os.O_RDONLY | _O_NOFOLLOW | (0 if last else _O_DIRECTORY)
+def _raw_openat2(dirfd, path_bytes, resolve, flags):
+    """Invoca o syscall openat2. Devolve fd >=0 ou levanta OSError(errno). ENOSYS/EPERM indicam
+    indisponibilidade (kernel antigo ou seccomp) — o chamador faz FAIL-CLOSED, nunca fallback."""
+    import ctypes
+    libc = ctypes.CDLL(None, use_errno=True)
+    libc.syscall.restype = ctypes.c_long
+    how = _struct.pack("QQQ", flags & 0xFFFFFFFFFFFFFFFF, 0, resolve)  # struct open_how {flags,mode,resolve}
+    buf = ctypes.create_string_buffer(how, len(how))
+    ctypes.set_errno(0)
+    fd = libc.syscall(ctypes.c_long(_SYS_openat2), ctypes.c_int(dirfd),
+                      ctypes.c_char_p(path_bytes), ctypes.byref(buf), ctypes.c_size_t(len(how)))
+    if fd < 0:
+        raise OSError(ctypes.get_errno(), os.strerror(ctypes.get_errno()))
+    return int(fd)
+
+
+def _openat2_supported() -> bool:
+    if _openat2_state["supported"] is None:
+        ok = False
+        if os.name == "posix":
             try:
-                fd = os.open(comp, flags, dir_fd=dirfd)
+                fd = _raw_openat2(_AT_FDCWD, b".", _RESOLVE_NO_SYMLINKS, os.O_RDONLY | _O_DIRECTORY | _O_CLOEXEC)
+                os.close(fd)
+                ok = True
             except OSError as exc:
-                import errno as _errno
-                if exc.errno == _errno.ENOENT:
-                    raise SupervisorBlocked("%s_ABSENT:%s" % (kind, comp))
-                if exc.errno in (_errno.ELOOP, _errno.ENOTDIR):
-                    # O_NOFOLLOW em symlink => ELOOP; componente intermediário que é link/arquivo => ENOTDIR
-                    raise SupervisorBlocked("%s_REPARSE_OR_ALIAS:%s" % (kind, comp))
-                raise SupervisorBlocked("%s_OPEN_FAILED:%s:%d" % (kind, comp, exc.errno or 0))
-            os.close(dirfd)
-            dirfd = fd
-        st = os.fstat(dirfd)
-        if not _statmod.S_ISREG(st.st_mode):
-            raise SupervisorBlocked("%s_NOT_REGULAR_FILE" % kind)
-        chunks = []
-        while True:
-            b = os.read(dirfd, 1 << 20)
-            if not b:
-                break
-            chunks.append(b)
-        return b"".join(chunks)
+                ok = exc.errno not in (_errno.ENOSYS, _errno.EPERM, _errno.EOPNOTSUPP)
+            except Exception:
+                ok = False
+        _openat2_state["supported"] = ok
+    return _openat2_state["supported"]
+
+
+def _read_fd_openat2(path: Path, kind: str, require_under=None) -> bytes:
+    """Leitura POSIX com identidade/escopo ATÔMICOS via openat2 — sem walk multi-passo (fecha a
+    corrida de rename de ancestral reproduzida pela origem). Com `require_under`, resolve o caminho
+    RELATIVO sob um FD do root confiável com RESOLVE_BENEATH (escape => EXDEV => OUTSIDE); sem ele,
+    resolve o caminho absoluto a partir de AT_FDCWD. Em ambos os casos RESOLVE_NO_SYMLINKS +
+    RESOLVE_NO_MAGICLINKS proíbem qualquer link/magic-link em QUALQUER componente, atomicamente. Lê
+    os bytes do FD resultante (arquivo regular). Nenhuma reabertura por caminho."""
+    resolve = _RESOLVE_NO_SYMLINKS | _RESOLVE_NO_MAGICLINKS
+    root_fd = None
+    try:
+        if require_under is not None:
+            try:
+                rel = Path(path).relative_to(Path(require_under))
+            except ValueError:
+                raise SupervisorBlocked("%s_OUTSIDE_AUTHORIZED_TREE" % kind)
+            rel_str = rel.as_posix()
+            if not rel_str or rel_str == ".":
+                raise SupervisorBlocked("%s_PATH_IS_ROOT" % kind)
+            root_fd = os.open(str(require_under), os.O_RDONLY | _O_DIRECTORY | _O_CLOEXEC)
+            dirfd, target = root_fd, rel_str
+            resolve |= _RESOLVE_BENEATH
+        else:
+            dirfd, target = _AT_FDCWD, str(path)
+        try:
+            fd = _raw_openat2(dirfd, target.encode("utf-8"), resolve, os.O_RDONLY | _O_CLOEXEC)
+        except OSError as exc:
+            e = exc.errno
+            if e == _errno.ENOENT:
+                raise SupervisorBlocked("%s_ABSENT" % kind)
+            if e == _errno.ELOOP:
+                raise SupervisorBlocked("%s_REPARSE_OR_ALIAS" % kind)
+            if e == _errno.EXDEV:
+                raise SupervisorBlocked("%s_OUTSIDE_AUTHORIZED_TREE" % kind)
+            if e in (_errno.ENOSYS, _errno.EPERM, _errno.EOPNOTSUPP):
+                raise SupervisorBlocked("%s_NATIVE_IDENTITY_GUARANTEE_UNAVAILABLE_FAIL_CLOSED" % kind)
+            raise SupervisorBlocked("%s_OPEN_FAILED:%d" % (kind, e or 0))
+        try:
+            st = os.fstat(fd)
+            if not _statmod.S_ISREG(st.st_mode):
+                raise SupervisorBlocked("%s_NOT_REGULAR_FILE" % kind)
+            chunks = []
+            while True:
+                b = os.read(fd, 1 << 20)
+                if not b:
+                    break
+                chunks.append(b)
+            return b"".join(chunks)
+        finally:
+            os.close(fd)
     finally:
-        os.close(dirfd)
+        if root_fd is not None:
+            os.close(root_fd)
 
 
 def _win_read_authenticated_bytes(path, kind: str):
@@ -1929,36 +1993,44 @@ def _under(child: str, base) -> bool:
 
 def _read_authenticated_bytes(path, *, expected_sha256=None, forbid_under=None, require_under=None,
                               kind: str) -> bytes:
-    """Lê os bytes de um arquivo GARANTINDO IDENTIDADE FÍSICA do objeto aberto:
-      - cadeia livre de reparse (ancestrais + alvo), sem resolver, como pré-filtro barato;
-      - POSIX: openat+O_NOFOLLOW por componente (race-free); `real` == caminho lexical (sem reparse);
-      - Windows: handle nativo com deny-write/deny-delete + OPEN_REPARSE_POINT; `real` = caminho
-        canônico do handle (GetFinalPathNameByHandle), que reflete ancestrais reais;
-      - escopo verificado sobre `real` (o objeto EFETIVAMENTE aberto), não sobre a string de entrada:
-        `forbid_under` (não pode estar fisicamente dentro do pacote selado) e `require_under` (tem de
-        estar fisicamente dentro da árvore autorizada). Um ancestral reparse que redirecione para fora
-        é pego aqui; um que redirecione para fora da árvore exigida também;
-      - SHA (quando fixado) conferido sobre OS BYTES LIDOS do mesmo handle/descritor (sem reabrir);
-      - ausência genuína (ENOENT/FILE_NOT_FOUND) distinguida de alias/identidade/escopo;
-      - FAIL-CLOSED se a garantia nativa (openat no POSIX, Win32 no Windows) não estiver disponível."""
+    """Lê os bytes de um arquivo GARANTINDO IDENTIDADE/ESCOPO FÍSICOS do objeto aberto, sem lacuna
+    de corrida em espaço de usuário:
+      - pré-filtro barato de reparse por componente (lexical);
+      - POSIX: openat2 ATÔMICO. Com `require_under`, resolve o caminho RELATIVO sob um FD do root
+        confiável com RESOLVE_BENEATH (escape físico => EXDEV => OUTSIDE) + NO_SYMLINKS/NO_MAGICLINKS;
+        o escopo é ENFORÇADO PELO KERNEL num único syscall — fecha a corrida de rename de ancestral
+        (não há mais "abrir dirfd e depois abrir alvo"). Sem `require_under`, resolve o caminho
+        absoluto com NO_SYMLINKS/NO_MAGICLINKS (sem symlink em componente algum => lexical == real),
+        e o `forbid_under` é então conferido lexicalmente de forma sã;
+      - Windows: handle nativo deny-write/deny-delete + OPEN_REPARSE_POINT; escopo sobre o caminho
+        REAL do handle (GetFinalPathNameByHandle); residência contínua do ancestral é qualificada no
+        alvo (runner dirigido) — não declarada do Linux;
+      - SHA (quando fixado) conferido sobre OS BYTES LIDOS do FD/handle (sem reabrir por caminho);
+      - ausência genuína distinguida de alias/identidade/escopo;
+      - FAIL-CLOSED se a garantia nativa (openat2 no POSIX, Win32 no Windows) não existir — NUNCA
+        cai em leitura por caminho vulnerável."""
     exp = None
     if expected_sha256 is not None:
         exp = str(expected_sha256).upper()
         if len(exp) != 64 or any(c not in _HEXSET for c in exp):
             raise SupervisorBlocked("%s_SHA_PIN_INVALID" % kind)
     lexical = _reparse_free_chain(path, kind)  # pré-filtro (ancestrais+alvo), sem resolver
-    if (os.open in getattr(os, "supports_dir_fd", set())) and _O_NOFOLLOW:
-        data = _read_fd_nofollow(lexical, kind)       # POSIX race-free
-        real = _canon(lexical)                        # sem reparse na cadeia => lexical é o real
-    elif os.name == "nt":
+    if os.name == "nt":
         data, real = _win_read_authenticated_bytes(lexical, kind)  # handle nativo, objeto pinado
+        if forbid_under is not None and _under(real, forbid_under):
+            raise SupervisorBlocked("%s_INSIDE_SEALED_PACKAGE_FORBIDDEN" % kind)
+        if require_under is not None and not _under(real, require_under):
+            raise SupervisorBlocked("%s_OUTSIDE_AUTHORIZED_TREE" % kind)
+    elif _openat2_supported():
+        # Escopo de `require_under` é ENFORÇADO ATOMICAMENTE pelo kernel (RESOLVE_BENEATH); não há
+        # checagem lexical foolable. `forbid_under` é conferido lexicalmente (são, pois NO_SYMLINKS
+        # garante lexical == real para o caminho resolvido).
+        data = _read_fd_openat2(lexical, kind, require_under=require_under)
+        if forbid_under is not None and _under(_canon(lexical), forbid_under):
+            raise SupervisorBlocked("%s_INSIDE_SEALED_PACKAGE_FORBIDDEN" % kind)
     else:
         # Sem garantia nativa de identidade/corrida: NÃO cair em leitura por caminho vulnerável.
         raise SupervisorBlocked("%s_NATIVE_IDENTITY_GUARANTEE_UNAVAILABLE_FAIL_CLOSED" % kind)
-    if forbid_under is not None and _under(real, forbid_under):
-        raise SupervisorBlocked("%s_INSIDE_SEALED_PACKAGE_FORBIDDEN" % kind)
-    if require_under is not None and not _under(real, require_under):
-        raise SupervisorBlocked("%s_OUTSIDE_AUTHORIZED_TREE" % kind)
     if exp is not None and _sha_bytes(data) != exp:
         raise SupervisorBlocked("%s_IDENTITY_MISMATCH_OR_CONCURRENT_SWAP" % kind)
     return data

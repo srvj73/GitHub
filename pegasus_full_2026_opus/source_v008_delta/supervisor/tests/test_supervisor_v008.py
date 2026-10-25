@@ -2235,10 +2235,11 @@ class R18R2IdentityAndContentPin(unittest.TestCase):
             self.assertEqual(v["admission"], "ADMITTED_GATES_PHYSICALLY_VERIFIED")
 
     def test_native_guarantee_unavailable_is_fail_closed(self):
-        # Sem openat (O_NOFOLLOW=0) e fora do Windows => NAO cair em leitura por caminho vulneravel.
+        # Sem openat2 e fora do Windows => NAO cair em leitura por caminho vulneravel (R19).
         with tempfile.TemporaryDirectory() as t:
             f = Path(t) / "x.bin"; f.write_bytes(b"data")
-            with mock.patch.object(sup, "_O_NOFOLLOW", 0), mock.patch.object(sup.os, "name", "posix"):
+            with mock.patch.object(sup, "_openat2_supported", lambda: False), \
+                    mock.patch.object(sup.os, "name", "posix"):
                 with self.assertRaises(sup.SupervisorBlocked) as cm:
                     sup._read_authenticated_bytes(str(f), kind="PROBE")
             self.assertIn("NATIVE_IDENTITY_GUARANTEE_UNAVAILABLE_FAIL_CLOSED", str(cm.exception))
@@ -2275,6 +2276,115 @@ class R18R2IdentityAndContentPin(unittest.TestCase):
             with self.assertRaises(sup.SupervisorBlocked) as cm:
                 sup._read_authenticated_bytes(f, forbid_under=sealed, kind="PROBE")
             self.assertIn("INSIDE_SEALED_PACKAGE_FORBIDDEN", str(cm.exception))
+
+
+@unittest.skipUnless(os.name == "posix" and sup._openat2_supported(),
+                     "openat2 (Linux >= 5.6) requerido para a prova POSIX da corrida de rename")
+class R19AncestorRenameRace(unittest.TestCase):
+    """Corrida de rename de ANCESTRAL (contraprova da origem sobre a R18R2): mover o diretório
+    ancestral para fora da árvore confiável entre abrir o dirfd e abrir o alvo fazia a R18R2 aceitar
+    bytes de fora do escopo (require_under comparava o caminho LEXICAL). A R19 resolve o caminho
+    atomicamente com openat2 RESOLVE_BENEATH sob um FD de root confiável — sem walk multi-passo."""
+
+    def _fixture(self, t):
+        trust = Path(t) / "trusted"; trust.mkdir()
+        nested = trust / "nested"; nested.mkdir()
+        gate = nested / "gate.bin"
+        payload = b"PEGASUS_R19_SYNTHETIC_NO_ECONOMY"
+        gate.write_bytes(payload)
+        outside = Path(t) / "outside"; outside.mkdir()
+        return trust, nested, gate, payload, outside
+
+    def _vulnerable_stepwalk(self, path, require_under, on_gap):
+        """Reconstrução LOCAL do walk multi-passo (estilo R18R2) só para PROVAR que a corrida ocorre;
+        NÃO faz parte do produto. Abre o dirfd dos ancestrais e, na lacuna antes de abrir o alvo,
+        chama on_gap() (que move o ancestral). Retorna os bytes lidos (demonstra a aceitação)."""
+        parts = Path(path).parts
+        dirfd = os.open(parts[0], os.O_RDONLY | sup._O_DIRECTORY)
+        try:
+            comps = parts[1:]
+            for i, comp in enumerate(comps):
+                last = i == len(comps) - 1
+                if last:
+                    on_gap()  # janela: ancestral ja aberto por fd, alvo ainda nao aberto
+                    fd = os.open(comp, os.O_RDONLY, dir_fd=dirfd)
+                    try:
+                        return b"".join(iter(lambda: os.read(fd, 1 << 20), b""))
+                    finally:
+                        os.close(fd)
+                nfd = os.open(comp, os.O_RDONLY | sup._O_DIRECTORY, dir_fd=dirfd)
+                os.close(dirfd); dirfd = nfd
+        finally:
+            os.close(dirfd)
+
+    def test_red_reference_stepwalk_accepts_moved_ancestor(self):
+        # PROVA de que a corrida ocorre (controle do resultado): o walk multi-passo le os bytes mesmo
+        # com o ancestral deslocado para fora da arvore confiavel.
+        with tempfile.TemporaryDirectory() as t:
+            trust, nested, gate, payload, outside = self._fixture(t)
+            moved = outside / "moved_nested"
+            state = {"done": False}
+
+            def gap():
+                if not state["done"]:
+                    nested.rename(moved); state["done"] = True
+            data = self._vulnerable_stepwalk(gate, trust, gap)
+            self.assertTrue(state["done"])
+            self.assertEqual(data, payload)                 # o walk leu os bytes...
+            self.assertFalse((trust / "nested" / "gate.bin").exists())  # ...de fora da arvore confiavel
+
+    def test_green_r19_blocks_when_ancestor_moved_before_open(self):
+        # R19: openat2 BENEATH resolve atomicamente sob o root; ancestral fora => nao resolve.
+        with tempfile.TemporaryDirectory() as t:
+            trust, nested, gate, payload, outside = self._fixture(t)
+            nested.rename(outside / "moved_nested")  # ancestral ja fora ANTES da chamada
+            with self.assertRaises(sup.SupervisorBlocked) as cm:
+                sup._read_authenticated_bytes(trust / "nested" / "gate.bin",
+                                              expected_sha256=hashlib.sha256(payload).hexdigest().upper(),
+                                              require_under=trust, kind="GATE_FILE")
+            self.assertTrue(any(k in str(cm.exception) for k in ("OUTSIDE_AUTHORIZED_TREE", "ABSENT")))
+
+    def test_green_r19_authentic_under_tree(self):
+        with tempfile.TemporaryDirectory() as t:
+            trust, nested, gate, payload, outside = self._fixture(t)
+            data = sup._read_authenticated_bytes(gate,
+                                                 expected_sha256=hashlib.sha256(payload).hexdigest().upper(),
+                                                 require_under=trust, kind="GATE_FILE")
+            self.assertEqual(data, payload)
+
+    def test_green_r19_concurrent_rename_never_accepts_outside(self):
+        # Corrida REAL: uma thread move o ancestral para fora e de volta enquanto o leitor roda muitas
+        # vezes. Cada chamada ou devolve os bytes autenticados (resolvidos SOB o root) ou bloqueia;
+        # nunca devolve bytes de fora da arvore confiavel.
+        import threading
+        with tempfile.TemporaryDirectory() as t:
+            trust, nested, gate, payload, outside = self._fixture(t)
+            moved = outside / "moved_nested"
+            stop = {"v": False}
+
+            def churn():
+                while not stop["v"]:
+                    try:
+                        nested.rename(moved)
+                        moved.rename(nested)
+                    except OSError:
+                        pass
+            th = threading.Thread(target=churn); th.start()
+            try:
+                blocked = served = 0
+                for _ in range(400):
+                    try:
+                        d = sup._read_authenticated_bytes(gate,
+                                                          expected_sha256=hashlib.sha256(payload).hexdigest().upper(),
+                                                          require_under=trust, kind="GATE_FILE")
+                        self.assertEqual(d, payload)  # so pode servir o arquivo SOB o root
+                        served += 1
+                    except sup.SupervisorBlocked:
+                        blocked += 1
+            finally:
+                stop["v"] = True; th.join()
+            # o teste prova a ausencia de aceitacao-fora-do-escopo; served/blocked variam com o SO.
+            self.assertEqual(served + blocked, 400)
 
 
 class R17W04EvaluateVsRelease(unittest.TestCase):

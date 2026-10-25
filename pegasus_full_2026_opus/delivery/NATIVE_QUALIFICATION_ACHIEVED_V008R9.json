@@ -2,6 +2,6 @@
   "schema": "PEGASUS_FULL_2026_V008R9_NATIVE_QUALIFICATION_ACHIEVED_PRESERVED",
   "verdict": "MET",
   "preserved_in_zip": "receipts/V008/offline_final/native_campaign_r9/",
-  "note": "Campanha nativa R9 (23/23, MET) sobre os bytes R9; nao reexecutada na R18R2 (bytes diferem so por delta de engenharia nao economico).",
+  "note": "Campanha nativa R9 (23/23, MET) sobre os bytes R9; nao reexecutada na R19 (bytes diferem so por delta de engenharia nao economico).",
   "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
 }

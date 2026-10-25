@@ -1,0 +1,89 @@
+{
+  "schema": "PEGASUS_FULL_2026_V008R19_G0_OFFLINE_RECEIPT",
+  "final_bytes": {
+    "zip": {
+      "name": "PEGASUS_FULL_2026_ENGINEERING_FINAL_V008R19_20261025.zip",
+      "sha256": "6159D126A741C749882FC1DC77339DCF88E934660099D021E9DF79595147C457",
+      "bytes": 87586229,
+      "members": 2990
+    },
+    "manifest_sha256_m2": "3EB6A5625BC5376EE416B04B9F888837AC3A1FB3E91D85B07963EE824828B7AB",
+    "tested_manifest_sha256_m1": "59E4DC75C26A677F4DF9DD514F05FEE5281FFA396EAED595630315FCDD35FE1F",
+    "entrypoint_pegasus_entry_sha256": "F77B52669FF5D98BD9D8AC7AFBFB1483BF8CAE3AA7CB61F5242830BF3E43A7FB",
+    "base_codex_v003_sha256": "CC37261C017FA541BE125EE5432B29E63480D694EB26900A565D2ADDBD539041",
+    "supervisor_sha256": "84D662ED65BD9E3499B4624EDC99246A8BF353F324FD2D4FA14681C5211A08D5",
+    "win_native_sha256": "D1A59BF71A7DF4B07CF24122F8CB9AFB96B45986845202287B7EAA410388A0C6",
+    "supersedes_v008r18r2": {
+      "zip_sha256": "09E4759308DBD68762F331820D23B9BEC6FC504BFA0BC2685DDEB588E4A62A2D",
+      "reason": "sucessor corrigido da R18R2 (que permanece congelada, assim como R18 e R18R1). O preflight independente apontou que a rota POSIX de leitura autenticada (_read_fd_nofollow) era um WALK MULTI-PASSO: abria cada ancestral por openat+O_NOFOLLOW relativo ao dirfd anterior e so ao final comparava o caminho LEXICAL contra require_under. Entre abrir o dirfd do ancestral e abrir o alvo ha uma janela: mover o ancestral para FORA da arvore confiavel ANTES da abertura final faz o openat seguir o inode ja aberto e devolver bytes FORA de escopo, enquanto a verificacao lexical ainda parece dentro (TOCTOU). A contraprova da origem foi REPRODUZIDA nos bytes R18R2 (REPRODUCED_VULNERABILITY) antes de corrigir. R19 remove o walk e resolve o caminho ATOMICAMENTE pelo kernel: POSIX openat2(2) com RESOLVE_BENEATH relativo a um FD de root confiavel (require_under aplicado pelo kernel, EXDEV) + RESOLVE_NO_SYMLINKS + RESOLVE_NO_MAGICLINKS; bytes lidos do fd devolvido; sem openat2 e fora do Windows => FAIL-CLOSED (nenhuma simulacao por realpath/proc/dupla-verificacao). Windows (handle nativo deny-write/deny-delete + GetFinalPathNameByHandle) preservado. As TRES rotas (verify_gate_file, _load_bundle, load_external_admission_module) roteiam por este dispatcher. Preservados: R18R2 (handle Windows + pin), R18R1 (reparse), R18 (I-03A/B/C), R17 (I-01/I-02), R16, R15, F01-F04, R9 23/23 MET. RUN_RELEASED=NO; execucao economica real = DECISAO RESERVADA; nada forjado; politica nao lida; D4 nao autorizado."
+    }
+  },
+  "zip_crc": "PASS",
+  "zip_member_safety": "PASS",
+  "delivered_extract_verify": "PASS_DELIVERED_BYTES_VERIFIED",
+  "delivered_manifest_sha256": "3EB6A5625BC5376EE416B04B9F888837AC3A1FB3E91D85B07963EE824828B7AB",
+  "delivered_files_checked": 2990,
+  "delivered_supervisor_verify": "PASS_PACKAGE_VERIFIED",
+  "delivered_entry_verify": "PACKAGE_VERIFIED=3EB6A5625BC5376EE416B04B9F888837AC3A1FB3E91D85B07963EE824828B7AB",
+  "offline_tests": {
+    "supervisor_unit": "220_OF_220",
+    "supervisor_mutation": "PASS_ALL_MUTANTS_KILLED",
+    "v003_full_chain": "PASS_OFFLINE_DELTAS 19 cases (imutavel)",
+    "supervised_qualification": "PASS_INTEGRATED_SUPERVISED_QUALIFICATION_SYNTHETIC; PASS=18 (incl. Q16,Q17); SKIPPED_NON_NATIVE=2",
+    "qs4_binding_packaged_r001": "BLOCKED_ADAPTER_PIN_05A0CF3D_VS_V003_EC96FE9A",
+    "ps_parse": "PWSH_UNAVAILABLE_IN_SANDBOX; PS5.1_NATIVE_VALIDATED_BY_CAMPAIGNS_R2_R9"
+  },
+  "review_trail": {
+    "origin_review_r18r2_preflight_ancestor_rename": {
+      "reviewer": "Preflight independente da origem (R18R2 nao aprovada; corrida de rename de ancestral apos abertura por dirfd no POSIX)",
+      "decision": "Leitura POSIX era walk multi-passo com verificacao LEXICAL de require_under ao final; rename de ancestral antes da abertura do alvo aceitava bytes fora de escopo. R19 fecha com resolucao atomica openat2 RESOLVE_BENEATH; REPRODUCED_VULNERABILITY na contraprova sobre R18R2",
+      "points": [
+        "_read_fd_nofollow (POSIX) caminhava por dirfd em varios passos e comparava require_under lexicalmente => janela TOCTOU de rename de ancestral",
+        "require_under precisa ser aplicado ATOMICAMENTE pelo kernel, nao por comparacao de string pos-abertura",
+        "bundle_content_sha256 autentica CONTEUDO, nao o EMISSOR: rota economica permanece RESERVED_OWNER_RELEASE_DECISION"
+      ],
+      "all_closed_r19": true,
+      "red_green_inline_proof": "RED_REPRODUCED_GREEN_BLOCKS",
+      "findings": [
+        {
+          "id": "R18R2-PREFLIGHT-ANCESTOR-RENAME",
+          "closed": true
+        },
+        {
+          "id": "RELEASE_RISK_REVIEWED",
+          "closed": true
+        },
+        {
+          "id": "PRIOR_PRESERVED",
+          "closed": true
+        }
+      ],
+      "final_tree_convergence_probe": true,
+      "predecessor_r18r2_reproduction": false,
+      "reserved_owner_release_decision": true,
+      "evidence_in": "receipts/V008/offline_final/r19_origin_fixes/"
+    },
+    "native_qualification_r9": {
+      "verdict": "MET",
+      "preserved_in": "receipts/V008/offline_final/native_campaign_r9/",
+      "bytes": "R9 (nao reexecutado)"
+    },
+    "independent_audit_r10": {
+      "verdict": "FAIL (F01-F04 closed R11)",
+      "preserved": true
+    },
+    "false_completeness": {
+      "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED_ANCESTOR_RENAME_RACE_CLOSED_OPENAT2_FAIL_CLOSED_REAL_RELEASE_RESERVED_TO_OWNER"
+    }
+  },
+  "g4": "FROZEN",
+  "qs4": "NO",
+  "full_economic": "NO",
+  "phase_c": "FORBIDDEN",
+  "reselection_2026": "FORBIDDEN",
+  "run_released": "NO",
+  "full_released": "NO",
+  "paid_credit": "NOT_USED",
+  "independent_audit": "R17_RETOMADA_I03_PHYSICAL_RESERVED CLOSED R18; R18_PREFLIGHT_REPARSE_TOCTOU CLOSED R18R1; R18R1_PREFLIGHT_WINDOWS_FILE_IDENTITY CLOSED R18R2; R18R2_PREFLIGHT_ANCESTOR_RENAME_TOCTOU CLOSED R19; FORMAL_REAUDIT_PENDING_ORIGIN",
+  "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}

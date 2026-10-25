@@ -1,0 +1,99 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R19_CONVERGENCE_CLOSURE",
+ "audit_trail": "O preflight independente apontou que a rota POSIX de leitura autenticada (_read_fd_nofollow) era um walk MULTI-PASSO: abria cada ancestral por openat+O_NOFOLLOW relativo ao dirfd anterior e so ao final comparava o caminho LEXICAL contra require_under. Entre abrir o dirfd do ancestral e abrir o alvo existe uma janela: mover o ancestral para FORA da arvore confiavel ANTES da abertura final faz o openat seguir o inode ja aberto e devolver bytes FORA de escopo, enquanto a verificacao lexical ainda parece dentro. A R18R2 aceitava (REPRODUCED_VULNERABILITY na contraprova da origem). A R19 remove o walk e resolve o caminho ATOMICAMENTE pelo kernel.",
+ "defect_reproduced_on_r18r2_zip_sha256": "09E4759308DBD68762F331820D23B9BEC6FC504BFA0BC2685DDEB588E4A62A2D",
+ "supersedes_candidate_sha256": "09E4759308DBD68762F331820D23B9BEC6FC504BFA0BC2685DDEB588E4A62A2D",
+ "red_green_inline_proof": {
+  "platform": "posix",
+  "openat2": true,
+  "positive_control": "PASS",
+  "red_stepwalk_accepted_outside": true,
+  "green_r19_blocked": true,
+  "green_cause": "GATE_FILE_ABSENT",
+  "result": "RED_REPRODUCED_GREEN_BLOCKS",
+  "effects": "ONLY_SYNTHETIC_TEMP_DIR; NO_ECONOMY; NO_TARGET_HOST"
+ },
+ "final_tree_convergence_probe": {
+  "all_safe": true,
+  "supervisor_sha256": "84D662ED65BD9E3499B4624EDC99246A8BF353F324FD2D4FA14681C5211A08D5",
+  "win_native_sha256": "D1A59BF71A7DF4B07CF24122F8CB9AFB96B45986845202287B7EAA410388A0C6",
+  "windows_identity_qualifier_sha256": "852AEDBCD2FFB8B6239A3CC8DF185D7EEE8A5E703C497D8FB53F138623963DE2",
+  "posix_qualifier_result": {
+   "result": "PASS",
+   "platform": "posix",
+   "native_read_path": "POSIX_OPENAT2_RESOLVE_BENEATH",
+   "required_pass": "12/12",
+   "skipped": [
+    "MODULE_ANCESTOR_JUNCTION"
+   ],
+   "exit": 0
+  },
+  "probes": [
+   {
+    "probe": "POSIX_OPENAT2_RESOLVE_BENEATH_ATOMIC",
+    "safe": true,
+    "detail": "require_under aplicado pelo kernel (EXDEV) relativo a um FD de root confiavel; sem walk multi-passo; cobre rename de ancestral durante a resolucao, .. e symlink."
+   },
+   {
+    "probe": "RESOLVE_NO_SYMLINKS_NO_MAGICLINKS",
+    "safe": true
+   },
+   {
+    "probe": "FAIL_CLOSED_WITHOUT_OPENAT2",
+    "safe": true,
+    "detail": "sem openat2 (e nao-Windows) => NATIVE_IDENTITY_GUARANTEE_UNAVAILABLE_FAIL_CLOSED; nenhuma simulacao por realpath/proc/dupla-verificacao."
+   },
+   {
+    "probe": "WINDOWS_NATIVE_HANDLE_IDENTITY_PRESERVED",
+    "safe": true,
+    "qualified_on": "WINDOWS_TARGET_RUNNER"
+   },
+   {
+    "probe": "ALL_THREE_ROUTES_ROUTED",
+    "safe": true,
+    "detail": "verify_gate_file + _load_bundle + load_external_admission_module via _read_authenticated_bytes."
+   }
+  ]
+ },
+ "predecessor_r18r2_reproduction": {
+  "all_safe": false,
+  "probes": [
+   {
+    "probe": "POSIX_STEPWALK_ANCESTOR_RENAME_TOCTOU",
+    "safe": false,
+    "reason": "R18R2 _read_fd_nofollow caminhava por dirfd em varios passos e comparava require_under lexicalmente; rename de ancestral antes da abertura do alvo era aceito (bytes fora de escopo)."
+   }
+  ]
+ },
+ "findings": [
+  {
+   "finding": "R18R2-PREFLIGHT-ANCESTOR-RENAME",
+   "title": "corrida de rename de ancestral apos abertura por dirfd (POSIX)",
+   "fix": "Rota POSIX de _read_authenticated_bytes agora usa openat2(2) com RESOLVE_BENEATH relativo a um FD de root confiavel (require_under) + RESOLVE_NO_SYMLINKS + RESOLVE_NO_MAGICLINKS. A resolucao do caminho e ATOMICA no kernel: nao ha janela entre verificar e abrir; rename de ancestral durante a resolucao, .. e symlink sao recusados (EXDEV => OUTSIDE_AUTHORIZED_TREE). Sem require_under, resolve por AT_FDCWD com NO_SYMLINKS|NO_MAGICLINKS. Os bytes sao lidos do fd devolvido. Sem openat2 e fora do Windows => FAIL-CLOSED (nenhuma simulacao). Windows (handle nativo deny-write/deny-delete + GetFinalPathNameByHandle) preservado. As TRES rotas roteiam por este dispatcher.",
+   "windows_qualification": "Qualificador dirigido windows_identity_qualifier_v008r19.py (hash-bound, pre-efeito) + bootstrap PS5.1. Casos reproduziveis PROVADOS no POSIX agora (openat2 BENEATH): {\"result\": \"PASS\", \"platform\": \"posix\", \"native_read_path\": \"POSIX_OPENAT2_RESOLVE_BENEATH\", \"required_pass\": \"12/12\", \"skipped\": [\"MODULE_ANCESTOR_JUNCTION\"], \"exit\": 0}. Prova RED->GREEN inline: {\"platform\": \"posix\", \"openat2\": true, \"positive_control\": \"PASS\", \"red_stepwalk_accepted_outside\": true, \"green_r19_blocked\": true, \"green_cause\": \"GATE_FILE_ABSENT\", \"result\": \"RED_REPRODUCED_GREEN_BLOCKS\", \"effects\": \"ONLY_SYNTHETIC_TEMP_DIR; NO_ECONOMY; NO_TARGET_HOST\"}. Junction de ancestral e identidade por handle nativo = prova no alvo Windows.",
+   "closed": true
+  },
+  {
+   "finding": "RELEASE_RISK_REVIEWED",
+   "title": "bundle_content_sha256 autentica conteudo, NAO o emissor",
+   "detail": "O pin de conteudo detecta adulteracao do bundle mas qualquer parte que o produza pode recomputa-lo; nao e autenticacao de emissor. A rota economica permanece bloqueada por RESERVED_OWNER_RELEASE_DECISION; RUN_RELEASED nao promovido; nenhum emissor administrativo adicional em PolicyRoot; G4/V003 inalterados.",
+   "closed": true
+  },
+  {
+   "finding": "PRIOR_PRESERVED",
+   "title": "R18R2 (handle Windows + pin), R18R1 (reparse), R18 (I-03A/B/C), R17 (I-01/I-02), R16 (N1/N2/N3), R15, F01-F04, R9 23/23 MET preservados",
+   "source": {
+    "windows_handle": true,
+    "content_pin": true,
+    "reparse_free_chain": true,
+    "physical_gates": true,
+    "reserved_decision": true,
+    "native_r9": true
+   },
+   "closed": true
+  }
+ ],
+ "all_closed": true,
+ "note": "Classe de identidade de arquivo fechada em AMBAS as plataformas e em TODAS as rotas: POSIX por openat2 RESOLVE_BENEATH (resolucao atomica pelo kernel, sem walk multi-passo; cobre rename de ancestral); Windows por handle nativo deny-write/deny-delete + GetFinalPathNameByHandle. Sem garantia nativa => FAIL-CLOSED. A prova nativa de junction/corrida no Windows e do runner dirigido no alvo. G4/V003 FROZEN; QS4=NO; RUN_RELEASED=NO; execucao economica real = RESERVED_OWNER_RELEASE_DECISION; politica nao lida; D4 nao autorizado. R18, R18R1 e R18R2 permanecem congeladas.",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}

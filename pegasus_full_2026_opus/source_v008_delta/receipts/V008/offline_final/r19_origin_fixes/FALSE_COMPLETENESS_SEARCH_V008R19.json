@@ -1,0 +1,56 @@
+{
+ "schema": "PEGASUS_FULL_2026_V008R19_FALSE_COMPLETENESS_SEARCH",
+ "method": "adversarial enumeration bound to the new bytes (R19 delta over R18R2)",
+ "anchors_in_source": {
+  "posix_openat2_resolve_beneath": true,
+  "resolve_no_symlinks": true,
+  "resolve_no_magiclinks": true,
+  "require_under_enforced_by_kernel": true,
+  "read_from_returned_fd_no_reopen": true,
+  "fail_closed_without_openat2": true,
+  "no_realpath_proc_doublecheck_simulation": true,
+  "windows_handle_preserved": true,
+  "bundle_content_pin_mandatory": true,
+  "all_three_routes_routed": true
+ },
+ "consumers": [
+  {
+   "consumer": "file_identity_all_platforms_all_routes_atomic",
+   "wired_at": "_read_authenticated_bytes (POSIX openat2 BENEATH / Windows handle) + verify_gate_file + _load_bundle + load_external_admission_module",
+   "qualified_by": "R19AncestorRenameRace (RED stepwalk + GREEN openat2 + 400x concurrent stress) + windows_identity_qualifier_v008r19 (POSIX agora; junction/handle no alvo Windows)",
+   "status": "IMPLEMENTED_HARDENED_R19_POSIX_PROVEN_WINDOWS_RUNNER_READY",
+   "findings_closed": "R18R2-PREFLIGHT-ANCESTOR-RENAME"
+  },
+  {
+   "consumer": "release_authentication_vs_content_pin",
+   "wired_at": "production_admission_verdict (bundle_content_sha256) + release_admission_signal",
+   "qualified_by": "nota de risco: pin autentica conteudo, nao emissor; rota economica RESERVED_OWNER_RELEASE_DECISION",
+   "status": "DOCUMENTED_RESERVED_TO_OWNER",
+   "findings_closed": "RELEASE_RISK_REVIEWED"
+  },
+  {
+   "consumer": "prior_hardening_preserved",
+   "wired_at": "R18R2/R18R1/R18/R17 code paths",
+   "qualified_by": "regressions PASS nos bytes R19; native R9 preserved",
+   "status": "PRESERVED",
+   "findings_closed": "ALL_PRIOR"
+  }
+ ],
+ "mandatory_integration_unimplemented": [],
+ "dead_consumers_or_uncalled_integrations": [],
+ "internally_correctable_defects_remaining": [],
+ "windows_native_pending": {
+  "what": "junction de ancestral + identidade por handle sob corrida real",
+  "how": "windows_identity_qualifier_v008r19.py via bootstrap PS5.1 no PC do titular (hash-bound, pre-efeito)",
+  "declared": "TARGET_RUNTIME_PENDING; NAO declarado PASS nativo a partir do Linux"
+ },
+ "policy_boundaries_out_of_scope": {
+  "qs4": "NO",
+  "full_economic": "NOT_STARTED",
+  "run_released": "NO",
+  "real_economic_execution": "RESERVED_OWNER_RELEASE_DECISION",
+  "note": "politica nao lida"
+ },
+ "verdict": "NO_MANDATORY_ENGINEERING_INTEGRATION_UNIMPLEMENTED_ANCESTOR_RENAME_RACE_CLOSED_OPENAT2_FAIL_CLOSED_REAL_RELEASE_RESERVED_TO_OWNER",
+ "result_return_to": "ChatGPT | PROJECT=Pegasus Original | THREAD=Implementação Runner Paralelo 15"
+}
